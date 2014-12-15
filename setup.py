@@ -36,5 +36,7 @@ setup(name='core-apis',
       entry_points="""\
       [paste.app_factory]
       main = coreapis:main
+      [paste.filter_app_factory]
+      mockauthmiddleware = coreapis.middleware:mock_main
       """,
       )
