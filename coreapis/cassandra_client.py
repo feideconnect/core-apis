@@ -30,7 +30,7 @@ def insert_client(session, id, client_secret, name, descr,
 
 
 def get_client_by_id(session, clientid):
-    prep = session.prepare('SELECT * FROM client WHERE id = ?')
+    prep = session.prepare('SELECT * FROM clients WHERE id = ?')
     res = session.execute(prep.bind([clientid]))
     if len(res) == 0:
         raise KeyError('No such client')
@@ -38,7 +38,7 @@ def get_client_by_id(session, clientid):
 
 
 def get_clients_by_owner(session, owner):
-    prep = session.prepare('SELECT * from client WHERE owner = ?')
+    prep = session.prepare('SELECT * from clients WHERE owner = ?')
     t0 = time.time()
     res = session.execute(prep.bind([owner]))
     print("Executed in %s ms" % ((time.time()-t0)*1000))
@@ -46,7 +46,7 @@ def get_clients_by_owner(session, owner):
 
 
 def get_clients_by_scope(session, scope):
-    prep = session.prepare('SELECT * from client WHERE scopes CONTAINS ?')
+    prep = session.prepare('SELECT * from clients WHERE scopes CONTAINS ?')
     res = session.execute(prep.bind([scope]))
     return res
 
