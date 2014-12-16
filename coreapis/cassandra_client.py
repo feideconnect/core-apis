@@ -57,3 +57,11 @@ def get_token(session, tokenid):
     if len(res) == 0:
         raise KeyError('No such token')
     return res[0]
+
+
+def get_user_by_id(session, userid):
+    prep = session.prepare('SELECT * FROM users WHERE userid = ?')
+    res = session.execute(prep.bind([userid]))
+    if len(res) == 0:
+        raise KeyError('No such user')
+    return res[0]

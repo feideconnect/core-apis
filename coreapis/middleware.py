@@ -50,12 +50,49 @@ class AuthMiddleware(object):
 class MockAuthMiddleware(AuthMiddleware):
     tokens = {
         'user': {
-            'user': 'someuser',
-            'client': 'someclient',
+            'user': {
+                "name": {"feide:example.com": "Dummy User"},
+                "created": "2014-12-16T09:15:57",
+                "userid": "00000000-0000-0000-0000-000000000001",
+                "selectedsource": "feide:example.com",
+                "userid_sec_seen": {},
+                "userid_sec": [],
+                "email": {"feide:example.com": "dummy@example.com"}
+            },
+
+            'client': {
+                "status": ["production"],
+                "scopes": ["userinfo"],
+                "updated": None,
+                "name": "Dummy Client",
+                "descr": "Dummy Client for dummy testing",
+                "created": "2014-12-15T12:26:07",
+                "redirect_uri": ["https://sp.example.org/callback"],
+                "scopes_requested": [],
+                "owner": "00000000-0000-0000-0000-000000000001",
+                "client_secret": "00000000-0000-0000-0000-000000000003",
+                "type": "client",
+                "id": "00000000-0000-0000-0000-000000000002"
+            },
+
             'scopes': ['api_ecampusrelay'],
         },
         'client': {
-            'client': 'someotherclient',
+            'client': {
+                "status": ["production"],
+                "scopes": ["userinfo"],
+                "updated": None,
+                "name": "Dummy Client",
+                "descr": "Dummy Client for dummy testing",
+                "created": "2014-12-15T12:26:07",
+                "redirect_uri": ["https://sp.example.org/callback"],
+                "scopes_requested": [],
+                "owner": "00000000-0000-0000-0000-000000000001",
+                "client_secret": "00000000-0000-0000-0000-000000000003",
+                "type": "client",
+                "id": "00000000-0000-0000-0000-000000000002"
+            },
+
             'scopes': ['userinfo', 'longterm'],
         },
     }
@@ -78,5 +115,15 @@ class CassandraMiddleware(AuthMiddleware):
         token_uuid = uuid.UUID(token_string)
         with self.timer.time('auth.lookup_token'):
             token = cassandra_client.get_token(self.session, token_uuid)
-        self.log.debug('found token', **token)
-        return token.get('userid', None), token['clientid'], token['scope']
+            if 'clientid' not in token:
+                self.log.warn('token misses required column "client"', token=token_string)
+                raise KeyError('Invalid token')
+            if 'scope' not in token:
+                self.log.warn('token misses required column "scope"', token=token_string)
+                raise KeyError('Invalid token')
+            client = cassandra_client.get_client_by_id(self.session, token['clientid'])
+            if 'userid' in token:
+                user = cassandra_client.get_user_by_id(self.session, token['userid'])
+            else:
+                user = None
+        return user, client, token['scope']
