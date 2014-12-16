@@ -1,4 +1,8 @@
 from pyramid.config import Configurator
+import datetime
+import uuid
+import blist
+import pyramid.renderers
 from .aaa import TokenAuthenticationPolicy, TokenAuthorizationPolicy
 from .utils import Timer
 
@@ -17,4 +21,9 @@ def main(global_config, **settings):
                   global_config['statsd_prefix'])
     config.add_settings(timer=timer)
     config.add_tween('coreapis.utils.RequestTimingTween')
+    json_renderer = pyramid.renderers.JSON()
+    json_renderer.add_adapter(datetime.datetime, lambda x, y: x.isoformat())
+    json_renderer.add_adapter(blist.sortedset, lambda x, y: list(x))
+    json_renderer.add_adapter(uuid.UUID, lambda x, y: str(x))
+    config.add_renderer('json', json_renderer)
     return config.make_wsgi_app()

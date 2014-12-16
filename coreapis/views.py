@@ -14,9 +14,9 @@ def test_open(request):
 
 @view_config(route_name='test_client', renderer='json', permission='client')
 def test_client(request):
-    return {'status': 'open'}
+    return {'client': request.environ['FC_CLIENT']}
 
 
 @view_config(route_name='test_user', renderer='json', permission='user')
 def test_user(request):
-    return {'status': 'open'}
+    return {'user': request.environ['FC_USER']}
