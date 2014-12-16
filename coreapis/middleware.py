@@ -76,7 +76,7 @@ class CassandraMiddleware(AuthMiddleware):
 
     def lookup_token(self, token_string):
         token_uuid = uuid.UUID(token_string)
-        with self.timer.time('lookup_auth_token'):
+        with self.timer.time('auth.lookup_token'):
             token = cassandra_client.get_token(self.session, token_uuid)
         self.log.debug('found token', **token)
         return token.get('userid', None), token['clientid'], token['scope']
