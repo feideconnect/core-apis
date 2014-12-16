@@ -20,7 +20,7 @@ class AuthMiddleware(object):
 
     def get_token(self, environ):
         authorization = environ.get('HTTP_AUTHORIZATION')
-        if authorization and authorization.startswith('bearer '):
+        if authorization and authorization.startswith('Bearer '):
             token = authorization.split(' ', 1)[1]
             return token
         return None
