@@ -3,6 +3,8 @@ import json
 import datetime
 import uuid
 import blist
+import statsd
+import time
 
 
 class CustomEncoder(json.JSONEncoder):
@@ -37,3 +39,22 @@ class LogWrapper(object):
 
     def info(self, msg, **kwargs):
         self.l.info(self.msg(msg, **kwargs))
+
+
+class Timer(object):
+    def __init__(self, server, port, prefix):
+        self.client = statsd.StatsClient(server, port, prefix=prefix)
+
+    class Context(object):
+        def __init__(self, client, name):
+            self.client = client
+            self.name = name
+
+        def __enter__(self):
+            self.t0 = time.time()
+
+        def __exit__(self, type, value, traceback):
+            self.client.timing(self.name, (time.time() - self.t0) * 1000)
+
+    def time(self, name):
+        return self.Context(self.client, name)

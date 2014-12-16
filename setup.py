@@ -15,6 +15,7 @@ requires = [
     'pyramid',
     'pytest',
     'pytz',
+    'statsd',
     ]
 
 setup(name='core-apis',

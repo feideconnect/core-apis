@@ -1,6 +1,6 @@
 import uuid
 from . import cassandra_client
-from .utils import LogWrapper
+from .utils import LogWrapper, Timer
 
 
 def mock_main(app, config):
@@ -9,8 +9,10 @@ def mock_main(app, config):
 
 def cassandra_main(app, config, contact_points, keyspace):
     contact_points = contact_points.split(', ')
+    timer = Timer(config['statsd_server'], int(config['statsd_port']),
+                  config['statsd_prefix'])
     return CassandraMiddleware(app, contact_points,
-                               keyspace)
+                               keyspace, timer)
 
 
 class AuthMiddleware(object):
@@ -67,12 +69,14 @@ class MockAuthMiddleware(AuthMiddleware):
 
 
 class CassandraMiddleware(AuthMiddleware):
-    def __init__(self, app, contact_points, keyspace):
+    def __init__(self, app, contact_points, keyspace, timer):
         super(CassandraMiddleware, self).__init__(app)
+        self.timer = timer
         self.session = cassandra_client.create_session(contact_points, keyspace)
 
     def lookup_token(self, token_string):
         token_uuid = uuid.UUID(token_string)
-        token = cassandra_client.get_token(self.session, token_uuid)
+        with self.timer.time('lookup_auth_token'):
+            token = cassandra_client.get_token(self.session, token_uuid)
         self.log.debug('found token', **token)
         return token.get('userid', None), token['clientid'], token['scope']
