@@ -9,9 +9,12 @@ with open(os.path.join(here, 'CHANGES.txt')) as f:
     CHANGES = f.read()
 
 requires = [
+    'blist',
+    'cassandra-driver',
+    'cherrypy',
     'pyramid',
-    'waitress',
     'pytest',
+    'pytz',
     ]
 
 setup(name='core-apis',
@@ -39,5 +42,6 @@ setup(name='core-apis',
       main = coreapis:main
       [paste.filter_app_factory]
       mockauthmiddleware = coreapis.middleware:mock_main
+      cassandramiddleware = coreapis.middleware:cassandra_main
       """,
       )
