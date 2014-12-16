@@ -109,21 +109,21 @@ class CassandraMiddleware(AuthMiddleware):
     def __init__(self, app, contact_points, keyspace, timer):
         super(CassandraMiddleware, self).__init__(app)
         self.timer = timer
-        self.session = cassandra_client.create_session(contact_points, keyspace)
+        self.session = cassandra_client.Client(contact_points, keyspace)
 
     def lookup_token(self, token_string):
         token_uuid = uuid.UUID(token_string)
         with self.timer.time('auth.lookup_token'):
-            token = cassandra_client.get_token(self.session, token_uuid)
+            token = self.session.get_token(token_uuid)
             if 'clientid' not in token:
                 self.log.warn('token misses required column "client"', token=token_string)
                 raise KeyError('Invalid token')
             if 'scope' not in token:
                 self.log.warn('token misses required column "scope"', token=token_string)
                 raise KeyError('Invalid token')
-            client = cassandra_client.get_client_by_id(self.session, token['clientid'])
+            client = self.session.get_client_by_id(token['clientid'])
             if 'userid' in token:
-                user = cassandra_client.get_user_by_id(self.session, token['userid'])
+                user = self.session.get_user_by_id(token['userid'])
             else:
                 user = None
         return user, client, token['scope']
