@@ -58,3 +58,24 @@ class Timer(object):
 
     def time(self, name):
         return self.Context(self.client, name)
+
+
+class RequestTimingTween(object):
+    def __init__(self, handler, registry):
+        self.handler = handler
+        self.registry = registry
+        self.timer = registry.settings.timer
+
+    def __call__(self, request):
+        t0 = time.time()
+        response = self.handler(request)
+        t1 = time.time()
+        route = request.matched_route
+        if route:
+            routename = route.name
+        else:
+            routename = '__unknown__'
+        timername = 'request.{}.{}'.format(routename, request.method)
+        logging.debug("Sending stats for %s", timername)
+        self.timer.client.timing(timername, (t1 - t0) * 1000)
+        return response
