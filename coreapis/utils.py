@@ -5,6 +5,11 @@ import uuid
 import blist
 import statsd
 import time
+import pytz
+
+
+def now():
+    return datetime.datetime.now(tz=pytz.UTC)
 
 
 class CustomEncoder(json.JSONEncoder):

@@ -1,13 +1,8 @@
 #! /usr/bin/env python
 from cassandra.cluster import Cluster
 from cassandra.query import dict_factory
-from datetime import datetime
-import pytz
 import time
-
-
-def now():
-    return datetime.now(tz=pytz.UTC)
+from .utils import now
 
 
 class Client(object):
