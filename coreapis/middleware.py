@@ -1,6 +1,6 @@
 import uuid
 from . import cassandra_client
-from .utils import LogWrapper, Timer
+from .utils import LogWrapper, Timer, now
 
 
 def mock_main(app, config):
@@ -115,12 +115,17 @@ class CassandraMiddleware(AuthMiddleware):
         token_uuid = uuid.UUID(token_string)
         with self.timer.time('auth.lookup_token'):
             token = self.session.get_token(token_uuid)
-            if 'clientid' not in token:
-                self.log.warn('token misses required column "client"', token=token_string)
-                raise KeyError('Invalid token')
-            if 'scope' not in token:
-                self.log.warn('token misses required column "scope"', token=token_string)
-                raise KeyError('Invalid token')
+
+            for column in ('clientid', 'scope', 'validuntil'):
+                if column not in token:
+                    self.log.warn('token misses required column "{}"'.format(column),
+                                  token=token_string)
+                    raise KeyError('Invalid token')
+
+            if token['validuntil'] < now():
+                self.log.debug('Expired token used', token=token_string)
+                raise KeyError('Token Expired')
+
             client = self.session.get_client_by_id(token['clientid'])
             if 'userid' in token:
                 user = self.session.get_user_by_id(token['userid'])
