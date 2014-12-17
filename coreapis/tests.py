@@ -3,7 +3,6 @@ import mock
 import uuid
 import datetime
 from webtest import TestApp
-import json
 
 from pyramid import testing
 from . import main, middleware
@@ -16,7 +15,6 @@ def parse_auth_params(params):
         k, v = item.split('=', 1)
         k = k.strip()
         v = v.strip()
-        print(v)
         assert v[0] == '"'
         assert v[-1] == '"'
         v = v[1:-1]
