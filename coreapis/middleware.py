@@ -118,7 +118,7 @@ class CassandraMiddleware(AuthMiddleware):
             token = self.session.get_token(token_uuid)
 
             for column in ('clientid', 'scope', 'validuntil'):
-                if column not in token:
+                if column not in token or token[column] is None:
                     self.log.warn('token misses required column "{}"'.format(column),
                                   token=token_string)
                     raise KeyError('Invalid token')
@@ -128,7 +128,7 @@ class CassandraMiddleware(AuthMiddleware):
                 raise KeyError('Token Expired')
 
             client = self.session.get_client_by_id(token['clientid'])
-            if 'userid' in token:
+            if 'userid' in token and token['userid'] is not None:
                 user = self.session.get_user_by_id(token['userid'])
             else:
                 user = None
