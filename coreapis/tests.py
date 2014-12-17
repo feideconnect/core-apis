@@ -62,6 +62,12 @@ class ViewTests(unittest.TestCase):
 
     def test_test_user_unauthorized(self):
         res = self.testapp.get('/test/user', status=401)
+        authtype, params = res.www_authenticate
+        assert authtype == "Bearer"
+        params = parse_auth_params(params)
+        assert 'realm' in params
+        assert params['realm'] == 'test realm'
+        assert len(params) == 1
 
     def test_test_user_authenticated(self):
         headers = {'Authorization': 'Bearer user_token'}
