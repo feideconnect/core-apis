@@ -59,6 +59,10 @@ class ViewTests(unittest.TestCase):
         assert 'scopes' in out
         assert 'test' in out['scopes']
 
+    def test_bad_token(self):
+        headers = {'Authorization': 'Bearer bad token!'}
+        res = self.testapp.get('/test/scope', status=403, headers=headers)
+
 
 class TokenValidationTests(unittest.TestCase):
     @mock.patch('coreapis.middleware.cassandra_client.Client')
