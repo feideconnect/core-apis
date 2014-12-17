@@ -21,7 +21,7 @@ class ViewTests(unittest.TestCase):
 
     def test_test_open(self):
         res = self.testapp.get('/test/open', status=200)
-        out = json.loads(res.body)
+        out = json.loads(str(res.body, 'UTF-8'))
         assert 'status' in out
         assert out['status'] == 'open'
 
