@@ -51,6 +51,10 @@ class TokenValidationTests(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def test_token_valid(self):
+        self.token['validuntil'] += datetime.timedelta(days=10)
+        assert self.middleware.token_is_valid(self.token, self.token['access_token']) is True
+
     def test_expired_token(self):
         self.token['validuntil'] -= datetime.timedelta(days=10)
-        assert self.middleware.token_is_valid(self.token, self.token['access_token']) == False
+        assert self.middleware.token_is_valid(self.token, self.token['access_token']) is False
