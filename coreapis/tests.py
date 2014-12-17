@@ -52,6 +52,7 @@ class ViewTests(unittest.TestCase):
         assert 'realm' in params
         assert params['realm'] == 'test realm'
         assert len(params) == 1
+        assert 'message' in res.json
 
     def test_test_client_authenticated(self):
         headers = {'Authorization': 'Bearer client_token'}
@@ -68,6 +69,7 @@ class ViewTests(unittest.TestCase):
         assert 'realm' in params
         assert params['realm'] == 'test realm'
         assert len(params) == 1
+        assert 'message' in res.json
 
     def test_test_user_authenticated(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -88,6 +90,7 @@ class ViewTests(unittest.TestCase):
         assert 'error' in params
         assert params['error'] == 'invalid_scope'
         assert 'error_description' in params
+        assert 'message' in res.json
 
     def test_test_scope_valid(self):
         headers = {'Authorization': 'Bearer client_token'}
@@ -108,6 +111,7 @@ class ViewTests(unittest.TestCase):
         assert 'error' in params
         assert params['error'] == 'invalid_token'
         assert 'error_description' in params
+        assert 'message' in res.json
 
 
 class TokenValidationTests(unittest.TestCase):
