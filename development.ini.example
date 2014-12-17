@@ -42,7 +42,7 @@ keys = root, coreapis
 keys = console
 
 [formatters]
-keys = generic
+keys = generic, json
 
 [logger_root]
 level = DEBUG
@@ -61,6 +61,10 @@ formatter = generic
 
 [formatter_generic]
 format = %(asctime)s %(levelname)-5.5s [%(name)s][%(threadName)s] %(message)s
+
+[formatter_json]
+format = {"timestamp": "%(asctime)s", "loglevel": "%(levelname)-5.5s", "logger":  "%(name)s", %(message)s }
+class = coreapis.utils.DebugLogFormatter
 
 [filter:mockauthmiddleware]
 use = egg:core-apis#mockauthmiddleware

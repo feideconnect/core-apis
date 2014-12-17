@@ -24,26 +24,39 @@ class CustomEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
+class LogMessage(object):
+    def __init__(self, message, **kwargs):
+        self.message = message
+        self.args = kwargs
+
+    def __str__(self):
+        rest = json.dumps(self.args, cls=CustomEncoder)
+        rest = rest[1:-1]
+        return '"message": "{}", {}'.format(self.message, rest)
+
+
 class LogWrapper(object):
     def __init__(self, name):
         self.l = logging.getLogger(name)
 
-    def msg(self, msg, **kwargs):
-        msg = {'message': msg}
-        msg.update(kwargs)
-        return json.dumps(msg, cls=CustomEncoder)
-
     def debug(self, msg, **kwargs):
-        self.l.debug(self.msg(msg, **kwargs))
+        self.l.debug(LogMessage(msg, **kwargs))
 
     def warn(self, msg, **kwargs):
-        self.l.warn(self.msg(msg, **kwargs))
+        self.l.warn(LogMessage(msg, **kwargs))
 
     def error(self, msg, **kwargs):
-        self.l.error(self.msg(msg, **kwargs))
+        self.l.error(LogMessage(msg, **kwargs))
 
     def info(self, msg, **kwargs):
-        self.l.info(self.msg(msg, **kwargs))
+        self.l.info(LogMessage(msg, **kwargs))
+
+
+class DebugLogFormatter(logging.Formatter):
+    def format(self, record):
+        if type(record.msg) != LogMessage:
+            record.msg = '"message": "{}"'.format(str(record.msg))
+        return super(DebugLogFormatter, self).format(record)
 
 
 class Timer(object):
