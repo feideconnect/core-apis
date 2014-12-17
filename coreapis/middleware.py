@@ -1,4 +1,5 @@
 import uuid
+import json
 import pytz
 from . import cassandra_client
 from .utils import LogWrapper, Timer, now, www_authenticate
@@ -38,9 +39,10 @@ class AuthMiddleware(object):
                 self.log.debug('failed to find token', token=token)
                 headers = [
                     ('WWW-Authenticate', www_authenticate(self.realm, 'invalid_token', ex.args[0])),
+                    ('Content-Type', 'application/json; charset=UTF-8'),
                 ]
                 start_response('401 Unauthorized', headers)
-                return ''
+                return [json.dumps({'message': ex.args[0]}).encode('utf-8')]
         else:
             self.log.debug('unhandled authorization scheme')
         return self._app(environ, start_response)
