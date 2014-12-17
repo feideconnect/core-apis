@@ -31,8 +31,22 @@ class ViewTests(unittest.TestCase):
     def test_test_client_unauthorized(self):
         res = self.testapp.get('/test/client', status=403)
 
+    def test_test_client_authenticated(self):
+        headers = {'Authorization': 'Bearer client_token'}
+        res = self.testapp.get('/test/client', status=200, headers=headers)
+        out = json.loads(str(res.body, 'UTF-8'))
+        assert 'client' in out
+        assert 'scopes' in out['client']
+
     def test_test_user_unauthorized(self):
         res = self.testapp.get('/test/user', status=403)
+
+    def test_test_user_authenticated(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        res = self.testapp.get('/test/user', status=200, headers=headers)
+        out = json.loads(str(res.body, 'UTF-8'))
+        assert 'user' in out
+        assert 'email' in out['user']
 
 
 class TokenValidationTests(unittest.TestCase):

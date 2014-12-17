@@ -51,7 +51,7 @@ class AuthMiddleware(object):
 
 class MockAuthMiddleware(AuthMiddleware):
     tokens = {
-        'user': {
+        'user_token': {
             'user': {
                 "name": {"feide:example.com": "Dummy User"},
                 "created": "2014-12-16T09:15:57",
@@ -79,7 +79,7 @@ class MockAuthMiddleware(AuthMiddleware):
 
             'scopes': ['api_ecampusrelay'],
         },
-        'client': {
+        'client_token': {
             'client': {
                 "status": ["production"],
                 "scopes": ["userinfo"],
