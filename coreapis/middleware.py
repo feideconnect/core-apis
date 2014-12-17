@@ -113,20 +113,24 @@ class CassandraMiddleware(AuthMiddleware):
         self.timer = timer
         self.session = cassandra_client.Client(contact_points, keyspace)
 
+    def token_is_valid(self, token, token_string):
+        for column in ('clientid', 'scope', 'validuntil'):
+            if column not in token or token[column] is None:
+                self.log.warn('token misses required column "{}"'.format(column),
+                              token=token_string)
+                return False
+
+        if token['validuntil'].replace(tzinfo=pytz.UTC) < now():
+            self.log.debug('Expired token used', token=token_string)
+            return False
+        return True
+
     def lookup_token(self, token_string):
         token_uuid = uuid.UUID(token_string)
         with self.timer.time('auth.lookup_token'):
             token = self.session.get_token(token_uuid)
-
-            for column in ('clientid', 'scope', 'validuntil'):
-                if column not in token or token[column] is None:
-                    self.log.warn('token misses required column "{}"'.format(column),
-                                  token=token_string)
-                    raise KeyError('Invalid token')
-
-            if token['validuntil'].replace(tzinfo=pytz.UTC) < now():
-                self.log.debug('Expired token used', token=token_string)
-                raise KeyError('Token Expired')
+            if not self.token_is_valid(token, token_string):
+                raise KeyError("Token is invalid")
 
             client = self.session.get_client_by_id(token['clientid'])
             if 'userid' in token and token['userid'] is not None:
