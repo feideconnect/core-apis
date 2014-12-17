@@ -2,6 +2,7 @@ import uuid
 import pytz
 from . import cassandra_client
 from .utils import LogWrapper, Timer, now
+import datetime
 
 
 def mock_main(app, config):
@@ -54,8 +55,8 @@ class MockAuthMiddleware(AuthMiddleware):
         'user_token': {
             'user': {
                 "name": {"feide:example.com": "Dummy User"},
-                "created": "2014-12-16T09:15:57",
-                "userid": "00000000-0000-0000-0000-000000000001",
+                "created": datetime.datetime(2014, 12, 15, 13, 53, 36),
+                "userid": uuid.UUID("00000000-0000-0000-0000-000000000001"),
                 "selectedsource": "feide:example.com",
                 "userid_sec_seen": {},
                 "userid_sec": [],
@@ -68,13 +69,13 @@ class MockAuthMiddleware(AuthMiddleware):
                 "updated": None,
                 "name": "Dummy Client",
                 "descr": "Dummy Client for dummy testing",
-                "created": "2014-12-15T12:26:07",
+                "created": datetime.datetime(2014, 12, 16, 13, 53, 36),
                 "redirect_uri": ["https://sp.example.org/callback"],
                 "scopes_requested": [],
-                "owner": "00000000-0000-0000-0000-000000000001",
-                "client_secret": "00000000-0000-0000-0000-000000000003",
+                "owner": uuid.UUID("00000000-0000-0000-0000-000000000001"),
+                "client_secret": uuid.UUID("00000000-0000-0000-0000-000000000003"),
                 "type": "client",
-                "id": "00000000-0000-0000-0000-000000000002"
+                "id": uuid.UUID("00000000-0000-0000-0000-000000000002")
             },
 
             'scopes': ['api_ecampusrelay'],
@@ -86,13 +87,13 @@ class MockAuthMiddleware(AuthMiddleware):
                 "updated": None,
                 "name": "Dummy Client",
                 "descr": "Dummy Client for dummy testing",
-                "created": "2014-12-15T12:26:07",
+                "created": datetime.datetime(2014, 12, 16, 13, 53, 36),
                 "redirect_uri": ["https://sp.example.org/callback"],
                 "scopes_requested": [],
-                "owner": "00000000-0000-0000-0000-000000000001",
-                "client_secret": "00000000-0000-0000-0000-000000000003",
+                "owner": uuid.UUID("00000000-0000-0000-0000-000000000001"),
+                "client_secret": uuid.UUID("00000000-0000-0000-0000-000000000003"),
                 "type": "client",
-                "id": "00000000-0000-0000-0000-000000000002"
+                "id": uuid.UUID("00000000-0000-0000-0000-000000000002")
             },
 
             'scopes': ['userinfo', 'longterm'],
