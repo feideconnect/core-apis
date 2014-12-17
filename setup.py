@@ -12,6 +12,7 @@ requires = [
     'blist',
     'cassandra-driver',
     'cherrypy',
+    'mock',
     'pyramid',
     'pytest',
     'pytz',
