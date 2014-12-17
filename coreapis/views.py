@@ -7,6 +7,7 @@ def configure(config):
     config.add_route('test_client', '/client')
     config.add_route('test_user', '/user')
     config.add_route('test_scope', '/scope')
+    config.add_route('test_crash', '/crash')
 
 
 @view_config(route_name='test_open', renderer='json')
@@ -29,6 +30,11 @@ def test_scope(request):
     return {'scopes': request.environ['FC_SCOPES']}
 
 
+@view_config(route_name='test_crash', renderer='json')
+def test_crash(request):
+    raise RuntimeError('Synthetic crash')
+
+
 @forbidden_view_config(renderer='json')
 def forbidden(request):
     if 'FC_CLIENT' in request.environ:
@@ -44,3 +50,9 @@ def forbidden(request):
 def notfound(request):
     request.response.status_code = 404
     return {'message': 'Requested resource was not found'}
+
+
+@view_config(context=Exception, renderer='json')
+def exception_handler(context, request):
+    request.response.status_code = 500
+    return {'message': 'Internal server error'}
