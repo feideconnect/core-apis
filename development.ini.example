@@ -2,6 +2,10 @@
 # app configuration
 # http://docs.pylonsproject.org/projects/pyramid/en/1.5-branch/narr/environment.html
 ###
+[DEFAULT]
+statsd_server = localhost
+statsd_port = 8125
+statsd_prefix = feideconnect.coreapis
 
 [app:main]
 use = egg:core-apis
@@ -60,3 +64,8 @@ format = %(asctime)s %(levelname)-5.5s [%(name)s][%(threadName)s] %(message)s
 
 [filter:mockauthmiddleware]
 use = egg:core-apis#mockauthmiddleware
+
+[filter:cassandramiddleware]
+use = egg:core-apis#cassandramiddleware
+contact_points = server1, server2, server3
+keyspace = feideconnect
