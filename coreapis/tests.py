@@ -48,6 +48,17 @@ class ViewTests(unittest.TestCase):
         assert 'user' in out
         assert 'email' in out['user']
 
+    def test_test_scope_missing(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        res = self.testapp.get('/test/scope', status=403, headers=headers)
+
+    def test_test_scope_valid(self):
+        headers = {'Authorization': 'Bearer client_token'}
+        res = self.testapp.get('/test/scope', status=200, headers=headers)
+        out = json.loads(str(res.body, 'UTF-8'))
+        assert 'scopes' in out
+        assert 'test' in out['scopes']
+
 
 class TokenValidationTests(unittest.TestCase):
     @mock.patch('coreapis.middleware.cassandra_client.Client')
