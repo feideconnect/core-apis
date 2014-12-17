@@ -111,6 +111,10 @@ class ViewTests(unittest.TestCase):
         assert 'error_description' in params
         assert 'message' in res.json
 
+    def test_bad_path(self):
+        res = self.testapp.get('/test/not_found', status=404)
+        assert 'message' in res.json
+
 
 class TokenValidationTests(unittest.TestCase):
     @mock.patch('coreapis.middleware.cassandra_client.Client')

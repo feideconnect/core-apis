@@ -1,4 +1,4 @@
-from pyramid.view import view_config, forbidden_view_config
+from pyramid.view import view_config, forbidden_view_config, notfound_view_config
 from .utils import www_authenticate
 
 
@@ -38,3 +38,9 @@ def forbidden(request):
     request.response.headers['WWW-Authenticate'] = auth
     request.response.status_code = 401
     return {'message': 'Not authorized'}
+
+
+@notfound_view_config(renderer='json')
+def notfound(request):
+    request.response.status_code = 404
+    return {'message': 'Requested resource was not found'}
