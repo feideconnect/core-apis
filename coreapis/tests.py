@@ -45,6 +45,7 @@ class TokenValidationTests(unittest.TestCase):
             'userid': uuid.uuid4(),
             'access_token': uuid.uuid4(),
             'validuntil': datetime.datetime.now(),
+            'scope': ['foo'],
         }
 
     def tearDown(self):
