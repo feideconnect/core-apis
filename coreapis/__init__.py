@@ -20,6 +20,7 @@ def main(global_config, **settings):
     timer = Timer(global_config['statsd_server'], int(global_config['statsd_port']),
                   global_config['statsd_prefix'])
     config.add_settings(timer=timer)
+    config.add_settings(realm=global_config['oauth_realm'])
     config.add_tween('coreapis.utils.RequestTimingTween')
     json_renderer = pyramid.renderers.JSON()
     json_renderer.add_adapter(datetime.datetime, lambda x, y: x.isoformat())

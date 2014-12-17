@@ -97,3 +97,11 @@ class RequestTimingTween(object):
         logging.debug("Sending stats for %s", timername)
         self.timer.client.timing(timername, (t1 - t0) * 1000)
         return response
+
+
+def www_authenticate(realm, error=None, description=None):
+    if error is not None:
+        template = 'Bearer realm="{}", error="{}", error_description="{}"'
+        return template.format(realm, error, description)
+    else:
+        return 'Bearer realm="{}"'.format(realm)

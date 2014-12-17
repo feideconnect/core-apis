@@ -1,25 +1,26 @@
 import uuid
 import pytz
 from . import cassandra_client
-from .utils import LogWrapper, Timer, now
+from .utils import LogWrapper, Timer, now, www_authenticate
 import datetime
 
 
 def mock_main(app, config):
-    return MockAuthMiddleware(app)
+    return MockAuthMiddleware(app, config['oauth_realm'])
 
 
 def cassandra_main(app, config, contact_points, keyspace):
     contact_points = contact_points.split(', ')
     timer = Timer(config['statsd_server'], int(config['statsd_port']),
                   config['statsd_prefix'])
-    return CassandraMiddleware(app, contact_points,
+    return CassandraMiddleware(app, config['oauth_realm'], contact_points,
                                keyspace, timer)
 
 
 class AuthMiddleware(object):
-    def __init__(self, app):
+    def __init__(self, app, realm):
         self._app = app
+        self.realm = realm
         self.log = LogWrapper('feideconnect.auth')
 
     def __call__(self, environ, start_response):
@@ -32,9 +33,14 @@ class AuthMiddleware(object):
                 environ["FC_USER"] = user
                 environ["FC_CLIENT"] = client
                 environ["FC_SCOPES"] = scopes
-            except KeyError:
+            except KeyError as ex:
                 # Invalid token passed. Perhaps return 402?
                 self.log.debug('failed to find token', token=token)
+                headers = [
+                    ('WWW-Authenticate', www_authenticate(self.realm, 'invalid_token', ex.args[0])),
+                ]
+                start_response('401 Unauthorized', headers)
+                return ''
         else:
             self.log.debug('unhandled authorization scheme')
         return self._app(environ, start_response)
@@ -109,8 +115,8 @@ class MockAuthMiddleware(AuthMiddleware):
 
 
 class CassandraMiddleware(AuthMiddleware):
-    def __init__(self, app, contact_points, keyspace, timer):
-        super(CassandraMiddleware, self).__init__(app)
+    def __init__(self, app, realm, contact_points, keyspace, timer):
+        super(CassandraMiddleware, self).__init__(app, realm)
         self.timer = timer
         self.session = cassandra_client.Client(contact_points, keyspace)
 

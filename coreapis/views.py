@@ -1,4 +1,5 @@
-from pyramid.view import view_config
+from pyramid.view import view_config, forbidden_view_config
+from .utils import www_authenticate
 
 
 def configure(config):
@@ -26,3 +27,14 @@ def test_user(request):
 @view_config(route_name='test_scope', renderer='json', permission='scope_test')
 def test_scope(request):
     return {'scopes': request.environ['FC_SCOPES']}
+
+
+@forbidden_view_config(renderer='json')
+def forbidden(request):
+    if 'FC_CLIENT' in request.environ:
+        auth = www_authenticate(request.registry.settings.realm, 'invalid_scope', 'Supplied token does not give access to perform the request')
+    else:
+        auth = www_authenticate(request.registry.settings.realm)
+    request.response.headers['WWW-Authenticate'] = auth
+    request.response.status_code = 401
+    return {'message': 'Not authorized'}
