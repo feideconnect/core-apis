@@ -16,6 +16,7 @@ requires = [
     'pytest',
     'pytz',
     'statsd',
+    'webtest',
     ]
 
 setup(name='core-apis',

@@ -1,30 +1,32 @@
 import unittest
+from webtest import TestApp
+import json
 
 from pyramid import testing
+from . import main, middleware
 
 
 class ViewTests(unittest.TestCase):
     def setUp(self):
-        self.config = testing.setUp()
-        self.config.include('coreapis.views.configure')
+        app = main({
+            'statsd_server': 'localhost',
+            'statsd_port': '8125',
+            'statsd_prefix': 'feideconnect.tests',
+        })
+        mw = middleware.MockAuthMiddleware(app)
+        self.testapp = TestApp(mw)
 
     def tearDown(self):
         testing.tearDown()
 
     def test_test_open(self):
-        from .views import test_open
-        request = testing.DummyRequest()
-        info = test_open(request)
-        self.assertEqual(info['status'], 'open')
+        res = self.testapp.get('/test/open', status=200)
+        out = json.loads(res.body)
+        assert 'status' in out
+        assert out['status'] == 'open'
 
     def test_test_client_unauthorized(self):
-        from .views import test_client
-        request = testing.DummyRequest()
-        info = test_client(request)
-        self.assertEqual(request.response.status_code, 402)
+        res = self.testapp.get('/test/client', status=403)
 
     def test_test_user_unauthorized(self):
-        from .views import test_user
-        request = testing.DummyRequest()
-        info = test_user(request)
-        self.assertEqual(request.response.status_code, 402)
+        res = self.testapp.get('/test/user', status=403)
