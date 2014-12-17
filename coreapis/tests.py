@@ -40,7 +40,7 @@ class ViewTests(unittest.TestCase):
 
     def test_test_open(self):
         res = self.testapp.get('/test/open', status=200)
-        out = json.loads(str(res.body, 'UTF-8'))
+        out = res.json
         assert 'status' in out
         assert out['status'] == 'open'
 
@@ -56,7 +56,7 @@ class ViewTests(unittest.TestCase):
     def test_test_client_authenticated(self):
         headers = {'Authorization': 'Bearer client_token'}
         res = self.testapp.get('/test/client', status=200, headers=headers)
-        out = json.loads(str(res.body, 'UTF-8'))
+        out = res.json
         assert 'client' in out
         assert 'scopes' in out['client']
 
@@ -66,7 +66,7 @@ class ViewTests(unittest.TestCase):
     def test_test_user_authenticated(self):
         headers = {'Authorization': 'Bearer user_token'}
         res = self.testapp.get('/test/user', status=200, headers=headers)
-        out = json.loads(str(res.body, 'UTF-8'))
+        out = res.json
         assert 'user' in out
         assert 'email' in out['user']
 
@@ -86,7 +86,7 @@ class ViewTests(unittest.TestCase):
     def test_test_scope_valid(self):
         headers = {'Authorization': 'Bearer client_token'}
         res = self.testapp.get('/test/scope', status=200, headers=headers)
-        out = json.loads(str(res.body, 'UTF-8'))
+        out = res.json
         assert 'scopes' in out
         assert 'test' in out['scopes']
 
