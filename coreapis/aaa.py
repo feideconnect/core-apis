@@ -38,7 +38,7 @@ class TokenAuthenticationPolicy(object):
     def effective_principals(self, request):
         if self.authenticated_userid(request):
             principals = [pyramid.security.Everyone, pyramid.security.Authenticated]
-            principals += get_scopes(request)
+            principals += ['scope_{}'.format(scope) for scope in get_scopes(request)]
             principals += ['client', 'client_{}'.format(get_client(request))]
             user = get_user(request)
             if user:
