@@ -1,4 +1,5 @@
 import uuid
+import pytz
 from . import cassandra_client
 from .utils import LogWrapper, Timer, now
 
@@ -122,7 +123,7 @@ class CassandraMiddleware(AuthMiddleware):
                                   token=token_string)
                     raise KeyError('Invalid token')
 
-            if token['validuntil'] < now():
+            if token['validuntil'].replace(tzinfo=pytz.UTC) < now():
                 self.log.debug('Expired token used', token=token_string)
                 raise KeyError('Token Expired')
 
