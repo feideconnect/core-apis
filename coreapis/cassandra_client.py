@@ -12,6 +12,9 @@ class Client(object):
         )
         self.session = cluster.connect(keyspace)
         self.session.row_factory = dict_factory
+        self.s_get_client = self.session.prepare('SELECT * FROM clients WHERE id = ?')
+        self.s_get_token = self.session.prepare('SELECT * FROM oauth_tokens WHERE access_token = ?')
+        self.s_get_user = self.session.prepare('SELECT * FROM users WHERE userid = ?')
 
     def insert_client(self, id, client_secret, name, descr,
                       redirect_uri, scopes, scopes_requested, status,
@@ -23,7 +26,7 @@ class Client(object):
                                         status, type, ts, ts, owner]))
 
     def get_client_by_id(self, clientid):
-        prep = self.session.prepare('SELECT * FROM clients WHERE id = ?')
+        prep = self.s_get_client
         res = self.session.execute(prep.bind([clientid]))
         if len(res) == 0:
             raise KeyError('No such client')
@@ -42,14 +45,14 @@ class Client(object):
         return res
 
     def get_token(self, tokenid):
-        prep = self.session.prepare('SELECT * FROM oauth_tokens WHERE access_token = ?')
+        prep = self.s_get_token
         res = self.session.execute(prep.bind([tokenid]))
         if len(res) == 0:
             raise KeyError('No such token')
         return res[0]
 
     def get_user_by_id(self, userid):
-        prep = self.session.prepare('SELECT * FROM users WHERE userid = ?')
+        prep = self.s_get_user
         res = self.session.execute(prep.bind([userid]))
         if len(res) == 0:
             raise KeyError('No such user')
