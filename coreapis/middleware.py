@@ -33,8 +33,8 @@ class AuthMiddleware(object):
                 environ["FC_CLIENT"] = client
                 environ["FC_SCOPES"] = scopes
             except KeyError:
+                # Invalid token passed. Perhaps return 402?
                 self.log.debug('failed to find token', token=token)
-                pass  # Invalid token passed. Perhaps return 402?
         else:
             self.log.debug('unhandled authorization scheme')
         return self._app(environ, start_response)
