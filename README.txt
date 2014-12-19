@@ -5,8 +5,10 @@ Copy development.ini.example to development.ini and change statsd_server, contac
 
 mkvirtualenv -p `which python3` feideconnect
 python setup.py develop
-pserver --reload development.ini
+pserve --reload development.ini
 
 
 To run unit tests:
 py.test -v coreapis/tests.py
+
+Requires Python 3.3 or newer. Debian Wheezy has 3.2, which is too old.
