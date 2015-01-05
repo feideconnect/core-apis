@@ -16,6 +16,7 @@ def main(global_config, **settings):
     config.set_authentication_policy(authn_policy)
     config.set_authorization_policy(authz_policy)
     config.include('coreapis.test_views.configure', route_prefix='test')
+    config.include('coreapis.person_search_views.configure', route_prefix='person')
     config.scan()
     timer = Timer(global_config['statsd_server'], int(global_config['statsd_port']),
                   global_config['statsd_prefix'])
