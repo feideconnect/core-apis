@@ -15,6 +15,7 @@ requires = [
     'mock',
     'pyramid',
     'pytest',
+    'python3-ldap',
     'pytz',
     'statsd',
     'webtest',
