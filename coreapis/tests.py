@@ -124,7 +124,7 @@ class TokenValidationTests(unittest.TestCase):
     @mock.patch('coreapis.middleware.cassandra_client.Client')
     def setUp(self, Client):
         from .middleware import CassandraMiddleware
-        self.middleware = CassandraMiddleware(None, 'test realm', None, None, None)
+        self.middleware = CassandraMiddleware(None, 'test realm', None, None, None, None)
         self.token = {
             'clientid': uuid.uuid4(),
             'userid': uuid.uuid4(),
