@@ -6,6 +6,7 @@ import blist
 import statsd
 import time
 import pytz
+from collections import deque
 
 
 def now():
@@ -76,6 +77,36 @@ class Timer(object):
 
     def time(self, name):
         return self.Context(self.client, name)
+
+
+class RateLimiter(object):
+    # Requests are let through if client is not among last 1/maxshare
+    # clients served, or if at least mingap ms have passed since last time.
+    # If necessary, we can add a token bucket to accomodate bursts.
+    def __init__(self, maxshare, mingap):
+        self.log = LogWrapper('feideconnect.ratelimit')
+        self.nwatched = int (1./maxshare + 0.5)
+        self.mingap = datetime.timedelta(milliseconds=mingap)
+        self.recents = deque([ (None, None) ] * self.nwatched)
+
+    def check_rate(self, remote_addr):
+        client = remote_addr
+        ts = now()
+        found = False
+        for recent in self.recents:
+            if recent[0] == client:
+                found = True
+        if found:
+            gap = ts - recent[1]
+            accepted = (gap > self.mingap)
+            self.log.debug("%s in recents, gap: %s, accepted: %s" % (client, gap, accepted))
+        else:
+            accepted = True
+            self.log.debug("%s not in recents, accepted: %s" % (client, accepted))
+        if accepted:
+            self.recents.popleft()
+            self.recents.append((client, ts))
+        return accepted
 
 
 class RequestTimingTween(object):

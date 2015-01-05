@@ -2,7 +2,7 @@ import uuid
 import json
 import pytz
 from . import cassandra_client
-from .utils import LogWrapper, Timer, now, www_authenticate
+from .utils import LogWrapper, Timer, RateLimiter, now, www_authenticate
 import datetime
 
 
@@ -10,12 +10,13 @@ def mock_main(app, config):
     return MockAuthMiddleware(app, config['oauth_realm'])
 
 
-def cassandra_main(app, config, contact_points, keyspace):
+def cassandra_main(app, config, contact_points, keyspace, client_max_share, client_min_gap):
     contact_points = contact_points.split(', ')
     timer = Timer(config['statsd_server'], int(config['statsd_port']),
                   config['statsd_prefix'])
+    ratelimiter = RateLimiter(float(client_max_share), int(client_min_gap))
     return CassandraMiddleware(app, config['oauth_realm'], contact_points,
-                               keyspace, timer)
+                               keyspace, timer, ratelimiter)
 
 
 class AuthMiddleware(object):
@@ -117,10 +118,19 @@ class MockAuthMiddleware(AuthMiddleware):
 
 
 class CassandraMiddleware(AuthMiddleware):
-    def __init__(self, app, realm, contact_points, keyspace, timer):
+    def __init__(self, app, realm, contact_points, keyspace, timer, ratelimiter):
         super(CassandraMiddleware, self).__init__(app, realm)
         self.timer = timer
+        self.ratelimiter = ratelimiter
         self.session = cassandra_client.Client(contact_points, keyspace)
+
+    def __call__(self, environ, start_response):
+        if self.ratelimiter and self.ratelimiter.check_rate(environ['REMOTE_ADDR']) == False:
+            headers = []
+            start_response('429 Too many requests', headers)
+            return ""
+        else:
+            return super(CassandraMiddleware, self).__call__(environ, start_response)
 
     def token_is_valid(self, token, token_string):
         for column in ('clientid', 'scope', 'validuntil'):
