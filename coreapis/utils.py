@@ -85,9 +85,9 @@ class RateLimiter(object):
     # If necessary, we can add a token bucket to accomodate bursts.
     def __init__(self, maxshare, mingap):
         self.log = LogWrapper('feideconnect.ratelimit')
-        self.nwatched = int (1./maxshare + 0.5)
+        self.nwatched = int(1./maxshare + 0.5)
         self.mingap = datetime.timedelta(milliseconds=mingap)
-        self.recents = deque([ (None, None) ] * self.nwatched)
+        self.recents = deque([(None, None)] * self.nwatched)
 
     def check_rate(self, remote_addr):
         client = remote_addr
