@@ -7,7 +7,7 @@ import json
 
 def configure(config):
     config.add_route('person_search', '/search/{org}/{name}')
-    config.add_route('list_realms', '/realms')
+    config.add_route('list_realms', '/orgs')
 
 
 def get_ldap_config():
