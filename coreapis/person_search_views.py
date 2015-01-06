@@ -7,6 +7,7 @@ import json
 
 def configure(config):
     config.add_route('person_search', '/search/{org}/{name}')
+    config.add_route('list_realms', '/realms')
 
 
 def get_ldap_config():
@@ -65,3 +66,9 @@ def person_search(request):
     con.search(base_dn, search_filter, ldap3.SEARCH_SCOPE_WHOLE_SUBTREE, attributes=attrs)
     res = con.response
     return [dict(r['attributes']) for r in res]
+
+
+@view_config(route_name='list_realms', renderer='json', permission='scope_personsearch')
+def list_realms(request):
+    conf = get_ldap_config()
+    return {realm: data['display'] for realm, data in conf.items()}
