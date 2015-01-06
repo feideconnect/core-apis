@@ -42,6 +42,13 @@ def get_base_dn(org):
     return get_ldap_config()[org]['base_dn']
 
 
+def handle_exclude(org, search):
+    exclude_filter = get_ldap_config()[org].get('exclude', None)
+    if exclude_filter:
+        search = "(&{}(!{}))".format(search, exclude_filter)
+    return search
+
+
 @view_config(route_name='person_search', renderer='json', permission='scope_personsearch')
 def person_search(request):
     org = request.matchdict['org']
@@ -53,6 +60,7 @@ def person_search(request):
     con = get_connection(org)
     base_dn = get_base_dn(org)
     search_filter = '(cn=*{}*)'.format(search)
+    search_filter = handle_exclude(org, search_filter)
     attrs = ['cn', 'displayName', 'mail', 'mobile']
     con.search(base_dn, search_filter, ldap3.SEARCH_SCOPE_WHOLE_SUBTREE, attributes=attrs)
     res = con.response

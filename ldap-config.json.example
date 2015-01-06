@@ -2,6 +2,7 @@
     "realm1.example.com": {
         "servers": [ "server1.realm1.example.com", "server2.realm1.example.com:63636", "server3.realm1.example.com" ],
         "base_dn": "cn=people,dc=example,dc=com"
+        "exclude": "(hiddenUser=TRUE)"
     },
     "realm2.example.org": {
         "servers": ["server.realm2.example.org:636"],
