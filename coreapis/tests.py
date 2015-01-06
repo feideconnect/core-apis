@@ -171,7 +171,7 @@ class RateLimitTests(unittest.TestCase):
     def setUp(self):
         from .utils import RateLimiter
         self.client_max_share = 0.1
-        self.client_min_gap   = 100
+        self.client_min_gap = 100
         self.ratelimiter = RateLimiter(self.client_max_share, self.client_min_gap)
         self.remote_addr = "127.0.0.1"
         self.nwatched = int(1./self.client_max_share + 0.5)
