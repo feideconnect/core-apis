@@ -2,7 +2,6 @@ import unittest
 import mock
 import uuid
 import datetime
-import time
 from webtest import TestApp
 
 from pyramid import testing
@@ -185,9 +184,12 @@ class RateLimitTests(unittest.TestCase):
         assert res == False
 
     def test_spaced_calls(self):
-        self.ratelimiter.check_rate(self.remote_addr)
-        time.sleep((self.client_min_gap * 2)/1000.)
-        res = self.ratelimiter.check_rate(self.remote_addr)
+        faketime = datetime.datetime.now()
+        with mock.patch('coreapis.utils.now', return_value=faketime):
+            self.ratelimiter.check_rate(self.remote_addr)
+        faketime += datetime.timedelta(milliseconds=self.client_min_gap + 1)
+        with mock.patch('coreapis.utils.now', return_value=faketime):
+            res = self.ratelimiter.check_rate(self.remote_addr)
         assert res == True
 
     def test_few_clients(self):
