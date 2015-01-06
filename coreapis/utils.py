@@ -158,3 +158,9 @@ def www_authenticate(realm, error=None, description=None):
         return template.format(realm, error, description)
     else:
         return 'Bearer realm="{}"'.format(realm)
+
+
+class ValidationError(RuntimeError):
+    def __init__(self, message):
+        super(ValidationError, self).__init__(message)
+        self.message = message

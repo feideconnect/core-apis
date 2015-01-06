@@ -1,5 +1,5 @@
 from pyramid.view import view_config, forbidden_view_config, notfound_view_config
-from .utils import www_authenticate
+from .utils import www_authenticate, ValidationError
 import logging
 
 
@@ -25,3 +25,10 @@ def exception_handler(context, request):
     request.response.status_code = 500
     logging.exception('unhandled exception')
     return {'message': 'Internal server error'}
+
+
+@view_config(context=ValidationError, renderer='json')
+def validation_error(context, request):
+    request.response.status_code = 400
+    logging.exception('validation error')
+    return {'message': context.message}

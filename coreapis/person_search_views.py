@@ -3,6 +3,7 @@ from pyramid.exceptions import HTTPNotFound
 import logging
 import ldap3
 import json
+from .utils import ValidationError
 
 
 def configure(config):
@@ -56,10 +57,17 @@ def flatten(user, attributes):
             user[attr] = user[attr][0]
 
 
+def validate_query(string):
+    for char in ('(', ')', '*', '\\'):
+        if char in string:
+            raise ValidationError('Bad character in request')
+
+
 @view_config(route_name='person_search', renderer='json', permission='scope_personsearch')
 def person_search(request):
     org = request.matchdict['org']
     search = request.matchdict['name']
+    validate_query(search)
     if not org or not search:
         raise HTTPNotFound('missing org or search term')
     if org not in get_ldap_config().keys():
