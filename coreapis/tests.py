@@ -2,6 +2,7 @@ import unittest
 import mock
 import uuid
 import datetime
+import time
 from webtest import TestApp
 
 from pyramid import testing
@@ -164,3 +165,43 @@ class TokenValidationTests(unittest.TestCase):
     def test_no_userid(self):
         self.token['userid'] = None
         assert self.middleware.token_is_valid(self.token, self.token['access_token']) is True
+
+
+class RateLimitTests(unittest.TestCase):
+    def setUp(self):
+        from .utils import RateLimiter
+        self.client_max_share = 0.1
+        self.client_min_gap   = 100
+        self.ratelimiter = RateLimiter(self.client_max_share, self.client_min_gap)
+        self.remote_addr = "127.0.0.1"
+        self.nwatched = int(1./self.client_max_share + 0.5)
+
+    def tearDown(self):
+        testing.tearDown()
+
+    def test_unspaced_calls(self):
+        self.ratelimiter.check_rate(self.remote_addr)
+        res = self.ratelimiter.check_rate(self.remote_addr)
+        assert res == False
+
+    def test_spaced_calls(self):
+        self.ratelimiter.check_rate(self.remote_addr)
+        time.sleep((self.client_min_gap * 2)/1000.)
+        res = self.ratelimiter.check_rate(self.remote_addr)
+        assert res == True
+
+    def test_few_clients(self):
+        self.ratelimiter.check_rate(self.remote_addr)
+        for i in range(self.nwatched-1):
+            remote_addr = str(i)
+            self.ratelimiter.check_rate(remote_addr)
+        res = self.ratelimiter.check_rate(self.remote_addr)
+        assert res == False
+
+    def test_many_clients(self):
+        self.ratelimiter.check_rate(self.remote_addr)
+        for i in range(self.nwatched):
+            remote_addr = str(i)
+            self.ratelimiter.check_rate(remote_addr)
+        res = self.ratelimiter.check_rate(self.remote_addr)
+        assert res == True
