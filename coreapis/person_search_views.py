@@ -50,6 +50,12 @@ def handle_exclude(org, search):
     return search
 
 
+def flatten(user, attributes):
+    for attr in attributes:
+        if attr in user:
+            user[attr] = user[attr][0]
+
+
 @view_config(route_name='person_search', renderer='json', permission='scope_personsearch')
 def person_search(request):
     org = request.matchdict['org']
@@ -62,10 +68,18 @@ def person_search(request):
     base_dn = get_base_dn(org)
     search_filter = '(cn=*{}*)'.format(search)
     search_filter = handle_exclude(org, search_filter)
-    attrs = ['cn', 'displayName', 'mail', 'mobile']
+    attrs = ['cn', 'displayName', 'mail', 'mobile', 'eduPersonPrincipalName']
     con.search(base_dn, search_filter, ldap3.SEARCH_SCOPE_WHOLE_SUBTREE, attributes=attrs)
     res = con.response
-    return [dict(r['attributes']) for r in res]
+    result = [dict(r['attributes']) for r in res]
+    for person in result:
+        flatten(person, ('cn', 'displayName', 'eduPersonPrincipalName'))
+    for person in result:
+        if 'eduPersonPrincipalName' in person:
+            feideid = person['eduPersonPrincipalName']
+            del person['eduPersonPrincipalName']
+            person['id'] = 'feide:' + feideid
+    return result
 
 
 @view_config(route_name='list_realms', renderer='json', permission='scope_personsearch')
