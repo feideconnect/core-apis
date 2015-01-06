@@ -25,7 +25,14 @@ def get_connection(org):
             host, port = server, None
         server = ldap3.Server(host, port=port, use_ssl=True)
         server_pool.add(server)
+    if 'bind_user' in orgconf:
+        user = orgconf['bind_user']['dn']
+        password = orgconf['bind_user']['password']
+    else:
+        user = None
+        password = None
     con = ldap3.Connection(server_pool, auto_bind=True,
+                           user=user, password=password,
                            client_strategy=ldap3.STRATEGY_SYNC,
                            check_names=True)
     return con

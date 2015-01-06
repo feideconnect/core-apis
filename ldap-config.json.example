@@ -6,5 +6,9 @@
     "realm2.example.org": {
         "servers": ["server.realm2.example.org:636"],
         "base_dn": "dc=foo,dc=bar,ou=realm2,dc=example,dc=org"
+        "bind_user": {
+            "dn": "cn=search_user,ou=auth,dc=example,dc=org",
+            "password": "verysecret"
+        }
     }
 }
