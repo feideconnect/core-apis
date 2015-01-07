@@ -13,6 +13,7 @@ requires = [
     'cassandra-driver',
     'cherrypy',
     'mock',
+    'pillow',
     'pyramid',
     'pytest',
     'python3-ldap',

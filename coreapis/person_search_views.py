@@ -1,14 +1,21 @@
 from pyramid.view import view_config
 from pyramid.exceptions import HTTPNotFound
+from pyramid.response import Response
 import logging
 import ldap3
 import json
 from .utils import ValidationError
+from PIL import Image
+import io
+import base64
+
+THUMB_SIZE = 128, 128
 
 
 def configure(config):
     config.add_route('person_search', '/search/{org}/{name}')
     config.add_route('list_realms', '/orgs')
+    config.add_route('profile_photo', '/people/{id}/profilephoto')
 
 
 def get_ldap_config():
@@ -94,3 +101,44 @@ def person_search(request):
 def list_realms(request):
     conf = get_ldap_config()
     return {realm: data['display'] for realm, data in conf.items()}
+
+
+@view_config(route_name='profile_photo', permission='scope_personsearch')
+def profilephoto(request):
+    user = request.matchdict['id']
+    if not ':' in user:
+        raise ValidationError('user id must contain ":"')
+    idtype, user = user.split(':', 1)
+    if idtype == 'feide':
+        if not '@' in user:
+            raise ValidationError('feide id must contain @')
+        _, realm = user.split('@', 1)
+        con = get_connection(realm)
+        validate_query(user)
+        base_dn = get_base_dn(realm)
+        search_filter = '(eduPersonPrincipalName={})'.format(user)
+        search_filter = handle_exclude(realm, search_filter)  # Is this needed here?
+        con.search(base_dn, search_filter, ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
+                   attributes=['jpegPhoto'])
+        res = con.response
+        if len(res) == 0:
+            logging.debug('Could not find user for %s', user)
+            raise HTTPNotFound()
+        if len(res) > 1:
+            logging.warning('Multiple matches to eduPersonPrincipalName')
+        attributes = res[0]['attributes']
+        if not 'jpegPhoto' in attributes:
+            logging.debug('User %s has not jpegPhoto', user)
+            raise HTTPNotFound()
+        data = attributes['jpegPhoto'][0]
+        fake_file = io.BytesIO(data)
+        image = Image.open(fake_file)
+        image.thumbnail(THUMB_SIZE)
+        fake_output = io.BytesIO()
+        image.save(fake_output, format='JPEG')
+        logging.debug('image is %d bytes', len(fake_output.getbuffer()))
+        response = Response(fake_output.getbuffer(), charset=None)
+        response.content_type = 'image/jpeg'
+        return response
+    else:
+        raise ValidationError("Unhandled user id type '{}'".format(idtype))
