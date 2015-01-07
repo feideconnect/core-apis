@@ -183,7 +183,7 @@ class RateLimitTests(unittest.TestCase):
     def test_unspaced_calls(self):
         faketime = datetime.datetime.now()
         with mock.patch('coreapis.utils.now', return_value=faketime):
-            for i in range(self.bucket_capacity):
+            for _ in range(self.bucket_capacity):
                 res = self.ratelimiter.check_rate(self.remote_addr)
                 assert res == True
             res = self.ratelimiter.check_rate(self.remote_addr)
@@ -192,7 +192,7 @@ class RateLimitTests(unittest.TestCase):
     def test_spaced_calls(self):
         faketime = datetime.datetime.now()
         with mock.patch('coreapis.utils.now', return_value=faketime):
-            for i in range(self.bucket_capacity):
+            for _ in range(self.bucket_capacity):
                 res = self.ratelimiter.check_rate(self.remote_addr)
                 assert res == True
             res = self.ratelimiter.check_rate(self.remote_addr)
@@ -211,7 +211,7 @@ class RateLimitTests(unittest.TestCase):
     def test_few_clients(self):
         faketime = datetime.datetime.now()
         with mock.patch('coreapis.utils.now', return_value=faketime):
-            for i in range(self.bucket_capacity + 1):
+            for _ in range(self.bucket_capacity + 1):
                 self.ratelimiter.check_rate(self.remote_addr)
             for i in range(self.nwatched - 1):
                 self.ratelimiter.check_rate(str(i))
@@ -221,7 +221,7 @@ class RateLimitTests(unittest.TestCase):
     def test_many_clients(self):
         faketime = datetime.datetime.now()
         with mock.patch('coreapis.utils.now', return_value=faketime):
-            for i in range(self.bucket_capacity + 1):
+            for _ in range(self.bucket_capacity + 1):
                 self.ratelimiter.check_rate(self.remote_addr)
             for i in range(self.nwatched + 1):
                 self.ratelimiter.check_rate(str(i))
