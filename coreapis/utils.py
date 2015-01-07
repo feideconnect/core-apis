@@ -6,7 +6,7 @@ import blist
 import statsd
 import time
 import pytz
-from collections import deque
+from collections import defaultdict, deque
 
 
 def now():
@@ -81,32 +81,54 @@ class Timer(object):
 
 class RateLimiter(object):
     # Requests are let through if client is not among last 1/maxshare
-    # clients served, or if at least mingap ms have passed since last time.
-    # If necessary, we can add a token bucket to accomodate bursts.
-    def __init__(self, maxshare, mingap):
+    # clients served, or if there is still room in the client's token bucket.
+    def __init__(self, maxshare, capacity, rate):
         self.log = LogWrapper('feideconnect.ratelimit')
         self.nwatched = int(1./maxshare + 0.5)
-        self.mingap = datetime.timedelta(milliseconds=mingap)
-        self.recents = deque([(None, None)] * self.nwatched)
+        self.recents = deque([None] * self.nwatched)
+        self.counts = defaultdict(lambda: 0)
+        self.buckets = defaultdict(lambda: LeakyBucket(capacity, rate))
 
     def check_rate(self, remote_addr):
         client = remote_addr
-        ts = now()
-        found = False
-        for recent in self.recents:
-            if recent[0] == client:
-                found = True
-        if found:
-            gap = ts - recent[1]
-            accepted = (gap > self.mingap)
-            self.log.debug("%s in recents, gap: %s, accepted: %s" % (client, gap, accepted))
-        else:
-            accepted = True
-            self.log.debug("%s not in recents, accepted: %s" % (client, accepted))
+        accepted = not self.buckets[client].full()
+        self.log.debug("check_rate", client=client, accepted=accepted)
         if accepted:
-            self.recents.popleft()
-            self.recents.append((client, ts))
+            self.buckets[client].add()
+            oldclient = self.recents.popleft()
+            if oldclient:
+                self.counts[oldclient] -= 1
+                if self.counts[oldclient] <= 0:
+                    self.log.debug("bucket deleted",
+                                   client=oldclient,
+                                   contents=self.buckets[oldclient].contents)
+                    del self.buckets[oldclient]
+                    del self.counts[oldclient]
+            self.recents.append(client)
+            self.counts[client] += 1
         return accepted
+
+
+class LeakyBucket(object):
+    def __init__(self, capacity, leak_rate):
+        self.capacity = capacity
+        self.leak_rate = leak_rate
+        self.contents = 0
+        self.ts = now()
+
+    def add(self):
+        self.contents += 1
+
+    def full(self):
+        self._update()
+        return self.contents >= self.capacity
+
+    def _update(self):
+        newts = now()
+        gap = newts - self.ts
+        leakage = self.leak_rate * gap.total_seconds()
+        self.ts = newts
+        self.contents = max(0, self.contents - leakage)
 
 
 class RequestTimingTween(object):

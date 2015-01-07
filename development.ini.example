@@ -75,5 +75,7 @@ contact_points = server1, server2, server3
 keyspace = feideconnect
 # do not rate monitor clients which are below this share
 client_max_share = 0.1
-# min ms between calls
-client_min_gap = 50
+# Max steady state calls per sec for a client
+client_max_rate = 10
+# Max burst size for a client
+client_max_burst_size = 10

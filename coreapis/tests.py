@@ -169,41 +169,61 @@ class TokenValidationTests(unittest.TestCase):
 class RateLimitTests(unittest.TestCase):
     def setUp(self):
         from .utils import RateLimiter
-        self.client_max_share = 0.1
-        self.client_min_gap = 100
-        self.ratelimiter = RateLimiter(self.client_max_share, self.client_min_gap)
+        client_max_share = 0.1
+        self.bucket_capacity = 3
+        self.bucket_leak_rate = 10
+        self.ratelimiter = RateLimiter(client_max_share,
+                                       self.bucket_capacity, self.bucket_leak_rate)
         self.remote_addr = "127.0.0.1"
-        self.nwatched = int(1./self.client_max_share + 0.5)
+        self.nwatched = int(1./client_max_share + 0.5)
 
     def tearDown(self):
         testing.tearDown()
 
     def test_unspaced_calls(self):
-        self.ratelimiter.check_rate(self.remote_addr)
-        res = self.ratelimiter.check_rate(self.remote_addr)
-        assert res == False
+        faketime = datetime.datetime.now()
+        with mock.patch('coreapis.utils.now', return_value=faketime):
+            for i in range(self.bucket_capacity):
+                res = self.ratelimiter.check_rate(self.remote_addr)
+                assert res == True
+            res = self.ratelimiter.check_rate(self.remote_addr)
+            assert res == False
 
     def test_spaced_calls(self):
         faketime = datetime.datetime.now()
         with mock.patch('coreapis.utils.now', return_value=faketime):
-            self.ratelimiter.check_rate(self.remote_addr)
-        faketime += datetime.timedelta(milliseconds=self.client_min_gap + 1)
+            for i in range(self.bucket_capacity):
+                res = self.ratelimiter.check_rate(self.remote_addr)
+                assert res == True
+            res = self.ratelimiter.check_rate(self.remote_addr)
+            assert res == False
+        faketime += datetime.timedelta(milliseconds=1)
         with mock.patch('coreapis.utils.now', return_value=faketime):
             res = self.ratelimiter.check_rate(self.remote_addr)
-        assert res == True
+            assert res == True
+            res = self.ratelimiter.check_rate(self.remote_addr)
+            assert res == False
+        faketime += datetime.timedelta(milliseconds=1000./self.bucket_leak_rate + 1)
+        with mock.patch('coreapis.utils.now', return_value=faketime):
+            res = self.ratelimiter.check_rate(self.remote_addr)
+            assert res == True
 
     def test_few_clients(self):
-        self.ratelimiter.check_rate(self.remote_addr)
-        for i in range(self.nwatched-1):
-            remote_addr = str(i)
-            self.ratelimiter.check_rate(remote_addr)
-        res = self.ratelimiter.check_rate(self.remote_addr)
-        assert res == False
+        faketime = datetime.datetime.now()
+        with mock.patch('coreapis.utils.now', return_value=faketime):
+            for i in range(self.bucket_capacity + 1):
+                self.ratelimiter.check_rate(self.remote_addr)
+            for i in range(self.nwatched - 1):
+                self.ratelimiter.check_rate(str(i))
+            res = self.ratelimiter.check_rate(self.remote_addr)
+            assert res == False
 
     def test_many_clients(self):
-        self.ratelimiter.check_rate(self.remote_addr)
-        for i in range(self.nwatched):
-            remote_addr = str(i)
-            self.ratelimiter.check_rate(remote_addr)
-        res = self.ratelimiter.check_rate(self.remote_addr)
-        assert res == True
+        faketime = datetime.datetime.now()
+        with mock.patch('coreapis.utils.now', return_value=faketime):
+            for i in range(self.bucket_capacity + 1):
+                self.ratelimiter.check_rate(self.remote_addr)
+            for i in range(self.nwatched + 1):
+                self.ratelimiter.check_rate(str(i))
+            res = self.ratelimiter.check_rate(self.remote_addr)
+            assert res == True
