@@ -1,0 +1,18 @@
+Detailed syntax subject to change
+
+Person search
+
+List orgs:
+  http://<server>:<port>/peoplesearch/orgs
+
+Search for persons within org:
+  http://<server>:<port>/peoplesearch/search/<org>/<part of name>
+"part of name" can be any non empty substring of the LDAP CN.
+e.g. 
+  http://localhost:6543/peoplesearch/search/uninett.no/jon%20k
+note space encoded as %20
+
+Get profile photo
+  http://<server>:<port>/peoplesearch/people/<id>/profilephoto
+e.g.
+  http://localhost:6543/peoplesearch/people/feide:jk@uninett.no/profilephoto
