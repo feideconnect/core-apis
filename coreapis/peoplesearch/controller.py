@@ -2,6 +2,10 @@ import json
 import ldap3
 from coreapis.utils import ValidationError, LogWrapper
 from .tokens import crypt_token, decrypt_token
+from PIL import Image
+import io
+
+THUMB_SIZE = 128, 128
 
 
 def flatten(user, attributes):
@@ -95,7 +99,7 @@ class PeopleSearchController(object):
                     person['profile_image_token'] = crypt_token(person['id'], self.key)
             return result
 
-    def profile_image_feide(self, user):
+    def _profile_image_feide(self, user):
         if not '@' in user:
             raise ValidationError('feide id must contain @')
         _, realm = user.split('@', 1)
@@ -115,8 +119,23 @@ class PeopleSearchController(object):
             return None
         return attributes['jpegPhoto'][0]
 
-    def decode_profile_image_token(self, token):
-        return decrypt_token(token, self.key)
+    def profile_image(self, token):
+        user = decrypt_token(token, self.key)
+        if not ':' in user:
+            raise ValidationError('user id must contain ":"')
+        idtype, user = user.split(':', 1)
+        if idtype == 'feide':
+            data = self._profile_image_feide(user)
+        else:
+            raise ValidationError("Unhandled user id type '{}'".format(idtype))
+        if data is None:
+            return None
+        fake_file = io.BytesIO(data)
+        image = Image.open(fake_file)
+        image.thumbnail(THUMB_SIZE)
+        fake_output = io.BytesIO()
+        image.save(fake_output, format='JPEG')
+        return fake_output.getbuffer()
 
     def valid_org(self, org):
         return org in self.ldap.get_ldap_config()

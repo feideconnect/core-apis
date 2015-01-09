@@ -3,12 +3,8 @@ from pyramid.exceptions import HTTPNotFound
 from pyramid.response import Response
 import logging
 from coreapis.utils import ValidationError
-from PIL import Image
-import io
 import base64
 from .controller import validate_query, LDAPController, PeopleSearchController
-
-THUMB_SIZE = 128, 128
 
 
 def configure(config):
@@ -46,22 +42,9 @@ def list_realms(request):
 @view_config(route_name='profile_photo')
 def profilephoto(request):
     token = request.matchdict['token']
-    user = request.ps_controller.decode_profile_image_token(token)
-    if not ':' in user:
-        raise ValidationError('user id must contain ":"')
-    idtype, user = user.split(':', 1)
-    if idtype == 'feide':
-        data = request.ps_controller.profile_image_feide(user)
-        if data is None:
-            raise HTTPNotFound()
-        fake_file = io.BytesIO(data)
-        image = Image.open(fake_file)
-        image.thumbnail(THUMB_SIZE)
-        fake_output = io.BytesIO()
-        image.save(fake_output, format='JPEG')
-        logging.debug('image is %d bytes', len(fake_output.getbuffer()))
-        response = Response(fake_output.getbuffer(), charset=None)
-        response.content_type = 'image/jpeg'
-        return response
-    else:
-        raise ValidationError("Unhandled user id type '{}'".format(idtype))
+    image = request.ps_controller.profile_image(token)
+    if image is None:
+        raise HTTPNotFound()
+    response = Response(image, charset=None)
+    response.content_type = 'image/jpeg'
+    return response
