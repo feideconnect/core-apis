@@ -29,7 +29,7 @@ class ViewTests(unittest.TestCase):
             'statsd_port': '8125',
             'statsd_prefix': 'feideconnect.tests',
             'oauth_realm': 'test realm',
-        })
+        }, profile_token_secret='9SFpfeAhjGl8HHA/GtjXSvbN8Q0r7PDiuOgPKyI/92c=')
         mw = middleware.MockAuthMiddleware(app, 'test realm')
         self.testapp = TestApp(mw)
 

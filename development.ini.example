@@ -17,6 +17,9 @@ pyramid.debug_routematch = false
 pyramid.default_locale_name = en
 pyramid.includes =
 
+# 32 base64 encoded bytes (used to generate profile image tokens)
+profile_token_secret = 9SFpfeAhjGl8HHA/GtjXSvbN8Q0r7PDiuOgPKyI/92c=
+
 # By default, the toolbar only appears for clients from IP addresses
 # '127.0.0.1' and '::1'.
 # debugtoolbar.hosts = 127.0.0.1 ::1

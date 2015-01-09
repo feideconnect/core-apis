@@ -8,14 +8,19 @@ from .utils import ValidationError
 from PIL import Image
 import io
 import base64
+import os
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
 
 THUMB_SIZE = 128, 128
 
 
 def configure(config):
+    config.add_settings(profile_image_key=
+                        base64.b64decode(config.get_settings().get('profile_token_secret')))
     config.add_route('person_search', '/search/{org}/{name}')
     config.add_route('list_realms', '/orgs')
-    config.add_route('profile_photo', '/people/{id}/profilephoto')
+    config.add_route('profile_photo', '/people/profilephoto/{token}')
 
 
 def get_ldap_config():
@@ -74,26 +79,32 @@ def validate_query(string):
 def person_search(request):
     org = request.matchdict['org']
     search = request.matchdict['name']
+    key = request.registry.settings.profile_image_key
     validate_query(search)
     if not org or not search:
         raise HTTPNotFound('missing org or search term')
     if org not in get_ldap_config().keys():
         raise HTTPNotFound('Unknown org')
-    con = get_connection(org)
+    t = request.registry.settings.timer
+    with t.time('ps.ldap_connect'):
+        con = get_connection(org)
     base_dn = get_base_dn(org)
     search_filter = '(cn=*{}*)'.format(search)
     search_filter = handle_exclude(org, search_filter)
     attrs = ['cn', 'displayName', 'mail', 'mobile', 'eduPersonPrincipalName']
-    con.search(base_dn, search_filter, ldap3.SEARCH_SCOPE_WHOLE_SUBTREE, attributes=attrs)
+    with t.time('ps.ldap_search'):
+        con.search(base_dn, search_filter, ldap3.SEARCH_SCOPE_WHOLE_SUBTREE, attributes=attrs)
     res = con.response
-    result = [dict(r['attributes']) for r in res]
-    for person in result:
-        flatten(person, ('cn', 'displayName', 'eduPersonPrincipalName'))
-    for person in result:
-        if 'eduPersonPrincipalName' in person:
-            feideid = person['eduPersonPrincipalName']
-            del person['eduPersonPrincipalName']
-            person['id'] = 'feide:' + feideid
+    with t.time('ps.process_results'):
+        result = [dict(r['attributes']) for r in res]
+        for person in result:
+            flatten(person, ('cn', 'displayName', 'eduPersonPrincipalName'))
+        for person in result:
+            if 'eduPersonPrincipalName' in person:
+                feideid = person['eduPersonPrincipalName']
+                del person['eduPersonPrincipalName']
+                person['id'] = 'feide:' + feideid
+                person['profile_image_token'] = crypt_token(person['id'], key)
     return result
 
 
@@ -103,9 +114,11 @@ def list_realms(request):
     return {realm: data['display'] for realm, data in conf.items()}
 
 
-@view_config(route_name='profile_photo', permission='scope_personsearch')
+@view_config(route_name='profile_photo')
 def profilephoto(request):
-    user = request.matchdict['id']
+    token = request.matchdict['token']
+    key = request.registry.settings.profile_image_key
+    user = decrypt_token(token, key)
     if not ':' in user:
         raise ValidationError('user id must contain ":"')
     idtype, user = user.split(':', 1)
@@ -142,3 +155,25 @@ def profilephoto(request):
         return response
     else:
         raise ValidationError("Unhandled user id type '{}'".format(idtype))
+
+
+def crypt_token(uuid, key):
+    backend = default_backend()
+    iv = os.urandom(16)
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=backend)
+    encryptor = cipher.encryptor()
+    msg = uuid.encode('UTF-8')
+    msg = msg + b'\t' * (16 - len(msg) % 16)
+    ct = base64.urlsafe_b64encode(iv + encryptor.update(msg) + encryptor.finalize()).decode('ASCII')
+    return ct
+
+
+def decrypt_token(token, key):
+    token = base64.urlsafe_b64decode(token)
+    iv = token[:16]
+    data = token[16:]
+    backend = default_backend()
+    cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=backend)
+    decryptor = cipher.decryptor()
+    msg = decryptor.update(data) + decryptor.finalize()
+    return msg.decode('UTF-8').strip()
