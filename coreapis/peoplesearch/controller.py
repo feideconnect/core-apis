@@ -130,12 +130,13 @@ class PeopleSearchController(object):
             raise ValidationError("Unhandled user id type '{}'".format(idtype))
         if data is None:
             return None
-        fake_file = io.BytesIO(data)
-        image = Image.open(fake_file)
-        image.thumbnail(THUMB_SIZE)
-        fake_output = io.BytesIO()
-        image.save(fake_output, format='JPEG')
-        return fake_output.getbuffer()
+        with self.t.time('ps.profileimage.scale'):
+            fake_file = io.BytesIO(data)
+            image = Image.open(fake_file)
+            image.thumbnail(THUMB_SIZE)
+            fake_output = io.BytesIO()
+            image.save(fake_output, format='JPEG')
+            return fake_output.getbuffer()
 
     def valid_org(self, org):
         return org in self.ldap.get_ldap_config()
