@@ -1,0 +1,10 @@
+*.pyc
+__pycache__
+.\#*
+\#*
+.eggs
+.coverage
+development.ini
+ldap-config.json
+*.egg-info
+testresults.xml
