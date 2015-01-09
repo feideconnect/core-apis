@@ -4,7 +4,7 @@ from pyramid.response import Response
 import logging
 import ldap3
 import json
-from .utils import ValidationError
+from coreapis.utils import ValidationError
 from PIL import Image
 import io
 import base64
