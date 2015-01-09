@@ -9,7 +9,7 @@ with open(os.path.join(here, 'CHANGES.txt')) as f:
     CHANGES = f.read()
 
 # Prevent pillow from messing up the build system
-os.environ['MAX_CONCURRENCY'] = 1
+os.environ['MAX_CONCURRENCY'] = '1'
 
 requires = [
     'blist',
