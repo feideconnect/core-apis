@@ -7,6 +7,7 @@ def configure(config):
     config.add_route('test_user', '/user')
     config.add_route('test_scope', '/scope')
     config.add_route('test_crash', '/crash')
+    config.scan(__name__)
 
 
 @view_config(route_name='test_open', renderer='json')

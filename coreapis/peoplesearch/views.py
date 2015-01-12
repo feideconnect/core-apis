@@ -20,6 +20,7 @@ def configure(config):
     config.add_route('person_search', '/search/{org}/{name}')
     config.add_route('list_realms', '/orgs')
     config.add_route('profile_photo', '/people/profilephoto/{token}')
+    config.scan(__name__)
 
 
 @view_config(route_name='person_search', renderer='json', permission='scope_personsearch')
