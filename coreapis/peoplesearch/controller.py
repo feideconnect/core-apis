@@ -1,4 +1,6 @@
 import base64
+import datetime
+import pytz
 import json
 import ldap3
 import hashlib
@@ -6,6 +8,8 @@ from coreapis.utils import ValidationError, LogWrapper, now
 from .tokens import crypt_token, decrypt_token
 from PIL import Image
 import io
+from cassandra.cluster import Cluster
+from cassandra.query import dict_factory
 
 THUMB_SIZE = 128, 128
 
@@ -82,14 +86,39 @@ class LDAPController(object):
         return con.response
 
 
+class CassandraCache(object):
+    def __init__(self, contact_points, keyspace):
+        cluster = Cluster(
+            contact_points=contact_points
+        )
+        self.session = cluster.connect(keyspace)
+        self.session.row_factory = dict_factory
+        self.s_lookup = self.session.prepare('SELECT * from profile_image_cache where user=?')
+        self.s_insert = self.session.prepare('UPDATE profile_image_cache set last_modified=?, etag=?, last_updated=?, image=? WHERE user=?')
+
+    def lookup(self, user):
+        res = self.session.execute(self.s_lookup.bind([user]))
+        if len(res) == 0:
+            return None
+        entry = res[0]
+        for key, value in entry.items():
+            if isinstance(value, datetime.datetime):
+                entry[key] = value.replace(tzinfo=pytz.UTC)
+        return entry
+
+    def insert(self, user, last_updated, last_modified, etag, image):
+        self.session.execute(self.s_insert.bind([last_modified, etag, last_updated, image, user]))
+
+
 class PeopleSearchController(object):
 
-    def __init__(self, key, timer, ldap_controller):
+    def __init__(self, key, timer, ldap_controller, contact_points, cache_keyspace):
         self.key = key
         self.t = timer
         self.ldap = ldap_controller
         self.image_cache = dict()
         self.log = LogWrapper('peoplesearch.PeopleSearchController')
+        self.db = CassandraCache(contact_points, cache_keyspace)
 
     def valid_org(self, org):
         return org in self.ldap.get_ldap_config()
@@ -160,13 +189,11 @@ class PeopleSearchController(object):
 
     def cache_profile_image(self, user, last_modified, etag, data):
         last_modified = last_modified.replace(microsecond=0)
-        entry = dict(user=user, last_modified=last_modified, etag=etag, data=data)
-        entry['updated'] = now()
-        self.image_cache[user] = entry
+        self.db.insert(user, now(), last_modified, etag, data)
 
     def profile_image_cache_updated(self, user, last_modified, etag):
-        entry = self.image_cache.get(user)
-        if not entry:
+        entry = self.db.lookup(user)
+        if entry is None:
             self.log.debug('entry not in cache', user=user)
             return None, None, None
         if last_modified and entry['last_modified'] > last_modified:
@@ -175,4 +202,4 @@ class PeopleSearchController(object):
         if etag and entry['etag'] not in etag:
             self.log.debug('etag mismatch', user=user, cache_etag=entry['etag'], request_etag=str(etag))
             return None, None, None
-        return entry['updated'], entry['last_modified'], entry['etag']
+        return entry['last_updated'], entry['last_modified'], entry['etag']

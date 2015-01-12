@@ -9,9 +9,11 @@ from coreapis.utils import now
 
 def configure(config):
     key = base64.b64decode(config.get_settings().get('profile_token_secret'))
+    contact_points = config.get_settings().get('peoplesearch.cassandra_contact_points').split(', ')
+    keyspace = config.get_settings().get('peoplesearch.cache_keyspace')
     timer = config.get_settings().get('timer')
     ldap_controller = LDAPController(timer)
-    ps_controller = PeopleSearchController(key, timer, ldap_controller)
+    ps_controller = PeopleSearchController(key, timer, ldap_controller, contact_points, keyspace)
     config.add_settings(ldap_controller=ldap_controller, ps_controller=ps_controller)
     config.add_request_method(lambda r: r.registry.settings.ldap_controller, 'ldap_controller',
                               reify=True)
