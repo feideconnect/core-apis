@@ -81,6 +81,13 @@ class PeopleSearchController(object):
         self.t = timer
         self.ldap = ldap_controller
 
+    def valid_org(self, org):
+        return org in self.ldap.get_ldap_config()
+
+    def orgs(self):
+        conf = self.ldap.get_ldap_config()
+        return {realm: data['display'] for realm, data in conf.items()}
+
     def search(self, org, query):
         validate_query(query)
         search_filter = '(cn=*{}*)'.format(query)
@@ -138,9 +145,4 @@ class PeopleSearchController(object):
             image.save(fake_output, format='JPEG')
             return fake_output.getbuffer()
 
-    def valid_org(self, org):
-        return org in self.ldap.get_ldap_config()
 
-    def orgs(self):
-        conf = self.ldap.get_ldap_config()
-        return {realm: data['display'] for realm, data in conf.items()}
