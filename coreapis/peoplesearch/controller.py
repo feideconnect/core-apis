@@ -1,6 +1,8 @@
+import base64
 import json
 import ldap3
-from coreapis.utils import ValidationError, LogWrapper
+import hashlib
+from coreapis.utils import ValidationError, LogWrapper, now
 from .tokens import crypt_token, decrypt_token
 from PIL import Image
 import io
@@ -18,6 +20,12 @@ def validate_query(string):
     for char in ('(', ')', '*', '\\'):
         if char in string:
             raise ValidationError('Bad character in request')
+
+
+def etag(data):
+    m = hashlib.md5()
+    m.update(data)
+    return str(base64.b64encode(m.digest()), 'ASCII')
 
 
 class LDAPController(object):
@@ -80,6 +88,8 @@ class PeopleSearchController(object):
         self.key = key
         self.t = timer
         self.ldap = ldap_controller
+        self.image_cache = dict()
+        self.log = LogWrapper('peoplesearch.PeopleSearchController')
 
     def valid_org(self, org):
         return org in self.ldap.get_ldap_config()
@@ -117,32 +127,52 @@ class PeopleSearchController(object):
                                     attributes=['jpegPhoto'])
         if len(res) == 0:
             self.log.debug('Could not find user for %s', user)
-            return None
+            return None, None, None
         if len(res) > 1:
             self.log.warning('Multiple matches to eduPersonPrincipalName')
         attributes = res[0]['attributes']
         if not 'jpegPhoto' in attributes:
             self.log.debug('User %s has not jpegPhoto', user)
-            return None
-        return attributes['jpegPhoto'][0]
+            return None, None, None
+        data = attributes['jpegPhoto'][0]
+        return data, etag(data), now()
 
-    def profile_image(self, token):
-        user = decrypt_token(token, self.key)
+    def decrypt_profile_image_token(self, token):
+        return decrypt_token(token, self.key)
+
+    def profile_image(self, user):
         if not ':' in user:
             raise ValidationError('user id must contain ":"')
         idtype, user = user.split(':', 1)
         if idtype == 'feide':
-            data = self._profile_image_feide(user)
+            data, etag, last_modified = self._profile_image_feide(user)
         else:
             raise ValidationError("Unhandled user id type '{}'".format(idtype))
         if data is None:
-            return None
+            return None, None, None
         with self.t.time('ps.profileimage.scale'):
             fake_file = io.BytesIO(data)
             image = Image.open(fake_file)
             image.thumbnail(THUMB_SIZE)
             fake_output = io.BytesIO()
             image.save(fake_output, format='JPEG')
-            return fake_output.getbuffer()
+            return fake_output.getbuffer(), etag, last_modified
 
+    def cache_profile_image(self, user, last_modified, etag, data):
+        last_modified = last_modified.replace(microsecond=0)
+        entry = dict(user=user, last_modified=last_modified, etag=etag, data=data)
+        entry['updated'] = now()
+        self.image_cache[user] = entry
 
+    def profile_image_cache_updated(self, user, last_modified, etag):
+        entry = self.image_cache.get(user)
+        if not entry:
+            self.log.debug('entry not in cache', user=user)
+            return None, None, None
+        if last_modified and entry['last_modified'] > last_modified:
+            self.log.debug('cache too old', user=user, cache_date=entry['last_modified'], request_date=last_modified)
+            return None, None, None
+        if etag and entry['etag'] not in etag:
+            self.log.debug('etag mismatch', user=user, cache_etag=entry['etag'], request_etag=str(etag))
+            return None, None, None
+        return entry['updated'], entry['last_modified'], entry['etag']

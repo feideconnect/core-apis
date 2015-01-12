@@ -1,10 +1,10 @@
+import datetime
 from pyramid.view import view_config
-from pyramid.exceptions import HTTPNotFound
+from pyramid.httpexceptions import HTTPNotFound, HTTPNotModified
 from pyramid.response import Response
-import logging
-from coreapis.utils import ValidationError
 import base64
 from .controller import validate_query, LDAPController, PeopleSearchController
+from coreapis.utils import now
 
 
 def configure(config):
@@ -40,12 +40,38 @@ def list_realms(request):
     return request.ps_controller.orgs()
 
 
+def cache_date_min(a, b):
+    if a and not b:
+        return a
+    if b and not a:
+        return b
+    return min(a, b)
+
+
 @view_config(route_name='profile_photo')
 def profilephoto(request):
     token = request.matchdict['token']
-    image = request.ps_controller.profile_image(token)
-    if image is None:
-        raise HTTPNotFound()
+    user = request.ps_controller.decrypt_profile_image_token(token)
+    update_time, cache_last_modified, cache_etag = \
+        request.ps_controller.profile_image_cache_updated(user,
+                                                          request.if_modified_since,
+                                                          request.if_none_match)
+    if not update_time or update_time < (now() - datetime.timedelta(hours=1)):
+        image, etag, last_modified = request.ps_controller.profile_image(user)
+        if image is None:
+            raise HTTPNotFound()
+        new_cache_modified_date = cache_date_min(cache_last_modified, last_modified)
+        request.ps_controller.cache_profile_image(user,
+                                                  new_cache_modified_date,
+                                                  etag,
+                                                  image)
+        if cache_etag == etag and update_time:
+            raise HTTPNotModified()
+    else:
+        raise HTTPNotModified()
     response = Response(image, charset=None)
     response.content_type = 'image/jpeg'
+    response.cache_control = 'public, max-age=3600'
+    response.last_modified = now()
+    response.etag = etag
     return response
