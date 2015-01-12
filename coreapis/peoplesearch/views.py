@@ -23,7 +23,7 @@ def configure(config):
     config.scan(__name__)
 
 
-@view_config(route_name='person_search', renderer='json', permission='scope_personsearch')
+@view_config(route_name='person_search', renderer='json', permission='scope_peoplesearch')
 def person_search(request):
     org = request.matchdict['org']
     search = request.matchdict['name']
@@ -35,7 +35,7 @@ def person_search(request):
     return request.ps_controller.search(org, search)
 
 
-@view_config(route_name='list_realms', renderer='json', permission='scope_personsearch')
+@view_config(route_name='list_realms', renderer='json', permission='scope_peoplesearch')
 def list_realms(request):
     return request.ps_controller.orgs()
 
