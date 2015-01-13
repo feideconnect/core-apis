@@ -155,13 +155,13 @@ class PeopleSearchController(object):
                                     ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
                                     attributes=['jpegPhoto'])
         if len(res) == 0:
-            self.log.debug('Could not find user for %s', user)
+            self.log.debug('Could not find user for %s' % user)
             return None, None, None
         if len(res) > 1:
             self.log.warning('Multiple matches to eduPersonPrincipalName')
         attributes = res[0]['attributes']
         if not 'jpegPhoto' in attributes:
-            self.log.debug('User %s has not jpegPhoto', user)
+            self.log.debug('User %s has not jpegPhoto' % user)
             return None, None, None
         data = attributes['jpegPhoto'][0]
         return data, etag(data), now()
