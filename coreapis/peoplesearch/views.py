@@ -1,10 +1,8 @@
-import datetime
 from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPNotFound, HTTPNotModified
 from pyramid.response import Response
 import base64
 from .controller import validate_query, LDAPController, PeopleSearchController
-from coreapis.utils import now
 
 
 def configure(config):
