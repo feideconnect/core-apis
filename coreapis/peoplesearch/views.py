@@ -11,9 +11,11 @@ def configure(config):
     key = base64.b64decode(config.get_settings().get('profile_token_secret'))
     contact_points = config.get_settings().get('peoplesearch.cassandra_contact_points').split(', ')
     keyspace = config.get_settings().get('peoplesearch.cache_keyspace')
+    cache_update_seconds = int(config.get_settings().get('peoplesearch.cache_update_seconds', 3600))
     timer = config.get_settings().get('timer')
     ldap_controller = LDAPController(timer)
-    ps_controller = PeopleSearchController(key, timer, ldap_controller, contact_points, keyspace)
+    ps_controller = PeopleSearchController(key, timer, ldap_controller, contact_points, keyspace,
+                                           cache_update_seconds)
     config.add_settings(ldap_controller=ldap_controller, ps_controller=ps_controller)
     config.add_request_method(lambda r: r.registry.settings.ldap_controller, 'ldap_controller',
                               reify=True)

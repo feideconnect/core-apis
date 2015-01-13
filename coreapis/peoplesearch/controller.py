@@ -112,13 +112,15 @@ class CassandraCache(object):
 
 class PeopleSearchController(object):
 
-    def __init__(self, key, timer, ldap_controller, contact_points, cache_keyspace):
+    def __init__(self, key, timer, ldap_controller, contact_points, cache_keyspace,
+                 cache_update_seconds):
         self.key = key
         self.t = timer
         self.ldap = ldap_controller
         self.image_cache = dict()
         self.log = LogWrapper('peoplesearch.PeopleSearchController')
         self.db = CassandraCache(contact_points, cache_keyspace)
+        self.cache_update_age = datetime.timedelta(seconds=cache_update_seconds)
 
     def valid_org(self, org):
         return org in self.ldap.get_ldap_config()
@@ -194,7 +196,7 @@ class PeopleSearchController(object):
             image, etag, last_modified = self._fetch_profile_image(user)
             self.cache_profile_image(user, last_modified, etag, image)
             return image, etag, last_modified
-        if cache['last_updated'] < (now() - datetime.timedelta(seconds=10)):
+        if cache['last_updated'] < (now() - self.cache_update_age):
             self.log.debug('image cache stale')
             image, etag, last_modified = self._fetch_profile_image(user)
             if etag == cache['etag']:
