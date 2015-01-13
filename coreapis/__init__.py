@@ -19,6 +19,7 @@ def main(global_config, **settings):
                   global_config['statsd_prefix'])
     config.add_settings(cassandra_contact_points=global_config['cassandra_contact_points'].split(', '))
     config.add_settings(cassandra_keyspace=global_config['cassandra_keyspace'])
+    config.add_settings(clientadm_maxrows=global_config['clientadm_maxrows'])
     config.add_settings(timer=timer)
     if 'enabled_components' in settings:
         enabled_components = set(settings['enabled_components'].split(','))
@@ -30,6 +31,8 @@ def main(global_config, **settings):
         config.include('coreapis.testing_views.configure', route_prefix='test')
     if all_enabled or 'peoplesearch' in enabled_components:
         config.include('coreapis.peoplesearch.views.configure', route_prefix='peoplesearch')
+    if all_enabled or 'clientadm' in enabled_components:
+        config.include('coreapis.clientadm.views.configure', route_prefix='clientadm')
     config.scan('coreapis.error_views')
     config.add_settings(realm=global_config['oauth_realm'])
     config.add_tween('coreapis.utils.RequestTimingTween')

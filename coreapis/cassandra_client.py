@@ -32,6 +32,20 @@ class Client(object):
             raise KeyError('No such client')
         return res[0]
 
+    def get_clients(self, selectors, values, maxrows):
+        if len(selectors) != len(values):
+            raise KeyError('Selectors and values not same length')
+        if len(selectors) == 0:
+            stmt = 'SELECT * from clients LIMIT {}'.format(maxrows)
+        else:
+            stmt = 'SELECT * from clients WHERE {} LIMIT {} ALLOW FILTERING'.format(' and '.join(selectors), maxrows)
+        print("cql: {}".format(stmt))
+        prep = self.session.prepare(stmt)
+        res = self.session.execute(prep.bind(values))
+        t0 = time.time()
+        print("Executed in %s ms" % ((time.time()-t0)*1000))
+        return res
+
     def get_clients_by_owner(self, owner):
         prep = self.session.prepare('SELECT * from clients WHERE owner = ?')
         t0 = time.time()
