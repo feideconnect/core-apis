@@ -1,6 +1,5 @@
 import unittest
 from webtest import TestApp
-import mock
 from pyramid import testing
 from coreapis import main, middleware
 
@@ -20,8 +19,7 @@ def parse_auth_params(params):
 
 
 class ViewTests(unittest.TestCase):
-    @mock.patch('coreapis.peoplesearch.controller.LDAPController')
-    def setUp(self, ldapcontroller):
+    def setUp(self):
         app = main({
             'statsd_server': 'localhost',
             'statsd_port': '8125',
