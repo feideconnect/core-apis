@@ -168,3 +168,24 @@ class TestFetchProfileImage(TestCase):
         width, height = image.size
         assert width <= 128
         assert height <= 128
+
+
+class TestMisc(TestCase):
+    def test_validate_query(self):
+        with pytest.raises(ValidationError):
+            controller.validate_query(')')
+        with pytest.raises(ValidationError):
+            controller.validate_query('(')
+        with pytest.raises(ValidationError):
+            controller.validate_query('*')
+        with pytest.raises(ValidationError):
+            controller.validate_query('\\')
+
+    def test_flatten(self):
+        indata = {'foo': ['bar']}
+        testdata = indata.copy()
+        controller.flatten(testdata, ('foo',))
+        assert testdata == {'foo': 'bar'}
+        testdata = indata.copy()
+        controller.flatten(testdata, ('bar',))
+        assert testdata == indata
