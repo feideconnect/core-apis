@@ -1,8 +1,9 @@
 from unittest import TestCase
 import mock
 from coreapis.peoplesearch import controller
-from coreapis.utils import now
+from coreapis.utils import now, ValidationError
 import datetime
+import pytest
 
 
 class TestProfileImageCacheLogic(TestCase):
@@ -71,3 +72,49 @@ class TestProfileImageCacheLogic(TestCase):
         assert last_modified == modified_time
         assert not self.controller._fetch_profile_image.called
         assert not self.controller.cache_profile_image.called
+
+
+class TestProfileImageFetch(TestCase):
+    def setUp(self):
+        self.ldap = mock.MagicMock()
+        with mock.patch('coreapis.peoplesearch.controller.CassandraCache'):
+            self.controller = controller.PeopleSearchController('key', mock.MagicMock(),
+                                                                mock.MagicMock(), [],
+                                                                'keyspace', 0)
+            self.controller.ldap = self.ldap
+
+    def test_feide_no_at(self):
+        with pytest.raises(ValidationError):
+            self.controller._profile_image_feide('foo')
+
+    def test_feide_ldap_injection(self):
+        with pytest.raises(ValidationError):
+            self.controller._profile_image_feide('foo)')
+        with pytest.raises(ValidationError):
+            self.controller._profile_image_feide('(bar')
+        with pytest.raises(ValidationError):
+            self.controller._profile_image_feide('baz*')
+        with pytest.raises(ValidationError):
+            self.controller._profile_image_feide('test\\')
+
+    def test_feide_no_user(self):
+        self.controller.ldap.ldap_search = mock.MagicMock(return_value=[])
+        image, etag, modified = self.controller._profile_image_feide('noone@feide.no')
+        assert image is None
+        assert etag is None
+        assert modified is None
+
+    def test_feide_no_image(self):
+        self.controller.ldap.ldap_search = mock.MagicMock(return_value=[{'attributes': {}}])
+        image, etag, modified = self.controller._profile_image_feide('noone@feide.no')
+        assert image is None
+        assert etag is None
+        assert modified is None
+
+    def test_feide(self):
+        with open('testdata/blank.jpg', 'rb') as fh:
+            imgdata = fh.read()
+        self.controller.ldap.ldap_search = mock.MagicMock(return_value=[{'attributes': {'jpegPhoto': [imgdata]}}])
+        image, etag, modified = self.controller._profile_image_feide('noone@feide.no')
+        assert etag == 'KeV9YCEGQuzmeXCgzZ/RGw=='
+        assert image == imgdata
