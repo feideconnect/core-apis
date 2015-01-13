@@ -4,6 +4,8 @@ from coreapis.peoplesearch import controller
 from coreapis.utils import now, ValidationError
 import datetime
 import pytest
+import io
+from PIL import Image
 
 
 class TestProfileImageCacheLogic(TestCase):
@@ -118,3 +120,42 @@ class TestProfileImageFetch(TestCase):
         image, etag, modified = self.controller._profile_image_feide('noone@feide.no')
         assert etag == 'KeV9YCEGQuzmeXCgzZ/RGw=='
         assert image == imgdata
+
+
+class TestFetchProfileImage(TestCase):
+    def setUp(self):
+        with mock.patch('coreapis.peoplesearch.controller.CassandraCache'):
+            self.controller = controller.PeopleSearchController('key', mock.MagicMock(),
+                                                                mock.MagicMock(), [],
+                                                                'keyspace', 0)
+
+    def test_malformed_user(self):
+        with pytest.raises(ValidationError):
+            self.controller._fetch_profile_image('bad user id format')
+
+    def test_unsupported_user(self):
+        with pytest.raises(ValidationError):
+            self.controller._fetch_profile_image('unsupported:foo')
+
+    def test_no_img(self):
+        self.controller.profile_image_feide = mock.MagicMock(return_value=(None, None, None))
+        image, etag, last_modified = self.controller._fetch_profile_image('feide:noone@example.com')
+        assert image is None
+        assert etag is None
+        assert last_modified is None
+
+    def test_ok(self):
+        with open('testdata/blank.jpg', 'rb') as fh:
+            imgdata = fh.read()
+        modified = now()
+        self.controller._profile_image_feide = mock.MagicMock(return_value=(imgdata, 'etag', modified))
+        image, etag, last_modified = self.controller._fetch_profile_image('feide:noone@example.com')
+        assert image != imgdata
+        assert etag == 'etag'
+        assert last_modified == modified
+        fake_file = io.BytesIO(image)
+        image = Image.open(fake_file)
+        assert image.format == 'JPEG'
+        width, height = image.size
+        assert width <= 128
+        assert height <= 128
