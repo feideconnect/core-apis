@@ -160,7 +160,7 @@ class PeopleSearchController(object):
             self.log.debug('Could not find user for %s' % user)
             return None, None, None
         if len(res) > 1:
-            self.log.warning('Multiple matches to eduPersonPrincipalName')
+            self.log.warn('Multiple matches to eduPersonPrincipalName')
         attributes = res[0]['attributes']
         if not 'jpegPhoto' in attributes:
             self.log.debug('User %s has not jpegPhoto' % user)

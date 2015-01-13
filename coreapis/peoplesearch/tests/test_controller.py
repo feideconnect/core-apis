@@ -121,6 +121,15 @@ class TestProfileImageFetch(TestCase):
         assert etag == 'KeV9YCEGQuzmeXCgzZ/RGw=='
         assert image == imgdata
 
+    def test_feide_multiple_users(self):
+        with open('testdata/blank.jpg', 'rb') as fh:
+            imgdata = fh.read()
+        self.controller.ldap.ldap_search = mock.MagicMock(return_value=[{'attributes': {'jpegPhoto': [imgdata]}},
+                                                                        {'attributes': {}}])
+        image, etag, modified = self.controller._profile_image_feide('noone@feide.no')
+        assert etag == 'KeV9YCEGQuzmeXCgzZ/RGw=='
+        assert image == imgdata
+
 
 class TestFetchProfileImage(TestCase):
     def setUp(self):
