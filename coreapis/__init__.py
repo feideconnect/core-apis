@@ -17,6 +17,8 @@ def main(global_config, **settings):
     config.set_authorization_policy(authz_policy)
     timer = Timer(global_config['statsd_server'], int(global_config['statsd_port']),
                   global_config['statsd_prefix'])
+    config.add_settings(cassandra_contact_points=global_config['cassandra_contact_points'].split(', '))
+    config.add_settings(cassandra_keyspace=global_config['cassandra_keyspace'])
     config.add_settings(timer=timer)
     if 'enabled_components' in settings:
         enabled_components = set(settings['enabled_components'].split(','))

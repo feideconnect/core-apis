@@ -6,6 +6,8 @@
 statsd_server = localhost
 statsd_port = 8125
 statsd_prefix = feideconnect.coreapis
+cassandra_contact_points = server1, server2, server3
+cassandra_keyspace = feideconnect
 
 [app:main]
 use = egg:core-apis
@@ -19,6 +21,7 @@ pyramid.includes =
 
 # 32 base64 encoded bytes (used to generate profile image tokens)
 profile_token_secret = 9SFpfeAhjGl8HHA/GtjXSvbN8Q0r7PDiuOgPKyI/92c=
+peoplesearch.cache_keyspace = fc_ps_cache
 
 # By default, the toolbar only appears for clients from IP addresses
 # '127.0.0.1' and '::1'.
@@ -74,8 +77,6 @@ use = egg:core-apis#mockauthmiddleware
 
 [filter:cassandramiddleware]
 use = egg:core-apis#cassandramiddleware
-contact_points = server1, server2, server3
-keyspace = feideconnect
 # do not rate monitor clients which are below this share
 client_max_share = 0.1
 # Max steady state calls per sec for a client

@@ -10,9 +10,9 @@ def mock_main(app, config):
     return MockAuthMiddleware(app, config['oauth_realm'])
 
 
-def cassandra_main(app, config, contact_points, keyspace,
-                   client_max_share, client_max_rate, client_max_burst_size):
-    contact_points = contact_points.split(', ')
+def cassandra_main(app, config, client_max_share, client_max_rate, client_max_burst_size):
+    contact_points = config['cassandra_contact_points'].split(', ')
+    keyspace = config['cassandra_keyspace']
     timer = Timer(config['statsd_server'], int(config['statsd_port']),
                   config['statsd_prefix'])
     ratelimiter = RateLimiter(float(client_max_share),

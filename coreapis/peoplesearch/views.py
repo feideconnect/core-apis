@@ -7,7 +7,7 @@ from .controller import validate_query, LDAPController, PeopleSearchController
 
 def configure(config):
     key = base64.b64decode(config.get_settings().get('profile_token_secret'))
-    contact_points = config.get_settings().get('peoplesearch.cassandra_contact_points').split(', ')
+    contact_points = config.get_settings().get('cassandra_contact_points')
     keyspace = config.get_settings().get('peoplesearch.cache_keyspace')
     cache_update_seconds = int(config.get_settings().get('peoplesearch.cache_update_seconds', 3600))
     timer = config.get_settings().get('timer')
