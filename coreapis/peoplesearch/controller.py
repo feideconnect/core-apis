@@ -26,7 +26,7 @@ def validate_query(string):
             raise ValidationError('Bad character in request')
 
 
-def etag(data):
+def make_etag(data):
     m = hashlib.md5()
     m.update(data)
     return str(base64.b64encode(m.digest()), 'ASCII')
@@ -166,7 +166,7 @@ class PeopleSearchController(object):
             self.log.debug('User %s has not jpegPhoto' % user)
             return None, None, None
         data = attributes['jpegPhoto'][0]
-        return data, etag(data), now()
+        return data, make_etag(data), now()
 
     def decrypt_profile_image_token(self, token):
         return decrypt_token(token, self.key)
