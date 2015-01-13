@@ -54,26 +54,15 @@ def cache_date_min(a, b):
 def profilephoto(request):
     token = request.matchdict['token']
     user = request.ps_controller.decrypt_profile_image_token(token)
-    update_time, cache_last_modified, cache_etag = \
-        request.ps_controller.profile_image_cache_updated(user,
-                                                          request.if_modified_since,
-                                                          request.if_none_match)
-    if not update_time or update_time < (now() - datetime.timedelta(hours=1)):
-        image, etag, last_modified = request.ps_controller.profile_image(user)
-        if image is None:
-            raise HTTPNotFound()
-        new_cache_modified_date = cache_date_min(cache_last_modified, last_modified)
-        request.ps_controller.cache_profile_image(user,
-                                                  new_cache_modified_date,
-                                                  etag,
-                                                  image)
-        if cache_etag == etag and update_time:
-            raise HTTPNotModified()
-    else:
+    image, etag, last_modified = \
+        request.ps_controller.profile_image(user)
+    if request.if_none_match and etag in request.if_none_match:
+        raise HTTPNotModified()
+    if request.if_modified_since and request.if_modified_since >= last_modified:
         raise HTTPNotModified()
     response = Response(image, charset=None)
     response.content_type = 'image/jpeg'
     response.cache_control = 'public, max-age=3600'
-    response.last_modified = now()
+    response.last_modified = last_modified
     response.etag = etag
     return response

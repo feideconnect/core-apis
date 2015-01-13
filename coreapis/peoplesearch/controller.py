@@ -169,7 +169,7 @@ class PeopleSearchController(object):
     def decrypt_profile_image_token(self, token):
         return decrypt_token(token, self.key)
 
-    def profile_image(self, user):
+    def _fetch_profile_image(self, user):
         if not ':' in user:
             raise ValidationError('user id must contain ":"')
         idtype, user = user.split(':', 1)
@@ -187,19 +187,24 @@ class PeopleSearchController(object):
             image.save(fake_output, format='JPEG')
             return fake_output.getbuffer(), etag, last_modified
 
+    def profile_image(self, user):
+        cache = self.db.lookup(user)
+        if cache is None:
+            self.log.debug('image not in cache')
+            image, etag, last_modified = self._fetch_profile_image(user)
+            self.cache_profile_image(user, last_modified, etag, image)
+            return image, etag, last_modified
+        if cache['last_updated'] < (now() - datetime.timedelta(seconds=10)):
+            self.log.debug('image cache stale')
+            image, etag, last_modified = self._fetch_profile_image(user)
+            if etag == cache['etag']:
+                last_modified = cache['last_modified']
+                self.log.debug('image had not changed when refreshing cache')
+            self.cache_profile_image(user, last_modified, etag, image)
+            return image, etag, last_modified
+        self.log.debug('image cache OK')
+        return cache['image'], cache['etag'], cache['last_modified']
+
     def cache_profile_image(self, user, last_modified, etag, data):
         last_modified = last_modified.replace(microsecond=0)
         self.db.insert(user, now(), last_modified, etag, data)
-
-    def profile_image_cache_updated(self, user, last_modified, etag):
-        entry = self.db.lookup(user)
-        if entry is None:
-            self.log.debug('entry not in cache', user=user)
-            return None, None, None
-        if last_modified and entry['last_modified'] > last_modified:
-            self.log.debug('cache too old', user=user, cache_date=entry['last_modified'], request_date=last_modified)
-            return None, None, None
-        if etag and entry['etag'] not in etag:
-            self.log.debug('etag mismatch', user=user, cache_etag=entry['etag'], request_etag=str(etag))
-            return None, None, None
-        return entry['last_updated'], entry['last_modified'], entry['etag']
