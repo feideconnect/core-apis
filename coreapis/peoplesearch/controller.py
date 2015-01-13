@@ -29,7 +29,7 @@ def validate_query(string):
 def make_etag(data):
     m = hashlib.md5()
     m.update(data)
-    return str(base64.b64encode(m.digest()), 'ASCII')
+    return m.hexdigest()
 
 
 class LDAPController(object):
