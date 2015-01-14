@@ -130,8 +130,8 @@ class PeopleSearchController(object):
 
     def search(self, org, query):
         validate_query(query)
-        search_filter = '(cn=*{}*)'.format(query)
         attrs = ['cn', 'displayName', 'mail', 'mobile', 'eduPersonPrincipalName']
+        search_filter = '(&(cn=*{}*)(objectClass=norEduPerson))'.format(query)
         res = self.ldap.ldap_search(org, search_filter, ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
                                     attributes=attrs)
         with self.t.time('ps.process_results'):
