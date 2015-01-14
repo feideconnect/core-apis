@@ -27,6 +27,7 @@ class ViewTests(unittest.TestCase):
             'oauth_realm': 'test realm',
             'cassandra_contact_points': '',
             'cassandra_keyspace': 'notused',
+            'clientadm_maxrows': 100,
         }, enabled_components='testing')
         mw = middleware.MockAuthMiddleware(app, 'test realm')
         self.testapp = TestApp(mw)
