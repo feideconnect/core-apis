@@ -24,7 +24,7 @@ class ClientAdmController(object):
         for k, v in filter_keys.items():
             if params.has_key(k):
                 self.log.debug('Filter key found', k=k)
-                if v == '':
+                if params[k] == '':
                     self.log.debug('Missing filter value')
                     raise ValidationError('missing filter value')
                 selectors.append(v['sel'])
