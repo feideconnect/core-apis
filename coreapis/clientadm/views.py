@@ -22,7 +22,8 @@ def list_clients(request):
 @view_config(route_name='get_client', renderer='json', permission='scope_clientadm')
 def get_client(request):
     id = request.matchdict['id']
-    client = request.cadm_controller.get_client(id)
-    if not client:
+    try:
+        client = request.cadm_controller.get_client(id)
+    except KeyError:
         raise HTTPNotFound()
     return client
