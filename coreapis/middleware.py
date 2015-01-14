@@ -2,12 +2,16 @@ import uuid
 import json
 import pytz
 from . import cassandra_client
-from .utils import LogWrapper, Timer, RateLimiter, now, www_authenticate
+from .utils import LogWrapper, Timer, RateLimiter, now, www_authenticate, init_request_id
 import datetime
 
 
 def mock_main(app, config):
     return MockAuthMiddleware(app, config['oauth_realm'])
+
+
+def log_main(app, config):
+    return LogMiddleware(app)
 
 
 def cassandra_main(app, config, client_max_share, client_max_rate, client_max_burst_size):
@@ -20,6 +24,15 @@ def cassandra_main(app, config, client_max_share, client_max_rate, client_max_bu
                               float(client_max_rate))
     return CassandraMiddleware(app, config['oauth_realm'], contact_points,
                                keyspace, timer, ratelimiter)
+
+
+class LogMiddleware(object):
+    def __init__(self, app):
+        self.app = app
+
+    def __call__(self, environ, start_response):
+        init_request_id()
+        return self.app(environ, start_response)
 
 
 class AuthMiddleware(object):

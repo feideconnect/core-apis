@@ -7,6 +7,18 @@ import statsd
 import time
 import pytz
 from collections import defaultdict, deque
+import threading
+
+__local = threading.local()
+
+
+def init_request_id():
+    __local.log_request_id = uuid.uuid4()
+
+
+def request_id():
+    if hasattr(__local, 'log_request_id'):
+        return __local.log_request_id
 
 
 def now():
@@ -29,6 +41,9 @@ class LogMessage(object):
     def __init__(self, message, **kwargs):
         self.message = message
         self.args = kwargs
+        request = request_id()
+        if request:
+            self.args['request'] = request
 
     def __str__(self):
         rest = json.dumps(self.args, cls=CustomEncoder)

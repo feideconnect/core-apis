@@ -52,5 +52,6 @@ setup(name='core-apis',
       [paste.filter_app_factory]
       mockauthmiddleware = coreapis.middleware:mock_main
       cassandramiddleware = coreapis.middleware:cassandra_main
+      logmiddleware = coreapis.middleware:log_main
       """,
       )
