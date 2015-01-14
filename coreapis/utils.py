@@ -59,8 +59,8 @@ class LogWrapper(object):
 
 class DebugLogFormatter(logging.Formatter):
     def format(self, record):
-        if type(record.msg) != LogMessage and not record.msg.startswith('"message"'):
-            record.msg = '"message": "{}"'.format(str(record.msg))
+        if type(record.msg) != LogMessage:
+            record.msg = LogMessage(record.msg)
         return super(DebugLogFormatter, self).format(record)
 
 
