@@ -4,7 +4,7 @@ To run:
 Copy development.ini.example to development.ini and change statsd_server, contact_points and keyspace to proper values.
 Create an ldap-config.json file (look at ldap-config.json.example for syntax)
 
-Make sure that libjpeg-dev is installed (apt-get install libjpeg-dev
+Make sure that libjpeg-dev, libffi-dev and libssl-dev is installed (apt-get install libjpeg-dev libffi-dev libssl-dev
 on Debian/Ubuntu).
 
 Then, assuming python3 is installed and virtualenvwrapper is configured, run these commands:
