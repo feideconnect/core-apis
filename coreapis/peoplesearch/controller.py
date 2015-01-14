@@ -130,21 +130,27 @@ class PeopleSearchController(object):
 
     def search(self, org, query):
         validate_query(query)
-        attrs = ['cn', 'displayName', 'mail', 'mobile', 'eduPersonPrincipalName']
         search_filter = '(&(cn=*{}*)(objectClass=norEduPerson))'.format(query)
+        attrs = ['cn', 'displayName', 'eduPersonPrincipalName']
         res = self.ldap.ldap_search(org, search_filter, ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
                                     attributes=attrs)
         with self.t.time('ps.process_results'):
             result = [dict(r['attributes']) for r in res]
             for person in result:
                 flatten(person, ('cn', 'displayName', 'eduPersonPrincipalName'))
+            new_result = []
             for person in result:
+                new_person = {}
                 if 'eduPersonPrincipalName' in person:
                     feideid = person['eduPersonPrincipalName']
-                    del person['eduPersonPrincipalName']
                     person['id'] = 'feide:' + feideid
-                    person['profile_image_token'] = crypt_token(person['id'], self.key)
-            return result
+                    new_person['profile_image_token'] = crypt_token(person['id'], self.key)
+                if 'displayName' in person:
+                    new_person['name'] = person['displayName']
+                elif 'cn' in person:
+                    new_person['name'] = person['cn']
+                new_result.append(new_person)
+            return new_result
 
     def _profile_image_feide(self, user):
         if not '@' in user:
