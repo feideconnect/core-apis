@@ -33,7 +33,11 @@ class LogMessage(object):
     def __str__(self):
         rest = json.dumps(self.args, cls=CustomEncoder)
         rest = rest[1:-1]
-        return '"message": "{}", {}'.format(self.message, rest)
+        rest = rest.strip()
+        if rest:
+            return '"message": "{}", {}'.format(self.message, rest)
+        else:
+            return '"message": "{}"'.format(self.message)
 
 
 class LogWrapper(object):
