@@ -76,12 +76,13 @@ class LDAPController(object):
             search = "(&{}(!{}))".format(search, exclude_filter)
         return search
 
-    def ldap_search(self, org, search_filter, scope, attributes):
+    def ldap_search(self, org, search_filter, scope, attributes, size_limit=None):
         with self.t.time('ps.ldap_connect'):
             con = self.get_connection(org)
         search_filter = self.handle_exclude(org, search_filter)
         with self.t.time('ps.ldap_search'):
-            con.search(self.get_base_dn(org), search_filter, scope, attributes=attributes)
+            con.search(self.get_base_dn(org), search_filter, scope, attributes=attributes,
+                       size_limit=size_limit)
         return con.response
 
 
@@ -120,6 +121,7 @@ class PeopleSearchController(object):
         self.log = LogWrapper('peoplesearch.PeopleSearchController')
         self.db = CassandraCache(contact_points, cache_keyspace)
         self.cache_update_age = datetime.timedelta(seconds=cache_update_seconds)
+        self.search_max_replies = 50
 
     def valid_org(self, org):
         return org in self.ldap.get_ldap_config()
@@ -128,7 +130,9 @@ class PeopleSearchController(object):
         conf = self.ldap.get_ldap_config()
         return {realm: data['display'] for realm, data in conf.items()}
 
-    def search(self, org, query):
+    def search(self, org, query, max_replies=None):
+        if max_replies is None or max_replies > self.search_max_replies:
+            max_replies = self.search_max_replies
         validate_query(query)
         if '@' in query:
             search_filter = '(mail=*{}*)'.format(query)
@@ -139,7 +143,7 @@ class PeopleSearchController(object):
         search_filter = '(&{}(objectClass=norEduPerson))'.format(search_filter)
         attrs = ['cn', 'displayName', 'eduPersonPrincipalName']
         res = self.ldap.ldap_search(org, search_filter, ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
-                                    attributes=attrs)
+                                    attributes=attrs, size_limit=max_replies)
         with self.t.time('ps.process_results'):
             result = [dict(r['attributes']) for r in res]
             for person in result:

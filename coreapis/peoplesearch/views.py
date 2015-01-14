@@ -1,5 +1,5 @@
 from pyramid.view import view_config
-from pyramid.httpexceptions import HTTPNotFound, HTTPNotModified
+from pyramid.httpexceptions import HTTPNotFound, HTTPNotModified, HTTPBadRequest
 from pyramid.response import Response
 import base64
 from .controller import validate_query, LDAPController, PeopleSearchController
@@ -29,12 +29,18 @@ def configure(config):
 def person_search(request):
     org = request.matchdict['org']
     search = request.matchdict['name']
+    max_replies = request.params.get('max_replies', None)
+    if max_replies is not None:
+        try:
+            max_replies = int(max_replies)
+        except ValueError:
+            raise HTTPBadRequest()
     validate_query(search)
     if not org or not search:
         raise HTTPNotFound('missing org or search term')
     if not request.ps_controller.valid_org(org):
         raise HTTPNotFound('Unknown org')
-    return request.ps_controller.search(org, search)
+    return request.ps_controller.search(org, search, max_replies)
 
 
 @view_config(route_name='list_realms', renderer='json', permission='scope_peoplesearch')
