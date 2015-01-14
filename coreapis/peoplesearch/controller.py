@@ -130,7 +130,13 @@ class PeopleSearchController(object):
 
     def search(self, org, query):
         validate_query(query)
-        search_filter = '(&(cn=*{}*)(objectClass=norEduPerson))'.format(query)
+        if '@' in query:
+            search_filter = '(mail=*{}*)'.format(query)
+        elif query.isnumeric():
+            search_filter = '(mobile=*{}*)'.format(query)
+        else:
+            search_filter = '(cn=*{}*)'.format(query)
+        search_filter = '(&{}(objectClass=norEduPerson))'.format(search_filter)
         attrs = ['cn', 'displayName', 'eduPersonPrincipalName']
         res = self.ldap.ldap_search(org, search_filter, ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
                                     attributes=attrs)
