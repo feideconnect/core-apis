@@ -1,5 +1,6 @@
 from unittest import TestCase
 import mock
+import uuid
 
 from coreapis.gk import controller
 
@@ -17,6 +18,10 @@ class TestController(TestCase):
             "username": "user",
             "password": "foobar",
         }
+    }
+    user = {
+        'userid': uuid.UUID('0186bdb5-5f68-436a-8453-6efe4a66cf1e'),
+        'userid_sec': set(['feide:test@feide.no', 'mail:test.user@feide.no']),
     }
 
     @mock.patch('coreapis.middleware.cassandra_client.Client')
@@ -39,7 +44,7 @@ class TestController(TestCase):
 
     def test_expose_nothing(self):
         self.session.get_gk_backend.return_value = self.basic_backend
-        headers = self.controller.info('testbackend', {}, None, [])
+        headers = self.controller.info('testbackend', {}, self.user, [])
         assert len(headers) == 2
         self.basic_asserts(headers)
 
