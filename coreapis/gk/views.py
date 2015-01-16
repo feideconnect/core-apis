@@ -24,7 +24,8 @@ def info(self, request):
         raise HTTPUnauthorized()
     client = request.environ['FC_CLIENT']
     user = request.environ.get('FC_USER', None)
-    headers = request.gk_controller.info(backend, client, user)
+    scopes = request.environ['FC_SCOPES']
+    headers = request.gk_controller.info(backend, client, user, scopes)
     if headers is None:
         raise HTTPUnauthorized()
     for header, value in headers.items():

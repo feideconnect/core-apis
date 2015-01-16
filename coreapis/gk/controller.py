@@ -25,7 +25,7 @@ class GkController(object):
         self.session = cassandra_client.Client(contact_points, keyspace)
         self.log = LogWrapper('gk.GkController')
 
-    def info(self, backend_id, client, user):
+    def info(self, backend_id, client, user, scopes):
         backend = self.session.get_gk_backend(backend_id)
         if backend['requireuser'] and user is None:
             return None
@@ -52,8 +52,8 @@ class GkController(object):
 
         if expose.get('scopes', False):
             scope_prefix = 'gk_{}_'.format(backend_id)
-            scopes = [scope[len(scope_prefix):] for scope in client['scopes'] if scope.startswith(scope_prefix)]
-            headers['scopes'] = ','.join(scopes)
+            exposed_scopes = [scope[len(scope_prefix):] for scope in scopes if scope.startswith(scope_prefix)]
+            headers['scopes'] = ','.join(exposed_scopes)
 
         if expose.get('clientid', False):
             headers['clientid'] = str(client['id'])
