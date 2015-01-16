@@ -2,7 +2,6 @@
 from cassandra.cluster import Cluster
 from cassandra.query import dict_factory
 import time
-from .utils import now
 import json
 
 
@@ -20,9 +19,8 @@ class Client(object):
 
     def insert_client(self, id, client_secret, name, descr,
                       redirect_uri, scopes, scopes_requested, status,
-                      type, owner):
-        ts = now()
-        prep = self.session.prepare('INSERT INTO client (id, client_secret, name, descr, redirect_uri, scopes, scopes_requested, status, type, created, updated, owner) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+                      type, ts, owner):
+        prep = self.session.prepare('INSERT INTO clients (id, client_secret, name, descr, redirect_uri, scopes, scopes_requested, status, type, created, updated, owner) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
         self.session.execute(prep.bind([id, client_secret, name, descr,
                                         redirect_uri, scopes, scopes_requested,
                                         status, type, ts, ts, owner]))
