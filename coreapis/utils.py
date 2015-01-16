@@ -183,3 +183,9 @@ class ValidationError(RuntimeError):
     def __init__(self, message):
         super(ValidationError, self).__init__(message)
         self.message = message
+
+
+class AlreadyExistsError(RuntimeError):
+    def __init__(self, message):
+        super(AlreadyExistsError, self).__init__(message)
+        self.message = message
