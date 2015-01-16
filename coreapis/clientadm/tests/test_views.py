@@ -1,10 +1,22 @@
 import unittest
 import mock
 import uuid
+from copy import deepcopy
 from webtest import TestApp
 from pyramid import testing
 from coreapis import main, middleware
 
+post_body_minimal = {
+    'name': 'per', 'scopes': [], 'redirect_uri': [], 'owner': '4f4e4b2b-bf7b-49f8-b703-cc6f4fc93493'
+}
+
+post_body_maximal = {
+    'name': 'per', 'scopes': ['clientadm'], 'redirect_uri': [],
+    'owner': '4f4e4b2b-bf7b-49f8-b703-cc6f4fc93493', 'id': 'f3f043db-9fd6-4c5a-b0bc-61992bea9eca',
+    'client_secret': 'sekrit', 'created': '2015-01-12 14:05:16+0100', 'descr': 'green',
+    'scopes_requested': [], 'status': ['lab'], 'type': 'client',
+    'updated': '2015-01-12 14:05:16+0100'
+}
 
 class ClientAdmTests(unittest.TestCase):
     @mock.patch('coreapis.middleware.cassandra_client.Client')
@@ -63,3 +75,62 @@ class ClientAdmTests(unittest.TestCase):
         res = self.testapp.get('/clientadm/clients/?scope=', status=400, headers=headers)
         out = res.json
         assert out['message'] == 'missing filter value' 
+
+    def test_post_client_minimal(self):
+        headers = {'Authorization': 'Bearer client_token'}
+        self.session().insert_client = mock.MagicMock() 
+        res = self.testapp.post_json('/clientadm/clients/', post_body_minimal, status=201, headers=headers)
+        out = res.json
+        assert '4f4e' in out['owner']
+
+    def test_post_client_maximal(self):
+        headers = {'Authorization': 'Bearer client_token'}
+        self.session().insert_client = mock.MagicMock() 
+        self.session().get_client_by_id.side_effect = KeyError()
+        res = self.testapp.post_json('/clientadm/clients/', post_body_maximal, status=201, headers=headers)
+        out = res.json
+        assert '4f4e' in out['owner']
+
+    def test_post_client_duplicate(self):
+        headers = {'Authorization': 'Bearer client_token'}
+        self.session().insert_client = mock.MagicMock() 
+        self.session().get_clients.return_value = [{'foo': 'bar'}]
+        self.testapp.post_json('/clientadm/clients/', post_body_maximal, status=409, headers=headers)
+
+    def test_post_client_missing_name(self):
+        headers = {'Authorization': 'Bearer client_token'}
+        body = deepcopy(post_body_minimal)
+        body.pop('name')
+        self.session().insert_client = mock.MagicMock() 
+        self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
+
+    def test_post_client_invalid_uuid(self):
+        headers = {'Authorization': 'Bearer client_token'}
+        body = deepcopy(post_body_minimal)
+        body['owner'] = "owner"
+        self.session().insert_client = mock.MagicMock() 
+        self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
+
+    def test_post_client_invalid_text(self):
+        headers = {'Authorization': 'Bearer client_token'}
+        body = deepcopy(post_body_minimal)
+        body['descr'] = 42
+        self.session().insert_client = mock.MagicMock() 
+        self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
+
+    def test_post_client_invalid_list(self):
+        headers = {'Authorization': 'Bearer client_token'}
+        body = deepcopy(post_body_minimal)
+        body['redirect_uri'] = 'http://www.vg.no'
+        self.session().insert_client = mock.MagicMock() 
+        self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
+
+    def test_post_client_unknown_attr(self):
+        headers = {'Authorization': 'Bearer client_token'}
+        body = deepcopy(post_body_minimal)
+        body['foo'] = 'bar'
+        self.session().insert_client = mock.MagicMock() 
+        self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
+
+
+
