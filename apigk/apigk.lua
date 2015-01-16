@@ -26,11 +26,12 @@ for k, v in pairs(res.header) do
       ngx.log(ngx.ERR, 'got header ' .. k .. ': ' .. v)
       if k == 'X-FeideConnect-Authorization' then
          ngx.req.set_header('Authorization', v)
+      elseif k == 'X-FeideConnect-endpoint' then
+            ngx.var.endpoint = v
       else
          ngx.req.set_header(k, v)
       end
    end
 end
 
-ngx.var.endpoint = res.header['X-FeideConnect-endpoint']
 ngx.log(ngx.ERR, 'got endpoint ' .. ngx.var.endpoint)
