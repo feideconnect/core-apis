@@ -23,7 +23,6 @@ end
 
 for k, v in pairs(res.header) do
    if string.sub(k, 1, 15) == 'X-FeideConnect-' then
-      ngx.log(ngx.ERR, 'got header ' .. k .. ': ' .. v)
       if k == 'X-FeideConnect-Authorization' then
          ngx.req.set_header('Authorization', v)
       elseif k == 'X-FeideConnect-endpoint' then
