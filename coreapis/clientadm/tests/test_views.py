@@ -104,10 +104,15 @@ class ClientAdmTests(unittest.TestCase):
         self.session().insert_client = mock.MagicMock() 
         self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
 
+    def test_post_client_invalid_json(self):
+        headers = {'Authorization': 'Bearer client_token'}
+        body = 'foo'
+        self.testapp.post('/clientadm/clients/', body, status=400, headers=headers)
+
     def test_post_client_invalid_uuid(self):
         headers = {'Authorization': 'Bearer client_token'}
         body = deepcopy(post_body_minimal)
-        body['owner'] = "owner"
+        body['owner'] = 'owner'
         self.session().insert_client = mock.MagicMock() 
         self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
 
@@ -115,6 +120,20 @@ class ClientAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer client_token'}
         body = deepcopy(post_body_minimal)
         body['descr'] = 42
+        self.session().insert_client = mock.MagicMock() 
+        self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
+
+    def test_post_client_invalid_ts(self):
+        headers = {'Authorization': 'Bearer client_token'}
+        body = deepcopy(post_body_minimal)
+        body['created'] = 42
+        self.session().insert_client = mock.MagicMock() 
+        self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
+
+    def test_post_client_invalid_text_list(self):
+        headers = {'Authorization': 'Bearer client_token'}
+        body = deepcopy(post_body_minimal)
+        body['redirect_uri'] = [42]
         self.session().insert_client = mock.MagicMock() 
         self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
 
