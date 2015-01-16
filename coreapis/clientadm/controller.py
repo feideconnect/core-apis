@@ -3,13 +3,11 @@ from coreapis.utils import now, LogWrapper, ValidationError, AlreadyExistsError
 from datetime import datetime
 import uuid
 
-LIMIT    = 100
-
-filter_keys = {
+FILTER_KEYS = {
     'owner': {'sel':  'owner = ?',
-               'cast': lambda u: uuid.UUID(u)},
+              'cast': uuid.UUID},
     'scope': {'sel':  'scopes contains ?',
-               'cast': lambda u: u}
+              'cast': lambda u: u}
 }
 
 def is_text(d):
@@ -48,9 +46,8 @@ class ClientAdmController(object):
 
     def get_clients(self, params):
         self.log.debug('get_clients', num_params=len(params))
-        
         selectors, values = [], []
-        for k, v in filter_keys.items():
+        for k, v in FILTER_KEYS.items():
             if k in params:
                 self.log.debug('Filter key found', k=k)
                 if params[k] == '':
@@ -72,7 +69,7 @@ class ClientAdmController(object):
             'owner': {'validator': is_uuid},
             'redirect_uri': {'validator': is_text_list},
             'scopes': {'validator': is_text_list},
-       }
+        }
         allowed_attrs = {
             'id': {'validator': is_uuid},  # normally filled in when creating
             'client_secret': {'validator': is_text, 'default': ''},
@@ -128,7 +125,7 @@ class ClientAdmController(object):
         client['updated'] = ts
 
         self.session.insert_client(client['id'], client['client_secret'], client['name'],
-                                   client['descr'], client['redirect_uri'], 
+                                   client['descr'], client['redirect_uri'],
                                    client['scopes'], client['scopes_requested'],
                                    client['status'], client['type'], ts, uuid.UUID(client['owner']))
         return client
