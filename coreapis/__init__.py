@@ -33,6 +33,8 @@ def main(global_config, **settings):
         config.include('coreapis.peoplesearch.views.configure', route_prefix='peoplesearch')
     if all_enabled or 'clientadm' in enabled_components:
         config.include('coreapis.clientadm.views.configure', route_prefix='clientadm')
+    if all_enabled or 'gk' in enabled_components:
+        config.include('coreapis.gk.views.configure', route_prefix='gk')
     config.scan('coreapis.error_views')
     config.add_settings(realm=global_config['oauth_realm'])
     config.add_tween('coreapis.utils.RequestTimingTween')

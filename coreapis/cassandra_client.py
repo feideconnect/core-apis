@@ -3,6 +3,7 @@ from cassandra.cluster import Cluster
 from cassandra.query import dict_factory
 import time
 from .utils import now
+import json
 
 
 class Client(object):
@@ -15,6 +16,7 @@ class Client(object):
         self.s_get_client = self.session.prepare('SELECT * FROM clients WHERE id = ?')
         self.s_get_token = self.session.prepare('SELECT * FROM oauth_tokens WHERE access_token = ?')
         self.s_get_user = self.session.prepare('SELECT * FROM users WHERE userid = ?')
+        self.s_get_gk_backend = self.session.prepare('SELECT * FROM apigk WHERE id = ?')
 
     def insert_client(self, id, client_secret, name, descr,
                       redirect_uri, scopes, scopes_requested, status,
@@ -71,3 +73,13 @@ class Client(object):
         if len(res) == 0:
             raise KeyError('No such user')
         return res[0]
+
+    def get_gk_backend(self, backend):
+        prep = self.s_get_gk_backend
+        res = self.session.execute(prep.bind([backend]))
+        if len(res) == 0:
+            raise KeyError('No such backend')
+        backend_data = res[0]
+        backend_data['expose'] = json.loads(backend_data['expose'])
+        backend_data['trust'] = json.loads(backend_data['trust'])
+        return backend_data
