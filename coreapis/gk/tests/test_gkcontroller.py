@@ -23,6 +23,10 @@ class TestController(TestCase):
         'userid': uuid.UUID('0186bdb5-5f68-436a-8453-6efe4a66cf1e'),
         'userid_sec': set(['feide:test@feide.no', 'mail:test.user@feide.no']),
     }
+    client = {
+        'id': uuid.UUID('b708800e-a9b9-4a2e-834d-a75c251c12f8'),
+        'scopes': ['danger', 'alert'],
+    }
 
     @mock.patch('coreapis.middleware.cassandra_client.Client')
     def setUp(self, Client):
@@ -50,13 +54,63 @@ class TestController(TestCase):
 
     def test_expose_scopes(self):
         backend = self.basic_backend.copy()
-        backend['expose']['scopes'] = True
+        backend['expose'] = dict(scopes=True)
         self.session.get_gk_backend.return_value = backend
-        headers = self.controller.info('testbackend', {'scopes': ['danger', 'alert']},
-                                       None, ['gk_testbackend_good', 'gk_testbackend_nice', 'secrit'])
+        headers = self.controller.info('testbackend', self.client, None,
+                                       ['gk_testbackend_good', 'gk_testbackend_nice', 'secrit'])
         assert len(headers) == 3
+        self.basic_asserts(headers)
         assert 'scopes' in headers
         assert headers['scopes'] == 'good,nice'
+
+    def test_expose_clientid(self):
+        backend = self.basic_backend.copy()
+        backend['expose'] = dict(clientid=True)
+        self.session.get_gk_backend.return_value = backend
+        headers = self.controller.info('testbackend', self.client, None,
+                                       [])
+        assert len(headers) == 3
+        self.basic_asserts(headers)
+        assert 'clientid' in headers
+        assert headers['clientid'] == 'b708800e-a9b9-4a2e-834d-a75c251c12f8'
+
+    def test_expose_userid(self):
+        backend = self.basic_backend.copy()
+        backend['expose'] = dict(userid=True)
+        self.session.get_gk_backend.return_value = backend
+        headers = self.controller.info('testbackend', self.client, self.user,
+                                       [])
+        assert len(headers) == 3
+        self.basic_asserts(headers)
+        assert 'userid' in headers
+        assert headers['userid'] == '0186bdb5-5f68-436a-8453-6efe4a66cf1e'
+
+    def test_expose_userid_sec(self):
+        backend = self.basic_backend.copy()
+        backend['expose'] = {'userid': True, 'userid-sec': True}
+        self.session.get_gk_backend.return_value = backend
+        headers = self.controller.info('testbackend', self.client, self.user,
+                                       [])
+        assert len(headers) == 4
+        self.basic_asserts(headers)
+        assert 'userid' in headers
+        assert headers['userid'] == '0186bdb5-5f68-436a-8453-6efe4a66cf1e'
+        assert 'userid-sec' in headers
+        assert headers['userid-sec'] == 'feide:test@feide.no,mail:test.user@feide.no' or \
+            headers['userid-sec'] == 'mail:test.user@feide.no,feide:test@feide.no'
+
+    def test_expose_userid_sec_one(self):
+        backend = self.basic_backend.copy()
+        backend['expose'] = {'userid': True, 'userid-sec': ['feide']}
+        self.session.get_gk_backend.return_value = backend
+        headers = self.controller.info('testbackend', self.client, self.user,
+                                       [])
+        assert len(headers) == 4
+        self.basic_asserts(headers)
+        assert 'userid' in headers
+        assert headers['userid'] == '0186bdb5-5f68-436a-8453-6efe4a66cf1e'
+        assert 'userid-sec' in headers
+        assert headers['userid-sec'] == 'feide:test@feide.no'
 
 
 class TestAuthHeader(TestCase):
