@@ -38,11 +38,10 @@ def add_client(request):
         raise HTTPBadRequest
     try:
         client = request.cadm_controller.add_client(payload)
-    except AlreadyExistsError:
-        raise HTTPConflict("client with this id already exists")
-    if client:
         request.response.status = 201
         request.response.location = "{}{}".format(request.url, client['id'])
         return client
-    else:
+    except AlreadyExistsError:
+        raise HTTPConflict("client with this id already exists")
+    except:
         raise HTTPBadRequest
