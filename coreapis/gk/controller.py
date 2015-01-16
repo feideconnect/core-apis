@@ -15,7 +15,7 @@ def auth_header(trust):
     ttype = trust['type']
     if ttype == 'basic':
         return basic_auth(trust)
-    if type == 'token':
+    if ttype == 'token':
         return 'Auth', trust['token']
     raise RuntimeError('unhandled trust type {}'.format(ttype))
 
