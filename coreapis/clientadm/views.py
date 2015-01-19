@@ -1,5 +1,6 @@
 from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPConflict
+from pyramid.response import Response
 from .controller import ClientAdmController
 from coreapis.utils import AlreadyExistsError
 import json
@@ -12,9 +13,10 @@ def configure(config):
     config.add_settings(cadm_controller=cadm_controller)
     config.add_request_method(lambda r: r.registry.settings.cadm_controller, 'cadm_controller',
                               reify=True)
-    config.add_route('get_client', '/clients/{id}')
+    config.add_route('get_client', '/clients/{id}', request_method='GET')
     config.add_route('list_clients', '/clients/', request_method='GET')
     config.add_route('add_client', '/clients/', request_method='POST')
+    config.add_route('delete_client', '/clients/{id}', request_method='DELETE')
     config.scan(__name__)
 
 @view_config(route_name='list_clients', renderer='json', permission='scope_clientadm')
@@ -45,3 +47,10 @@ def add_client(request):
         raise HTTPConflict("client with this id already exists")
     except:
         raise HTTPBadRequest
+
+@view_config(route_name='delete_client', renderer='json', permission='scope_clientadm')
+def delete_client(request):
+    id = request.matchdict['id']
+    request.cadm_controller.delete_client(id)
+    return Response(status = 204, 
+                    content_type='application/json; charset={}'.format(request.charset))

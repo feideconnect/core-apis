@@ -129,3 +129,7 @@ class ClientAdmController(object):
                                    client['scopes'], client['scopes_requested'],
                                    client['status'], client['type'], ts, uuid.UUID(client['owner']))
         return client
+
+    def delete_client(self, id):
+        self.log.debug('Delete client', id=id)
+        self.session.delete_client(uuid.UUID(id))

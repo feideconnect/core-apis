@@ -13,6 +13,7 @@ class Client(object):
         self.session = cluster.connect(keyspace)
         self.session.row_factory = dict_factory
         self.s_get_client = self.session.prepare('SELECT * FROM clients WHERE id = ?')
+        self.s_delete_client = self.session.prepare('DELETE FROM clients WHERE id = ?')
         self.s_get_token = self.session.prepare('SELECT * FROM oauth_tokens WHERE access_token = ?')
         self.s_get_user = self.session.prepare('SELECT * FROM users WHERE userid = ?')
         self.s_get_gk_backend = self.session.prepare('SELECT * FROM apigk WHERE id = ?')
@@ -57,6 +58,13 @@ class Client(object):
         prep = self.session.prepare('SELECT * from clients WHERE scopes CONTAINS ?')
         res = self.session.execute(prep.bind([scope]))
         return res
+
+    def delete_client(self, clientid):
+        prep = self.s_delete_client
+        t0 = time.time()
+        self.session.execute(prep.bind([clientid]))
+        t0 = time.time()
+        print("Executed in %s ms" % ((time.time()-t0)*1000))
 
     def get_token(self, tokenid):
         prep = self.s_get_token
