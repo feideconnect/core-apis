@@ -88,7 +88,7 @@ class ClientAdmController(object):
         self.session.insert_client(client['id'], client['client_secret'], client['name'],
                                    client['descr'], client['redirect_uri'],
                                    client['scopes'], client['scopes_requested'],
-                                   client['status'], client['type'], ts, client['owner'])
+                                   client['status'], client['type'], ts, ts, client['owner'])
         return client
 
     def delete_client(self, id):

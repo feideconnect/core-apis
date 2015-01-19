@@ -20,11 +20,11 @@ class Client(object):
 
     def insert_client(self, id, client_secret, name, descr,
                       redirect_uri, scopes, scopes_requested, status,
-                      type, ts, owner):
+                      type, create_ts, update_ts, owner):
         prep = self.session.prepare('INSERT INTO clients (id, client_secret, name, descr, redirect_uri, scopes, scopes_requested, status, type, created, updated, owner) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
         self.session.execute(prep.bind([id, client_secret, name, descr,
                                         redirect_uri, scopes, scopes_requested,
-                                        status, type, ts, ts, owner]))
+                                        status, type, create_ts, update_ts, owner]))
 
     def get_client_by_id(self, clientid):
         prep = self.s_get_client
