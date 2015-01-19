@@ -26,7 +26,7 @@ class GkController(object):
         self.log = LogWrapper('gk.GkController')
 
     def info(self, backend_id, client, user, scopes):
-        backend = self.session.get_gk_backend(backend_id)
+        backend = self.session.get_apigk(backend_id)
         if backend['requireuser'] and user is None:
             return None
         expose = backend['expose']

@@ -80,11 +80,11 @@ class Client(object):
             raise KeyError('No such user')
         return res[0]
 
-    def get_gk_backend(self, backend):
-        prep = self.s_get_gk_backend
-        res = self.session.execute(prep.bind([backend]))
+    def get_apigk(self, id):
+        prep = self.s_get_apigk
+        res = self.session.execute(prep.bind([id]))
         if len(res) == 0:
-            raise KeyError('No such backend')
+            raise KeyError('No such apigk')
         backend_data = res[0]
         backend_data['expose'] = json.loads(backend_data['expose'])
         backend_data['trust'] = json.loads(backend_data['trust'])

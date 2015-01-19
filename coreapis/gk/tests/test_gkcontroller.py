@@ -42,12 +42,12 @@ class TestController(TestCase):
     def test_require_user(self):
         backend = self.basic_backend.copy()
         backend['requireuser'] = True
-        self.session.get_gk_backend.return_value = backend
+        self.session.get_apigk.return_value = backend
         headers = self.controller.info('testbackend', {}, None, [])
         assert headers is None
 
     def test_expose_nothing(self):
-        self.session.get_gk_backend.return_value = self.basic_backend
+        self.session.get_apigk.return_value = self.basic_backend
         headers = self.controller.info('testbackend', {}, self.user, [])
         assert len(headers) == 2
         self.basic_asserts(headers)
@@ -55,7 +55,7 @@ class TestController(TestCase):
     def test_expose_scopes(self):
         backend = self.basic_backend.copy()
         backend['expose'] = dict(scopes=True)
-        self.session.get_gk_backend.return_value = backend
+        self.session.get_apigk.return_value = backend
         headers = self.controller.info('testbackend', self.client, None,
                                        ['gk_testbackend_good', 'gk_testbackend_nice', 'secrit'])
         assert len(headers) == 3
@@ -66,7 +66,7 @@ class TestController(TestCase):
     def test_expose_clientid(self):
         backend = self.basic_backend.copy()
         backend['expose'] = dict(clientid=True)
-        self.session.get_gk_backend.return_value = backend
+        self.session.get_apigk.return_value = backend
         headers = self.controller.info('testbackend', self.client, None,
                                        [])
         assert len(headers) == 3
@@ -77,7 +77,7 @@ class TestController(TestCase):
     def test_expose_userid(self):
         backend = self.basic_backend.copy()
         backend['expose'] = dict(userid=True)
-        self.session.get_gk_backend.return_value = backend
+        self.session.get_apigk.return_value = backend
         headers = self.controller.info('testbackend', self.client, self.user,
                                        [])
         assert len(headers) == 3
@@ -88,7 +88,7 @@ class TestController(TestCase):
     def test_expose_userid_sec(self):
         backend = self.basic_backend.copy()
         backend['expose'] = {'userid': True, 'userid-sec': True}
-        self.session.get_gk_backend.return_value = backend
+        self.session.get_apigk.return_value = backend
         headers = self.controller.info('testbackend', self.client, self.user,
                                        [])
         assert len(headers) == 4
@@ -102,7 +102,7 @@ class TestController(TestCase):
     def test_expose_userid_sec_one(self):
         backend = self.basic_backend.copy()
         backend['expose'] = {'userid': True, 'userid-sec': ['feide']}
-        self.session.get_gk_backend.return_value = backend
+        self.session.get_apigk.return_value = backend
         headers = self.controller.info('testbackend', self.client, self.user,
                                        [])
         assert len(headers) == 4
