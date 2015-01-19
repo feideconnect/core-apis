@@ -48,7 +48,7 @@ class GkController(object):
                 headers['userid-sec'] = ",".join(exposed_sec_ids)
 
             if expose.get('groups', False):
-                raise NotImplemented()
+                raise NotImplementedError()
 
         if expose.get('scopes', False):
             scope_prefix = 'gk_{}_'.format(backend_id)
