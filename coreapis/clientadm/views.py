@@ -51,6 +51,9 @@ def add_client(request):
 @view_config(route_name='delete_client', renderer='json', permission='scope_clientadm')
 def delete_client(request):
     id = request.matchdict['id']
-    request.cadm_controller.delete_client(id)
-    return Response(status = '204 No Content',
-                    content_type='application/json; charset={}'.format(request.charset))
+    try:
+        request.cadm_controller.delete_client(id)
+        return Response(status = '204 No Content',
+                        content_type='application/json; charset={}'.format(request.charset))
+    except ValueError: # id not a valid UUID
+        raise HTTPBadRequest

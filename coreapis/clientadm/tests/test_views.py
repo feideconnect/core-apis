@@ -161,7 +161,4 @@ class ClientAdmTests(unittest.TestCase):
 
     def test_delete_client_malformed_id(self):
         headers = {'Authorization': 'Bearer client_token'}
-        self.testapp.delete('/clientadm/clients/{}'.format('foo'), status=500, headers=headers)
-
-
-
+        self.testapp.delete('/clientadm/clients/{}'.format('foo'), status=400, headers=headers)
