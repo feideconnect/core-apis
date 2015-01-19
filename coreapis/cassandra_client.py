@@ -16,7 +16,7 @@ class Client(object):
         self.s_delete_client = self.session.prepare('DELETE FROM clients WHERE id = ?')
         self.s_get_token = self.session.prepare('SELECT * FROM oauth_tokens WHERE access_token = ?')
         self.s_get_user = self.session.prepare('SELECT * FROM users WHERE userid = ?')
-        self.s_get_gk_backend = self.session.prepare('SELECT * FROM apigk WHERE id = ?')
+        self.s_get_apigk = self.session.prepare('SELECT * FROM apigk WHERE id = ?')
 
     def insert_client(self, id, client_secret, name, descr,
                       redirect_uri, scopes, scopes_requested, status,
