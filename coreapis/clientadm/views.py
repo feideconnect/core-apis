@@ -40,7 +40,7 @@ def add_client(request):
         raise HTTPBadRequest
     try:
         client = request.cadm_controller.add_client(payload)
-        request.response.status = 201
+        request.response.status = '201 Created'
         request.response.location = "{}{}".format(request.url, client['id'])
         return client
     except AlreadyExistsError:
@@ -52,5 +52,5 @@ def add_client(request):
 def delete_client(request):
     id = request.matchdict['id']
     request.cadm_controller.delete_client(id)
-    return Response(status = 204, 
+    return Response(status = '204 No Content',
                     content_type='application/json; charset={}'.format(request.charset))
