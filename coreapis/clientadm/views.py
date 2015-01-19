@@ -29,7 +29,7 @@ def get_client(request):
     try:
         client = request.cadm_controller.get_client(id)
     except KeyError:
-        raise HTTPNotFound()
+        raise HTTPNotFound
     return client
 
 @view_config(route_name='add_client', renderer='json', request_method='POST', permission='scope_clientadm')
