@@ -3,6 +3,7 @@ from coreapis.utils import now, LogWrapper, ValidationError, AlreadyExistsError
 from datetime import datetime
 import uuid
 import valideer as V
+import dateutil.parser
 
 FILTER_KEYS = {
     'owner': {'sel':  'owner = ?',
@@ -13,8 +14,10 @@ FILTER_KEYS = {
 
 
 def ts(d):
-    return datetime.strptime(d, "%Y-%m-%d %H:%M:%S%z")
-
+    if type(d) == datetime:
+        return d
+    else:
+        return dateutil.parser.parse(d)
 
 class ClientAdmController(object):
     def __init__(self, contact_points, keyspace, maxrows):
@@ -44,10 +47,10 @@ class ClientAdmController(object):
     def validate_client(self, client):
         schema = {
             '+name': 'string',
-            '+owner': V.AdaptBy(uuid.UUID),
+            '+owner': V.AdaptTo(uuid.UUID),
             '+redirect_uri': ['string'],
             '+scopes': ['string'],
-            'id': V.Nullable(V.AdaptBy(uuid.UUID)),
+            'id': V.Nullable(V.AdaptTo(uuid.UUID)),
             'client_secret': V.Nullable('string', ''),
             'created': V.AdaptBy(ts),
             'descr': V.Nullable('string', ''),
@@ -65,6 +68,16 @@ class ClientAdmController(object):
             return True
         except:
             return False
+
+    # Used both for add and update.
+    # By default CQL does not distinguish between INSERT and UPDATE
+    def insert_client(self, client):
+        self.session.insert_client(client['id'], client['client_secret'], client['name'],
+                                   client['descr'], client['redirect_uri'],
+                                   client['scopes'], client['scopes_requested'],
+                                   client['status'], client['type'], client['created'],
+                                   client['updated'], client['owner'])
+        return client
 
     def add_client(self, client):
         self.log.debug('add client')
@@ -84,11 +97,21 @@ class ClientAdmController(object):
         ts = now()
         client['created'] = ts
         client['updated'] = ts
+        self.insert_client(client)
+        return client
 
-        self.session.insert_client(client['id'], client['client_secret'], client['name'],
-                                   client['descr'], client['redirect_uri'],
-                                   client['scopes'], client['scopes_requested'],
-                                   client['status'], client['type'], ts, ts, client['owner'])
+    def update_client(self, id, attrs):
+        self.log.debug('update client')
+        try:
+            client = self.session.get_client_by_id(uuid.UUID(id))
+            for k, v in attrs.items():
+                client[k] = v
+            client = self.validate_client(client)
+        except V.ValidationError as ex:
+            self.log.debug('client is invalid: {}'.format(ex))
+            raise ValidationError(ex)
+        client['updated'] = now()
+        self.insert_client(client)
         return client
 
     def delete_client(self, id):

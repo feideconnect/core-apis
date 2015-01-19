@@ -1,6 +1,7 @@
 import unittest
 import mock
 import uuid
+import dateutil.parser
 from copy import deepcopy
 from webtest import TestApp
 from pyramid import testing
@@ -16,6 +17,16 @@ post_body_maximal = {
     'client_secret': 'sekrit', 'created': '2015-01-12 14:05:16+0100', 'descr': 'green',
     'scopes_requested': [], 'status': ['lab'], 'type': 'client',
     'updated': '2015-01-12 14:05:16+0100'
+}
+
+retrieved_client = {
+    'name': 'per', 'scopes': ['clientadm'], 'redirect_uri': [],
+    'owner': uuid.UUID('4f4e4b2b-bf7b-49f8-b703-cc6f4fc93493'), 
+    'id': uuid.UUID('f3f043db-9fd6-4c5a-b0bc-61992bea9eca'),
+    'client_secret': 'sekrit', 'created': dateutil.parser.parse('2015-01-12 14:05:16+0100'), 
+    'descr': 'green',
+    'scopes_requested': [], 'status': ['lab'], 'type': 'client',
+    'updated': dateutil.parser.parse('2015-01-12 14:05:16+0100')
 }
 
 class ClientAdmTests(unittest.TestCase):
@@ -162,3 +173,38 @@ class ClientAdmTests(unittest.TestCase):
     def test_delete_client_malformed_id(self):
         headers = {'Authorization': 'Bearer client_token'}
         self.testapp.delete('/clientadm/clients/{}'.format('foo'), status=400, headers=headers)
+
+    def test_update_client(self):
+        headers = {'Authorization': 'Bearer client_token'}
+        id = post_body_maximal['id']
+        self.session().get_client_by_id.return_value = retrieved_client
+        self.session().insert_client = mock.MagicMock()
+        res = self.testapp.patch_json('/clientadm/clients/{}'.format(id), {'descr': 'blue'}, status=200, headers=headers)
+        out = res.json
+        assert out['descr'] == 'blue'
+
+    def test_update_client_no_id(self):
+        headers = {'Authorization': 'Bearer client_token'}
+        self.testapp.patch_json('/clientadm/clients/', {'descr': 'blue'}, status=404, headers=headers)
+
+    def test_update_client_malformed_id(self):
+        headers = {'Authorization': 'Bearer client_token'}
+        self.testapp.patch_json('/clientadm/clients/{}'.format('foo'), {'descr': 'blue'}, status=400, headers=headers)
+
+    def test_update_client_invalid_json(self):
+        headers = {'Authorization': 'Bearer client_token'}
+        self.testapp.patch('/clientadm/clients/{}'.format('foo'), 'bar', status=400, headers=headers)
+
+    def test_update_missing_client(self):
+        headers = {'Authorization': 'Bearer client_token'}
+        id = post_body_maximal['id']
+        self.session().get_client_by_id.side_effect = KeyError()
+        self.session().insert_client = mock.MagicMock()
+        self.testapp.patch_json('/clientadm/clients/{}'.format(id), {'descr': 'blue'}, status=404, headers=headers)
+
+    def test_update_client_invalid_ts(self):
+        headers = {'Authorization': 'Bearer client_token'}
+        id = post_body_maximal['id']
+        self.session().get_client_by_id.return_value = retrieved_client
+        self.session().insert_client = mock.MagicMock()
+        self.testapp.patch_json('/clientadm/clients/{}'.format(id), {'created': 'blue'}, status=400, headers=headers)

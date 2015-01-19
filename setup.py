@@ -21,6 +21,7 @@ requires = [
     'pyramid',
     'pytest',
     'python3-ldap',
+    'python-dateutil',
     'pytz',
     'statsd',
     'valideer',

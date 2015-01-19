@@ -17,6 +17,7 @@ def configure(config):
     config.add_route('list_clients', '/clients/', request_method='GET')
     config.add_route('add_client', '/clients/', request_method='POST')
     config.add_route('delete_client', '/clients/{id}', request_method='DELETE')
+    config.add_route('update_client', '/clients/{id}', request_method='PATCH')
     config.scan(__name__)
 
 @view_config(route_name='list_clients', renderer='json', permission='scope_clientadm')
@@ -56,4 +57,19 @@ def delete_client(request):
         return Response(status = '204 No Content',
                         content_type='application/json; charset={}'.format(request.charset))
     except ValueError: # id not a valid UUID
+        raise HTTPBadRequest
+
+@view_config(route_name='update_client', renderer='json', permission='scope_clientadm')
+def update_client(request):
+    try:
+        id = request.matchdict['id']
+        payload = json.loads(request.body.decode(request.charset))
+    except:
+        raise HTTPBadRequest
+    try:
+        client = request.cadm_controller.update_client(id, payload)
+        return client
+    except KeyError:
+        raise HTTPNotFound
+    except:
         raise HTTPBadRequest
