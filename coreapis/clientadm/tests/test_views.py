@@ -151,5 +151,17 @@ class ClientAdmTests(unittest.TestCase):
         self.session().insert_client = mock.MagicMock() 
         self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
 
+    def test_delete_client(self):
+        headers = {'Authorization': 'Bearer client_token'}
+        self.testapp.delete('/clientadm/clients/{}'.format(uuid.uuid4()), status=204, headers=headers)
+
+    def test_delete_client_no_id(self):
+        headers = {'Authorization': 'Bearer client_token'}
+        self.testapp.delete('/clientadm/clients/', status=404, headers=headers)
+
+    def test_delete_client_malformed_id(self):
+        headers = {'Authorization': 'Bearer client_token'}
+        self.testapp.delete('/clientadm/clients/{}'.format('foo'), status=500, headers=headers)
+
 
 
