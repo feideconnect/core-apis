@@ -33,19 +33,22 @@ class Client(object):
             raise KeyError('No such client')
         return res[0]
 
-    def get_clients(self, selectors, values, maxrows):
+    def get_generic(self, table, selectors, values, maxrows):
         if len(selectors) != len(values):
             raise KeyError('Selectors and values not same length')
         if len(selectors) == 0:
-            stmt = 'SELECT * from clients LIMIT {}'.format(maxrows)
+            stmt = 'SELECT * from {} LIMIT {}'.format(table, maxrows)
         else:
-            stmt = 'SELECT * from clients WHERE {} LIMIT {} ALLOW FILTERING'.format(' and '.join(selectors), maxrows)
+            stmt = 'SELECT * from {} WHERE {} LIMIT {} ALLOW FILTERING'.format(table, ' and '.join(selectors), maxrows)
         print("cql: {}".format(stmt))
         prep = self.session.prepare(stmt)
         res = self.session.execute(prep.bind(values))
         t0 = time.time()
         print("Executed in %s ms" % ((time.time()-t0)*1000))
         return res
+
+    def get_clients(self, selectors, values, maxrows):
+        return self.get_generic('clients', selectors, values, maxrows)
 
     def get_clients_by_owner(self, owner):
         prep = self.session.prepare('SELECT * from clients WHERE owner = ?')
@@ -89,3 +92,21 @@ class Client(object):
         backend_data['expose'] = json.loads(backend_data['expose'])
         backend_data['trust'] = json.loads(backend_data['trust'])
         return backend_data
+
+    def get_apigks(self, selectors, values, maxrows):
+        return self.get_generic('apigk', selectors, values, maxrows)
+
+    def insert_apigk(self, apigk):
+        prep = self.session.prepare('INSERT INTO apigk (id, created, descr, endpoints, expose, httpscertpinned, name, owner, requireuser, scopedef, status, trust, updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+        self.session.execute(prep.bind([apigk['id'],
+                                        apigk['created'],
+                                        apigk['descr'],
+                                        apigk['endpoints'],
+                                        json.dumps(apigk['expose']),
+                                        apigk['httpscertpinned'],
+                                        apigk['name'], apigk['owner'],
+                                        apigk['requireuser'],
+                                        json.dumps(apigk['scopedef']),
+                                        apigk['status'],
+                                        json.dumps(apigk['trust']),
+                                        apigk['updated']]))
