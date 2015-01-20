@@ -109,4 +109,4 @@ class APIGKAdmController(object):
             self.log.debug('apigk is invalid: {}'.format(ex))
             raise ValidationError(ex)
         apigk['updated'] = now()
-        self.insert_apigk(apigk)
+        self.session.insert_apigk(apigk)
