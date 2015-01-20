@@ -22,12 +22,12 @@ def configure(config):
     config.scan(__name__)
 
 
-@view_config(route_name='list_apigks', renderer='json', permission='scope_apigkadm')
+@view_config(route_name='list_apigks', renderer='json', permission='scope_apigkadmin')
 def list_apigks(request):
     return request.gkadm_controller.get_apigks(request.params)
 
 
-@view_config(route_name='get_apigk', renderer='json', permission='scope_apigkadm')
+@view_config(route_name='get_apigk', renderer='json', permission='scope_apigkadmin')
 def get_apigk(request):
     id = request.matchdict['id']
     try:
@@ -38,7 +38,7 @@ def get_apigk(request):
 
 
 @view_config(route_name='add_apigk', renderer='json', request_method='POST',
-             permission='scope_apigkadm')
+             permission='scope_apigkadmin')
 def add_apigk(request):
     try:
         payload = json.loads(request.body.decode(request.charset))
@@ -55,7 +55,7 @@ def add_apigk(request):
         raise HTTPBadRequest
 
 
-@view_config(route_name='delete_apigk', renderer='json', permission='scope_apigkadm')
+@view_config(route_name='delete_apigk', renderer='json', permission='scope_apigkadmin')
 def delete_apigk(request):
     id = request.matchdict['id']
     try:
@@ -66,7 +66,7 @@ def delete_apigk(request):
         raise HTTPBadRequest
 
 
-@view_config(route_name='update_apigk', renderer='json', permission='scope_apigkadm')
+@view_config(route_name='update_apigk', renderer='json', permission='scope_apigkadmin')
 def update_apigk(request):
     try:
         id = request.matchdict['id']
