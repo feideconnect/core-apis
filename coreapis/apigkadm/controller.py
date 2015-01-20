@@ -46,7 +46,7 @@ class APIGKAdmController(object):
             'updated': V.AdaptBy(ts),
             '+endpoints': ['string'],
             '+requireuser': 'boolean',
-            'httpcertspinned': 'string',
+            'httpscertpinned': V.Nullable('string'),
             'expose': {
                 'clientid': 'boolean',
                 'userid': 'boolean',

@@ -24,7 +24,7 @@ post_body_maximal = {
     'updated': '2015-01-12 14:05:16+0100',
     'endpoints': ['https://foo.com/bar', 'https://ugle.org/foo'],
     'requireuser': True,
-    'httpcertspinned': '',
+    'httpscertpinned': '',
     'expose': {
         'userid': True,
         'clientid': True,
