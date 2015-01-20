@@ -2,6 +2,7 @@ from coreapis import cassandra_client
 from coreapis.utils import now, LogWrapper, ValidationError, AlreadyExistsError, ts
 import uuid
 import valideer as V
+import re
 
 FILTER_KEYS = {
     'owner': {'sel':  'owner = ?',
@@ -38,7 +39,7 @@ class APIGKAdmController(object):
         schema = {
             '+name': 'string',
             '+owner': V.AdaptTo(uuid.UUID),
-            'id': V.Nullable(V.AdaptTo(uuid.UUID)),
+            'id': re.compile('^[a-z][a-z0-9\-]{2,14}$'),
             'created': V.AdaptBy(ts),
             'descr': V.Nullable('string', ''),
             'status': V.Nullable(['string'], []),

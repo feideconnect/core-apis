@@ -5,6 +5,8 @@ from copy import deepcopy
 from webtest import TestApp
 from pyramid import testing
 from coreapis import main, middleware, apigkadm
+import py.test
+import valideer
 
 post_body_minimal = {
     'name': 'per',
@@ -16,7 +18,7 @@ post_body_minimal = {
 post_body_maximal = {
     'name': 'per',
     'owner': '4f4e4b2b-bf7b-49f8-b703-cc6f4fc93493',
-    'id': 'f3f043db-9fd6-4c5a-b0bc-61992bea9eca',
+    'id': 'max-gk',
     'created': '2015-01-12 14:05:16+0100', 'descr': 'green',
     'status': ['lab'],
     'updated': '2015-01-12 14:05:16+0100',
@@ -47,6 +49,29 @@ class TestValidation(unittest.TestCase):
     def test_validation(self):
         self.controller.validate_apigk(post_body_maximal)
         self.controller.validate_apigk(post_body_minimal)
+        testdata = deepcopy(post_body_minimal)
+        testdata['id'] = 'ab1'
+        self.controller.validate_apigk(testdata)
+        testdata['id'] = 'ab1-12abc123'
+        self.controller.validate_apigk(testdata)
+        with py.test.raises(valideer.ValidationError):
+            testdata['id'] = 'a'
+            self.controller.validate_apigk(testdata)
+        with py.test.raises(valideer.ValidationError):
+            testdata['id'] = '1ab'
+            self.controller.validate_apigk(testdata)
+        with py.test.raises(valideer.ValidationError):
+            testdata['id'] = 'abcdefghijklmeno'
+            self.controller.validate_apigk(testdata)
+        with py.test.raises(valideer.ValidationError):
+            testdata['id'] = '.'
+            self.controller.validate_apigk(testdata)
+        with py.test.raises(valideer.ValidationError):
+            testdata['id'] = '/'
+            self.controller.validate_apigk(testdata)
+        with py.test.raises(valideer.ValidationError):
+            testdata['id'] = ':'
+            self.controller.validate_apigk(testdata)
 
 
 class APIGKAdmTests(unittest.TestCase):
