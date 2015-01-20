@@ -8,6 +8,7 @@ import time
 import pytz
 from collections import defaultdict, deque
 import threading
+import dateutil.parser
 
 __local = threading.local()
 
@@ -23,6 +24,13 @@ def request_id():
 
 def now():
     return datetime.datetime.now(tz=pytz.UTC)
+
+
+def ts(d):
+    if type(d) == datetime.datetime:
+        return d
+    else:
+        return dateutil.parser.parse(d)
 
 
 class CustomEncoder(json.JSONEncoder):

@@ -1,9 +1,7 @@
 from coreapis import cassandra_client
-from coreapis.utils import now, LogWrapper, ValidationError, AlreadyExistsError
-from datetime import datetime
+from coreapis.utils import now, LogWrapper, ValidationError, AlreadyExistsError, ts
 import uuid
 import valideer as V
-import dateutil.parser
 
 FILTER_KEYS = {
     'owner': {'sel':  'owner = ?',
@@ -12,12 +10,6 @@ FILTER_KEYS = {
               'cast': lambda u: u}
 }
 
-
-def ts(d):
-    if type(d) == datetime:
-        return d
-    else:
-        return dateutil.parser.parse(d)
 
 class ClientAdmController(object):
     def __init__(self, contact_points, keyspace, maxrows):
