@@ -32,7 +32,7 @@ class APIGKAdmController(object):
 
     def get_apigk(self, id):
         self.log.debug('Get apigk', id=id)
-        apigk = self.session.get_apigk(uuid.UUID(id))
+        apigk = self.session.get_apigk(id)
         return apigk
 
     def validate_apigk(self, apigk):
@@ -101,7 +101,7 @@ class APIGKAdmController(object):
     def update_apigk(self, id, attrs):
         self.log.debug('update apigk')
         try:
-            apigk = self.session.get_apigk(uuid.UUID(id))
+            apigk = self.session.get_apigk(id)
             for k, v in attrs.items():
                 apigk[k] = v
             apigk = self.validate_apigk(apigk)
