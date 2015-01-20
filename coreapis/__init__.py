@@ -19,7 +19,6 @@ def main(global_config, **settings):
                   global_config['statsd_prefix'])
     config.add_settings(cassandra_contact_points=global_config['cassandra_contact_points'].split(', '))
     config.add_settings(cassandra_keyspace=global_config['cassandra_keyspace'])
-    config.add_settings(clientadm_maxrows=global_config['clientadm_maxrows'])
     config.add_settings(timer=timer)
     if 'enabled_components' in settings:
         enabled_components = set(settings['enabled_components'].split(','))

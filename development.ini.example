@@ -22,6 +22,8 @@ pyramid.includes =
 # 32 base64 encoded bytes (used to generate profile image tokens)
 profile_token_secret = 9SFpfeAhjGl8HHA/GtjXSvbN8Q0r7PDiuOgPKyI/92c=
 peoplesearch.cache_keyspace = fc_ps_cache
+clientadm_maxrows = 100
+apigkadm_maxrows = 100
 
 # By default, the toolbar only appears for clients from IP addresses
 # '127.0.0.1' and '::1'.
