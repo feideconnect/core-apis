@@ -20,11 +20,11 @@ def configure(config):
     config.add_route('update_client', '/clients/{id}', request_method='PATCH')
     config.scan(__name__)
 
-@view_config(route_name='list_clients', renderer='json', permission='scope_clientadm')
+@view_config(route_name='list_clients', renderer='json', permission='scope_clientadmin')
 def list_clients(request):
     return request.cadm_controller.get_clients(request.params)
 
-@view_config(route_name='get_client', renderer='json', permission='scope_clientadm')
+@view_config(route_name='get_client', renderer='json', permission='scope_clientadmin')
 def get_client(request):
     id = request.matchdict['id']
     try:
@@ -33,7 +33,7 @@ def get_client(request):
         raise HTTPNotFound
     return client
 
-@view_config(route_name='add_client', renderer='json', request_method='POST', permission='scope_clientadm')
+@view_config(route_name='add_client', renderer='json', request_method='POST', permission='scope_clientadmin')
 def add_client(request):
     try:
         payload = json.loads(request.body.decode(request.charset))
@@ -49,7 +49,7 @@ def add_client(request):
     except:
         raise HTTPBadRequest
 
-@view_config(route_name='delete_client', renderer='json', permission='scope_clientadm')
+@view_config(route_name='delete_client', renderer='json', permission='scope_clientadmin')
 def delete_client(request):
     id = request.matchdict['id']
     try:
@@ -59,7 +59,7 @@ def delete_client(request):
     except ValueError: # id not a valid UUID
         raise HTTPBadRequest
 
-@view_config(route_name='update_client', renderer='json', permission='scope_clientadm')
+@view_config(route_name='update_client', renderer='json', permission='scope_clientadmin')
 def update_client(request):
     try:
         id = request.matchdict['id']

@@ -12,7 +12,7 @@ post_body_minimal = {
 }
 
 post_body_maximal = {
-    'name': 'per', 'scopes': ['clientadm'], 'redirect_uri': [],
+    'name': 'per', 'scopes': ['clientadmin'], 'redirect_uri': [],
     'owner': '4f4e4b2b-bf7b-49f8-b703-cc6f4fc93493', 'id': 'f3f043db-9fd6-4c5a-b0bc-61992bea9eca',
     'client_secret': 'sekrit', 'created': '2015-01-12 14:05:16+0100', 'descr': 'green',
     'scopes_requested': [], 'status': ['lab'], 'type': 'client',
@@ -20,7 +20,7 @@ post_body_maximal = {
 }
 
 retrieved_client = {
-    'name': 'per', 'scopes': ['clientadm'], 'redirect_uri': [],
+    'name': 'per', 'scopes': ['clientadmin'], 'redirect_uri': [],
     'owner': uuid.UUID('4f4e4b2b-bf7b-49f8-b703-cc6f4fc93493'), 
     'id': uuid.UUID('f3f043db-9fd6-4c5a-b0bc-61992bea9eca'),
     'client_secret': 'sekrit', 'created': dateutil.parser.parse('2015-01-12 14:05:16+0100'), 
