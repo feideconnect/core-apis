@@ -88,7 +88,6 @@ def delete_client(request):
 @view_config(route_name='update_client', renderer='json', permission='scope_clientadmin')
 def update_client(request):
     userid = get_userid(request)
-    print('userid: {}, type: {}'.format(userid, type(userid)))
     clientid = request.matchdict['id']
     try:
         payload = json.loads(request.body.decode(request.charset))

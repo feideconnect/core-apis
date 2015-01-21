@@ -10,6 +10,7 @@ from coreapis import main, middleware
 userid_own   = '00000000-0000-0000-0000-000000000001'
 userid_other = '00000000-0000-0000-0000-000000000002'
 clientid     = '00000000-0000-0000-0000-000000000003'
+date_created = '2015-01-12T14:05:16+01:00'
 
 post_body_minimal = {
     'name': 'per', 'scopes': [], 'redirect_uri': []
@@ -30,10 +31,10 @@ retrieved_client = {
     'name': 'per', 'scopes': ['clientadmin'], 'redirect_uri': [],
     'owner': uuid.UUID(userid_own),
     'id': uuid.UUID(clientid),
-    'client_secret': 'sekrit', 'created': dateutil.parser.parse('2015-01-12 14:05:16+0100'), 
+    'client_secret': 'sekrit', 'created': dateutil.parser.parse(date_created),
     'descr': 'green',
     'scopes_requested': [], 'status': ['lab'], 'type': 'client',
-    'updated': dateutil.parser.parse('2015-01-12 14:05:16+0100')
+    'updated': dateutil.parser.parse(date_created)
 }
 
 class ClientAdmTests(unittest.TestCase):
@@ -65,6 +66,11 @@ class ClientAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_client_by_id.side_effect = KeyError()
         self.testapp.get('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=404, headers=headers)
+
+    def test_get_client_missing_user(self):
+        headers = {'Authorization': 'Bearer client_token'}
+        self.session().get_client_by_id.return_value = {'foo': 'bar', 'owner': uuid.UUID(userid_own)}
+        res = self.testapp.get('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=401, headers=headers)
 
     def test_list_clients(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -216,3 +222,35 @@ class ClientAdmTests(unittest.TestCase):
         self.session().get_client_by_id.side_effect = KeyError()
         self.session().insert_client = mock.MagicMock()
         self.testapp.patch_json('/clientadm/clients/{}'.format(id), {'descr': 'blue'}, status=404, headers=headers)
+
+    def test_update_client_not_owner(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        id = post_body_maximal['id']
+        client = deepcopy(retrieved_client)
+        client['owner'] = uuid.UUID(userid_other)
+        self.session().get_client_by_id.return_value = client
+        self.session().insert_client = mock.MagicMock()
+        self.testapp.patch_json('/clientadm/clients/{}'.format(id), {'descr': 'blue'}, status=401, headers=headers)
+
+    def test_update_client_change_timestamp(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        id = post_body_maximal['id']
+        self.session().get_client_by_id.return_value = retrieved_client
+        self.session().insert_client = mock.MagicMock()
+        attrs = {
+            'descr': 'blue',
+            'created': '2000-01-01T00:00:00+01:00'
+        }
+        res = self.testapp.patch_json('/clientadm/clients/{}'.format(id),
+                                      attrs, status=200, headers=headers)
+        out = res.json
+        assert out['created'] == date_created
+
+    def test_update_client_invalid_list(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        id = post_body_maximal['id']
+        self.session().get_client_by_id.return_value = retrieved_client
+        self.session().insert_client = mock.MagicMock()
+        attrs = {'redirect_uri': 'http://www.vg.no'}
+        self.testapp.patch_json('/clientadm/clients/{}'.format(id),
+                                attrs, status=400, headers=headers)
