@@ -39,10 +39,10 @@ class ClientAdmController(object):
     def validate_client(self, client):
         schema = {
             '+name': 'string',
-            '+owner': V.AdaptTo(uuid.UUID),
             '+redirect_uri': ['string'],
             '+scopes': ['string'],
             'id': V.Nullable(V.AdaptTo(uuid.UUID)),
+            'owner': V.AdaptTo(uuid.UUID),
             'client_secret': V.Nullable('string', ''),
             'created': V.AdaptBy(ts),
             'descr': V.Nullable('string', ''),
@@ -61,6 +61,13 @@ class ClientAdmController(object):
         except:
             return False
 
+    def get_owner(self, id):
+        try:
+            client = self.session.get_client_by_id(uuid.UUID(id))
+            return client['owner']
+        except:
+            return None
+
     # Used both for add and update.
     # By default CQL does not distinguish between INSERT and UPDATE
     def insert_client(self, client):
@@ -71,8 +78,8 @@ class ClientAdmController(object):
                                    client['updated'], client['owner'])
         return client
 
-    def add_client(self, client):
-        self.log.debug('add client')
+    def add_client(self, client, userid):
+        self.log.debug('add client', userid=userid)
         try:
             client = self.validate_client(client)
         except V.ValidationError as ex:
@@ -86,6 +93,8 @@ class ClientAdmController(object):
                 raise AlreadyExistsError('client already exists')
         else:
             client['id'] = uuid.uuid4()
+        if not 'owner' in client:
+            client['owner'] = userid
         ts = now()
         client['created'] = ts
         client['updated'] = ts
@@ -93,11 +102,12 @@ class ClientAdmController(object):
         return client
 
     def update_client(self, id, attrs):
-        self.log.debug('update client')
+        self.log.debug('update client', id=id)
         try:
             client = self.session.get_client_by_id(uuid.UUID(id))
             for k, v in attrs.items():
-                client[k] = v
+                if k not in  ['created', 'updated']:
+                    client[k] = v
             client = self.validate_client(client)
         except V.ValidationError as ex:
             self.log.debug('client is invalid: {}'.format(ex))

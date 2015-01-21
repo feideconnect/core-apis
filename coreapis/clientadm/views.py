@@ -1,5 +1,5 @@
 from pyramid.view import view_config
-from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPConflict
+from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPConflict, HTTPUnauthorized
 from pyramid.response import Response
 from .controller import ClientAdmController
 from coreapis.utils import AlreadyExistsError
@@ -20,27 +20,49 @@ def configure(config):
     config.add_route('update_client', '/clients/{id}', request_method='PATCH')
     config.scan(__name__)
 
+def get_userid(request):
+    try:
+        return request.environ['FC_USER']['userid']
+    except:
+        return None
+
 @view_config(route_name='list_clients', renderer='json', permission='scope_clientadmin')
 def list_clients(request):
-    return request.cadm_controller.get_clients(request.params)
+    userid = str(get_userid(request))
+    params = {}
+    for k,v in request.params.items():
+        if k == 'owner' and v != str(userid):
+            raise HTTPUnauthorized
+        params[k] = v
+    params['owner'] = userid
+    return request.cadm_controller.get_clients(params)
 
 @view_config(route_name='get_client', renderer='json', permission='scope_clientadmin')
 def get_client(request):
+    request.cadm_controller.log.debug("FOO!")
+    userid = get_userid(request)
     id = request.matchdict['id']
     try:
         client = request.cadm_controller.get_client(id)
+        owner = client.get('owner', None)
+        if owner and owner != userid:
+            raise HTTPUnauthorized
     except KeyError:
         raise HTTPNotFound
     return client
 
 @view_config(route_name='add_client', renderer='json', request_method='POST', permission='scope_clientadmin')
 def add_client(request):
+    userid = get_userid(request)
     try:
         payload = json.loads(request.body.decode(request.charset))
     except:
         raise HTTPBadRequest
+    owner = payload.get('owner', None)
+    if owner and owner != str(userid):
+        raise HTTPUnauthorized
     try:
-        client = request.cadm_controller.add_client(payload)
+        client = request.cadm_controller.add_client(payload, userid)
         request.response.status = '201 Created'
         request.response.location = "{}{}".format(request.url, client['id'])
         return client
@@ -51,7 +73,11 @@ def add_client(request):
 
 @view_config(route_name='delete_client', renderer='json', permission='scope_clientadmin')
 def delete_client(request):
+    userid = get_userid(request)
     id = request.matchdict['id']
+    owner = request.cadm_controller.get_owner(id)
+    if owner and owner != userid:
+        raise HTTPUnauthorized
     try:
         request.cadm_controller.delete_client(id)
         return Response(status = '204 No Content',
@@ -61,11 +87,18 @@ def delete_client(request):
 
 @view_config(route_name='update_client', renderer='json', permission='scope_clientadmin')
 def update_client(request):
+    userid = get_userid(request)
+    print('userid: {}, type: {}'.format(userid, type(userid)))
+    id = request.matchdict['id']
     try:
-        id = request.matchdict['id']
         payload = json.loads(request.body.decode(request.charset))
     except:
         raise HTTPBadRequest
+    owner_orig = request.cadm_controller.get_owner(id)
+    owner_new = payload.get('owner', None)
+    if ((owner_orig and owner_orig != userid)
+        or (owner_new and owner_new != str(userid))):
+        raise HTTPUnauthorized
     try:
         client = request.cadm_controller.update_client(id, payload)
         return client
