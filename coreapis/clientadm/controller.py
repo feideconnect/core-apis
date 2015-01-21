@@ -31,9 +31,9 @@ class ClientAdmController(object):
         self.log.debug('get_clients', selectors=selectors, values=values, maxrows=self.maxrows)
         return self.session.get_clients(selectors, values, self.maxrows)
 
-    def get_client(self, id):
-        self.log.debug('Get client', id=id)
-        client = self.session.get_client_by_id(uuid.UUID(id))
+    def get_client(self, clientid):
+        self.log.debug('Get client', clientid=clientid)
+        client = self.session.get_client_by_id(uuid.UUID(clientid))
         return client
 
     def validate_client(self, client):
@@ -54,16 +54,16 @@ class ClientAdmController(object):
         validator = V.parse(schema, additional_properties=False)
         return validator.validate(client)
 
-    def client_exists(self, id):
+    def client_exists(self, clientid):
         try:
-            self.session.get_client_by_id(id)
+            self.session.get_client_by_id(clientid)
             return True
         except:
             return False
 
-    def get_owner(self, id):
+    def get_owner(self, clientid):
         try:
-            client = self.session.get_client_by_id(uuid.UUID(id))
+            client = self.session.get_client_by_id(uuid.UUID(clientid))
             return client['owner']
         except:
             return None
@@ -87,24 +87,24 @@ class ClientAdmController(object):
             raise ValidationError(ex)
         self.log.debug('client is ok')
         if 'id' in client:
-            id = client['id']
-            if self.client_exists(id):
-                self.log.debug('client already exists', id=id)
+            clientid = client['id']
+            if self.client_exists(clientid):
+                self.log.debug('client already exists', clientid=clientid)
                 raise AlreadyExistsError('client already exists')
         else:
             client['id'] = uuid.uuid4()
         if not 'owner' in client:
             client['owner'] = userid
-        ts = now()
-        client['created'] = ts
-        client['updated'] = ts
+        ts_now = now()
+        client['created'] = ts_now
+        client['updated'] = ts_now
         self.insert_client(client)
         return client
 
-    def update_client(self, id, attrs):
-        self.log.debug('update client', id=id)
+    def update_client(self, clientid, attrs):
+        self.log.debug('update client', clientid=clientid)
         try:
-            client = self.session.get_client_by_id(uuid.UUID(id))
+            client = self.session.get_client_by_id(uuid.UUID(clientid))
             for k, v in attrs.items():
                 if k not in  ['created', 'updated']:
                     client[k] = v
@@ -116,6 +116,6 @@ class ClientAdmController(object):
         self.insert_client(client)
         return client
 
-    def delete_client(self, id):
-        self.log.debug('Delete client', id=id)
-        self.session.delete_client(uuid.UUID(id))
+    def delete_client(self, clientid):
+        self.log.debug('Delete client', clientid=clientid)
+        self.session.delete_client(uuid.UUID(clientid))

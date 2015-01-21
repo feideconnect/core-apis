@@ -30,7 +30,7 @@ def get_userid(request):
 def list_clients(request):
     userid = str(get_userid(request))
     params = {}
-    for k,v in request.params.items():
+    for k, v in request.params.items():
         if k == 'owner' and v != str(userid):
             raise HTTPUnauthorized
         params[k] = v
@@ -39,11 +39,10 @@ def list_clients(request):
 
 @view_config(route_name='get_client', renderer='json', permission='scope_clientadmin')
 def get_client(request):
-    request.cadm_controller.log.debug("FOO!")
     userid = get_userid(request)
-    id = request.matchdict['id']
+    clientid = request.matchdict['id']
     try:
-        client = request.cadm_controller.get_client(id)
+        client = request.cadm_controller.get_client(clientid)
         owner = client.get('owner', None)
         if owner and owner != userid:
             raise HTTPUnauthorized
@@ -51,7 +50,8 @@ def get_client(request):
         raise HTTPNotFound
     return client
 
-@view_config(route_name='add_client', renderer='json', request_method='POST', permission='scope_clientadmin')
+@view_config(route_name='add_client', renderer='json', request_method='POST',
+             permission='scope_clientadmin')
 def add_client(request):
     userid = get_userid(request)
     try:
@@ -74,33 +74,33 @@ def add_client(request):
 @view_config(route_name='delete_client', renderer='json', permission='scope_clientadmin')
 def delete_client(request):
     userid = get_userid(request)
-    id = request.matchdict['id']
-    owner = request.cadm_controller.get_owner(id)
+    clientid = request.matchdict['id']
+    owner = request.cadm_controller.get_owner(clientid)
     if owner and owner != userid:
         raise HTTPUnauthorized
     try:
-        request.cadm_controller.delete_client(id)
-        return Response(status = '204 No Content',
+        request.cadm_controller.delete_client(clientid)
+        return Response(status='204 No Content',
                         content_type='application/json; charset={}'.format(request.charset))
-    except ValueError: # id not a valid UUID
+    except ValueError: # clientid not a valid UUID
         raise HTTPBadRequest
 
 @view_config(route_name='update_client', renderer='json', permission='scope_clientadmin')
 def update_client(request):
     userid = get_userid(request)
     print('userid: {}, type: {}'.format(userid, type(userid)))
-    id = request.matchdict['id']
+    clientid = request.matchdict['id']
     try:
         payload = json.loads(request.body.decode(request.charset))
     except:
         raise HTTPBadRequest
-    owner_orig = request.cadm_controller.get_owner(id)
+    owner_orig = request.cadm_controller.get_owner(clientid)
     owner_new = payload.get('owner', None)
-    if ((owner_orig and owner_orig != userid)
-        or (owner_new and owner_new != str(userid))):
+    if ((owner_orig and owner_orig != userid) or
+            (owner_new and owner_new != str(userid))):
         raise HTTPUnauthorized
     try:
-        client = request.cadm_controller.update_client(id, payload)
+        client = request.cadm_controller.update_client(clientid, payload)
         return client
     except KeyError:
         raise HTTPNotFound
