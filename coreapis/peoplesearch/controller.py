@@ -170,7 +170,7 @@ class PeopleSearchController(object):
         search_filter = '(eduPersonPrincipalName={})'.format(user)
         res = self.ldap.ldap_search(realm, search_filter,
                                     ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
-                                    attributes=['jpegPhoto'])
+                                    attributes=['jpegPhoto'], size_limit=1)
         if len(res) == 0:
             self.log.debug('Could not find user for %s' % user)
             return None, None, None
