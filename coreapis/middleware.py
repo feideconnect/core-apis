@@ -70,7 +70,7 @@ class AuthMiddleware(object):
         if token:
             try:
                 user, client, scopes = self.lookup_token(token)
-                self.log.debug('successfully looked up token', user=user, client=client,
+                self.log.debug('successfully looked up token', user=user['userid'] if user else None, client=client['id'],
                                scopes=scopes)
                 environ["FC_USER"] = user
                 environ["FC_CLIENT"] = client
