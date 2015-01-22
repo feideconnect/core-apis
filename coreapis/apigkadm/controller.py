@@ -44,7 +44,7 @@ class APIGKAdmController(object):
             'descr': V.Nullable('string', ''),
             'status': V.Nullable(['string'], []),
             'updated': V.AdaptBy(ts),
-            '+endpoints': ['string'],
+            '+endpoints': V.HomogeneousSequence(item_schema='string', min_length=1),
             '+requireuser': 'boolean',
             'httpscertpinned': V.Nullable('string'),
             'expose': {
