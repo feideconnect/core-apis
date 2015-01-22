@@ -37,7 +37,6 @@ class ClientAdmController(object):
         return client
 
     def validate_client(self, client):
-        self.log.debug('validate client', client=client)
         schema = {
             # Required
             '+name': 'string',
