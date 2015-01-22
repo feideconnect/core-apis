@@ -11,29 +11,41 @@ userid_own   = '00000000-0000-0000-0000-000000000001'
 userid_other = '00000000-0000-0000-0000-000000000002'
 clientid     = '00000000-0000-0000-0000-000000000003'
 date_created = '2015-01-12T14:05:16+01:00'
+testscope    = 'clientadmin'
+testuri      = 'http://example.org'
 
 post_body_minimal = {
-    'name': 'per', 'scopes': [], 'redirect_uri': []
+    'name': 'per', 'scopes_requested': [testscope], 'redirect_uri': [testuri]
 }
 
 post_body_other_owner = {
-    'name': 'per', 'scopes': [], 'redirect_uri': [], 'owner': userid_other
+    'name': 'per', 'scopes_requested': [testscope], 'redirect_uri': [testuri], 'owner': userid_other
 }
 
 post_body_maximal = {
-    'name': 'per', 'scopes': ['clientadmin'], 'redirect_uri': [],
+    'name': 'per', 'scopes': [], 'redirect_uri': [testuri],
     'owner': userid_own, 'id': clientid,
     'client_secret': 'sekrit', 'descr': 'green',
-    'scopes_requested': [], 'status': ['lab'], 'type': 'client'
+    'scopes_requested': [testscope], 'status': ['lab'], 'type': 'client'
 }
 
+# retrieved_client = {
+#     'name': 'per', 'scopes': [''], 'redirect_uri': [testuri],
+#     'owner': uuid.UUID(userid_own),
+#     'id': uuid.UUID(clientid),
+#     'client_secret': 'sekrit', 'created': dateutil.parser.parse(date_created),
+#     'descr': 'green',
+#     'scopes_requested': [testscope], 'status': ['lab'], 'type': 'client',
+#     'updated': dateutil.parser.parse(date_created)
+# }
+
 retrieved_client = {
-    'name': 'per', 'scopes': ['clientadmin'], 'redirect_uri': [],
+    'name': 'per', 'scopes': [testscope], 'redirect_uri': [testuri],
     'owner': uuid.UUID(userid_own),
     'id': uuid.UUID(clientid),
     'client_secret': 'sekrit', 'created': dateutil.parser.parse(date_created),
     'descr': 'green',
-    'scopes_requested': [], 'status': ['lab'], 'type': 'client',
+    'scopes_requested': [testscope], 'status': ['lab'], 'type': 'client',
     'updated': dateutil.parser.parse(date_created)
 }
 
@@ -70,7 +82,7 @@ class ClientAdmTests(unittest.TestCase):
     def test_get_client_missing_user(self):
         headers = {'Authorization': 'Bearer client_token'}
         self.session().get_client_by_id.return_value = {'foo': 'bar', 'owner': uuid.UUID(userid_own)}
-        res = self.testapp.get('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=401, headers=headers)
+        self.testapp.get('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=401, headers=headers)
 
     def test_list_clients(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -251,6 +263,6 @@ class ClientAdmTests(unittest.TestCase):
         id = post_body_maximal['id']
         self.session().get_client_by_id.return_value = retrieved_client
         self.session().insert_client = mock.MagicMock()
-        attrs = {'redirect_uri': 'http://www.vg.no'}
+        attrs = {'redirect_uri': testuri}
         self.testapp.patch_json('/clientadm/clients/{}'.format(id),
                                 attrs, status=400, headers=headers)

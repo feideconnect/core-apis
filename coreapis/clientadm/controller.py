@@ -37,19 +37,23 @@ class ClientAdmController(object):
         return client
 
     def validate_client(self, client):
+        self.log.debug('validate client', client=client)
         schema = {
+            # Required
             '+name': 'string',
-            '+redirect_uri': ['string'],
-            '+scopes': ['string'],
+            '+redirect_uri': V.HomogeneousSequence(item_schema='string', min_length=1),
+            '+scopes_requested':  V.HomogeneousSequence(item_schema='string', min_length=1),
+            # Maintained by clientadm API
+            'created': V.AdaptBy(ts),
             'id': V.Nullable(V.AdaptTo(uuid.UUID)),
             'owner': V.AdaptTo(uuid.UUID),
+            'updated': V.AdaptBy(ts),
+            # Other attributes
             'client_secret': V.Nullable('string', ''),
-            'created': V.AdaptBy(ts),
             'descr': V.Nullable('string', ''),
-            'scopes_requested': V.Nullable(['string'], []),
+            'scopes': V.Nullable(['string'], []),
             'status': V.Nullable(['string'], []),
             'type': V.Nullable('string', ''),
-            'updated': V.AdaptBy(ts),
         }
         validator = V.parse(schema, additional_properties=False)
         return validator.validate(client)
