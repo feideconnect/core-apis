@@ -178,7 +178,7 @@ class PeopleSearchController(object):
             self.log.warn('Multiple matches to eduPersonPrincipalName')
         attributes = res[0]['attributes']
         if not 'jpegPhoto' in attributes:
-            self.log.debug('User %s has not jpegPhoto' % user)
+            self.log.debug('User %s has no jpegPhoto' % user)
             return None, None, None
         data = attributes['jpegPhoto'][0]
         return data, make_etag(data), now()
