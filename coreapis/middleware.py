@@ -14,6 +14,10 @@ def log_main(app, config):
     return LogMiddleware(app)
 
 
+def cors_main(app, config):
+    return CorsMiddleware(app)
+
+
 def cassandra_main(app, config, client_max_share, client_max_rate, client_max_burst_size):
     contact_points = config['cassandra_contact_points'].split(', ')
     keyspace = config['cassandra_keyspace']
@@ -24,6 +28,26 @@ def cassandra_main(app, config, client_max_share, client_max_rate, client_max_bu
                               float(client_max_rate))
     return CassandraMiddleware(app, config['oauth_realm'], contact_points,
                                keyspace, timer, ratelimiter)
+
+
+class CorsMiddleware(object):
+    def __init__(self, app):
+        self.app = app
+
+    def __call__(self, environ, start_response):
+        return self.app(environ, self.start_response(start_response))
+
+    def start_response(self, orig):
+        def wrapped(status, headers):
+            myheaders = [
+                ('Access-Control-Allow-Origin', '*'),
+                ('Access-Control-Allow-Methods', 'HEAD, GET, OPTIONS, POST, PATCH, DELETE'),
+                ('Access-Control-Allow-Headers', 'Authorization, X-Requested-With, Origin, Accept, Content-Type'),
+                ('Access-Control-Expose-Headers', 'Authorization, X-Requested-With, Origin'),
+            ]
+            myheaders.extend(headers)
+            return orig(status, myheaders)
+        return wrapped
 
 
 class LogMiddleware(object):

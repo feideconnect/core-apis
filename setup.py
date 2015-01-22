@@ -55,5 +55,6 @@ setup(name='core-apis',
       mockauthmiddleware = coreapis.middleware:mock_main
       cassandramiddleware = coreapis.middleware:cassandra_main
       logmiddleware = coreapis.middleware:log_main
+      corsmiddleware = coreapis.middleware:cors_main
       """,
       )

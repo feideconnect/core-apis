@@ -85,3 +85,9 @@ client_max_share = 0.1
 client_max_rate = 10
 # Max burst size for a client
 client_max_burst_size = 10
+
+[filter:logmiddleware]
+use = egg:core-apis#logmiddleware
+
+[filter:corsmiddleware]
+use = egg:core-apis#corsmiddleware
