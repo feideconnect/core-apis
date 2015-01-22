@@ -7,6 +7,11 @@ from .aaa import TokenAuthenticationPolicy, TokenAuthorizationPolicy
 from .utils import Timer
 
 
+def options(request):
+    resp = pyramid.response.Response('')
+    return resp
+
+
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
@@ -20,6 +25,8 @@ def main(global_config, **settings):
     config.add_settings(cassandra_contact_points=global_config['cassandra_contact_points'].split(', '))
     config.add_settings(cassandra_keyspace=global_config['cassandra_keyspace'])
     config.add_settings(timer=timer)
+    config.add_route('pre_flight', pattern='/*path', request_method='OPTIONS')
+    config.add_view(options, route_name='pre_flight')
     if 'enabled_components' in settings:
         enabled_components = set(settings['enabled_components'].split(','))
         all_enabled = False
