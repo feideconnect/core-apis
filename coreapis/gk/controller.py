@@ -28,6 +28,8 @@ class GkController(object):
     def info(self, backend_id, client, user, scopes):
         backend = self.session.get_apigk(backend_id)
         if backend['requireuser'] and user is None:
+            self.log.warn('user required but not in token', gatekeeper=backend_id,
+                          client=client['id'])
             return None
         expose = backend['expose']
         headers = dict()
@@ -60,6 +62,6 @@ class GkController(object):
         headers['endpoint'] = random.choice(backend['endpoints'])
         header, value = auth_header(backend['trust'])
         headers[header] = value
-        for k, v in headers.items():
-            self.log.debug('returning header {}: {}'.format(k, v))
+        self.log.debug('Allowing gatekeeping', gatekeeper=backend_id, endpoint=headers['endpoint'],
+                       client=client['id'])
         return headers
