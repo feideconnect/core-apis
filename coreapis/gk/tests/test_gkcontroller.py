@@ -43,12 +43,12 @@ class TestController(TestCase):
         backend = self.basic_backend.copy()
         backend['requireuser'] = True
         self.session.get_apigk.return_value = backend
-        headers = self.controller.info('testbackend', {}, None, [])
+        headers = self.controller.info('testbackend', self.client, None, [])
         assert headers is None
 
     def test_expose_nothing(self):
         self.session.get_apigk.return_value = self.basic_backend
-        headers = self.controller.info('testbackend', {}, self.user, [])
+        headers = self.controller.info('testbackend', self.client, self.user, [])
         assert len(headers) == 2
         self.basic_asserts(headers)
 
