@@ -73,6 +73,10 @@ class TestValidation(unittest.TestCase):
         with py.test.raises(ValidationError):
             testdata['id'] = ':'
             self.controller.validate_apigk(testdata)
+        with py.test.raises(ValidationError):
+            testdata['id'] = 'ab1'
+            testdata['created'] = 42
+            self.controller.validate_apigk(testdata)
 
 
 class APIGKAdmTests(unittest.TestCase):
