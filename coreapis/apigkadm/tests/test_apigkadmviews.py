@@ -5,6 +5,7 @@ from copy import deepcopy
 from webtest import TestApp
 from pyramid import testing
 from coreapis import main, middleware, apigkadm
+from coreapis.utils import ValidationError
 import py.test
 import valideer
 
@@ -54,22 +55,22 @@ class TestValidation(unittest.TestCase):
         self.controller.validate_apigk(testdata)
         testdata['id'] = 'ab1-12abc123'
         self.controller.validate_apigk(testdata)
-        with py.test.raises(valideer.ValidationError):
+        with py.test.raises(ValidationError):
             testdata['id'] = 'a'
             self.controller.validate_apigk(testdata)
-        with py.test.raises(valideer.ValidationError):
+        with py.test.raises(ValidationError):
             testdata['id'] = '1ab'
             self.controller.validate_apigk(testdata)
-        with py.test.raises(valideer.ValidationError):
+        with py.test.raises(ValidationError):
             testdata['id'] = 'abcdefghijklmeno'
             self.controller.validate_apigk(testdata)
-        with py.test.raises(valideer.ValidationError):
+        with py.test.raises(ValidationError):
             testdata['id'] = '.'
             self.controller.validate_apigk(testdata)
-        with py.test.raises(valideer.ValidationError):
+        with py.test.raises(ValidationError):
             testdata['id'] = '/'
             self.controller.validate_apigk(testdata)
-        with py.test.raises(valideer.ValidationError):
+        with py.test.raises(ValidationError):
             testdata['id'] = ':'
             self.controller.validate_apigk(testdata)
 

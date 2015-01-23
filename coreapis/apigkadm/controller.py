@@ -63,7 +63,10 @@ class APIGKAdmController(object):
             }
         }
         validator = V.parse(schema, additional_properties=False)
-        adapted = validator.validate(apigk)
+        try:
+            adapted = validator.validate(apigk)
+        except V.ValidationError as ex:
+            raise ValidationError(str(ex))
         for key in schema.keys():
             if not key.startswith('+') and key not in adapted:
                 adapted[key] = None
