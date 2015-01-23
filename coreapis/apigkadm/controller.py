@@ -103,7 +103,7 @@ class APIGKAdmController(object):
 
     def delete_apigk(self, id):
         self.log.debug('Delete apigk', id=id)
-        self.session.delete_apigk(uuid.UUID(id))
+        self.session.delete_apigk(id)
 
     def update_apigk(self, id, attrs):
         self.log.debug('update apigk')

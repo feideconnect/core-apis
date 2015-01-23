@@ -25,6 +25,7 @@ class Client(object):
         self.s_get_token = self.session.prepare('SELECT * FROM oauth_tokens WHERE access_token = ?')
         self.s_get_user = self.session.prepare('SELECT * FROM users WHERE userid = ?')
         self.s_get_apigk = self.session.prepare('SELECT * FROM apigk WHERE id = ?')
+        self.s_delete_apigk = self.session.prepare('DELETE FROM apigk WHERE id = ?')
 
     def insert_client(self, id, client_secret, name, descr,
                       redirect_uri, scopes, scopes_requested, status,
@@ -102,6 +103,10 @@ class Client(object):
 
     def get_apigks(self, selectors, values, maxrows):
         return [parse_apigk(gk) for gk in self.get_generic('apigk', selectors, values, maxrows)]
+
+    def delete_apigk(self, id):
+        prep = self.s_delete_apigk
+        self.session.execute(prep.bind([id]))
 
     def insert_apigk(self, apigk):
         prep = self.session.prepare('INSERT INTO apigk (id, created, descr, endpoints, expose, httpscertpinned, name, owner, requireuser, scopedef, status, trust, updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
