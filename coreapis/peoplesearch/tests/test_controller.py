@@ -149,9 +149,10 @@ class TestFetchProfileImage(TestCase):
     def test_no_img(self):
         self.controller.profile_image_feide = mock.MagicMock(return_value=(None, None, None))
         image, etag, last_modified = self.controller._fetch_profile_image('feide:noone@example.com')
-        assert image is None
-        assert etag is None
-        assert last_modified is None
+        assert image is not None
+        assert etag == '23a3776bada0ac91a01dd43bf9cce84b'
+        assert last_modified is not None
+        assert isinstance(last_modified, datetime.datetime)
 
     def test_ok(self):
         with open('testdata/blank.jpg', 'rb') as fh:

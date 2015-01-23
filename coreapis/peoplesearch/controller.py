@@ -186,6 +186,12 @@ class PeopleSearchController(object):
     def decrypt_profile_image_token(self, token):
         return decrypt_token(token, self.key)
 
+    def _default_image(self):
+        with open('data/default-profile.jpg', 'rb') as fh:
+            data = fh.read()
+            etag = make_etag(data)
+            return data, etag, now()
+
     def _fetch_profile_image(self, user):
         if not ':' in user:
             raise ValidationError('user id must contain ":"')
@@ -195,7 +201,7 @@ class PeopleSearchController(object):
         else:
             raise ValidationError("Unhandled user id type '{}'".format(idtype))
         if data is None:
-            return None, None, None
+            data, etag, last_modified = self._default_image()
         with self.t.time('ps.profileimage.scale'):
             fake_file = io.BytesIO(data)
             image = Image.open(fake_file)
