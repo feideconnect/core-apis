@@ -19,14 +19,13 @@ To test the API, obtain an authentication token and
 
 Fills in `id` if not given. `name` must be given. `scopes_requested` and
 `redirect_uri` must each have at least one member. `owner` is set to
-user. `created` and `updated` may be given, but are ignored - values are
-set to current time.
+user. `created`, `scopes` and `updated` may be given, but are silently
+ignored - values are set by system.
 
 Returns `201 Created` with url in `Location` header, and client as json in
 body. Returns `409 Conflict` if `id` is given and is already in
 use. Returns `400 Bad Request` if request body violates the schema or is
-malformed in some way. Returns `401 Not Authorized` if trying to set
-owner to something else than user.
+malformed in some way.
 
 ## Updating a client
 
@@ -41,16 +40,13 @@ owner to something else than user.
      "scopes_requested": ["clientadmin"], "descr": "test",
      "created": "2015-01-22T10:59:03.585000"}
 
-`id`, `owner` and `scopes` may be given, but value cannot be
-changed. `updated` is set to current time. `created` and `updated` may be
-given, but are ignored - values are left unchanged and set to current
-time, respectively.
+`id`, `created`, `owner`, `scopes` and `updated` may be given, but are
+silently ignored.
 
-Returns `200 OK`, and client as json in body. Returns `400 Bad Request` if
-request body violates the schema or is malformed in some way. Returns
-`401 Not Authorized` if trying to update a client not owned by user, or
-to set owner to something else than user. Returns `404 Not Found` if
-client does not exist.
+Returns `200 OK`, and client as json in body. Returns `400 Bad
+Request` if request body violates the schema or is malformed in some
+way. Returns `401 Not Authorized` if trying to update a client not
+owned by user.Returns `404 Not Found` if client does not exist.
 
 ## Fetching a client
 

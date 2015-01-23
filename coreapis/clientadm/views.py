@@ -50,6 +50,12 @@ def get_client(request):
         raise HTTPNotFound
     return client
 
+def allowed_attrs(attrs, operation):
+    protected_keys = ['created', 'owner', 'scopes', 'updated']
+    if operation != 'add':
+        protected_keys.append('id')
+    return {k:v for k, v in attrs.items() if k not in protected_keys}
+
 @view_config(route_name='add_client', renderer='json', request_method='POST',
              permission='scope_clientadmin')
 def add_client(request):
@@ -58,11 +64,9 @@ def add_client(request):
         payload = json.loads(request.body.decode(request.charset))
     except:
         raise HTTPBadRequest
-    owner = payload.get('owner', None)
-    if owner and owner != str(userid):
-        raise HTTPUnauthorized
     try:
-        client = request.cadm_controller.add_client(payload, userid)
+        attrs = allowed_attrs(payload, 'add')
+        client = request.cadm_controller.add_client(attrs, userid)
         request.response.status = '201 Created'
         request.response.location = "{}{}".format(request.url, client['id'])
         return client
@@ -87,19 +91,14 @@ def delete_client(request):
 
 @view_config(route_name='update_client', renderer='json', permission='scope_clientadmin')
 def update_client(request):
-    userid = get_userid(request)
     clientid = request.matchdict['id']
     try:
         payload = json.loads(request.body.decode(request.charset))
     except:
         raise HTTPBadRequest
-    owner_orig = request.cadm_controller.get_owner(clientid)
-    owner_new = payload.get('owner', None)
-    if ((owner_orig and owner_orig != userid) or
-            (owner_new and owner_new != str(userid))):
-        raise HTTPUnauthorized
     try:
-        client = request.cadm_controller.update_client(clientid, payload)
+        attrs = allowed_attrs(payload, 'update')
+        client = request.cadm_controller.update_client(clientid, attrs)
         return client
     except KeyError:
         raise HTTPNotFound
