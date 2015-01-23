@@ -51,8 +51,6 @@ def add_apigk(request):
         return apigk
     except AlreadyExistsError:
         raise HTTPConflict("apigk with this id already exists")
-    except Exception:
-        raise HTTPBadRequest
 
 
 @view_config(route_name='delete_apigk', renderer='json', permission='scope_apigkadmin')
