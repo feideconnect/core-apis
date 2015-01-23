@@ -12,6 +12,7 @@ with open(os.path.join(here, 'CHANGES.txt')) as f:
 os.environ['MAX_CONCURRENCY'] = '1'
 
 requires = [
+    'aniso8601',
     'blist',
     'cassandra-driver',
     'cherrypy',
@@ -21,7 +22,6 @@ requires = [
     'pyramid',
     'pytest',
     'python3-ldap',
-    'python-dateutil',
     'pytz',
     'statsd',
     'valideer',

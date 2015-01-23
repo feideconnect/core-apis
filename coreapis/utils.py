@@ -8,7 +8,7 @@ import time
 import pytz
 from collections import defaultdict, deque
 import threading
-import dateutil.parser
+from aniso8601 import parse_datetime
 
 __local = threading.local()
 
@@ -30,7 +30,7 @@ def ts(d):
     if type(d) == datetime.datetime:
         return d
     else:
-        return dateutil.parser.parse(d)
+        return parse_datetime(d)
 
 
 class CustomEncoder(json.JSONEncoder):

@@ -2,7 +2,7 @@ from unittest import TestCase
 from copy import deepcopy
 import mock
 import uuid
-import dateutil.parser
+from aniso8601 import parse_datetime
 
 from coreapis.clientadm import controller
 from coreapis.clientadm.tests.helper import (
@@ -31,4 +31,4 @@ class TestController(TestCase):
         self.session.insert_client = mock.MagicMock() 
         attrs = {'created': '2000-01-01T00:00:00+01:00'}
         res = self.controller.update_client(id, attrs)
-        assert res['created'] == dateutil.parser.parse(date_created)
+        assert res['created'] == parse_datetime(date_created)
