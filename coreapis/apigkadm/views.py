@@ -42,6 +42,8 @@ def get_apigk(request):
 def add_apigk(request):
     try:
         payload = json.loads(request.body.decode(request.charset))
+        if not "owner" in payload and request.environ["FC_USER"]:
+            payload["owner"] = request.environ["FC_USER"]["userid"]
     except:
         raise HTTPBadRequest
     try:
