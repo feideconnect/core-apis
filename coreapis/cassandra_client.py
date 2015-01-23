@@ -5,6 +5,14 @@ import time
 import json
 
 
+def parse_apigk(obj):
+    for key in ('expose', 'scopedef', 'trust'):
+        if key in obj:
+            if obj[key]:
+                obj[key] = json.loads(obj[key])
+    return obj
+
+
 class Client(object):
     def __init__(self, contact_points, keyspace):
         cluster = Cluster(
@@ -88,13 +96,12 @@ class Client(object):
         res = self.session.execute(prep.bind([id]))
         if len(res) == 0:
             raise KeyError('No such apigk')
-        backend_data = res[0]
-        backend_data['expose'] = json.loads(backend_data['expose'])
-        backend_data['trust'] = json.loads(backend_data['trust'])
-        return backend_data
+        apigk = res[0]
+        parse_apigk(apigk)
+        return apigk
 
     def get_apigks(self, selectors, values, maxrows):
-        return self.get_generic('apigk', selectors, values, maxrows)
+        return [parse_apigk(gk) for gk in self.get_generic('apigk', selectors, values, maxrows)]
 
     def insert_apigk(self, apigk):
         prep = self.session.prepare('INSERT INTO apigk (id, created, descr, endpoints, expose, httpscertpinned, name, owner, requireuser, scopedef, status, trust, updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
