@@ -135,6 +135,7 @@ class APIGKAdmTests(unittest.TestCase):
     def test_post_apigk_minimal(self):
         headers = {'Authorization': 'Bearer client_token'}
         self.session().insert_apigk = mock.MagicMock()
+        self.session().get_apigk = mock.MagicMock(side_effect=KeyError)
         res = self.testapp.post_json('/apigkadm/apigks/', post_body_minimal, status=201, headers=headers)
         out = res.json
         assert '4f4e' in out['owner']
