@@ -219,7 +219,3 @@ class APIGKAdmTests(unittest.TestCase):
     def test_delete_apigk_no_id(self):
         headers = {'Authorization': 'Bearer client_token'}
         self.testapp.delete('/apigkadm/apigks/', status=404, headers=headers)
-
-    def test_delete_apigk_malformed_id(self):
-        headers = {'Authorization': 'Bearer client_token'}
-        self.testapp.delete('/apigkadm/apigks/{}'.format('foo'), status=400, headers=headers)
