@@ -140,7 +140,7 @@ class PeopleSearchController(object):
             search_filter = '(mobile=*{}*)'.format(query)
         else:
             search_filter = '(cn=*{}*)'.format(query)
-        search_filter = '(&{}(objectClass=norEduPerson))'.format(search_filter)
+        search_filter = '(&{}(objectClass=person))'.format(search_filter)
         attrs = ['cn', 'displayName', 'eduPersonPrincipalName']
         res = self.ldap.ldap_search(org, search_filter, ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
                                     attributes=attrs, size_limit=max_replies)
