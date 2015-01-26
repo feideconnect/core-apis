@@ -29,13 +29,17 @@ class Client(object):
         cluster = Cluster(
             contact_points=contact_points
         )
+        self.default_columns = {
+            'clients': 'owner,name,type,status,scopes_requested,client_secret,created,redirect_uri,descr,id,scopes,updated',
+            'apigk': 'id,requireuser,created,name,scopedef,httpscertpinned,status,descr,expose,updated,trust,endpoints,owner',
+        }
         self.session = cluster.connect(keyspace)
         self.session.row_factory = datetime_hack_dict_factory
-        self.s_get_client = self.session.prepare('SELECT * FROM clients WHERE id = ?')
+        self.s_get_client = self.session.prepare('SELECT {} FROM clients WHERE id = ?'.format(self.default_columns['clients']))
         self.s_delete_client = self.session.prepare('DELETE FROM clients WHERE id = ?')
         self.s_get_token = self.session.prepare('SELECT * FROM oauth_tokens WHERE access_token = ?')
         self.s_get_user = self.session.prepare('SELECT * FROM users WHERE userid = ?')
-        self.s_get_apigk = self.session.prepare('SELECT * FROM apigk WHERE id = ?')
+        self.s_get_apigk = self.session.prepare('SELECT {} FROM apigk WHERE id = ?'.format(self.default_columns['apigk']))
         self.s_delete_apigk = self.session.prepare('DELETE FROM apigk WHERE id = ?')
 
     def insert_client(self, id, client_secret, name, descr,
@@ -56,10 +60,11 @@ class Client(object):
     def get_generic(self, table, selectors, values, maxrows):
         if len(selectors) != len(values):
             raise KeyError('Selectors and values not same length')
+        cols = self.default_columns[table]
         if len(selectors) == 0:
-            stmt = 'SELECT * from {} LIMIT {}'.format(table, maxrows)
+            stmt = 'SELECT {} from {} LIMIT {}'.format(cols, table, maxrows)
         else:
-            stmt = 'SELECT * from {} WHERE {} LIMIT {} ALLOW FILTERING'.format(table, ' and '.join(selectors), maxrows)
+            stmt = 'SELECT {} from {} WHERE {} LIMIT {} ALLOW FILTERING'.format(cols, table, ' and '.join(selectors), maxrows)
         print("cql: {}".format(stmt))
         prep = self.session.prepare(stmt)
         res = self.session.execute(prep.bind(values))
