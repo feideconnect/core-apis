@@ -90,7 +90,10 @@ class CrudControllerBase(object):
 
     def update_logo(self, itemid, data):
         fake_file = io.BytesIO(data)
-        image = Image.open(fake_file)
+        try:
+            image = Image.open(fake_file)
+        except OSError:
+            raise ValidationError('image format not supported')
         image.thumbnail(LOGO_SIZE)
         fake_output = io.BytesIO()
         image.save(fake_output, format='PNG')
