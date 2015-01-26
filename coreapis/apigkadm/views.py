@@ -111,7 +111,7 @@ def apigk_logo(request):
     try:
         logo, updated = request.gkadm_controller.get_logo(apigkid)
         if logo is None:
-            with open('data/default-logo.png', 'rb') as fh:
+            with open('data/default-apigk.png', 'rb') as fh:
                 logo = fh.read()
     except KeyError:
         raise HTTPNotFound

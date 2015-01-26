@@ -121,7 +121,7 @@ def client_logo(request):
     try:
         logo, updated = request.cadm_controller.get_logo(clientid)
         if logo is None:
-            with open('data/default-logo.png', 'rb') as fh:
+            with open('data/default-client.png', 'rb') as fh:
                 logo = fh.read()
     except KeyError:
         raise HTTPNotFound
