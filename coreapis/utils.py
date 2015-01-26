@@ -33,10 +33,16 @@ def ts(d):
         return parse_datetime(d)
 
 
+def format_datetime(dt):
+    dt = dt.astimezone(pytz.UTC).replace(tzinfo=None)
+    dt = dt.replace(microsecond=0)
+    return dt.isoformat() + 'Z'
+
+
 class CustomEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, datetime.datetime):
-            return obj.isoformat()
+            return format_datetime(obj)
         if isinstance(obj, uuid.UUID):
             return str(obj)
         if isinstance(obj, blist.sortedset):

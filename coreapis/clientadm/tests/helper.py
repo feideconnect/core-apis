@@ -4,7 +4,7 @@ from aniso8601 import parse_datetime
 userid_own   = '00000000-0000-0000-0000-000000000001'
 userid_other = '00000000-0000-0000-0000-000000000002'
 clientid     = '00000000-0000-0000-0000-000000000003'
-date_created = '2015-01-12T14:05:16+01:00'
+date_created = '2015-01-12T13:05:16Z'
 testscope    = 'clientadmin'
 otherscope   = 'userlist'
 testuri      = 'http://example.org'
