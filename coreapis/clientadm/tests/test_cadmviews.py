@@ -217,10 +217,8 @@ class ClientAdmTests(unittest.TestCase):
         client['owner'] = uuid.UUID(userid_other)
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
-        res = self.testapp.patch_json('/clientadm/clients/{}'.format(id), {'descr': 'blue'},
-                                      status=200, headers=headers)
-        out = res.json
-        assert out['owner'] == userid_other
+        self.testapp.patch_json('/clientadm/clients/{}'.format(id), {'descr': 'blue'},
+                                status=401, headers=headers)
 
     def test_update_client_change_timestamp(self):
         headers = {'Authorization': 'Bearer user_token'}

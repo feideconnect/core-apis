@@ -87,12 +87,16 @@ def delete_apigk(request):
 
 @view_config(route_name='update_apigk', renderer='json', permission='scope_apigkadmin')
 def update_apigk(request):
+    userid = get_userid(request)
     gkid = request.matchdict['id']
     try:
         payload = json.loads(request.body.decode(request.charset))
     except:
         raise HTTPBadRequest
     try:
+        owner = request.gkadm_controller.get_owner(gkid)
+        if owner and owner != userid:
+            raise HTTPUnauthorized
         attrs = allowed_attrs(payload, 'update')
         apigk = request.gkadm_controller.update(gkid, attrs)
         return apigk

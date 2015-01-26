@@ -92,12 +92,17 @@ def delete_client(request):
 
 @view_config(route_name='update_client', renderer='json', permission='scope_clientadmin')
 def update_client(request):
+    userid = get_userid(request)
     clientid = request.matchdict['id']
     try:
+        clientid = uuid.UUID(clientid)
         payload = json.loads(request.body.decode(request.charset))
     except:
         raise HTTPBadRequest
     try:
+        owner = request.cadm_controller.get_owner(clientid)
+        if owner and owner != userid:
+            raise HTTPUnauthorized
         attrs = allowed_attrs(payload, 'update')
         client = request.cadm_controller.update(clientid, attrs)
         return client
