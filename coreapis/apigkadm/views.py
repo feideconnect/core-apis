@@ -125,7 +125,8 @@ def apigk_logo(request):
     return response
 
 
-@view_config(route_name='apigk_logo', request_method="POST", permission='scope_apigkadmin')
+@view_config(route_name='apigk_logo', request_method="POST", permission='scope_apigkadmin',
+             renderer="json")
 def upload_logo(request):
     userid = get_userid(request)
     apigkid = request.matchdict['id']
@@ -137,4 +138,4 @@ def upload_logo(request):
     input_file.seek(0)
     data = input_file.read()
     request.gkadm_controller.update_logo(apigkid, data)
-    return Response('OK')
+    return 'OK'

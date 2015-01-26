@@ -135,7 +135,8 @@ def client_logo(request):
     return response
 
 
-@view_config(route_name='client_logo', request_method="POST", permission='scope_clientadmin')
+@view_config(route_name='client_logo', request_method="POST", permission='scope_clientadmin',
+             renderer="json")
 def upload_logo(request):
     userid = get_userid(request)
     clientid = request.matchdict['id']
@@ -151,4 +152,4 @@ def upload_logo(request):
     input_file.seek(0)
     data = input_file.read()
     request.cadm_controller.update_logo(clientid, data)
-    return Response('OK')
+    return 'OK'
