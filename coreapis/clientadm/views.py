@@ -72,8 +72,6 @@ def add_client(request):
         return client
     except AlreadyExistsError:
         raise HTTPConflict("client with this id already exists")
-    except:
-        raise HTTPBadRequest
 
 
 @view_config(route_name='delete_client', renderer='json', permission='scope_clientadmin')
@@ -87,12 +85,9 @@ def delete_client(request):
     owner = request.cadm_controller.get_owner(clientid)
     if owner and owner != userid:
         raise HTTPUnauthorized
-    try:
-        request.cadm_controller.delete(clientid)
-        return Response(status='204 No Content',
-                        content_type='application/json; charset={}'.format(request.charset))
-    except ValueError:  # clientid not a valid UUID
-        raise HTTPBadRequest
+    request.cadm_controller.delete(clientid)
+    return Response(status='204 No Content',
+                    content_type='application/json; charset={}'.format(request.charset))
 
 
 @view_config(route_name='update_client', renderer='json', permission='scope_clientadmin')
@@ -108,5 +103,3 @@ def update_client(request):
         return client
     except KeyError:
         raise HTTPNotFound
-    except:
-        raise HTTPBadRequest

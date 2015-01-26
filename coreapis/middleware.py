@@ -126,7 +126,7 @@ class MockAuthMiddleware(AuthMiddleware):
                 "id": uuid.UUID("00000000-0000-0000-0000-000000000002")
             },
 
-            'scopes': ['api_ecampusrelay', 'clientadmin'],
+            'scopes': ['api_ecampusrelay', 'clientadmin', 'apigkadmin'],
         },
         'client_token': {
             'client': {

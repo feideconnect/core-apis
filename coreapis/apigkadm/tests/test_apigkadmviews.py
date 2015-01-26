@@ -98,124 +98,115 @@ class APIGKAdmTests(unittest.TestCase):
         testing.tearDown()
 
     def test_get_apigk(self):
-        headers = {'Authorization': 'Bearer client_token'}
+        headers = {'Authorization': 'Bearer user_token'}
         self.session().get_apigk.return_value = {'foo': 'bar'}
         res = self.testapp.get('/apigkadm/apigks/{}'.format(uuid.uuid4()), status=200, headers=headers)
         out = res.json
         assert 'foo' in out
 
     def test_missing_apigk(self):
-        headers = {'Authorization': 'Bearer client_token'}
+        headers = {'Authorization': 'Bearer user_token'}
         self.session().get_apigk.side_effect = KeyError()
         self.testapp.get('/apigkadm/apigks/{}'.format(uuid.uuid4()), status=404, headers=headers)
 
     def test_list_apigks(self):
-        headers = {'Authorization': 'Bearer client_token'}
+        headers = {'Authorization': 'Bearer user_token'}
         self.session().get_apigks.return_value = [{'foo': 'bar'}]
         res = self.testapp.get('/apigkadm/apigks/', status=200, headers=headers)
         out = res.json
         assert 'foo' in out[0]
 
     def test_list_apigks_by_scope(self):
-        headers = {'Authorization': 'Bearer client_token'}
+        headers = {'Authorization': 'Bearer user_token'}
         self.session().get_apigks.return_value = [{'foo': 'bar'}]
         res = self.testapp.get('/apigkadm/apigks/?scope=userlist', status=200, headers=headers)
         out = res.json
         assert 'foo' in out[0]
 
     def test_list_apigks_by_owner(self):
-        headers = {'Authorization': 'Bearer client_token'}
+        headers = {'Authorization': 'Bearer user_token'}
         self.session().get_apigks.return_value = [{'foo': 'bar'}]
-        res = self.testapp.get('/apigkadm/apigks/?owner={}'.format(uuid.uuid4()), status=200, headers=headers)
+        res = self.testapp.get('/apigkadm/apigks/?owner={}'.format('00000000-0000-0000-0000-000000000001'),
+                               status=200, headers=headers)
         out = res.json
         assert 'foo' in out[0]
 
-    def test_bad_apigk_filter(self):
-        headers = {'Authorization': 'Bearer client_token'}
-        res = self.testapp.get('/apigkadm/apigks/?owner=', status=400, headers=headers)
-        out = res.json
-        assert out['message'] == 'missing filter value'
-
     def test_post_apigk_minimal(self):
-        headers = {'Authorization': 'Bearer client_token'}
+        headers = {'Authorization': 'Bearer user_token'}
         self.session().insert_apigk = mock.MagicMock()
         self.session().get_apigk = mock.MagicMock(side_effect=KeyError)
         res = self.testapp.post_json('/apigkadm/apigks/', post_body_minimal, status=201, headers=headers)
         out = res.json
-        assert '4f4e' in out['owner']
+        assert out['owner'] == '00000000-0000-0000-0000-000000000001'
 
     def test_post_apigk_maximal(self):
-        headers = {'Authorization': 'Bearer client_token'}
+        headers = {'Authorization': 'Bearer user_token'}
         self.session().insert_apigk = mock.MagicMock()
         self.session().get_apigk.side_effect = KeyError()
         res = self.testapp.post_json('/apigkadm/apigks/', post_body_maximal, status=201, headers=headers)
         out = res.json
-        assert '4f4e' in out['owner']
+        assert out['owner'] == '00000000-0000-0000-0000-000000000001'
 
     def test_post_apigk_duplicate(self):
-        headers = {'Authorization': 'Bearer client_token'}
+        headers = {'Authorization': 'Bearer user_token'}
         self.session().insert_apigk = mock.MagicMock()
         self.session().get_apigks.return_value = [{'foo': 'bar'}]
         self.testapp.post_json('/apigkadm/apigks/', post_body_maximal, status=409, headers=headers)
 
     def test_post_apigk_missing_name(self):
-        headers = {'Authorization': 'Bearer client_token'}
+        headers = {'Authorization': 'Bearer user_token'}
         body = deepcopy(post_body_minimal)
         body.pop('name')
         self.session().insert_apigk = mock.MagicMock()
         self.testapp.post_json('/apigkadm/apigks/', body, status=400, headers=headers)
 
     def test_post_apigk_invalid_json(self):
-        headers = {'Authorization': 'Bearer client_token'}
+        headers = {'Authorization': 'Bearer user_token'}
         body = 'foo'
         self.testapp.post('/apigkadm/apigks/', body, status=400, headers=headers)
 
-    def test_post_apigk_invalid_uuid(self):
-        headers = {'Authorization': 'Bearer client_token'}
+    def test_post_apigk_other_user(self):
+        headers = {'Authorization': 'Bearer user_token'}
         body = deepcopy(post_body_minimal)
         body['owner'] = 'owner'
         self.session().insert_apigk = mock.MagicMock()
-        self.testapp.post_json('/apigkadm/apigks/', body, status=400, headers=headers)
+        res = self.testapp.post_json('/apigkadm/apigks/', body, status=201, headers=headers)
+        out = res.json
+        assert out['owner'] == '00000000-0000-0000-0000-000000000001'
 
     def test_post_apigk_invalid_text(self):
-        headers = {'Authorization': 'Bearer client_token'}
+        headers = {'Authorization': 'Bearer user_token'}
         body = deepcopy(post_body_minimal)
         body['descr'] = 42
         self.session().insert_apigk = mock.MagicMock()
         self.testapp.post_json('/apigkadm/apigks/', body, status=400, headers=headers)
 
-    def test_post_apigk_invalid_ts(self):
-        headers = {'Authorization': 'Bearer client_token'}
-        body = deepcopy(post_body_minimal)
-        body['created'] = 42
-        self.session().insert_apigk = mock.MagicMock()
-        self.testapp.post_json('/apigkadm/apigks/', body, status=400, headers=headers)
-
     def test_post_apigk_invalid_text_list(self):
-        headers = {'Authorization': 'Bearer client_token'}
+        headers = {'Authorization': 'Bearer user_token'}
         body = deepcopy(post_body_minimal)
         body['redirect_uri'] = [42]
         self.session().insert_apigk = mock.MagicMock()
         self.testapp.post_json('/apigkadm/apigks/', body, status=400, headers=headers)
 
     def test_post_apigk_invalid_list(self):
-        headers = {'Authorization': 'Bearer client_token'}
+        headers = {'Authorization': 'Bearer user_token'}
         body = deepcopy(post_body_minimal)
         body['redirect_uri'] = 'http://www.vg.no'
         self.session().insert_apigk = mock.MagicMock()
         self.testapp.post_json('/apigkadm/apigks/', body, status=400, headers=headers)
 
     def test_post_apigk_unknown_attr(self):
-        headers = {'Authorization': 'Bearer client_token'}
+        headers = {'Authorization': 'Bearer user_token'}
         body = deepcopy(post_body_minimal)
         body['foo'] = 'bar'
         self.session().insert_apigk = mock.MagicMock()
         self.testapp.post_json('/apigkadm/apigks/', body, status=400, headers=headers)
 
     def test_delete_apigk(self):
-        headers = {'Authorization': 'Bearer client_token'}
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().get_apigk.return_value = {'owner': uuid.UUID('00000000-0000-0000-0000-000000000001')}
         self.testapp.delete('/apigkadm/apigks/{}'.format(uuid.uuid4()), status=204, headers=headers)
 
     def test_delete_apigk_no_id(self):
-        headers = {'Authorization': 'Bearer client_token'}
+        headers = {'Authorization': 'Bearer user_token'}
         self.testapp.delete('/apigkadm/apigks/', status=404, headers=headers)

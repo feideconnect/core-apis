@@ -1,10 +1,9 @@
 from pyramid.view import view_config
-from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPConflict
+from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPConflict, HTTPUnauthorized
 from pyramid.response import Response
 from .controller import APIGKAdmController
 from coreapis.utils import AlreadyExistsError, get_userid
 import json
-import logging
 
 
 def configure(config):
@@ -23,16 +22,34 @@ def configure(config):
     config.scan(__name__)
 
 
+def allowed_attrs(attrs, operation):
+    protected_keys = ['created', 'owner', 'scopes', 'updated']
+    if operation != 'add':
+        protected_keys.append('id')
+    return {k: v for k, v in attrs.items() if k not in protected_keys}
+
+
 @view_config(route_name='list_apigks', renderer='json', permission='scope_apigkadmin')
 def list_apigks(request):
+    userid = str(get_userid(request))
+    params = {}
+    for k, v in request.params.items():
+        if k == 'owner' and v != str(userid):
+            raise HTTPUnauthorized
+        params[k] = v
+    params['owner'] = userid
     return request.gkadm_controller.list(request.params)
 
 
 @view_config(route_name='get_apigk', renderer='json', permission='scope_apigkadmin')
 def get_apigk(request):
+    userid = get_userid(request)
     gkid = request.matchdict['id']
     try:
         apigk = request.gkadm_controller.get(gkid)
+        owner = apigk.get('owner', None)
+        if owner and owner != userid:
+            raise HTTPUnauthorized
     except KeyError:
         raise HTTPNotFound()
     return apigk
@@ -47,7 +64,8 @@ def add_apigk(request):
     except:
         raise HTTPBadRequest
     try:
-        apigk = request.gkadm_controller.add(payload, userid)
+        attrs = allowed_attrs(payload, 'add')
+        apigk = request.gkadm_controller.add(attrs, userid)
         request.response.status = 201
         request.response.location = "{}{}".format(request.url, apigk['id'])
         return apigk
@@ -57,14 +75,14 @@ def add_apigk(request):
 
 @view_config(route_name='delete_apigk', renderer='json', permission='scope_apigkadmin')
 def delete_apigk(request):
+    userid = get_userid(request)
     gkid = request.matchdict['id']
-    try:
-        request.gkadm_controller.delete(gkid)
-        return Response(status=204,
-                        content_type='application/json; charset={}'.format(request.charset))
-    except ValueError:
-        logging.exception("error during delete")
-        raise HTTPBadRequest
+    owner = request.gkadm_controller.get_owner(gkid)
+    if owner and owner != userid:
+        raise HTTPUnauthorized
+    request.gkadm_controller.delete(gkid)
+    return Response(status=204,
+                    content_type='application/json; charset={}'.format(request.charset))
 
 
 @view_config(route_name='update_apigk', renderer='json', permission='scope_apigkadmin')
@@ -75,9 +93,8 @@ def update_apigk(request):
     except:
         raise HTTPBadRequest
     try:
-        apigk = request.gkadm_controller.update(gkid, payload)
+        attrs = allowed_attrs(payload, 'update')
+        apigk = request.gkadm_controller.update(gkid, attrs)
         return apigk
     except KeyError:
         raise HTTPNotFound
-    except:
-        raise HTTPBadRequest
