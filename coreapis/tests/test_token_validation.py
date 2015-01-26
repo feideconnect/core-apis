@@ -2,6 +2,7 @@ import unittest
 import mock
 import uuid
 import datetime
+from coreapis.utils import now
 
 
 class TokenValidationTests(unittest.TestCase):
@@ -13,7 +14,7 @@ class TokenValidationTests(unittest.TestCase):
             'clientid': uuid.uuid4(),
             'userid': uuid.uuid4(),
             'access_token': uuid.uuid4(),
-            'validuntil': datetime.datetime.now() + datetime.timedelta(days=5),
+            'validuntil': now() + datetime.timedelta(days=5),
             'scope': ['foo'],
         }
 

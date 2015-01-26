@@ -3,6 +3,8 @@ from cassandra.cluster import Cluster
 from cassandra.query import dict_factory
 import time
 import json
+import datetime
+import pytz
 
 
 def parse_apigk(obj):
@@ -13,13 +15,22 @@ def parse_apigk(obj):
     return obj
 
 
+def datetime_hack_dict_factory(colnames, rows):
+    res = dict_factory(colnames, rows)
+    for el in res:
+        for key, val in el.items():
+            if isinstance(val, datetime.datetime):
+                el[key] = val.replace(tzinfo=pytz.UTC)
+    return res
+
+
 class Client(object):
     def __init__(self, contact_points, keyspace):
         cluster = Cluster(
             contact_points=contact_points
         )
         self.session = cluster.connect(keyspace)
-        self.session.row_factory = dict_factory
+        self.session.row_factory = datetime_hack_dict_factory
         self.s_get_client = self.session.prepare('SELECT * FROM clients WHERE id = ?')
         self.s_delete_client = self.session.prepare('DELETE FROM clients WHERE id = ?')
         self.s_get_token = self.session.prepare('SELECT * FROM oauth_tokens WHERE access_token = ?')

@@ -1,9 +1,8 @@
 import uuid
 import json
-import pytz
 from . import cassandra_client
 from .utils import LogWrapper, Timer, RateLimiter, now, www_authenticate, init_request_id
-import datetime
+from aniso8601 import parse_datetime
 
 
 def mock_main(app, config):
@@ -104,7 +103,7 @@ class MockAuthMiddleware(AuthMiddleware):
         'user_token': {
             'user': {
                 "name": {"feide:example.com": "Dummy User"},
-                "created": datetime.datetime(2014, 12, 15, 13, 53, 36),
+                "created": parse_datetime('2014-12-15T13:53:36Z'),
                 "userid": uuid.UUID("00000000-0000-0000-0000-000000000001"),
                 "selectedsource": "feide:example.com",
                 "userid_sec_seen": {},
@@ -118,7 +117,7 @@ class MockAuthMiddleware(AuthMiddleware):
                 "updated": None,
                 "name": "Dummy Client",
                 "descr": "Dummy Client for dummy testing",
-                "created": datetime.datetime(2014, 12, 16, 13, 53, 36),
+                "created": parse_datetime('2014-12-15T13:53:36Z'),
                 "redirect_uri": ["https://sp.example.org/callback"],
                 "scopes_requested": [],
                 "owner": uuid.UUID("00000000-0000-0000-0000-000000000001"),
@@ -136,7 +135,7 @@ class MockAuthMiddleware(AuthMiddleware):
                 "updated": None,
                 "name": "Dummy Client",
                 "descr": "Dummy Client for dummy testing",
-                "created": datetime.datetime(2014, 12, 16, 13, 53, 36),
+                "created": parse_datetime('2014-12-15T13:53:36Z'),
                 "redirect_uri": ["https://sp.example.org/callback"],
                 "scopes_requested": [],
                 "owner": uuid.UUID("00000000-0000-0000-0000-000000000001"),
@@ -179,7 +178,7 @@ class CassandraMiddleware(AuthMiddleware):
                               token=token_string)
                 return False
 
-        if token['validuntil'].replace(tzinfo=pytz.UTC) < now():
+        if token['validuntil'] < now():
             self.log.debug('Expired token used', token=token_string)
             return False
         return True

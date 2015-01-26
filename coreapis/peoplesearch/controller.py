@@ -9,6 +9,7 @@ from PIL import Image
 import io
 from cassandra.cluster import Cluster
 from cassandra.query import dict_factory
+from coreapis.cassandra_client import datetime_hack_dict_factory
 
 THUMB_SIZE = 128, 128
 
@@ -92,7 +93,7 @@ class CassandraCache(object):
             contact_points=contact_points
         )
         self.session = cluster.connect(keyspace)
-        self.session.row_factory = dict_factory
+        self.session.row_factory = datetime_hack_dict_factory
         self.s_lookup = self.session.prepare('SELECT * from profile_image_cache where user=?')
         self.s_insert = self.session.prepare('UPDATE profile_image_cache set last_modified=?, etag=?, last_updated=?, image=? WHERE user=?')
 
@@ -101,9 +102,6 @@ class CassandraCache(object):
         if len(res) == 0:
             return None
         entry = res[0]
-        for key, value in entry.items():
-            if isinstance(value, datetime.datetime):
-                entry[key] = value.replace(tzinfo=pytz.UTC)
         return entry
 
     def insert(self, user, last_updated, last_modified, etag, image):
