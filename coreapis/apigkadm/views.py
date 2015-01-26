@@ -30,9 +30,9 @@ def list_apigks(request):
 
 @view_config(route_name='get_apigk', renderer='json', permission='scope_apigkadmin')
 def get_apigk(request):
-    id = request.matchdict['id']
+    gkid = request.matchdict['id']
     try:
-        apigk = request.gkadm_controller.get(id)
+        apigk = request.gkadm_controller.get(gkid)
     except KeyError:
         raise HTTPNotFound()
     return apigk
@@ -57,9 +57,9 @@ def add_apigk(request):
 
 @view_config(route_name='delete_apigk', renderer='json', permission='scope_apigkadmin')
 def delete_apigk(request):
-    id = request.matchdict['id']
+    gkid = request.matchdict['id']
     try:
-        request.gkadm_controller.delete(id)
+        request.gkadm_controller.delete(gkid)
         return Response(status=204,
                         content_type='application/json; charset={}'.format(request.charset))
     except ValueError:
@@ -69,13 +69,13 @@ def delete_apigk(request):
 
 @view_config(route_name='update_apigk', renderer='json', permission='scope_apigkadmin')
 def update_apigk(request):
+    gkid = request.matchdict['id']
     try:
-        id = request.matchdict['id']
         payload = json.loads(request.body.decode(request.charset))
     except:
         raise HTTPBadRequest
     try:
-        apigk = request.gkadm_controller.update(id, payload)
+        apigk = request.gkadm_controller.update(gkid, payload)
         return apigk
     except KeyError:
         raise HTTPNotFound
