@@ -2,8 +2,10 @@ from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPConflict, HTTPUnauthorized
 from pyramid.response import Response
 from .controller import ClientAdmController
-from coreapis.utils import AlreadyExistsError
+from coreapis.utils import AlreadyExistsError, get_userid
 import json
+import uuid
+
 
 def configure(config):
     contact_points = config.get_settings().get('cassandra_contact_points')
@@ -20,11 +22,6 @@ def configure(config):
     config.add_route('update_client', '/clients/{id}', request_method='PATCH')
     config.scan(__name__)
 
-def get_userid(request):
-    try:
-        return request.environ['FC_USER']['userid']
-    except:
-        return None
 
 @view_config(route_name='list_clients', renderer='json', permission='scope_clientadmin')
 def list_clients(request):
@@ -35,14 +32,15 @@ def list_clients(request):
             raise HTTPUnauthorized
         params[k] = v
     params['owner'] = userid
-    return request.cadm_controller.get_clients(params)
+    return request.cadm_controller.list(params)
+
 
 @view_config(route_name='get_client', renderer='json', permission='scope_clientadmin')
 def get_client(request):
     userid = get_userid(request)
-    clientid = request.matchdict['id']
+    clientid = uuid.UUID(request.matchdict['id'])
     try:
-        client = request.cadm_controller.get_client(clientid)
+        client = request.cadm_controller.get(clientid)
         owner = client.get('owner', None)
         if owner and owner != userid:
             raise HTTPUnauthorized
@@ -50,11 +48,13 @@ def get_client(request):
         raise HTTPNotFound
     return client
 
+
 def allowed_attrs(attrs, operation):
     protected_keys = ['created', 'owner', 'scopes', 'updated']
     if operation != 'add':
         protected_keys.append('id')
-    return {k:v for k, v in attrs.items() if k not in protected_keys}
+    return {k: v for k, v in attrs.items() if k not in protected_keys}
+
 
 @view_config(route_name='add_client', renderer='json', request_method='POST',
              permission='scope_clientadmin')
@@ -66,7 +66,7 @@ def add_client(request):
         raise HTTPBadRequest
     try:
         attrs = allowed_attrs(payload, 'add')
-        client = request.cadm_controller.add_client(attrs, userid)
+        client = request.cadm_controller.add(attrs, userid)
         request.response.status = '201 Created'
         request.response.location = "{}{}".format(request.url, client['id'])
         return client
@@ -75,19 +75,25 @@ def add_client(request):
     except:
         raise HTTPBadRequest
 
+
 @view_config(route_name='delete_client', renderer='json', permission='scope_clientadmin')
 def delete_client(request):
     userid = get_userid(request)
     clientid = request.matchdict['id']
+    try:
+        clientid = uuid.UUID(clientid)
+    except ValueError:
+        raise HTTPBadRequest
     owner = request.cadm_controller.get_owner(clientid)
     if owner and owner != userid:
         raise HTTPUnauthorized
     try:
-        request.cadm_controller.delete_client(clientid)
+        request.cadm_controller.delete(clientid)
         return Response(status='204 No Content',
                         content_type='application/json; charset={}'.format(request.charset))
-    except ValueError: # clientid not a valid UUID
+    except ValueError:  # clientid not a valid UUID
         raise HTTPBadRequest
+
 
 @view_config(route_name='update_client', renderer='json', permission='scope_clientadmin')
 def update_client(request):
@@ -98,7 +104,7 @@ def update_client(request):
         raise HTTPBadRequest
     try:
         attrs = allowed_attrs(payload, 'update')
-        client = request.cadm_controller.update_client(clientid, attrs)
+        client = request.cadm_controller.update(clientid, attrs)
         return client
     except KeyError:
         raise HTTPNotFound

@@ -48,35 +48,35 @@ class TestValidation(unittest.TestCase):
         self.controller = apigkadm.controller.APIGKAdmController([], '', 20)
 
     def test_validation(self):
-        self.controller.validate_apigk(post_body_maximal)
-        self.controller.validate_apigk(post_body_minimal)
+        self.controller.validate(post_body_maximal)
+        self.controller.validate(post_body_minimal)
         testdata = deepcopy(post_body_minimal)
         testdata['id'] = 'ab1'
-        self.controller.validate_apigk(testdata)
+        self.controller.validate(testdata)
         testdata['id'] = 'ab1-12abc123'
-        self.controller.validate_apigk(testdata)
+        self.controller.validate(testdata)
         with py.test.raises(ValidationError):
             testdata['id'] = 'a'
-            self.controller.validate_apigk(testdata)
+            self.controller.validate(testdata)
         with py.test.raises(ValidationError):
             testdata['id'] = '1ab'
-            self.controller.validate_apigk(testdata)
+            self.controller.validate(testdata)
         with py.test.raises(ValidationError):
             testdata['id'] = 'abcdefghijklmeno'
-            self.controller.validate_apigk(testdata)
+            self.controller.validate(testdata)
         with py.test.raises(ValidationError):
             testdata['id'] = '.'
-            self.controller.validate_apigk(testdata)
+            self.controller.validate(testdata)
         with py.test.raises(ValidationError):
             testdata['id'] = '/'
-            self.controller.validate_apigk(testdata)
+            self.controller.validate(testdata)
         with py.test.raises(ValidationError):
             testdata['id'] = ':'
-            self.controller.validate_apigk(testdata)
+            self.controller.validate(testdata)
         with py.test.raises(ValidationError):
             testdata['id'] = 'ab1'
             testdata['created'] = 42
-            self.controller.validate_apigk(testdata)
+            self.controller.validate(testdata)
 
 
 class APIGKAdmTests(unittest.TestCase):

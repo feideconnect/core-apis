@@ -78,6 +78,7 @@ class ClientAdmTests(unittest.TestCase):
 
     def test_post_client_minimal(self):
         headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_by_id.side_effect = KeyError
         self.session.insert_client = mock.MagicMock()
         res = self.testapp.post_json('/clientadm/clients/', post_body_minimal, status=201, headers=headers)
         out = res.json
@@ -85,6 +86,7 @@ class ClientAdmTests(unittest.TestCase):
 
     def test_post_client_maximal(self):
         headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_by_id.side_effect = KeyError
         self.session.insert_client = mock.MagicMock()
         self.session.get_client_by_id.side_effect = KeyError()
         res = self.testapp.post_json('/clientadm/clients/', post_body_maximal, status=201, headers=headers)
@@ -93,6 +95,7 @@ class ClientAdmTests(unittest.TestCase):
 
     def test_post_client_other_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_by_id.side_effect = KeyError
         self.session.insert_client = mock.MagicMock()
         res = self.testapp.post_json('/clientadm/clients/', post_body_other_owner, status=201, headers=headers)
         out = res.json
@@ -106,6 +109,7 @@ class ClientAdmTests(unittest.TestCase):
 
     def test_post_client_scope_given(self):
         headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_by_id.side_effect = KeyError
         body = deepcopy(post_body_minimal)
         body['scopes'] = [testscope]
         self.session.insert_client = mock.MagicMock()

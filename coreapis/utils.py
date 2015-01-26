@@ -197,3 +197,10 @@ class AlreadyExistsError(RuntimeError):
     def __init__(self, message):
         super(AlreadyExistsError, self).__init__(message)
         self.message = message
+
+
+def get_userid(request):
+    try:
+        return request.environ['FC_USER']['userid']
+    except:
+        return None

@@ -2,8 +2,9 @@ from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPConflict
 from pyramid.response import Response
 from .controller import APIGKAdmController
-from coreapis.utils import AlreadyExistsError
+from coreapis.utils import AlreadyExistsError, get_userid
 import json
+import logging
 
 
 def configure(config):
@@ -24,14 +25,14 @@ def configure(config):
 
 @view_config(route_name='list_apigks', renderer='json', permission='scope_apigkadmin')
 def list_apigks(request):
-    return request.gkadm_controller.get_apigks(request.params)
+    return request.gkadm_controller.list(request.params)
 
 
 @view_config(route_name='get_apigk', renderer='json', permission='scope_apigkadmin')
 def get_apigk(request):
     id = request.matchdict['id']
     try:
-        apigk = request.gkadm_controller.get_apigk(id)
+        apigk = request.gkadm_controller.get(id)
     except KeyError:
         raise HTTPNotFound()
     return apigk
@@ -40,14 +41,13 @@ def get_apigk(request):
 @view_config(route_name='add_apigk', renderer='json', request_method='POST',
              permission='scope_apigkadmin')
 def add_apigk(request):
+    userid = get_userid(request)
     try:
         payload = json.loads(request.body.decode(request.charset))
-        if not "owner" in payload and request.environ["FC_USER"]:
-            payload["owner"] = request.environ["FC_USER"]["userid"]
     except:
         raise HTTPBadRequest
     try:
-        apigk = request.gkadm_controller.add_apigk(payload)
+        apigk = request.gkadm_controller.add(payload, userid)
         request.response.status = 201
         request.response.location = "{}{}".format(request.url, apigk['id'])
         return apigk
@@ -59,10 +59,11 @@ def add_apigk(request):
 def delete_apigk(request):
     id = request.matchdict['id']
     try:
-        request.gkadm_controller.delete_apigk(id)
+        request.gkadm_controller.delete(id)
         return Response(status=204,
                         content_type='application/json; charset={}'.format(request.charset))
     except ValueError:
+        logging.exception("error during delete")
         raise HTTPBadRequest
 
 
@@ -74,7 +75,7 @@ def update_apigk(request):
     except:
         raise HTTPBadRequest
     try:
-        apigk = request.gkadm_controller.update_apigk(id, payload)
+        apigk = request.gkadm_controller.update(id, payload)
         return apigk
     except KeyError:
         raise HTTPNotFound
