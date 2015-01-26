@@ -56,3 +56,9 @@ class ClientAdmController(CrudControllerBase):
     def delete(self, clientid):
         self.log.debug('Delete client', clientid=clientid)
         self.session.delete_client(clientid)
+
+    def get_logo(self, clientid):
+        return self.session.get_client_logo(clientid)
+
+    def _save_logo(self, clientid, data, updated):
+        self.session.save_logo('clients', clientid, data, updated)

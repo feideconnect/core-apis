@@ -1,5 +1,5 @@
 from pyramid.view import view_config
-from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPConflict, HTTPUnauthorized
+from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPConflict, HTTPUnauthorized, HTTPNotModified
 from pyramid.response import Response
 from .controller import APIGKAdmController
 from coreapis.utils import AlreadyExistsError, get_userid
@@ -19,6 +19,7 @@ def configure(config):
     config.add_route('add_apigk', '/apigks/', request_method='POST')
     config.add_route('delete_apigk', '/apigks/{id}', request_method='DELETE')
     config.add_route('update_apigk', '/apigks/{id}', request_method='PATCH')
+    config.add_route('apigk_logo', '/apigks/{id}/logo')
     config.scan(__name__)
 
 
@@ -102,3 +103,38 @@ def update_apigk(request):
         return apigk
     except KeyError:
         raise HTTPNotFound
+
+
+@view_config(route_name='apigk_logo')
+def apigk_logo(request):
+    apigkid = request.matchdict['id']
+    try:
+        logo, updated = request.gkadm_controller.get_logo(apigkid)
+        if logo is None:
+            with open('data/default-logo.png', 'rb') as fh:
+                logo = fh.read()
+    except KeyError:
+        raise HTTPNotFound
+    updated = updated.replace(microsecond=0)
+    if request.if_modified_since and request.if_modified_since >= updated:
+        raise HTTPNotModified
+    response = Response(logo, charset=None)
+    response.content_type = 'image/png'
+    response.cache_control = 'public, max-age=3600'
+    response.last_modified = updated
+    return response
+
+
+@view_config(route_name='apigk_logo', request_method="POST", permission='scope_apigkadmin')
+def upload_logo(request):
+    userid = get_userid(request)
+    apigkid = request.matchdict['id']
+    owner = request.gkadm_controller.get_owner(apigkid)
+    if owner and owner != userid:
+        raise HTTPUnauthorized
+
+    input_file = request.POST['logo'].file
+    input_file.seek(0)
+    data = input_file.read()
+    request.gkadm_controller.update_logo(apigkid, data)
+    return Response('OK')

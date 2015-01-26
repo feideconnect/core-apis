@@ -1,6 +1,10 @@
 from coreapis.utils import now, ValidationError, AlreadyExistsError
 import uuid
 import valideer as V
+import io
+from PIL import Image
+
+LOGO_SIZE = 128, 128
 
 
 class CrudControllerBase(object):
@@ -83,3 +87,12 @@ class CrudControllerBase(object):
         item['updated'] = now()
         self._insert(item)
         return item
+
+    def update_logo(self, itemid, data):
+        fake_file = io.BytesIO(data)
+        image = Image.open(fake_file)
+        image.thumbnail(LOGO_SIZE)
+        fake_output = io.BytesIO()
+        image.save(fake_output, format='PNG')
+        updated = now()
+        self._save_logo(itemid, fake_output.getbuffer(), updated)

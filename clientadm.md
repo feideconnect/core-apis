@@ -105,3 +105,15 @@ are not one of scope and owner, or if a parmeter value is missing or malformed.
 
 Returns `204 No Content`, or `401 Not Authorized` if trying to delete a
 client not owned by user. No body is returned.
+
+## Getting client logo
+
+    $ curl http://api.dev.feideconnect.no:6543/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9/logo|display
+
+Returns `404 Not Found` if id does not map to an existing client in the database, `304 Not Modified` if request has the `If-Modified-Since` header set to a timestamp equal or higher than the updated column for that client and `200 OK` otherwise. If no logo has been uploaded for this client a default image will be returned
+
+## Uploading a new client logo
+
+    $ curl -v -H "Authorization: Bearer $TOKEN" -F 'logo=@new_logo.png' http://api.dev.feideconnect.no:6543/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9/logo
+
+Returns `401 Not Authorized` if trying to change logo of a client not owned by user. `404 Not found` if no client with that id exists and `200 OK` otherwise

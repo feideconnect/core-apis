@@ -1,5 +1,5 @@
 from pyramid.view import view_config
-from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPConflict, HTTPUnauthorized
+from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPConflict, HTTPUnauthorized, HTTPNotModified
 from pyramid.response import Response
 from .controller import ClientAdmController
 from coreapis.utils import AlreadyExistsError, get_userid
@@ -20,6 +20,7 @@ def configure(config):
     config.add_route('add_client', '/clients/', request_method='POST')
     config.add_route('delete_client', '/clients/{id}', request_method='DELETE')
     config.add_route('update_client', '/clients/{id}', request_method='PATCH')
+    config.add_route('client_logo', '/clients/{id}/logo')
     config.scan(__name__)
 
 
@@ -108,3 +109,46 @@ def update_client(request):
         return client
     except KeyError:
         raise HTTPNotFound
+
+
+@view_config(route_name='client_logo')
+def client_logo(request):
+    clientid = request.matchdict['id']
+    try:
+        clientid = uuid.UUID(clientid)
+    except:
+        raise HTTPBadRequest
+    try:
+        logo, updated = request.cadm_controller.get_logo(clientid)
+        if logo is None:
+            with open('data/default-logo.png', 'rb') as fh:
+                logo = fh.read()
+    except KeyError:
+        raise HTTPNotFound
+    updated = updated.replace(microsecond=0)
+    if request.if_modified_since and request.if_modified_since >= updated:
+        raise HTTPNotModified
+    response = Response(logo, charset=None)
+    response.content_type = 'image/png'
+    response.cache_control = 'public, max-age=3600'
+    response.last_modified = updated
+    return response
+
+
+@view_config(route_name='client_logo', request_method="POST", permission='scope_clientadmin')
+def upload_logo(request):
+    userid = get_userid(request)
+    clientid = request.matchdict['id']
+    try:
+        clientid = uuid.UUID(clientid)
+    except:
+        raise HTTPBadRequest
+    owner = request.cadm_controller.get_owner(clientid)
+    if owner and owner != userid:
+        raise HTTPUnauthorized
+
+    input_file = request.POST['logo'].file
+    input_file.seek(0)
+    data = input_file.read()
+    request.cadm_controller.update_logo(clientid, data)
+    return Response('OK')

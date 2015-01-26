@@ -57,3 +57,9 @@ class APIGKAdmController(CrudControllerBase):
 
     def _insert(self, apigk):
         return self.session.insert_apigk(apigk)
+
+    def get_logo(self, gkid):
+        return self.session.get_apigk_logo(gkid)
+
+    def _save_logo(self, gkid, data, updated):
+        self.session.save_logo('apigk', gkid, data, updated)

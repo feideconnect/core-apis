@@ -41,6 +41,8 @@ class Client(object):
         self.s_get_user = self.session.prepare('SELECT * FROM users WHERE userid = ?')
         self.s_get_apigk = self.session.prepare('SELECT {} FROM apigk WHERE id = ?'.format(self.default_columns['apigk']))
         self.s_delete_apigk = self.session.prepare('DELETE FROM apigk WHERE id = ?')
+        self.s_get_client_logo = self.session.prepare('SELECT logo, updated FROM clients WHERE id = ?')
+        self.s_get_apigk_logo = self.session.prepare('SELECT logo, updated FROM apigk WHERE id = ?')
 
     def insert_client(self, id, client_secret, name, descr,
                       redirect_uri, scopes, scopes_requested, status,
@@ -138,3 +140,19 @@ class Client(object):
                                         apigk['status'],
                                         json.dumps(apigk['trust']),
                                         apigk['updated']]))
+
+    def get_client_logo(self, clientid):
+        res = self.session.execute(self.s_get_client_logo.bind([clientid]))
+        if len(res) == 0:
+            raise KeyError('no such client')
+        return res[0]['logo'], res[0]['updated']
+
+    def get_apigk_logo(self, gkid):
+        res = self.session.execute(self.s_get_apigk_logo.bind([gkid]))
+        if len(res) == 0:
+            raise KeyError('no such client')
+        return res[0]['logo'], res[0]['updated']
+
+    def save_logo(self, table, itemid, data, updated):
+        prep = self.session.prepare('INSERT INTO {} (id, logo, updated) VALUES (?, ?, ?)'.format(table))
+        self.session.execute(prep.bind([itemid, data, updated]))
