@@ -87,8 +87,7 @@ def delete_client(request):
     if owner and owner != userid:
         raise HTTPUnauthorized
     request.cadm_controller.delete(clientid)
-    return Response(status='204 No Content',
-                    content_type='application/json; charset={}'.format(request.charset))
+    return Response(status='204 No Content', content_type=False)
 
 
 @view_config(route_name='update_client', renderer='json', permission='scope_clientadmin')

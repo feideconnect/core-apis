@@ -88,8 +88,7 @@ def delete_apigk(request):
     if owner and owner != userid:
         raise HTTPUnauthorized
     request.gkadm_controller.delete(gkid)
-    return Response(status=204,
-                    content_type='application/json; charset={}'.format(request.charset))
+    return Response(status=204, content_type=False)
 
 
 @view_config(route_name='update_apigk', renderer='json', permission='scope_apigkadmin')
