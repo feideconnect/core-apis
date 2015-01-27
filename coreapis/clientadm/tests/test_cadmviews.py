@@ -287,3 +287,40 @@ class ClientAdmTests(unittest.TestCase):
     # FIXME: Missing test
     # def test_get_client_logo_default_logo_file_not_found(self):
     #     pass
+
+    def test_post_client_logo_multipart(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
+        self.session.save_logo = mock.MagicMock()
+        with open('data/default-client.png', 'rb') as fh:
+            logo = fh.read()
+            res = self.testapp.post('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), '', status=200, headers=headers,
+                                    upload_files=[('logo', 'logo.png', logo)])
+            out = res.json
+            assert out == 'OK'
+
+    def test_post_client_logo_body(self):
+        headers = {'Authorization': 'Bearer user_token', 'Content-Type': 'image/png'}
+        self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
+        self.session.save_logo = mock.MagicMock()
+        with open('data/default-client.png', 'rb') as fh:
+            logo = fh.read()
+            res = self.testapp.post('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), logo, status=200, headers=headers)
+            out = res.json
+            assert out == 'OK'
+
+    def test_post_client_logo_bad_id(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        client['owner'] = uuid.UUID(userid_other)
+        self.session.get_client_by_id.return_value = client
+        logo = b'mylittlelogo'
+        self.testapp.post('/clientadm/clients/{}/logo'.format('foo'), logo, status=400, headers=headers)
+
+    def test_post_client_logo_not_owner(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        client['owner'] = uuid.UUID(userid_other)
+        self.session.get_client_by_id.return_value = client
+        logo = b'mylittlelogo'
+        self.testapp.post('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), logo, status=401, headers=headers)
