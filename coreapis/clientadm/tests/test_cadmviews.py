@@ -186,10 +186,9 @@ class ClientAdmTests(unittest.TestCase):
 
     def test_update_client(self):
         headers = {'Authorization': 'Bearer user_token'}
-        id = clientid
         self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
         self.session.insert_client = mock.MagicMock()
-        res = self.testapp.patch_json('/clientadm/clients/{}'.format(id), {'descr': 'blue'}, status=200, headers=headers)
+        res = self.testapp.patch_json('/clientadm/clients/{}'.format(clientid), {'descr': 'blue'}, status=200, headers=headers)
         out = res.json
         assert out['descr'] == 'blue'
 
@@ -207,52 +206,47 @@ class ClientAdmTests(unittest.TestCase):
 
     def test_update_missing_client(self):
         headers = {'Authorization': 'Bearer user_token'}
-        id = clientid
         self.session.get_client_by_id.side_effect = KeyError()
         self.session.insert_client = mock.MagicMock()
-        self.testapp.patch_json('/clientadm/clients/{}'.format(id), {'descr': 'blue'}, status=404, headers=headers)
+        self.testapp.patch_json('/clientadm/clients/{}'.format(clientid), {'descr': 'blue'}, status=404, headers=headers)
 
     def test_update_client_not_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
-        id = clientid
         client = deepcopy(retrieved_client)
         client['owner'] = uuid.UUID(userid_other)
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
-        self.testapp.patch_json('/clientadm/clients/{}'.format(id), {'descr': 'blue'},
+        self.testapp.patch_json('/clientadm/clients/{}'.format(clientid), {'descr': 'blue'},
                                 status=401, headers=headers)
 
     def test_update_client_change_timestamp(self):
         headers = {'Authorization': 'Bearer user_token'}
-        id = clientid
         self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
         self.session.insert_client = mock.MagicMock()
         attrs = {'created': '2000-01-01T00:00:00+01:00'}
-        res = self.testapp.patch_json('/clientadm/clients/{}'.format(id),
+        res = self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
                                       attrs, status=200, headers=headers)
         out = res.json
         assert out['created'] == date_created
 
     def test_update_client_change_scopes(self):
         headers = {'Authorization': 'Bearer user_token'}
-        id = clientid
         client = deepcopy(retrieved_client)
         client['scopes'] = [testscope]
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
         attrs = {'scopes': [otherscope]}
-        res = self.testapp.patch_json('/clientadm/clients/{}'.format(id),
+        res = self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
                                       attrs, status=200, headers=headers)
         out = res.json
         assert out['scopes'] == [testscope]
 
     def test_update_client_invalid_list(self):
         headers = {'Authorization': 'Bearer user_token'}
-        id = clientid
         self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
         self.session.insert_client = mock.MagicMock()
         attrs = {'redirect_uri': testuri}
-        self.testapp.patch_json('/clientadm/clients/{}'.format(id),
+        self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
                                 attrs, status=400, headers=headers)
 
     def test_get_client_logo(self):
