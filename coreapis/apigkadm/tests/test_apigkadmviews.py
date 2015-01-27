@@ -10,6 +10,7 @@ import py.test
 import valideer
 
 post_body_minimal = {
+    'id': 'testgk',
     'name': 'per',
     'owner': '4f4e4b2b-bf7b-49f8-b703-cc6f4fc93493',
     'endpoints': ['https://foo.no'],
@@ -170,6 +171,7 @@ class APIGKAdmTests(unittest.TestCase):
         body = deepcopy(post_body_minimal)
         body['owner'] = 'owner'
         self.session().insert_apigk = mock.MagicMock()
+        self.session().get_apigk.side_effect = KeyError()
         res = self.testapp.post_json('/apigkadm/apigks/', body, status=201, headers=headers)
         out = res.json
         assert out['owner'] == '00000000-0000-0000-0000-000000000001'
