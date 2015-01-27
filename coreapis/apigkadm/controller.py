@@ -85,5 +85,6 @@ class APIGKAdmController(CrudControllerBase):
             'name': r['name'],
             'descr': r['descr'],
             'scopedef': r['scopedef'],
+            'expose': r['expose'],
             'owner': public_userinfo(self.session.get_user_by_id(r['owner'])),
         } for r in res]
