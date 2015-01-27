@@ -12,7 +12,7 @@ class CrudControllerBase(object):
         self.maxrows = maxrows
 
     def list(self, params):
-        self.log.debug('get_clients', num_params=len(params))
+        self.log.debug('list', num_params=len(params))
         selectors, values = [], []
         for k, v in self.FILTER_KEYS.items():
             if k in params:
