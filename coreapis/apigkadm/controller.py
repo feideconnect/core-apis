@@ -28,7 +28,7 @@ class APIGKAdmController(CrudControllerBase):
     schema = {
         '+name': 'string',
         'owner': V.AdaptTo(uuid.UUID),
-        'id': re.compile('^[a-z][a-z0-9\-]{2,14}$'),
+        '+id': re.compile('^[a-z][a-z0-9\-]{2,14}$'),
         'created': V.AdaptBy(ts),
         'descr': V.Nullable('string', ''),
         'status': V.Nullable(['string'], []),
