@@ -322,6 +322,12 @@ class ClientAdmTests(unittest.TestCase):
         logo = b'mylittlelogo'
         self.testapp.post('/clientadm/clients/{}/logo'.format('foo'), logo, status=400, headers=headers)
 
+    def test_post_client_logo_bad_data(self):
+        headers = {'Authorization': 'Bearer user_token', 'Content-Type': 'image/png'}
+        self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
+        logo = b'mylittlelogo'
+        self.testapp.post('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), logo, status=400, headers=headers)
+
     def test_post_client_logo_not_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
         client = deepcopy(retrieved_client)
