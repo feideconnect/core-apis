@@ -1,6 +1,6 @@
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
-from coreapis.utils import LogWrapper, ts
+from coreapis.utils import LogWrapper, ts, public_userinfo
 import uuid
 import valideer as V
 import re
@@ -77,3 +77,13 @@ class APIGKAdmController(CrudControllerBase):
 
     def _save_logo(self, gkid, data, updated):
         self.session.save_logo('apigk', gkid, data, updated)
+
+    def public_list(self):
+        res = self._list([], [], self.maxrows)
+        return [{
+            'id': r['id'],
+            'name': r['name'],
+            'descr': r['descr'],
+            'scopedef': r['scopedef'],
+            'owner': public_userinfo(self.session.get_user_by_id(r['owner'])),
+        } for r in res]

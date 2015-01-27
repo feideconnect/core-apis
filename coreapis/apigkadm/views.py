@@ -16,6 +16,7 @@ def configure(config):
                               reify=True)
     config.add_route('get_apigk', '/apigks/{id}', request_method='GET')
     config.add_route('list_apigks', '/apigks/', request_method='GET')
+    config.add_route('list_public_apigks', '/public', request_method='GET')
     config.add_route('add_apigk', '/apigks/', request_method='POST')
     config.add_route('delete_apigk', '/apigks/{id}', request_method='DELETE')
     config.add_route('update_apigk', '/apigks/{id}', request_method='PATCH')
@@ -40,6 +41,11 @@ def list_apigks(request):
         params[k] = v
     params['owner'] = userid
     return request.gkadm_controller.list(params)
+
+
+@view_config(route_name='list_public_apigks', renderer='json')
+def list_public_apigks(request):
+    return request.gkadm_controller.public_list()
 
 
 @view_config(route_name='get_apigk', renderer='json', permission='scope_apigkadmin')

@@ -210,3 +210,15 @@ def get_userid(request):
         return request.environ['FC_USER']['userid']
     except:
         return None
+
+
+def public_userinfo(user):
+    userid = None
+    for sec in user['userid_sec']:
+        if sec.startswith('p:'):
+            userid = sec
+    name = user['name'][user['selectedsource']]
+    return {
+        'id': userid,
+        'name': name
+    }
