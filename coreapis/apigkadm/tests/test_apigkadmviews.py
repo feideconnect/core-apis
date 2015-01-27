@@ -7,7 +7,6 @@ from pyramid import testing
 from coreapis import main, middleware, apigkadm
 from coreapis.utils import ValidationError
 import py.test
-import valideer
 
 post_body_minimal = {
     'id': 'testgk',
