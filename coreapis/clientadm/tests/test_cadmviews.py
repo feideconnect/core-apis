@@ -284,9 +284,14 @@ class ClientAdmTests(unittest.TestCase):
         self.session.get_client_logo.side_effect = KeyError()
         self.testapp.get('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), status=404, headers=headers)
 
-    # FIXME: Missing test
-    # def test_get_client_logo_default_logo_file_not_found(self):
-    #     pass
+    def test_get_client_logo_default_logo_file_not_found(self):
+        m = mock.mock_open()
+        with mock.patch('coreapis.clientadm.views.open', m, create=True):
+            updated = parse_datetime(date_created)
+            headers = {'Authorization': 'Bearer user_token'}
+            m.side_effect = FileNotFoundError()
+            self.session.get_client_logo.return_value = None, updated
+            self.testapp.get('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), status=500, headers=headers)
 
     def test_post_client_logo_multipart(self):
         headers = {'Authorization': 'Bearer user_token'}
