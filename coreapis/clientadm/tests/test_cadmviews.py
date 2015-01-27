@@ -1,13 +1,15 @@
 import unittest
 import mock
 import uuid
+from aniso8601 import parse_datetime
+from datetime import timedelta
 from copy import deepcopy
 from webtest import TestApp
 from pyramid import testing
 from coreapis import main, middleware
 from coreapis.clientadm.tests.helper import (
     userid_own, userid_other, clientid, date_created, testscope, otherscope, testuri,
-    post_body_minimal, post_body_other_owner, post_body_maximal, retrieved_client)
+    post_body_minimal, post_body_other_owner, post_body_maximal, retrieved_client, httptime)
 
 class ClientAdmTests(unittest.TestCase):
     @mock.patch('coreapis.middleware.cassandra_client.Client')
@@ -252,3 +254,42 @@ class ClientAdmTests(unittest.TestCase):
         attrs = {'redirect_uri': testuri}
         self.testapp.patch_json('/clientadm/clients/{}'.format(id),
                                 attrs, status=400, headers=headers)
+
+    def test_get_client_logo(self):
+        updated = parse_datetime(date_created)
+        date_older = updated - timedelta(minutes=1)
+        headers = {'Authorization': 'Bearer user_token', 'If-Modified-Since': httptime(date_older)}
+        self.session.get_client_logo.return_value = b'mylittlelogo', updated
+        res = self.testapp.get('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), status=200, headers=headers)
+        out = res.body
+        assert b'mylittlelogo' in out
+
+    def test_get_client_logo_null(self):
+        updated = parse_datetime(date_created)
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_logo.return_value = None, updated
+        res = self.testapp.get('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), status=200, headers=headers)
+        out = res.body
+        assert b'PNG' == out[1:4]
+
+    def test_get_client_logo_not_modified(self):
+        updated = parse_datetime(date_created)
+        date_newer = updated + timedelta(minutes=1)
+        headers = {'Authorization': 'Bearer user_token', 'If-Modified-Since': httptime(date_newer)}
+        self.session.get_client_logo.return_value = b'mylittlelogo', updated
+        self.testapp.get('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), status=304, headers=headers)
+
+    def test_get_client_logo_bad_id(self):
+        updated = parse_datetime(date_created)
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_logo.return_value = None, updated
+        self.testapp.get('/clientadm/clients/{}/logo'.format('foo'), status=400, headers=headers)
+
+    def test_get_client_logo_missing_client(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_logo.side_effect = KeyError()
+        self.testapp.get('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), status=404, headers=headers)
+
+    # FIXME: Missing test
+    # def test_get_client_logo_default_logo_file_not_found(self):
+    #     pass

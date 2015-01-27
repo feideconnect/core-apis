@@ -34,4 +34,5 @@ retrieved_client = {
     'updated': parse_datetime(date_created)
 }
 
-
+def httptime(timestamp):
+    return timestamp.strftime("%a, %d %b %Y %H:%M:%S +0000")
