@@ -116,4 +116,8 @@ Returns `404 Not Found` if id does not map to an existing client in the database
 
     $ curl -v -H "Authorization: Bearer $TOKEN" -F 'logo=@new_logo.png' http://api.dev.feideconnect.no:6543/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9/logo
 
+or:
+
+    $ curl -v -H "Authorization: Bearer $TOKEN" -H 'Content-Type: image/png' --data-binary '@new_logo.png' http://api.dev.feideconnect.no:6543/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9/logo
+
 Returns `401 Not Authorized` if trying to change logo of a client not owned by user. `404 Not found` if no client with that id exists and `200 OK` otherwise, `400 Bad Request` if the uploaded file is not in a recognized image format.
