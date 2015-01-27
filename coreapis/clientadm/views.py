@@ -148,7 +148,10 @@ def upload_logo(request):
     if owner and owner != userid:
         raise HTTPUnauthorized
 
-    input_file = request.POST['logo'].file
+    if 'logo' in request.POST:
+        input_file = request.POST['logo'].file
+    else:
+        input_file = request.body_file_seekable
     input_file.seek(0)
     data = input_file.read()
     request.cadm_controller.update_logo(clientid, data)
