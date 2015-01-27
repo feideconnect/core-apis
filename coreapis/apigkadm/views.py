@@ -39,7 +39,7 @@ def list_apigks(request):
             raise HTTPUnauthorized
         params[k] = v
     params['owner'] = userid
-    return request.gkadm_controller.list(request.params)
+    return request.gkadm_controller.list(params)
 
 
 @view_config(route_name='get_apigk', renderer='json', permission='scope_apigkadmin')
