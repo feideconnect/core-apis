@@ -12,7 +12,7 @@ import valideer
 post_body_minimal = {
     'name': 'per',
     'owner': '4f4e4b2b-bf7b-49f8-b703-cc6f4fc93493',
-    'endpoints': ['https://foo.no/bar'],
+    'endpoints': ['https://foo.no'],
     'requireuser': False,
 }
 
@@ -23,7 +23,7 @@ post_body_maximal = {
     'created': '2015-01-12T14:05:16+01:00', 'descr': 'green',
     'status': ['lab'],
     'updated': '2015-01-12T14:05:16+01:00',
-    'endpoints': ['https://foo.com/bar', 'https://ugle.org/foo'],
+    'endpoints': ['https://foo.com', 'https://ugle.org:5000'],
     'requireuser': True,
     'httpscertpinned': '',
     'expose': {
@@ -199,6 +199,19 @@ class APIGKAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         body = deepcopy(post_body_minimal)
         body['foo'] = 'bar'
+        self.session().insert_apigk = mock.MagicMock()
+        self.testapp.post_json('/apigkadm/apigks/', body, status=400, headers=headers)
+
+    def test_post_invalid_endpoint(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        body = deepcopy(post_body_minimal)
+        body['endpoints'] = ['https://ugle.com/bar']
+        self.session().insert_apigk = mock.MagicMock()
+        self.testapp.post_json('/apigkadm/apigks/', body, status=400, headers=headers)
+        body['endpoints'] = ['ugle.com']
+        self.session().insert_apigk = mock.MagicMock()
+        self.testapp.post_json('/apigkadm/apigks/', body, status=400, headers=headers)
+        body['endpoints'] = ['ftp://ugle.com']
         self.session().insert_apigk = mock.MagicMock()
         self.testapp.post_json('/apigkadm/apigks/', body, status=400, headers=headers)
 

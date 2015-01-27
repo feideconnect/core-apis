@@ -4,6 +4,20 @@ from coreapis.utils import now, LogWrapper, ValidationError, AlreadyExistsError,
 import uuid
 import valideer as V
 import re
+from urllib.parse import urlparse
+
+
+def valid_endpoint(value):
+    url = urlparse(value)
+    if url.scheme not in ('http', 'https'):
+        return False
+    if url.netloc == '':
+        return False
+    if ''.join(url[2:]) != '':
+        return False
+    if url.username or url.password:
+        return False
+    return True
 
 
 class APIGKAdmController(CrudControllerBase):
@@ -19,7 +33,7 @@ class APIGKAdmController(CrudControllerBase):
         'descr': V.Nullable('string', ''),
         'status': V.Nullable(['string'], []),
         'updated': V.AdaptBy(ts),
-        '+endpoints': V.HomogeneousSequence(item_schema='string', min_length=1),
+        '+endpoints': V.HomogeneousSequence(valid_endpoint, min_length=1),
         '+requireuser': 'boolean',
         'httpscertpinned': V.Nullable('string'),
         'expose': {
