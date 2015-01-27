@@ -161,3 +161,11 @@ or:
 - `400 Bad Request`: The image data uploaded is not in a recognized format
 - `401 Unauthorized`: Current user does not own the gatekeeper to update
 - `404 Not Found`: The provided gatekeeper id does not exist in database
+
+## Getting public information about api gatekeepers
+
+    $ curl http://api.dev.feideconnect.no:6543/apigkadm/public
+
+    [{"id": "feideapi", "expose": {"userid": false, "clientid": false, "scopes": false}, "name": "feide api", "owner": {"id": "p:6fc96878-fdc5-4fc3-abfc-6fcc018ff0fc", "name": "Sigmund Augdal"}, "scopedef": null, "descr": "The feide api"}, {"id": "testgk", "expose": {"userid": false, "clientid": false, "scopes": true}, "name": "testgk", "owner": {"id": "p:6fc96878-fdc5-4fc3-abfc-6fcc018ff0fc", "name": "Sigmund Augdal"}, "scopedef": null, "descr": "sigmund tester"}]
+
+Lists some public infomation about the registered api gatekeepers for clients to use when requesting permission.
