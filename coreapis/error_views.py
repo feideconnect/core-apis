@@ -1,6 +1,9 @@
 from pyramid.view import view_config, forbidden_view_config, notfound_view_config
-from .utils import www_authenticate, ValidationError
+from .utils import www_authenticate, ValidationError, LogWrapper
 import logging
+import traceback
+
+log = LogWrapper('error_views')
 
 
 @forbidden_view_config(renderer='json')
@@ -23,12 +26,14 @@ def notfound(request):
 @view_config(context=Exception, renderer='json')
 def exception_handler(context, request):
     request.response.status_code = 500
-    logging.exception('unhandled exception')
+    exception = traceback.format_exc()
+    log.error('unhandled exception', exception=exception)
     return {'message': 'Internal server error'}
 
 
 @view_config(context=ValidationError, renderer='json')
 def validation_error(context, request):
     request.response.status_code = 400
-    logging.exception('validation error')
+    exception = traceback.format_exc()
+    log.error('validation error', exception=exception)
     return {'message': context.message}
