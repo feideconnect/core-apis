@@ -5,6 +5,7 @@ import time
 import json
 import datetime
 import pytz
+from coreapis.utils import LogWrapper
 
 
 def parse_apigk(obj):
@@ -45,6 +46,8 @@ class Client(object):
         self.s_get_apigk_logo = self.session.prepare('SELECT logo, updated FROM apigk WHERE id = ?')
         self.s_get_authorizations = self.session.prepare('SELECT * FROM oauth_authorizations WHERE userid = ?')
         self.s_delete_authorization = self.session.prepare('DELETE FROM oauth_authorizations WHERE userid = ? AND clientid = ?')
+        self.s_delete_token = self.session.prepare('DELETE FROM oauth_tokens WHERE access_token = ?')
+        self.log = LogWrapper('coreapis.cassandraclient')
 
     def insert_client(self, id, client_secret, name, descr,
                       redirect_uri, scopes, scopes_requested, status,
@@ -162,5 +165,13 @@ class Client(object):
     def get_authorizations(self, userid):
         return self.session.execute(self.s_get_authorizations.bind([userid]))
 
+    def delete_token(self, token):
+        return self.session.execute(self.s_delete_token.bind([token]))
+
     def delete_authorization(self, userid, clientid):
         self.session.execute(self.s_delete_authorization.bind([userid, clientid]))
+        prep = self.session.prepare('SELECT access_token FROM oauth_tokens WHERE userid = ? AND clientid = ? ALLOW FILTERING')
+        for token in self.session.execute(prep.bind([userid, clientid])):
+            tokenid = token['access_token']
+            self.log.debug('deleting token', token=tokenid)
+            self.delete_token(tokenid)
