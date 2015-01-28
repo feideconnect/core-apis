@@ -109,19 +109,16 @@ All parameters have the same meaning as when creating, but none are mandatory an
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
     'http://api.dev.feideconnect.no:6543/apigkadm/apigks/'
 
-    [{"scopedef": null, "expose": {"userid": false, "scopes": false, "clientid": false}, "trust": {"type": "bearer", "token": "adsfSFDsdfasdfa"}, "status": null, "endpoints": ["https://api.feide.no"],
-    "httpscertpinned": null, "name": "feide api", "descr": "The feide
-    api", "id": "feideapi", "owner":
-    "52a55f50-3b1f-4d25-8b14-d34ca715c30e", "updated":
-    "2015-01-26T16:05:59Z", "requireuser": false, "created":
-    "2015-01-23T13:50:09Z"}, {"scopedef": null, "expose": {"clientid":
-    false, "userid": false, "scopes": true}, "trust": {"type":
-    "bearer", "token": "absd"}, "status": null, "endpoints":
-    ["https://testgk.uninett.no"], "httpscertpinned": null, "name":
-    "testgk", "descr": "sigmund tester", "id": "testgk", "owner":
-    "52a55f50-3b1f-4d25-8b14-d34ca715c30e", "updated":
-    "2015-01-26T12:43:31Z", "requireuser": true, "created":
-    "2015-01-26T12:43:31Z"}]
+    [{"scopedef": null, "expose": {"userid": false, "scopes": false, "clientid": false},
+      "trust": {"type": "bearer", "token": "adsfSFDsdfasdfa"},"status": null,
+      "endpoints": ["https://api.feide.no"], "httpscertpinned": null, "name": "feide api",
+      "descr": "The feide api", "id": "feideapi", "owner": "52a55f50-3b1f-4d25-8b14-d34ca715c30e",
+      "updated": "2015-01-26T16:05:59Z", "requireuser": false, "created": "2015-01-23T13:50:09Z"},
+     {"scopedef": null, "expose": {"clientid": false, "userid": false, "scopes": true},
+      "trust": {"type": "bearer", "token": "absd"}, "status": null,
+       "endpoints": ["https://testgk.uninett.no"], "httpscertpinned": null, "name": "testgk",
+       "descr": "sigmund tester", "id": "testgk", "owner": "52a55f50-3b1f-4d25-8b14-d34ca715c30e",
+       "updated": "2015-01-26T12:43:31Z", "requireuser": true, "created": "2015-01-26T12:43:31Z"}]
     
 ### Return values
 
@@ -151,11 +148,14 @@ even if resulting list is empty.
 
 ## Uploading a new api gatekeeper logo
 
-    $ curl -v -H "Authorization: Bearer $TOKEN" -F 'logo=@new_logo.png' http://api.dev.feideconnect.no:6543/apigkadm/apigks/<api gatekeeper id>/logo
+    $ curl -v -H "Authorization: Bearer $TOKEN" -F 'logo=@new_logo.png' \
+    'http://api.dev.feideconnect.no:6543/apigkadm/apigks/<api gatekeeper id>/logo'
 
 or:
 
-    $ curl -v -H "Authorization: Bearer $TOKEN" -H 'Content-Type: image/png' --data-binary '@new_logo.png' http://api.dev.feideconnect.no:6543/apigkadm/apigks/<api gatekeeper id>/logo
+    $ curl -v -H "Authorization: Bearer $TOKEN" -H 'Content-Type: image/png' \
+    --data-binary '@new_logo.png' \
+    'http://api.dev.feideconnect.no:6543/apigkadm/apigks/<api gatekeeper id>/logo'
 
 - `200 OK`: On success
 - `400 Bad Request`: The image data uploaded is not in a recognized format
@@ -166,6 +166,11 @@ or:
 
     $ curl http://api.dev.feideconnect.no:6543/apigkadm/public
 
-    [{"id": "feideapi", "expose": {"userid": false, "clientid": false, "scopes": false}, "name": "feide api", "owner": {"id": "p:6fc96878-fdc5-4fc3-abfc-6fcc018ff0fc", "name": "Sigmund Augdal"}, "scopedef": null, "descr": "The feide api"}, {"id": "testgk", "expose": {"userid": false, "clientid": false, "scopes": true}, "name": "testgk", "owner": {"id": "p:6fc96878-fdc5-4fc3-abfc-6fcc018ff0fc", "name": "Sigmund Augdal"}, "scopedef": null, "descr": "sigmund tester"}]
+    [{"id": "feideapi", "expose": {"userid": false, "clientid": false, "scopes": false},
+      "name": "feide api", "owner": {"id": "p:6fc96878-fdc5-4fc3-abfc-6fcc018ff0fc",
+      "name": "Sigmund Augdal"}, "scopedef": null, "descr": "The feide api"},
+     {"id": "testgk", "expose": {"userid": false, "clientid": false, "scopes": true},
+      "name": "testgk", "owner": {"id": "p:6fc96878-fdc5-4fc3-abfc-6fcc018ff0fc",
+      "name": "Sigmund Augdal"}, "scopedef": null, "descr": "sigmund tester"}]
 
 Lists some public infomation about the registered api gatekeepers for clients to use when requesting permission.
