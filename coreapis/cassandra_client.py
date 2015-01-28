@@ -43,6 +43,8 @@ class Client(object):
         self.s_delete_apigk = self.session.prepare('DELETE FROM apigk WHERE id = ?')
         self.s_get_client_logo = self.session.prepare('SELECT logo, updated FROM clients WHERE id = ?')
         self.s_get_apigk_logo = self.session.prepare('SELECT logo, updated FROM apigk WHERE id = ?')
+        self.s_get_authorizations = self.session.prepare('SELECT * FROM oauth_authorizations WHERE userid = ?')
+        self.s_delete_authorization = self.session.prepare('DELETE FROM oauth_authorizations WHERE userid = ? AND clientid = ?')
 
     def insert_client(self, id, client_secret, name, descr,
                       redirect_uri, scopes, scopes_requested, status,
@@ -156,3 +158,9 @@ class Client(object):
     def save_logo(self, table, itemid, data, updated):
         prep = self.session.prepare('INSERT INTO {} (id, logo, updated) VALUES (?, ?, ?)'.format(table))
         self.session.execute(prep.bind([itemid, data, updated]))
+
+    def get_authorizations(self, userid):
+        return self.session.execute(self.s_get_authorizations.bind([userid]))
+
+    def delete_authorization(self, userid, clientid):
+        self.session.execute(self.s_delete_authorization.bind([userid, clientid]))

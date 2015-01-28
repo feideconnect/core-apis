@@ -43,6 +43,8 @@ def main(global_config, **settings):
         config.include('coreapis.apigkadm.views.configure', route_prefix='apigkadm')
     if all_enabled or 'gk' in enabled_components:
         config.include('coreapis.gk.views.configure', route_prefix='gk')
+    if all_enabled or 'authorizations' in enabled_components:
+        config.include('coreapis.authorizations.views.configure', route_prefix='authorizations')
     config.scan('coreapis.error_views')
     config.add_settings(realm=global_config['oauth_realm'])
     config.add_tween('coreapis.utils.RequestTimingTween')
