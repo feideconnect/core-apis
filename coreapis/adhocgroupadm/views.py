@@ -4,6 +4,7 @@ from pyramid.response import Response
 from .controller import AdHocGroupAdmController
 from coreapis.utils import get_userid
 import json
+import uuid
 
 
 def configure(config):
@@ -28,6 +29,22 @@ def allowed_attrs(attrs, operation):
     return {k: v for k, v in attrs.items() if k not in protected_keys}
 
 
+def check(request, permission):
+    userid = get_userid(request)
+    groupid = request.matchdict['id']
+    try:
+        groupid = uuid.UUID(groupid)
+    except ValueError:
+        raise HTTPNotFound
+    try:
+        group = request.ahgroupadm_controller.get(groupid)
+    except KeyError:
+        raise HTTPNotFound
+    if not request.ahgroupadm_controller.has_permission(group, userid, permission):
+        raise HTTPUnauthorized
+    return userid, group
+
+
 @view_config(route_name='list_groups', renderer='json', permission='scope_adhocgroupadmin')
 def list_groups(request):
     params = {}
@@ -37,14 +54,7 @@ def list_groups(request):
 
 @view_config(route_name='get_group', renderer='json', permission='scope_adhocgroupadmin')
 def get_group(request):
-    userid = get_userid(request)
-    groupid = request.matchdict['id']
-    try:
-        group = request.ahgroupadm_controller.get(groupid)
-    except KeyError:
-        raise HTTPNotFound()
-    if not request.ahgroupadm_controller.can_view(group, userid):
-        raise HTTPUnauthorized
+    userid, group = check(request, "view")
     return group
 
 
@@ -65,34 +75,20 @@ def add_group(request):
 
 @view_config(route_name='delete_group', renderer='json', permission='scope_adhocgroupadmin')
 def delete_group(request):
-    userid = get_userid(request)
-    groupid = request.matchdict['id']
-    try:
-        group = request.ahgroupadm_controller.get(groupid)
-    except KeyError:
-        raise HTTPNotFound
-    if not request.ahgroupadm_controller.can_delete(group, userid):
-        raise HTTPUnauthorized
-    request.ahgroupadm_controller.delete(groupid)
+    userid, group = check(request, "delete")
+    request.ahgroupadm_controller.delete(group['id'])
     return Response(status=204, content_type=False)
 
 
 @view_config(route_name='update_group', renderer='json', permission='scope_adhocgroupadmin')
 def update_group(request):
-    userid = get_userid(request)
-    groupid = request.matchdict['id']
+    userid, group = check(request, "update")
     try:
         payload = json.loads(request.body.decode(request.charset))
     except:
         raise HTTPBadRequest
-    try:
-        group = request.ahgroupadm_controller.get(groupid)
-    except KeyError:
-        raise HTTPNotFound
-    if not request.ahgroupadm_controller.can_update(group, userid):
-        raise HTTPUnauthorized
     attrs = allowed_attrs(payload, 'update')
-    group = request.ahgroupadm_controller.update(groupid, attrs)
+    group = request.ahgroupadm_controller.update(group['id'], attrs)
     return group
 
 
@@ -119,11 +115,7 @@ def group_logo(request):
 @view_config(route_name='group_logo', request_method="POST", permission='scope_adhocgroupadmin',
              renderer="json")
 def upload_logo(request):
-    userid = get_userid(request)
-    groupid = request.matchdict['id']
-    group = request.ahgroupadm_controller.get_group(groupid)
-    if not request.ahgroupadm_controller.can_update(group, userid):
-        raise HTTPUnauthorized
+    userid, group = check(request, "update")
 
     if 'logo' in request.POST:
         input_file = request.POST['logo'].file
@@ -131,5 +123,5 @@ def upload_logo(request):
         input_file = request.body_file_seekable
     input_file.seek(0)
     data = input_file.read()
-    request.ahgroupadm_controller.update_logo(groupid, data)
+    request.ahgroupadm_controller.update_logo(group['id'], data)
     return 'OK'

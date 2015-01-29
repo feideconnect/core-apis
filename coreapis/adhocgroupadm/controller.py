@@ -55,11 +55,10 @@ class AdHocGroupAdmController(CrudControllerBase):
     def is_owner_or_admin(self, group, userid):
         return self.is_owner(group, userid) or self.is_admin(group, userid)
 
-    def can_update(self, group, userid):
-        return self.is_owner(group, userid)
-
-    def can_delete(self, group, userid):
-        return self.is_owner(group, userid)
-
-    def can_view(self, group, userid):
-        return self.is_owner_or_admin(group, userid)
+    def has_permission(self, group, userid, permission):
+        if permission == "update":
+            return self.is_owner(group, userid)
+        if permission == "delete":
+            return self.is_owner(group, userid)
+        if permission == "view":
+            return self.is_owner_or_admin(group, userid)

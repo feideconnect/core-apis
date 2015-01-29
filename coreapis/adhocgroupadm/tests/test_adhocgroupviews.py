@@ -145,7 +145,7 @@ class AdHocGroupAdmTests(unittest.TestCase):
 
     def test_delete_group(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session().get_group.return_value = {'owner': uuid.UUID('00000000-0000-0000-0000-000000000001')}
+        self.session().get_group.return_value = group1
         self.testapp.delete('/adhocgroups/{}'.format(uuid.uuid4()), status=204, headers=headers)
 
     def test_delete_group_no_id(self):
@@ -155,7 +155,7 @@ class AdHocGroupAdmTests(unittest.TestCase):
     def test_update_no_change(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_group.return_value = deepcopy(group1)
-        res = self.testapp.patch_json('/adhocgroups/updatable', {}, status=200, headers=headers)
+        res = self.testapp.patch_json('/adhocgroups/{}'.format(groupid1), {}, status=200, headers=headers)
         updated = res.json
         expected = json_normalize(group1)
         assert updated['updated'] > expected['updated']
@@ -166,8 +166,8 @@ class AdHocGroupAdmTests(unittest.TestCase):
     def test_update_invalid_request(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_group.return_value = deepcopy(group1)
-        self.testapp.patch('/adhocgroups/updatable', '{', status=400, headers=headers)
-        self.testapp.patch_json('/adhocgroups/updatable', {'endpoints': 'file:///etc/shadow'},
+        self.testapp.patch('/adhocgroups/{}'.format(groupid1), '{', status=400, headers=headers)
+        self.testapp.patch_json('/adhocgroups/{}'.format(groupid1), {'endpoints': 'file:///etc/shadow'},
                                 status=400, headers=headers)
 
     def test_update_not_owner(self):
@@ -175,5 +175,5 @@ class AdHocGroupAdmTests(unittest.TestCase):
         to_update = deepcopy(group1)
         to_update['owner'] = uuid.uuid4()
         self.session().get_group.return_value = to_update
-        self.testapp.patch_json('/adhocgroups/updatable', {},
+        self.testapp.patch_json('/adhocgroups/{}'.format(groupid1), {},
                                 status=401, headers=headers)
