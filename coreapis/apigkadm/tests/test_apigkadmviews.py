@@ -257,3 +257,18 @@ class APIGKAdmTests(unittest.TestCase):
         del updated['updated']
         del expected['updated']
         assert updated == expected
+
+    def test_update_invalid_request(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().get_apigk.return_value = deepcopy(pre_update)
+        self.testapp.patch('/apigkadm/apigks/updatable', '{', status=400, headers=headers)
+        self.testapp.patch_json('/apigkadm/apigks/updatable', {'endpoints': 'file:///etc/shadow'},
+                                status=400, headers=headers)
+
+    def test_update_not_owner(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        to_update = deepcopy(pre_update)
+        to_update['owner'] = uuid.uuid4()
+        self.session().get_apigk.return_value = to_update
+        self.testapp.patch_json('/apigkadm/apigks/updatable', {},
+                                status=401, headers=headers)
