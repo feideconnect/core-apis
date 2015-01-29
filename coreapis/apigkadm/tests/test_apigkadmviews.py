@@ -272,3 +272,23 @@ class APIGKAdmTests(unittest.TestCase):
         self.session().get_apigk.return_value = to_update
         self.testapp.patch_json('/apigkadm/apigks/updatable', {},
                                 status=401, headers=headers)
+
+    def test_apigk_exists(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().get_apigk.return_value = deepcopy(pre_update)
+        res = self.testapp.get('/apigkadm/apigks/updatable/exists', status=200, headers=headers)
+        assert res.json is True
+
+    def test_apigk_exists_other_owner(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        other_owner = deepcopy(pre_update)
+        other_owner['owner'] = uuid.uuid4()
+        self.session().get_apigk.return_value = other_owner
+        res = self.testapp.get('/apigkadm/apigks/updatable/exists', status=200, headers=headers)
+        assert res.json is True
+
+    def test_apigk_does_not_exist(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().get_apigk.side_effect = KeyError
+        res = self.testapp.get('/apigkadm/apigks/updatable/exists', status=200, headers=headers)
+        assert res.json is False

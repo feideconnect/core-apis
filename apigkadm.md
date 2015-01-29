@@ -174,3 +174,12 @@ or:
       "name": "Sigmund Augdal"}, "scopedef": null, "descr": "sigmund tester"}]
 
 Lists some public infomation about the registered api gatekeepers for clients to use when requesting permission.
+
+## Checking whether a gatekeeper id is already in use
+
+    $ curl -v -H "Authorization: Bearer $TOKEN" -F 'logo=@new_logo.png' \
+    'http://api.dev.feideconnect.no:6543/apigkadm/apigks/<api gatekeeper id>/exists'
+
+### Return value
+
+Returns `200 OK` on success with a single boolean in the json body indicating whether the gatekeeper exists or not

@@ -20,6 +20,7 @@ def configure(config):
     config.add_route('add_apigk', '/apigks/', request_method='POST')
     config.add_route('delete_apigk', '/apigks/{id}', request_method='DELETE')
     config.add_route('update_apigk', '/apigks/{id}', request_method='PATCH')
+    config.add_route('apigk_exists', '/apigks/{id}/exists')
     config.add_route('apigk_logo', '/apigks/{id}/logo')
     config.scan(__name__)
 
@@ -60,6 +61,16 @@ def get_apigk(request):
     except KeyError:
         raise HTTPNotFound()
     return apigk
+
+
+@view_config(route_name='apigk_exists', renderer='json', permission='scope_apigkadmin')
+def apigk_exists(request):
+    gkid = request.matchdict['id']
+    try:
+        request.gkadm_controller.get(gkid)
+        return True
+    except KeyError:
+        return False
 
 
 @view_config(route_name='add_apigk', renderer='json', request_method='POST',
