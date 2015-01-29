@@ -33,6 +33,7 @@ class Client(object):
         self.default_columns = {
             'clients': 'owner,name,type,status,scopes_requested,client_secret,created,redirect_uri,descr,id,scopes,updated',
             'apigk': 'id,requireuser,created,name,scopedef,httpscertpinned,status,descr,expose,updated,trust,endpoints,owner',
+            'groups': 'id,created,descr,name,owner,public,updated',
         }
         self.session = cluster.connect(keyspace)
         self.session.row_factory = datetime_hack_dict_factory
@@ -47,6 +48,9 @@ class Client(object):
         self.s_get_authorizations = self.session.prepare('SELECT * FROM oauth_authorizations WHERE userid = ?')
         self.s_delete_authorization = self.session.prepare('DELETE FROM oauth_authorizations WHERE userid = ? AND clientid = ?')
         self.s_delete_token = self.session.prepare('DELETE FROM oauth_tokens WHERE access_token = ?')
+        self.s_get_group = self.session.prepare('SELECT {} FROM groups WHERE id = ?'.format(self.default_columns['groups']))
+        self.s_delete_group = self.session.prepare('DELETE FROM groups WHERE id = ?')
+        self.s_get_group_logo = self.session.prepare('SELECT logo, updated FROM groups WHERE id = ?')
         self.log = LogWrapper('coreapis.cassandraclient')
 
     def insert_client(self, id, client_secret, name, descr,
@@ -175,3 +179,35 @@ class Client(object):
             tokenid = token['access_token']
             self.log.debug('deleting token', token=tokenid)
             self.delete_token(tokenid)
+
+    def get_group(self, groupid):
+        prep = self.s_get_group
+        res = self.session.execute(prep.bind([groupid]))
+        if len(res) == 0:
+            raise KeyError('No such group')
+        return res[0]
+
+    def delete_group(self, groupid):
+        prep = self.s_delete_group
+        self.session.execute(prep.bind([groupid]))
+
+    def insert_group(self, group):
+        prep = self.session.prepare('INSERT INTO groups (id, created, descr, name, owner, updated, public) VALUES (?, ?, ?, ?, ?, ?, ?)')
+        self.session.execute(prep.bind([
+            group['id'],
+            group['created'],
+            group['descr'],
+            group['name'],
+            group['owner'],
+            group['updated'],
+            group['public'],
+        ]))
+
+    def get_group_logo(self, groupid):
+        res = self.session.execute(self.s_get_group_logo.bind([groupid]))
+        if len(res) == 0:
+            raise KeyError('no such group')
+        return res[0]['logo'], res[0]['updated']
+
+    def get_groups(self, selectors, values, maxrows):
+        return self.get_generic('groups', selectors, values, maxrows)
