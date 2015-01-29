@@ -44,7 +44,7 @@ class APIGKAdmController(CrudControllerBase):
             'userid-sec': V.AnyOf('boolean', ['string']),
         },
         'scopedef': V.Nullable({}),
-        'trust': {
+        '+trust': {
             '+type': 'string',
             'token': 'string',
             'username': 'string',

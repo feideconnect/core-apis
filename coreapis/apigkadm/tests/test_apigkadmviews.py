@@ -14,6 +14,11 @@ post_body_minimal = {
     'owner': '4f4e4b2b-bf7b-49f8-b703-cc6f4fc93493',
     'endpoints': ['https://foo.no'],
     'requireuser': False,
+    'trust': {
+        'type': 'basic',
+        'username': 'username',
+        'password': 'secrit',
+    },
 }
 
 post_body_maximal = {
