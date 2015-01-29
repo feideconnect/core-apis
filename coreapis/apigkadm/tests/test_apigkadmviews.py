@@ -5,7 +5,7 @@ from copy import deepcopy
 from webtest import TestApp
 from pyramid import testing
 from coreapis import main, middleware, apigkadm
-from coreapis.utils import ValidationError
+from coreapis.utils import ValidationError, parse_datetime, json_normalize
 import py.test
 
 post_body_minimal = {
@@ -39,6 +39,28 @@ post_body_maximal = {
         'username': 'username',
         'password': 'secrit',
     },
+}
+
+pre_update = {
+    "httpscertpinned": None,
+    "scopedef": None,
+    "descr": None,
+    "status": None,
+    "updated": parse_datetime("2015-01-26T16:05:59Z"),
+    "created": parse_datetime("2015-01-23T13:50:09Z"),
+    "id": "updateable",
+    "expose": {
+    },
+    "owner": uuid.UUID("00000000-0000-0000-0000-000000000001"),
+    "trust": {
+        "token": "abcderf",
+        "type": "bearer"
+    },
+    "endpoints": [
+        "https://example.com"
+    ],
+    "name": "pre update",
+    "requireuser": False
 }
 
 
@@ -224,3 +246,14 @@ class APIGKAdmTests(unittest.TestCase):
     def test_delete_apigk_no_id(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.testapp.delete('/apigkadm/apigks/', status=404, headers=headers)
+
+    def test_update_no_change(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().get_apigk.return_value = deepcopy(pre_update)
+        res = self.testapp.patch_json('/apigkadm/apigks/updatable', {}, status=200, headers=headers)
+        updated = res.json
+        expected = json_normalize(pre_update)
+        assert updated['updated'] > expected['updated']
+        del updated['updated']
+        del expected['updated']
+        assert updated == expected

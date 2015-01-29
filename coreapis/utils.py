@@ -222,3 +222,7 @@ def public_userinfo(user):
         'id': userid,
         'name': name
     }
+
+
+def json_normalize(data):
+    return json.loads(json.dumps(data, cls=CustomEncoder))
