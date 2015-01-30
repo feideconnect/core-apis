@@ -119,6 +119,15 @@ class Client(object):
             raise KeyError('No such user')
         return res[0]
 
+    def get_user_by_userid_sec(self, sec):
+        prep = self.session.prepare('SELECT * from users where userid_sec CONTAINS ?')
+        res = self.session.execute(prep.bind([sec]))
+        if len(res) == 0:
+            raise KeyError('No such user')
+        if len(res) > 1:
+            raise RuntimeError('inconsistent database')
+        return res[0]
+
     def get_apigk(self, id):
         prep = self.s_get_apigk
         res = self.session.execute(prep.bind([id]))
@@ -211,3 +220,15 @@ class Client(object):
 
     def get_groups(self, selectors, values, maxrows):
         return self.get_generic('groups', selectors, values, maxrows)
+
+    def get_group_members(self, groupid):
+        prep = self.session.prepare('SELECT * FROM group_members WHERE groupid=?')
+        return self.session.execute(prep.bind([groupid]))
+
+    def add_group_member(self, groupid, userid, mtype, status):
+        prep = self.session.prepare('INSERT INTO group_members (groupid, userid, type, status) values (?,?,?,?)')
+        return self.session.execute(prep.bind([groupid, userid, mtype, status]))
+
+    def del_group_member(self, groupid, userid):
+        prep = self.session.prepare('DELETE FROM group_members WHERE groupid = ? AND userid = ?')
+        return self.session.execute(prep.bind([groupid, userid]))

@@ -1,8 +1,15 @@
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
-from coreapis.utils import LogWrapper, ts
+from coreapis.utils import LogWrapper, ts, ValidationError, public_userinfo
+from coreapis.peoplesearch.tokens import decrypt_token
 import uuid
 import valideer as V
+
+
+def valid_member_type(mtype):
+    if mtype == "normal" or mtype == "admin":
+        return True
+    return False
 
 
 class AdHocGroupAdmController(CrudControllerBase):
@@ -19,11 +26,16 @@ class AdHocGroupAdmController(CrudControllerBase):
         'updated': V.AdaptBy(ts),
         '+public': 'boolean',
     }
+    member_schema = [{
+        '+token': 'string',
+        'type': valid_member_type,
+    }]
 
-    def __init__(self, contact_points, keyspace, maxrows):
+    def __init__(self, contact_points, keyspace, maxrows, key):
         super(AdHocGroupAdmController, self).__init__(maxrows)
         self.session = cassandra_client.Client(contact_points, keyspace)
         self.log = LogWrapper('adhocgroupadm.AdHocGroupAdmController')
+        self.key = key
 
     def get(self, id):
         self.log.debug('Get group', id=id)
@@ -36,6 +48,11 @@ class AdHocGroupAdmController(CrudControllerBase):
 
     def _list(self, selectors, values, maxrows):
         return self.session.get_groups(selectors, values, maxrows)
+
+    def add(self, item, userid):
+        res = super(AdHocGroupAdmController, self).add(item, userid)
+        self.add_member(res['id'], userid, 'admin', 'normal')
+        return res
 
     def _insert(self, group):
         return self.session.insert_group(group)
@@ -62,3 +79,35 @@ class AdHocGroupAdmController(CrudControllerBase):
             return self.is_owner(group, userid)
         if permission == "view":
             return self.is_owner_or_admin(group, userid)
+        if permission == "view_members":
+            return self.is_owner_or_admin(group, userid)
+        if permission == "edit_members":
+            return self.is_owner_or_admin(group, userid)
+
+    def get_members(self, groupid):
+        res = []
+        for member in self.session.get_group_members(groupid):
+            user = public_userinfo(self.session.get_user_by_id(member['userid']))
+            user['type'] = member['type']
+            user['status'] = member['status']
+            res.append(user)
+        return res
+
+    def add_member(self, groupid, userid, mtype, status):
+        self.session.add_group_member(groupid, userid, mtype, status)
+
+    def add_members(self, groupid, data):
+        validator = V.parse(self.member_schema, additional_properties=False)
+        try:
+            adapted = validator.validate(data)
+        except V.ValidationError as ex:
+            raise ValidationError(str(ex))
+        for member in adapted:
+            userid_sec = decrypt_token(member['token'], self.key)
+            user = self.session.get_user_by_userid_sec(userid_sec)
+            self.add_member(groupid, user['userid'], member['type'], 'unconfirmed')
+
+    def del_members(self, groupid, data):
+        for member in data:
+            user = self.session.get_user_by_userid_sec(member)
+            self.session.del_group_member(groupid, user['userid'])

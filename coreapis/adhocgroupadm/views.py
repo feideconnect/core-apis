@@ -5,13 +5,15 @@ from .controller import AdHocGroupAdmController
 from coreapis.utils import get_userid
 import json
 import uuid
+import base64
 
 
 def configure(config):
     contact_points = config.get_settings().get('cassandra_contact_points')
     keyspace = config.get_settings().get('cassandra_keyspace')
     maxrows = config.get_settings().get('adhocgroupadm_maxrows', 100)
-    ahgroupadm_controller = AdHocGroupAdmController(contact_points, keyspace, maxrows)
+    key = base64.b64decode(config.get_settings().get('profile_token_secret'))
+    ahgroupadm_controller = AdHocGroupAdmController(contact_points, keyspace, maxrows, key)
     config.add_settings(ahgroupadm_controller=ahgroupadm_controller)
     config.add_request_method(lambda r: r.registry.settings.ahgroupadm_controller,
                               'ahgroupadm_controller', reify=True)
@@ -21,6 +23,8 @@ def configure(config):
     config.add_route('delete_group', '/{id}', request_method='DELETE')
     config.add_route('update_group', '/{id}', request_method='PATCH')
     config.add_route('group_logo', '/{id}/logo')
+    config.add_route('group_memberships', '/memberships')
+    config.add_route('group_members', '/{id}/members')
     config.scan(__name__)
 
 
@@ -130,3 +134,51 @@ def upload_logo(request):
     data = input_file.read()
     request.ahgroupadm_controller.update_logo(group['id'], data)
     return 'OK'
+
+
+@view_config(route_name='group_members', request_method="GET", permission='scope_adhocgroupadmin',
+             renderer="json")
+def group_members(request):
+    userid, group = check(request, "view_members")
+    return request.ahgroupadm_controller.get_members(group['id'])
+
+
+@view_config(route_name='group_members', request_method="PATCH",
+             permission='scope_adhocgroupadmin', renderer="json")
+def add_group_members(request):
+    userid, group = check(request, "edit_members")
+    try:
+        payload = json.loads(request.body.decode(request.charset))
+    except:
+        raise HTTPBadRequest
+    return request.ahgroupadm_controller.add_members(group['id'], payload)
+
+
+@view_config(route_name='group_members', request_method="DELETE",
+             permission='scope_adhocgroupadmin')
+def del_group_members(request):
+    userid, group = check(request, "edit_members")
+    try:
+        payload = json.loads(request.body.decode(request.charset))
+    except:
+        raise HTTPBadRequest
+    request.ahgroupadm_controller.del_members(group['id'], payload)
+    return Response(status=204, content_type=False)
+
+
+@view_config(route_name='group_memberships', request_method="GET",
+             permission='scope_adhocgroupadmin', renderer="json")
+def get_group_memberships(request):
+    userid = get_userid(request)
+    return request.ahgroupadm_controller.get_memberships(userid)
+
+
+@view_config(route_name='group_memberships', request_method="DELETE",
+             permission='scope_adhocgroupadmin', renderer="json")
+def leave_groups(request):
+    userid = get_userid(request)
+    try:
+        payload = json.loads(request.body.decode(request.charset))
+    except:
+        raise HTTPBadRequest
+    return request.ahgroupadm_controller.leave_groups(userid, payload)

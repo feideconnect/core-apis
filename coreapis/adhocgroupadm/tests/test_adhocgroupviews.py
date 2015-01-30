@@ -24,6 +24,7 @@ post_body_maximal = {
 }
 
 user1 = uuid.UUID("00000000-0000-0000-0000-000000000001")
+user2 = uuid.UUID("00000000-0000-0000-0000-000000000002")
 groupid1 = uuid.UUID("00000000-0000-0000-0001-000000000001")
 group1 = {
     "updated": parse_datetime("2015-01-26T16:05:59Z"),
@@ -34,6 +35,8 @@ group1 = {
     "descr": "some data",
     "public": False,
 }
+
+member_token = '9nFIGK7dEiuVfXdGhVcgvaQVOBZScQ_6y9Yd2BTdMizUtL8yB5b7Im5Zcr3W9hjd'
 
 
 class AdHocGroupAdmTests(unittest.TestCase):
@@ -46,7 +49,8 @@ class AdHocGroupAdmTests(unittest.TestCase):
             'oauth_realm': 'test realm',
             'cassandra_contact_points': '',
             'cassandra_keyspace': 'notused',
-        }, enabled_components='adhocgroupadm', adhocgroupadm_maxrows=100)
+        }, enabled_components='adhocgroupadm', adhocgroupadm_maxrows=100,
+                   profile_token_secret='AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=')
         mw = middleware.MockAuthMiddleware(app, 'test realm')
         self.session = Client
         self.testapp = TestApp(mw)
@@ -177,3 +181,57 @@ class AdHocGroupAdmTests(unittest.TestCase):
         self.session().get_group.return_value = to_update
         self.testapp.patch_json('/adhocgroups/{}'.format(groupid1), {},
                                 status=401, headers=headers)
+
+    def test_get_group_members(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().get_group.return_value = deepcopy(group1)
+        self.session().get_group_members.return_value = []
+        res = self.testapp.get('/adhocgroups/{}/members'.format(groupid1), status=200, headers=headers)
+        assert res.json == []
+
+    def test_get_group_members_no_access(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        group = deepcopy(group1)
+        group['owner'] = user2
+        self.session().get_group.return_value = group
+        self.session().get_group_members.return_value = []
+        self.testapp.get('/adhocgroups/{}/members'.format(groupid1), status=401, headers=headers)
+
+    def test_add_group_members_no_access(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        group = deepcopy(group1)
+        group['owner'] = user2
+        self.session().get_group.return_value = group
+        self.testapp.patch_json('/adhocgroups/{}/members'.format(groupid1), [], status=401,
+                                headers=headers)
+
+    def test_add_group_members(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        group = deepcopy(group1)
+        self.session().get_group.return_value = group
+        self.session().get_user_by_userid_sec.return_value = {
+            'userid': user1,
+        }
+        data = [
+            {
+                'token': member_token,
+                'type': 'normal',
+            }
+        ]
+        self.testapp.patch_json('/adhocgroups/{}/members'.format(groupid1), data, status=200,
+                                headers=headers)
+        self.session().add_group_member.assert_called_with(groupid1, user1, 'normal', 'unconfirmed')
+
+    def test_del_group_members(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        group = deepcopy(group1)
+        self.session().get_group.return_value = group
+        self.session().get_user_by_userid_sec.return_value = {
+            'userid': user1,
+        }
+        data = [
+            'p:' + str(user1),
+        ]
+        self.testapp.delete_json('/adhocgroups/{}/members'.format(groupid1), data, status=204,
+                                 headers=headers)
+        self.session().del_group_member.assert_called_with(groupid1, user1)
