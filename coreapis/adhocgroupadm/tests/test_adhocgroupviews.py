@@ -222,6 +222,27 @@ class AdHocGroupAdmTests(unittest.TestCase):
                                 headers=headers)
         self.session().add_group_member.assert_called_with(groupid1, user1, 'normal', 'unconfirmed')
 
+    def test_add_group_members_bad_group(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.testapp.patch_json('/adhocgroups/abc/members', [], status=404,
+                                headers=headers)
+
+    def test_add_group_members_bad_data(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().get_group.return_value = group1
+        self.testapp.patch('/adhocgroups/{}/members'.format(groupid1), '"', status=400,
+                           headers=headers)
+
+    def test_add_group_members_invalid_data(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().get_group.return_value = group1
+        data = [{
+            'token': member_token,
+            'type': 'ninja',
+        }]
+        self.testapp.patch_json('/adhocgroups/{}/members'.format(groupid1), data, status=400,
+                                headers=headers)
+
     def test_del_group_members(self):
         headers = {'Authorization': 'Bearer user_token'}
         group = deepcopy(group1)
@@ -235,3 +256,15 @@ class AdHocGroupAdmTests(unittest.TestCase):
         self.testapp.delete_json('/adhocgroups/{}/members'.format(groupid1), data, status=204,
                                  headers=headers)
         self.session().del_group_member.assert_called_with(groupid1, user1)
+
+    def test_del_group_members_bad_group(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.testapp.delete_json('/adhocgroups/abc/members', [], status=404,
+                                 headers=headers)
+
+    def test_del_group_members_invalid_data(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        group = deepcopy(group1)
+        self.session().get_group.return_value = group
+        self.testapp.delete_json('/adhocgroups/{}/members'.format(groupid1), "foobar", status=400,
+                                 headers=headers)

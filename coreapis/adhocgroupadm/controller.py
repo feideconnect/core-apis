@@ -12,6 +12,14 @@ def valid_member_type(mtype):
     return False
 
 
+def valid_member_id(mid):
+    if not mid.startswith('p:'):
+        return False
+    p, uid = mid.split(':', 1)
+    uuid.UUID(uid)
+    return True
+
+
 class AdHocGroupAdmController(CrudControllerBase):
     FILTER_KEYS = {
         'owner': {'sel':  'owner = ?',
@@ -30,6 +38,7 @@ class AdHocGroupAdmController(CrudControllerBase):
         '+token': 'string',
         'type': valid_member_type,
     }]
+    del_member_schema = [valid_member_id]
 
     def __init__(self, contact_points, keyspace, maxrows, key):
         super(AdHocGroupAdmController, self).__init__(maxrows)
@@ -108,6 +117,11 @@ class AdHocGroupAdmController(CrudControllerBase):
             self.add_member(groupid, user['userid'], member['type'], 'unconfirmed')
 
     def del_members(self, groupid, data):
-        for member in data:
+        validator = V.parse(self.del_member_schema, additional_properties=False)
+        try:
+            adapted = validator.validate(data)
+        except V.ValidationError as ex:
+            raise ValidationError(str(ex))
+        for member in adapted:
             user = self.session.get_user_by_userid_sec(member)
             self.session.del_group_member(groupid, user['userid'])
