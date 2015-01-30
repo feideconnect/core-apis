@@ -34,6 +34,7 @@ class Client(object):
             'clients': 'owner,name,type,status,scopes_requested,client_secret,created,redirect_uri,descr,id,scopes,updated',
             'apigk': 'id,requireuser,created,name,scopedef,httpscertpinned,status,descr,expose,updated,trust,endpoints,owner',
             'groups': 'id,created,descr,name,owner,public,updated',
+            'group_members': 'userid,groupid,status,type',
         }
         self.session = cluster.connect(keyspace)
         self.session.row_factory = datetime_hack_dict_factory
@@ -234,6 +235,25 @@ class Client(object):
         prep = self.session.prepare('INSERT INTO group_members (groupid, userid, type, status) values (?,?,?,?)')
         return self.session.execute(prep.bind([groupid, userid, mtype, status]))
 
+    def set_group_member_status(self, groupid, userid, status):
+        prep = self.session.prepare('INSERT INTO group_members (groupid, userid, status) values (?,?,?)')
+        return self.session.execute(prep.bind([groupid, userid, status]))
+
     def del_group_member(self, groupid, userid):
         prep = self.session.prepare('DELETE FROM group_members WHERE groupid = ? AND userid = ?')
         return self.session.execute(prep.bind([groupid, userid]))
+
+    def get_membership_data(self, groupid, userid):
+        prep = self.session.prepare('SELECT * FROM group_members WHERE groupid=? AND userid=?')
+        return self.session.execute(prep.bind([groupid, userid]))
+
+    def get_group_memberships(self, userid, mtype, status, maxrows):
+        selectors = ['userid = ?']
+        values = [userid]
+        if not mtype is None:
+            selectors.append('type = ?')
+            values.append(mtype)
+        if not status is None:
+            selectors.append('status = ?')
+            values.append(status)
+        return self.get_generic('group_members', selectors, values, maxrows)

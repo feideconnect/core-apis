@@ -17,13 +17,13 @@ def configure(config):
     config.add_settings(ahgroupadm_controller=ahgroupadm_controller)
     config.add_request_method(lambda r: r.registry.settings.ahgroupadm_controller,
                               'ahgroupadm_controller', reify=True)
+    config.add_route('group_memberships', '/memberships')
     config.add_route('get_group', '/{id}', request_method='GET')
     config.add_route('list_groups', '/', request_method='GET')
     config.add_route('add_group', '/', request_method='POST')
     config.add_route('delete_group', '/{id}', request_method='DELETE')
     config.add_route('update_group', '/{id}', request_method='PATCH')
     config.add_route('group_logo', '/{id}/logo')
-    config.add_route('group_memberships', '/memberships')
     config.add_route('group_members', '/{id}/members')
     config.scan(__name__)
 
@@ -170,7 +170,8 @@ def del_group_members(request):
              permission='scope_adhocgroupadmin', renderer="json")
 def get_group_memberships(request):
     userid = get_userid(request)
-    return request.ahgroupadm_controller.get_memberships(userid)
+    return request.ahgroupadm_controller.get_memberships(userid, request.params.get('type', None),
+                                                         request.params.get('status', None))
 
 
 @view_config(route_name='group_memberships', request_method="DELETE",
@@ -182,3 +183,14 @@ def leave_groups(request):
     except:
         raise HTTPBadRequest
     return request.ahgroupadm_controller.leave_groups(userid, payload)
+
+
+@view_config(route_name='group_memberships', request_method="PATCH",
+             permission='scope_adhocgroupadmin', renderer="json")
+def confirm_groups(request):
+    userid = get_userid(request)
+    try:
+        payload = json.loads(request.body.decode(request.charset))
+    except:
+        raise HTTPBadRequest
+    return request.ahgroupadm_controller.confirm_groups(userid, payload)

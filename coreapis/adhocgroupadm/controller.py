@@ -125,3 +125,32 @@ class AdHocGroupAdmController(CrudControllerBase):
         for member in adapted:
             user = self.session.get_user_by_userid_sec(member)
             self.session.del_group_member(groupid, user['userid'])
+
+    def get_memberships(self, userid, mtype=None, status=None):
+        memberships = self.session.get_group_memberships(userid, mtype, status, self.maxrows)
+        res = []
+        for mem in memberships:
+            try:
+                group = self.get(mem['groupid'])
+                mem['group'] = group
+                del mem['userid']
+                res.append(mem)
+            except KeyError:
+                pass
+        return res
+
+    def leave_groups(self, userid, data):
+        try:
+            groups = V.parse([V.AdaptTo(uuid.UUID)]).validate(data)
+        except V.ValidationError as ex:
+            raise ValidationError(str(ex))
+        for groupid in groups:
+            self.session.del_group_member(groupid, userid)
+
+    def confirm_groups(self, userid, data):
+        try:
+            groups = V.parse([V.AdaptTo(uuid.UUID)]).validate(data)
+        except V.ValidationError as ex:
+            raise ValidationError(str(ex))
+        for groupid in groups:
+            self.session.set_group_member_status(groupid, userid, 'normal')
