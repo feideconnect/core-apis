@@ -29,13 +29,18 @@ def allowed_attrs(attrs, operation):
     return {k: v for k, v in attrs.items() if k not in protected_keys}
 
 
-def check(request, permission):
-    userid = get_userid(request)
+def get_groupid(request):
     groupid = request.matchdict['id']
     try:
         groupid = uuid.UUID(groupid)
     except ValueError:
         raise HTTPNotFound
+    return groupid
+
+
+def check(request, permission):
+    userid = get_userid(request)
+    groupid = get_groupid(request)
     try:
         group = request.ahgroupadm_controller.get(groupid)
     except KeyError:
@@ -94,7 +99,7 @@ def update_group(request):
 
 @view_config(route_name='group_logo')
 def group_logo(request):
-    groupid = request.matchdict['id']
+    groupid = get_groupid(request)
     try:
         logo, updated = request.ahgroupadm_controller.get_logo(groupid)
         if logo is None:
