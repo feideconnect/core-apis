@@ -5,7 +5,7 @@ userid_own   = '00000000-0000-0000-0000-000000000001'
 userid_other = '00000000-0000-0000-0000-000000000002'
 clientid     = '00000000-0000-0000-0000-000000000003'
 date_created = '2015-01-12T13:05:16Z'
-testscope    = 'clientadmin'
+testscope    = 'gk_test'
 otherscope   = 'userlist'
 testuri      = 'http://example.org'
 
@@ -25,13 +25,19 @@ post_body_maximal = {
 }
 
 retrieved_client = {
-    'name': 'per', 'scopes': [testscope], 'redirect_uri': [testuri],
+    'name': 'per', 'scopes': [], 'redirect_uri': [testuri],
     'owner': uuid.UUID(userid_own),
     'id': uuid.UUID(clientid),
     'client_secret': 'sekrit', 'created': parse_datetime(date_created),
     'descr': 'green',
     'scopes_requested': [testscope], 'status': ['lab'], 'type': 'client',
     'updated': parse_datetime(date_created)
+}
+
+retrieved_user =  {
+    'userid_sec': ['p:foo'],
+    'selectedsource': 'us',
+    'name': {'us': 'foo'},
 }
 
 def httptime(timestamp):

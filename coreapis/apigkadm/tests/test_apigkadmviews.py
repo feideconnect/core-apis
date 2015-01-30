@@ -297,3 +297,13 @@ class APIGKAdmTests(unittest.TestCase):
         self.session().get_apigk.side_effect = KeyError
         res = self.testapp.get('/apigkadm/apigks/updatable/exists', status=200, headers=headers)
         assert res.json is False
+
+    def test_apigk_get_owner_clients(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        apigks = [{ 'id': 'fooapi'}, { 'id': 'barapi'}]
+        for count in [0, 1, 2]:
+            self.session().get_apigks.return_value = apigks[:count]
+            with mock.patch('coreapis.clientadm.controller.ClientAdmController.get_gkscope_clients',
+                            return_value=[]):
+                self.testapp.get('/apigkadm/apigks/owners/{}/clients/'.format(uuid.uuid4()),
+                                 status=200, headers=headers)
