@@ -98,6 +98,11 @@ class Client(object):
         res = self.session.execute(prep.bind([scope]))
         return res
 
+    def get_clients_by_scope_requested(self, scope):
+        prep = self.session.prepare('SELECT * from clients WHERE scopes_requested CONTAINS ?')
+        res = self.session.execute(prep.bind([scope]))
+        return res
+
     def delete_client(self, clientid):
         prep = self.s_delete_client
         t0 = time.time()

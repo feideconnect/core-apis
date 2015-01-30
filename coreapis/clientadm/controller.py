@@ -1,8 +1,13 @@
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
-from coreapis.utils import LogWrapper, ts
+from coreapis.utils import LogWrapper, ts, public_userinfo
 import uuid
 import valideer as V
+
+
+def has_gkscope_match(scope, gkscopes):
+    return any(scope == gkscope or scope.startswith(gkscope + '_')
+               for gkscope in gkscopes)
 
 
 class ClientAdmController(CrudControllerBase):
@@ -62,3 +67,26 @@ class ClientAdmController(CrudControllerBase):
 
     def _save_logo(self, clientid, data, updated):
         self.session.save_logo('clients', clientid, data, updated)
+
+    def get_gkscope_client(self, client, gkscopes):
+        public_attrs = ['id', 'name', 'descr', 'redirect_uri', 'owner']
+        scope_attrs = ['scopes', 'scopes_requested']
+        gkclient = {attr: client[attr] for attr in public_attrs}
+        gkclient.update({attr: [] for attr in scope_attrs})
+        gkclient['owner'] = public_userinfo(
+            self.session.get_user_by_id(client['owner']))
+        for attr in scope_attrs:
+            clientscopes = client[attr]
+            if clientscopes:
+                gkclient[attr] = [scope for scope in clientscopes
+                                  if has_gkscope_match(scope, gkscopes)]
+        return gkclient
+
+    def get_gkscope_clients(self, gkscopes):
+        clientdict = {}
+        for gkscope in gkscopes:
+            for client in (self.session.get_clients_by_scope(gkscope) +
+                           self.session.get_clients_by_scope_requested(gkscope)):
+                if not client['id'] in clientdict:
+                    clientdict[client['id']] = self.get_gkscope_client(client, gkscopes)
+        return list(clientdict.values())

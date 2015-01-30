@@ -1,5 +1,6 @@
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
+from coreapis.clientadm.controller import ClientAdmController
 from coreapis.utils import LogWrapper, ts, public_userinfo
 import uuid
 import valideer as V
@@ -56,6 +57,7 @@ class APIGKAdmController(CrudControllerBase):
         super(APIGKAdmController, self).__init__(maxrows)
         self.session = cassandra_client.Client(contact_points, keyspace)
         self.log = LogWrapper('apigkadm.APIGKAdmController')
+        self.cadm_controller = ClientAdmController(contact_points, keyspace, maxrows)
 
     def get(self, id):
         self.log.debug('Get apigk', id=id)
@@ -88,3 +90,7 @@ class APIGKAdmController(CrudControllerBase):
             'expose': r['expose'],
             'owner': public_userinfo(self.session.get_user_by_id(r['owner'])),
         } for r in res]
+
+    def get_gkowner_clients(self, ownerid):
+        gkscopes = ['gk_{}'.format(r['id']) for r in self.list({'owner': ownerid})]
+        return self.cadm_controller.get_gkscope_clients(gkscopes)

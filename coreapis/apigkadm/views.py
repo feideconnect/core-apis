@@ -22,6 +22,7 @@ def configure(config):
     config.add_route('update_apigk', '/apigks/{id}', request_method='PATCH')
     config.add_route('apigk_exists', '/apigks/{id}/exists')
     config.add_route('apigk_logo', '/apigks/{id}/logo')
+    config.add_route('apigk_owner_clients', '/apigks/owners/{ownerid}/clients/')
     config.scan(__name__)
 
 
@@ -158,3 +159,8 @@ def upload_logo(request):
     data = input_file.read()
     request.gkadm_controller.update_logo(apigkid, data)
     return 'OK'
+
+@view_config(route_name='apigk_owner_clients', renderer='json', permission='scope_apigkadmin')
+def apigk_owner_clients(request):
+    ownerid = request.matchdict['ownerid']
+    return request.gkadm_controller.get_gkowner_clients(ownerid)
