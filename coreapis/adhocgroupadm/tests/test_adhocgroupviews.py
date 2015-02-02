@@ -268,3 +268,34 @@ class AdHocGroupAdmTests(unittest.TestCase):
         self.session().get_group.return_value = group
         self.testapp.delete_json('/adhocgroups/{}/members'.format(groupid1), "foobar", status=400,
                                  headers=headers)
+
+    def test_leave_group(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        group = deepcopy(group1)
+        self.session().get_group.return_value = group
+        self.testapp.delete_json('/adhocgroups/memberships', [str(groupid1)], status=200,
+                                 headers=headers)
+        self.session().del_group_member.assert_called_with(groupid1, user1)
+
+    def test_confirm_group(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        group = deepcopy(group1)
+        self.session().get_group.return_value = group
+        self.session().get_membership_data.return_value = [{
+            'groupid': groupid1,
+            'userid': user1,
+            'status': 'unconfirmed',
+            'type': 'normal',
+        }]
+        self.testapp.patch_json('/adhocgroups/memberships', [str(groupid1)], status=200,
+                                headers=headers)
+        self.session().set_group_member_status.assert_called_with(groupid1, user1, "normal")
+
+    def test_confirm_group_not_member(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        group = deepcopy(group1)
+        self.session().get_group.return_value = group
+        self.session().get_membership_data.return_value = []
+        self.testapp.patch_json('/adhocgroups/memberships', [str(groupid1)], status=409,
+                                headers=headers)
+        assert not self.session().set_group_member_status.called

@@ -1,5 +1,5 @@
 from pyramid.view import view_config
-from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPUnauthorized, HTTPNotModified
+from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPUnauthorized, HTTPNotModified, HTTPConflict
 from pyramid.response import Response
 from .controller import AdHocGroupAdmController
 from coreapis.utils import get_userid
@@ -193,4 +193,7 @@ def confirm_groups(request):
         payload = json.loads(request.body.decode(request.charset))
     except:
         raise HTTPBadRequest
-    return request.ahgroupadm_controller.confirm_groups(userid, payload)
+    try:
+        return request.ahgroupadm_controller.confirm_groups(userid, payload)
+    except KeyError:
+        raise HTTPConflict('Not member of group')

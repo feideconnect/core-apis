@@ -153,4 +153,8 @@ class AdHocGroupAdmController(CrudControllerBase):
         except V.ValidationError as ex:
             raise ValidationError(str(ex))
         for groupid in groups:
+            membership = self.session.get_membership_data(groupid, userid)
+            if len(membership) == 0:
+                raise KeyError("Not member")
+        for groupid in groups:
             self.session.set_group_member_status(groupid, userid, 'normal')
