@@ -162,5 +162,8 @@ def upload_logo(request):
 
 @view_config(route_name='apigk_owner_clients', renderer='json', permission='scope_apigkadmin')
 def apigk_owner_clients(request):
+    userid = str(get_userid(request))
     ownerid = request.matchdict['ownerid']
+    if ownerid != userid:
+        raise HTTPUnauthorized
     return request.gkadm_controller.get_gkowner_clients(ownerid)

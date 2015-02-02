@@ -305,5 +305,11 @@ class APIGKAdmTests(unittest.TestCase):
             self.session().get_apigks.return_value = apigks[:count]
             with mock.patch('coreapis.clientadm.controller.ClientAdmController.get_gkscope_clients',
                             return_value=[]):
-                self.testapp.get('/apigkadm/apigks/owners/{}/clients/'.format(uuid.uuid4()),
+                self.testapp.get('/apigkadm/apigks/owners/{}/clients/'.format(
+                    uuid.UUID('00000000-0000-0000-0000-000000000001')),
                                  status=200, headers=headers)
+
+    def test_apigk_get_owner_clients_not_owner(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.testapp.get('/apigkadm/apigks/owners/{}/clients/'.format(uuid.uuid4()),
+                         status=401, headers=headers)
