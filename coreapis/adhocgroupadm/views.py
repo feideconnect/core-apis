@@ -23,8 +23,8 @@ def configure(config):
     config.add_route('add_group', '/', request_method='POST')
     config.add_route('delete_group', '/{id}', request_method='DELETE')
     config.add_route('update_group', '/{id}', request_method='PATCH')
-    config.add_route('group_logo', '/{id}/logo')
-    config.add_route('group_members', '/{id}/members')
+    config.add_route('ahgroup_logo', '/{id}/logo')
+    config.add_route('ahgroup_members', '/{id}/members')
     config.scan(__name__)
 
 
@@ -101,7 +101,7 @@ def update_group(request):
     return group
 
 
-@view_config(route_name='group_logo')
+@view_config(route_name='ahgroup_logo')
 def group_logo(request):
     groupid = get_groupid(request)
     try:
@@ -121,7 +121,7 @@ def group_logo(request):
     return response
 
 
-@view_config(route_name='group_logo', request_method="POST", permission='scope_adhocgroupadmin',
+@view_config(route_name='ahgroup_logo', request_method="POST", permission='scope_adhocgroupadmin',
              renderer="json")
 def upload_logo(request):
     userid, group = check(request, "update")
@@ -136,14 +136,14 @@ def upload_logo(request):
     return 'OK'
 
 
-@view_config(route_name='group_members', request_method="GET", permission='scope_adhocgroupadmin',
+@view_config(route_name='ahgroup_members', request_method="GET", permission='scope_adhocgroupadmin',
              renderer="json")
 def group_members(request):
     userid, group = check(request, "view_members")
     return request.ahgroupadm_controller.get_members(group['id'])
 
 
-@view_config(route_name='group_members', request_method="PATCH",
+@view_config(route_name='ahgroup_members', request_method="PATCH",
              permission='scope_adhocgroupadmin', renderer="json")
 def add_group_members(request):
     userid, group = check(request, "edit_members")
@@ -154,7 +154,7 @@ def add_group_members(request):
     return request.ahgroupadm_controller.add_members(group['id'], payload)
 
 
-@view_config(route_name='group_members', request_method="DELETE",
+@view_config(route_name='ahgroup_members', request_method="DELETE",
              permission='scope_adhocgroupadmin')
 def del_group_members(request):
     userid, group = check(request, "edit_members")
