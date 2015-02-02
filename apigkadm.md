@@ -183,3 +183,24 @@ Lists some public infomation about the registered api gatekeepers for clients to
 ### Return value
 
 Returns `200 OK` on success with a single boolean in the json body indicating whether the gatekeeper exists or not
+
+## Listing clients interested in a user's api gatekeepers
+
+    $ curl -X GET -H "Authorization: Bearer $TOKEN" \
+    'http://api.dev.feideconnect.no:6543/apigkadm/apigks/owners/<owner id>/clients/'
+
+### Return value
+
+- `200 OK`: On success
+- `401 Unauthorized`: Current user is not allowed to see the owner's clients
+
+On success, the json body consists of a list of clients matching the
+request. If the owner owns an apigk with id `foo`, clients having
+`gk_foo` in scopes or scoes_requested are considered
+matching. Example:
+
+    [{"descr": "Example", "id": "a7f407fd-ace2-4fbe-a07a-db123821ff59",
+      "name": "example",
+      "owner": {"id": "p:497ff70b-4b73-47a9-b9f4-8a87d844a410", "name": "Pelle"},
+      "redirect_uri": ["http://example.org"],"scopes": [],
+      "scopes_requested": ["gk_foo", "gk_bar"]}]
