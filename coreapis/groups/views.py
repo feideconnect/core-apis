@@ -41,14 +41,14 @@ def get_membership(request):
     if not userid:
         raise HTTPUnauthorized
     groupid = request.matchdict['groupid']
-    return request.group_controller.get_membership(userid, groupid)
+    return request.groups_controller.get_membership(userid, groupid)
 
 
 @view_config(route_name='group', renderer='json', permission='scope_groups')
 def get_group(request):
     userid = get_userid(request)
     groupid = request.matchdict['groupid']
-    return request.group_controller.get_group(userid, groupid)
+    return request.groups_controller.get_group(userid, groupid)
 
 
 @view_config(route_name='group_logo')
