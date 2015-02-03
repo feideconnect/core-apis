@@ -57,8 +57,8 @@ class GroupsController(object):
     def get_logo(self, groupid):
         return self._backend(groupid).get_logo(groupid)
 
-    def get_members(self, userid, groupid):
-        return self._backend(groupid).get_members(userid, groupid)
+    def get_members(self, userid, groupid, show_all):
+        return self._backend(groupid).get_members(userid, groupid, show_all)
 
     def get_groups(self, userid, query):
         return list(chain(*self.pool.imap(self._backend_call,

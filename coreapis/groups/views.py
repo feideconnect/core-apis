@@ -76,7 +76,11 @@ def group_logo(request):
 def group_members(request):
     userid = get_userid(request)
     groupid = request.matchdict['groupid']
-    return request.groups_controller.get_members(userid, groupid)
+    if request.params.get('showAll', 'false').lower() == 'true':
+        show_all = True
+    else:
+        show_all = False
+    return request.groups_controller.get_members(userid, groupid, show_all)
 
 
 @view_config(route_name='groups', renderer='json', permission='scope_groups')
