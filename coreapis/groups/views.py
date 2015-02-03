@@ -38,14 +38,20 @@ def get_membership(request):
     if not userid:
         raise HTTPUnauthorized
     groupid = request.matchdict['groupid']
-    return request.groups_controller.get_membership(userid, groupid)
+    try:
+        return request.groups_controller.get_membership(userid, groupid)
+    except KeyError:
+        raise HTTPNotFound
 
 
 @view_config(route_name='group', renderer='json', permission='scope_groups')
 def get_group(request):
     userid = get_userid(request)
     groupid = request.matchdict['groupid']
-    return request.groups_controller.get_group(userid, groupid)
+    try:
+        return request.groups_controller.get_group(userid, groupid)
+    except KeyError:
+        raise HTTPNotFound
 
 
 @view_config(route_name='group_logo')

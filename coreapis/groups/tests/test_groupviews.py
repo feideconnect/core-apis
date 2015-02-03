@@ -63,12 +63,22 @@ class GroupsViewTests(unittest.TestCase):
         assert group['id'] == groupid1
         assert 'displayName' in group
 
+    def test_get_group_no_access(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.testapp.get('/groups/groups/{}'.format(groupid2),
+                         status=404, headers=headers)
+
     def test_get_membership(self):
         headers = {'Authorization': 'Bearer user_token'}
         res = self.testapp.get('/groups/me/groups/{}'.format(groupid1),
                                status=200, headers=headers)
         membership = res.json
         assert membership['basic'] == 'member'
+
+    def test_get_membership_not_member(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.testapp.get('/groups/me/groups/{}'.format(groupid2),
+                         status=404, headers=headers)
 
     def test_get_member_groups(self):
         headers = {'Authorization': 'Bearer user_token'}
