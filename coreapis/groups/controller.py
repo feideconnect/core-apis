@@ -5,6 +5,7 @@ from functools import partial
 from itertools import chain
 from .adhoc_backend import AdHocGroupBackend
 from . import BaseBackend
+from .tests import MockBackend
 
 
 class DummyBackend(BaseBackend):
@@ -44,9 +45,12 @@ class GroupsController(object):
         self.log = LogWrapper('groups.GroupsController')
         self.backends = {}
         self.pool = GreenPool()
-        self.backends["foo"] = DummyBackend("foo", maxrows)
-        self.backends["bar"] = DummyBackend("bar", maxrows)
-        self.backends["adhoc"] = AdHocGroupBackend("adhoc", maxrows, config)
+        adhoc_prefix = config.get_settings().get('groups_adhoc_backend', None)
+        if adhoc_prefix:
+            self.backends[adhoc_prefix] = AdHocGroupBackend(adhoc_prefix, maxrows, config)
+        mock_prefix = config.get_settings().get('groups_mock_backend', None)
+        if mock_prefix:
+            self.backends[mock_prefix] = MockBackend(mock_prefix, maxrows)
         self.timeout = 0.2
 
     def _backend(self, groupid):
