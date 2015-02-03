@@ -37,7 +37,8 @@ class DummyBackend(BaseBackend):
 
 class GroupsController(object):
 
-    def __init__(self, contact_points, keyspace, maxrows):
+    def __init__(self, config):
+        maxrows = config.get_settings().get('groups_maxrows', 100)
         self.maxrows = maxrows
         self.log = LogWrapper('groups.GroupsController')
         self.backends = {}

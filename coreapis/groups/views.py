@@ -6,10 +6,7 @@ from coreapis.utils import get_userid
 
 
 def configure(config):
-    contact_points = config.get_settings().get('cassandra_contact_points')
-    keyspace = config.get_settings().get('cassandra_keyspace')
-    maxrows = config.get_settings().get('groups_maxrows', 100)
-    groups_controller = GroupsController(contact_points, keyspace, maxrows)
+    groups_controller = GroupsController(config)
     config.add_settings(groups_controller=groups_controller)
     config.add_request_method(lambda r: r.registry.settings.groups_controller,
                               'groups_controller', reify=True)
