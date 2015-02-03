@@ -17,7 +17,7 @@ class DummyBackend(object):
         return ["{}:1".format(self.prefix), "{}:2".format(self.prefix), "{}:3".format(self.prefix)]
 
     def grouptypes(self):
-        return ['dummy', 'voot:voot!']
+        return [{'id': 'voot:voot!', 'displayName': 'Dummy group type'}]
 
 
 class GroupsController(object):
@@ -65,7 +65,8 @@ class GroupsController(object):
                                           (partial(backend.get_groups, userid, query) for backend in self.backends.values()))))
 
     def grouptypes(self):
-        types = []
+        types = {}
         for backend in self.backends.values():
-            types.extend(backend.grouptypes())
-        return sorted(set(types))
+            for gtype in backend.grouptypes():
+                types[gtype['id']] = gtype
+        return list(types.values())
