@@ -3,6 +3,7 @@ from eventlet.greenpool import GreenPool
 from eventlet.timeout import Timeout
 from functools import partial
 from itertools import chain
+from .adhoc_backend import AdHocGroupBackend
 from . import BaseBackend
 
 
@@ -45,6 +46,7 @@ class GroupsController(object):
         self.pool = GreenPool()
         self.backends["foo"] = DummyBackend("foo", maxrows)
         self.backends["bar"] = DummyBackend("bar", maxrows)
+        self.backends["adhoc"] = AdHocGroupBackend("adhoc", maxrows, config)
         self.timeout = 0.2
 
     def _backend(self, groupid):
