@@ -3,17 +3,33 @@ from eventlet.greenpool import GreenPool
 from eventlet.timeout import Timeout
 from functools import partial
 from itertools import chain
+from . import BaseBackend
 
 
-class DummyBackend(object):
-    def __init__(self, prefix):
-        self.prefix = prefix
+class DummyBackend(BaseBackend):
+    def __init__(self, prefix, maxrows):
+        super(DummyBackend, self).__init__(prefix, maxrows)
+
+    def _format_group(self, foo):
+        return {
+            'id': self._groupid(foo),
+            'displayName': 'Group {}'.format(foo),
+        }
+
+    def get_membership(self, userid, groupid):
+        pass
+
+    def get_group(self, userid, groupid):
+        pass
+
+    def get_members(self, userid, groupid, show_all):
+        pass
 
     def get_member_groups(self, userid, show_all):
-        return ["{}:1".format(self.prefix), "{}:2".format(self.prefix)]
+        return [self._format_group(1), self._format_group(2)]
 
-    def get_groups(self, userid, show_all):
-        return ["{}:1".format(self.prefix), "{}:2".format(self.prefix), "{}:3".format(self.prefix)]
+    def get_groups(self, userid, query):
+        return [self._format_group(1), self._format_group(2), self._format_group(3)]
 
     def grouptypes(self):
         return [{'id': 'voot:voot!', 'displayName': 'Dummy group type'}]
@@ -26,8 +42,8 @@ class GroupsController(object):
         self.log = LogWrapper('groups.GroupsController')
         self.backends = {}
         self.pool = GreenPool()
-        self.backends["foo"] = DummyBackend("foo")
-        self.backends["bar"] = DummyBackend("bar")
+        self.backends["foo"] = DummyBackend("foo", maxrows)
+        self.backends["bar"] = DummyBackend("bar", maxrows)
         self.timeout = 0.2
 
     def _backend(self, groupid):
