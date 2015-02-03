@@ -6,8 +6,10 @@ userid_own   = '00000000-0000-0000-0000-000000000001'
 userid_other = '00000000-0000-0000-0000-000000000002'
 clientid     = '00000000-0000-0000-0000-000000000003'
 date_created = '2015-01-12T13:05:16Z'
-testscope    = 'gk_test1'
-otherscope   = 'gk_test2'
+testscope    = 'userinfo-mail'
+otherscope   = 'userinfo-feide'
+testgk    = 'gk_test1'
+othergk   = 'gk_test2'
 testuri      = 'http://example.org'
 
 post_body_minimal = {
@@ -41,32 +43,39 @@ retrieved_user =  {
     'name': {'us': 'foo'},
 }
 
-retrieved_clients = [deepcopy(retrieved_client) for i in range(4)]
+retrieved_gk_clients = [deepcopy(retrieved_client) for i in range(4)]
 
-retrieved_clients[1].update({
+retrieved_gk_clients[0].update({
+    'id': '00000000-0000-0000-0000-000000000004',
+    'scopes_requested': [testgk]
+})
+
+retrieved_gk_clients[1].update({
     'id': '00000000-0000-0000-0000-000000000004',
     'scopes_requested': []
 })
 
-retrieved_clients[2].update({
+retrieved_gk_clients[2].update({
     'id': '00000000-0000-0000-0000-000000000005',
-    'scopes_requested': [otherscope]
+    'scopes_requested': [othergk]
 })
 
-retrieved_clients[3].update({
+retrieved_gk_clients[3].update({
     'id': '00000000-0000-0000-0000-000000000006',
-    'scopes': [testscope],
-    'scopes_requested': [testscope,otherscope],
+    'scopes': [testgk],
+    'scopes_requested': [testgk,othergk],
 })
+
+retrieved_gk_client = retrieved_gk_clients[0]
 
 def httptime(timestamp):
     return timestamp.strftime("%a, %d %b %Y %H:%M:%S +0000")
 
 
 def mock_get_clients_by_scope(scope):
-    return [ client for client in retrieved_clients
+    return [ client for client in retrieved_gk_clients
       if scope in client['scopes']]
 
 def mock_get_clients_by_scope_requested(scope):
-    return [ client for client in retrieved_clients
+    return [ client for client in retrieved_gk_clients
              if scope in client['scopes_requested']]
