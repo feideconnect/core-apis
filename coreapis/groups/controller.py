@@ -1,4 +1,3 @@
-from coreapis import cassandra_client
 from coreapis.utils import LogWrapper, ValidationError
 from eventlet.greenpool import GreenPool
 from eventlet.timeout import Timeout
@@ -24,7 +23,6 @@ class GroupsController(object):
 
     def __init__(self, contact_points, keyspace, maxrows):
         self.maxrows = maxrows
-        self.session = cassandra_client.Client(contact_points, keyspace)
         self.log = LogWrapper('groups.GroupsController')
         self.backends = {}
         self.pool = GreenPool()
