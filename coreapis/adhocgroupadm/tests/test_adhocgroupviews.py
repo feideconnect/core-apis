@@ -6,7 +6,6 @@ from webtest import TestApp
 from pyramid import testing
 from coreapis import main, middleware
 from coreapis.utils import parse_datetime, json_normalize
-import py.test
 
 post_body_minimal = {
     'name': 'per',
@@ -50,7 +49,7 @@ class AdHocGroupAdmTests(unittest.TestCase):
             'cassandra_contact_points': '',
             'cassandra_keyspace': 'notused',
         }, enabled_components='adhocgroupadm', adhocgroupadm_maxrows=100,
-                   profile_token_secret='AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=')
+            profile_token_secret='AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=')
         mw = middleware.MockAuthMiddleware(app, 'test realm')
         self.session = Client
         self.testapp = TestApp(mw)
