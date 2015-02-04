@@ -1,11 +1,10 @@
 from coreapis.utils import LogWrapper, ValidationError
-from eventlet.greenpool import GreenPool
+from eventlet.greenpool import GreenPool, GreenPile
 from eventlet.timeout import Timeout
-from functools import partial
-from itertools import chain
 from .adhoc_backend import AdHocGroupBackend
 from . import BaseBackend
 from .tests import MockBackend
+import traceback
 
 
 class DummyBackend(BaseBackend):
@@ -61,13 +60,29 @@ class GroupsController(object):
             raise KeyError('bad group id')
         return self.backends[grouptype]
 
-    def _backend_call(self, method):
+    def _backend_call(self, method, *args, **kwargs):
         with Timeout(self.timeout):
-            return method()
+            try:
+                return method(*args, **kwargs)
+            except Timeout:
+                self.log.warn("Timeout in group backend", backend=str(method.__self__),
+                              method=method.__name__)
+            except:
+                exception = traceback.format_exc()
+                self.log.error('unhandled exception in group backend', exception=exception)
+        return []
+
+    def _call_backends(self, func, *args, **kwargs):
+        pile = GreenPile(self.pool)
+        for backend in self.backends.values():
+            pile.spawn(self._backend_call, func(backend), *args, **kwargs)
+        for result in pile:
+            if result:
+                for value in result:
+                    yield value
 
     def get_member_groups(self, userid, show_all):
-        return list(chain(*self.pool.imap(self._backend_call,
-                                          (partial(backend.get_member_groups, userid, show_all) for backend in self.backends.values()))))
+        return list(self._call_backends(lambda x: x.get_member_groups, userid, show_all))
 
     def get_membership(self, userid, groupid):
         return self._backend(groupid).get_membership(userid, groupid)
@@ -82,8 +97,7 @@ class GroupsController(object):
         return self._backend(groupid).get_members(userid, groupid, show_all)
 
     def get_groups(self, userid, query):
-        return list(chain(*self.pool.imap(self._backend_call,
-                                          (partial(backend.get_groups, userid, query) for backend in self.backends.values()))))
+        return list(self._call_backends(lambda x: x.get_groups, userid, query))
 
     def grouptypes(self):
         types = {}
