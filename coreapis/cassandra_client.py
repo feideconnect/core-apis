@@ -78,9 +78,9 @@ class Client(object):
         else:
             stmt = 'SELECT {} from {} WHERE {} LIMIT {} ALLOW FILTERING'.format(cols, table, ' and '.join(selectors), maxrows)
         print("cql: {}".format(stmt))
+        t0 = time.time()
         prep = self.session.prepare(stmt)
         res = self.session.execute(prep.bind(values))
-        t0 = time.time()
         print("Executed in %s ms" % ((time.time()-t0)*1000))
         return res
 
