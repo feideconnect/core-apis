@@ -10,8 +10,9 @@ import uuid
 def configure(config):
     contact_points = config.get_settings().get('cassandra_contact_points')
     keyspace = config.get_settings().get('cassandra_keyspace')
+    scopedefs_file = config.get_settings().get('clientadm_scopedefs_file')
     maxrows = config.get_settings().get('clientadm_maxrows')
-    cadm_controller = ClientAdmController(contact_points, keyspace, maxrows)
+    cadm_controller = ClientAdmController(contact_points, keyspace, scopedefs_file, maxrows)
     config.add_settings(cadm_controller=cadm_controller)
     config.add_request_method(lambda r: r.registry.settings.cadm_controller, 'cadm_controller',
                               reify=True)

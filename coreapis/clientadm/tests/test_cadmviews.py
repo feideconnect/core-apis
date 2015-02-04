@@ -21,7 +21,7 @@ class ClientAdmTests(unittest.TestCase):
             'oauth_realm': 'test realm',
             'cassandra_contact_points': '',
             'cassandra_keyspace': 'notused',
-        }, enabled_components='clientadm', clientadm_maxrows=100)
+        }, enabled_components='clientadm', clientadm_scopedefs_file='scopedefs.json.example', clientadm_maxrows=100)
         mw = middleware.MockAuthMiddleware(app, 'test realm')
         self.session = Client()
         self.testapp = TestApp(mw)

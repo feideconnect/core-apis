@@ -24,6 +24,7 @@ profile_token_secret = 9SFpfeAhjGl8HHA/GtjXSvbN8Q0r7PDiuOgPKyI/92c=
 peoplesearch.cache_keyspace = fc_ps_cache
 clientadm_maxrows = 100
 apigkadm_maxrows = 100
+clientadm_scopedefs_file = scopedefs.json
 
 # By default, the toolbar only appears for clients from IP addresses
 # '127.0.0.1' and '::1'.

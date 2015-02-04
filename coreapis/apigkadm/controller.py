@@ -57,7 +57,7 @@ class APIGKAdmController(CrudControllerBase):
         super(APIGKAdmController, self).__init__(maxrows)
         self.session = cassandra_client.Client(contact_points, keyspace)
         self.log = LogWrapper('apigkadm.APIGKAdmController')
-        self.cadm_controller = ClientAdmController(contact_points, keyspace, maxrows)
+        self.cadm_controller = ClientAdmController(contact_points, keyspace, None, maxrows)
 
     def get(self, id):
         self.log.debug('Get apigk', id=id)

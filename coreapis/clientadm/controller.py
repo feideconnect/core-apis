@@ -1,9 +1,18 @@
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.utils import LogWrapper, ts, public_userinfo
+import json
 import uuid
 import valideer as V
 
+
+# Raises exception if filename is given, but open fails
+def get_scopedefs(filename):
+    if filename:
+        with open(filename) as fh:
+            return json.load(fh)
+    else:
+        return {}
 
 def has_gkscope_match(scope, gkscopes):
     return any(scope == gkscope or scope.startswith(gkscope + '_')
@@ -35,10 +44,11 @@ class ClientAdmController(CrudControllerBase):
         'type': V.Nullable('string', ''),
     }
 
-    def __init__(self, contact_points, keyspace, maxrows):
+    def __init__(self, contact_points, keyspace, scopedef_file, maxrows):
         super(ClientAdmController, self).__init__(maxrows)
         self.session = cassandra_client.Client(contact_points, keyspace)
         self.log = LogWrapper('clientadm.ClientAdmController')
+        self.scopedefs = get_scopedefs(scopedef_file)
 
     def _list(self, selectors, values, maxrows):
         return self.session.get_clients(selectors, values, maxrows)

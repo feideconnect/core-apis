@@ -15,7 +15,7 @@ class TestController(TestCase):
     @mock.patch('coreapis.middleware.cassandra_client.Client')
     def setUp(self, Client):
         self.session = Client()
-        self.controller = controller.ClientAdmController([], 'keyspace', 100)
+        self.controller = controller.ClientAdmController([], 'keyspace', 'scopedefs.json.example', 100)
 
     def test_add_with_owner(self):
         testuid = uuid.UUID(userid_own)

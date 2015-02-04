@@ -1,0 +1,55 @@
+{
+	"userinfo": {
+		"title": "Grunnleggende informasjon om brukeren",
+		"descr": "bla blab la",
+		"public": true,
+		"policy": {
+			"auto": true
+		}
+	},
+	"userinfo-mail": {
+		"title": "Tilgang til brukerens epostadresse",
+		"descr": "bla blab la",
+		"public": true,
+		"policy": {
+			"auto": false
+		}
+	},
+	"userinfo-feide": {
+		"title": "Tilgang til brukerens Feide-identifikator",
+		"descr": "bla blab la",
+		"public": true,
+		"policy": {
+			"auto": true
+		}
+	},
+	"longterm": {
+		"title": "Token uten uløpstid. Rettighetene beholdes helt til brukeren trekker dem tilbake.",
+		"descr": "bla blab la",
+		"public": true
+	},
+	"clientadm": {
+		"title": "Klientadministrasjon",
+		"descr": "bla blab la",
+		"public": false,
+		"policy": {
+			"auto": false
+		}
+	},
+	"apigkadm": {
+		"title": "Administrasjon av API GK-instanser",
+		"descr": "bla blab la",
+		"public": false,
+		"policy": {
+			"auto": false
+		}
+	},
+	"groups": {
+		"title": "Tilgang til basis gruppeinformasjon",
+		"descr": "bla blab la",
+		"public": false,
+		"policy": {
+			"auto": false
+		}
+	}
+}
