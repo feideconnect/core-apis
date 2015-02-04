@@ -58,9 +58,18 @@ class ClientAdmController(CrudControllerBase):
         client = self.session.get_client_by_id(clientid)
         return client
 
+    def is_auto_scope(self, scope):
+        try:
+            return self.scopedefs[scope]['policy']['auto']
+        except KeyError:
+            return False
+
     # Used both for add and update.
     # By default CQL does not distinguish between INSERT and UPDATE
     def _insert(self, client):
+        for scope in client['scopes_requested']:
+            if self.is_auto_scope(scope) and scope not in client['scopes']:
+                client['scopes'].append(scope)
         self.session.insert_client(client['id'], client['client_secret'], client['name'],
                                    client['descr'], client['redirect_uri'],
                                    client['scopes'], client['scopes_requested'],
