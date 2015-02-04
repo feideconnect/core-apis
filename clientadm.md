@@ -121,3 +121,17 @@ or:
     $ curl -v -H "Authorization: Bearer $TOKEN" -H 'Content-Type: image/png' --data-binary '@new_logo.png' http://api.dev.feideconnect.no:6543/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9/logo
 
 Returns `401 Not Authorized` if trying to change logo of a client not owned by user. `404 Not found` if no client with that id exists and `200 OK` otherwise, `400 Bad Request` if the uploaded file is not in a recognized image format.
+
+## Listing public scope definitions
+
+    $ curl http://api.dev.feideconnect.no:6543/clientadm/scopes/
+
+    {"userinfo": {"policy": {"auto": true}, "title": "Grunnleggende informasjon om brukeren",
+                  "descr": "bla blab la", "public": true},
+     "userinfo-feide": {"policy": {"auto": true},
+                        "title": "Tilgang til brukerens Feide-identifikator",
+                         "descr": "bla blab la", "public": true},
+     ..}
+
+Returns `200 OK` with a json object body with entries for each public
+scope.
