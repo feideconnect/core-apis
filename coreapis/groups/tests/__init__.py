@@ -17,10 +17,8 @@ group2 = {
 }
 
 
-class MockBackend(BaseBackend):
-    def __init__(self, prefix, maxrows):
-        super(MockBackend, self).__init__(prefix, maxrows)
 
+class MockBackend(BaseBackend):
     def get_membership(self, userid, groupid):
         if userid == user1 and groupid == groupid1:
             return {

@@ -1,5 +1,5 @@
 class BaseBackend(object):
-    def __init__(self, prefix, maxrows):
+    def __init__(self, prefix, maxrows, config):
         self.prefix = prefix
         self.maxrows = maxrows
 

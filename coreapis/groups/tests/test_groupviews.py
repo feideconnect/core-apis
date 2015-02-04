@@ -20,7 +20,8 @@ class GroupsViewTests(unittest.TestCase):
             'oauth_realm': 'test realm',
             'cassandra_contact_points': '',
             'cassandra_keyspace': 'notused',
-        }, enabled_components='groups', groups_mock_backend='test')
+            'use_eventlets': 'true',
+        }, enabled_components='groups', groups_backend_test='coreapis.groups.tests:MockBackend')
         mw = middleware.MockAuthMiddleware(app, 'test realm')
         self.testapp = TestApp(mw)
 

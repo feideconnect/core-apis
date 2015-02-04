@@ -5,6 +5,9 @@ from .adhoc_backend import AdHocGroupBackend
 from . import BaseBackend
 from .tests import MockBackend
 import traceback
+from paste.deploy.util import lookup_object
+
+BACKEND_CONFIG_KEY = 'groups_backend_'
 
 
 class DummyBackend(BaseBackend):
@@ -44,13 +47,11 @@ class GroupsController(object):
         self.log = LogWrapper('groups.GroupsController')
         self.backends = {}
         self.pool = GreenPool()
-        adhoc_prefix = config.get_settings().get('groups_adhoc_backend', None)
-        if adhoc_prefix:
-            self.backends[adhoc_prefix] = AdHocGroupBackend(adhoc_prefix, maxrows, config)
-        mock_prefix = config.get_settings().get('groups_mock_backend', None)
-        if mock_prefix:
-            self.backends[mock_prefix] = MockBackend(mock_prefix, maxrows)
         self.timeout = int(config.get_settings().get('groups_timeout_backend', '3000')) / 1000
+        for key, value in config.get_settings().items():
+            if key.startswith(BACKEND_CONFIG_KEY):
+                prefix = key[len(BACKEND_CONFIG_KEY):]
+                self.backends[prefix] = lookup_object(value)(prefix, maxrows, config)
 
     def _backend(self, groupid):
         if not ':' in groupid:
