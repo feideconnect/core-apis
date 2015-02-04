@@ -30,8 +30,8 @@ class ClientAdmController(CrudControllerBase):
         # Other attributes
         'client_secret': V.Nullable('string', ''),
         'descr': V.Nullable('string', ''),
-        'scopes': V.Nullable(['string'], []),
-        'status': V.Nullable(['string'], []),
+        'scopes': V.Nullable(['string'], lambda: list()),
+        'status': V.Nullable(['string'], lambda: list()),
         'type': V.Nullable('string', ''),
     }
 
