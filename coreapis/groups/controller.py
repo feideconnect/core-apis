@@ -1,9 +1,6 @@
-from coreapis.utils import LogWrapper, ValidationError
+from coreapis.utils import LogWrapper
 from eventlet.greenpool import GreenPool, GreenPile
 from eventlet.timeout import Timeout
-from .adhoc_backend import AdHocGroupBackend
-from . import BaseBackend
-from .tests import MockBackend
 import traceback
 from paste.deploy.util import lookup_object
 
