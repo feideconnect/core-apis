@@ -26,7 +26,7 @@ class GroupsController(object):
 
     def _backend(self, groupid):
         if not ':' in groupid:
-            raise ValidationError('Malformed group id')
+            raise KeyError('Malformed group id')
         grouptype, subid = groupid.split(':', 1)
         if not grouptype in self.backends:
             raise KeyError('bad group id')

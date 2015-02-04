@@ -1,5 +1,7 @@
 from coreapis.groups import BaseBackend
 import uuid
+import eventlet
+import logging
 
 user1 = uuid.UUID("00000000-0000-0000-0000-000000000001")
 user2 = uuid.UUID("00000000-0000-0000-0000-000000000002")
@@ -16,6 +18,35 @@ group2 = {
     'public': True,
 }
 
+
+class StaleBackend(BaseBackend):
+    def get_groups(self, userid, query):
+        logging.debug('getting groups')
+        for i in range(200):
+            eventlet.sleep(0.2)
+        return []
+
+    def get_member_groups(self, userid, show_all):
+        logging.debug('getting groups')
+        for i in range(200):
+            eventlet.sleep(0.2)
+        return []
+
+    def grouptypes(self):
+        return []
+
+
+class CrashBackend(BaseBackend):
+    def get_groups(self, userid, query):
+        logging.debug('getting groups')
+        raise RuntimeError("crash backend in action")
+
+    def get_member_groups(self, userid, show_all):
+        logging.debug('getting groups')
+        raise RuntimeError("crash backend in action")
+
+    def grouptypes(self):
+        return []
 
 
 class MockBackend(BaseBackend):
