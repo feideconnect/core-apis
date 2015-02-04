@@ -109,3 +109,7 @@ class ClientAdmController(CrudControllerBase):
                 if not client['id'] in clientdict:
                     clientdict[client['id']] = self.get_gkscope_client(client, gkscopes)
         return list(clientdict.values())
+
+    def list_public_scopes(self):
+        self.log.debug('List public scopes')
+        return {k: v for k,v in self.scopedefs.items() if v.get('public', False)}

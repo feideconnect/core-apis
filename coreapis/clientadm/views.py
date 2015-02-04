@@ -22,6 +22,7 @@ def configure(config):
     config.add_route('delete_client', '/clients/{id}', request_method='DELETE')
     config.add_route('update_client', '/clients/{id}', request_method='PATCH')
     config.add_route('client_logo', '/clients/{id}/logo')
+    config.add_route('list_scopes', '/scopes/')
     config.scan(__name__)
 
 
@@ -156,3 +157,8 @@ def upload_logo(request):
     data = input_file.read()
     request.cadm_controller.update_logo(clientid, data)
     return 'OK'
+
+
+@view_config(route_name='list_scopes', renderer="json")
+def list_scopes(request):
+    return request.cadm_controller.list_public_scopes()

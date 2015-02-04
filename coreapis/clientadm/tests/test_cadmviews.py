@@ -345,3 +345,8 @@ class ClientAdmTests(unittest.TestCase):
         self.session.get_client_by_id.return_value = client
         logo = b'mylittlelogo'
         self.testapp.post('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), logo, status=401, headers=headers)
+
+    def test_list_public_scopes(self):
+        res = self.testapp.get('/clientadm/scopes/', status=200)
+        assert 'userinfo' in res.json
+        assert 'apigkadm' not in res.json
