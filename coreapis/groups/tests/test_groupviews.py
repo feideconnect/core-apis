@@ -140,3 +140,13 @@ class GroupsViewErrorHandlingTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.testapp.get('/groups/groups/nocolon',
                          status=404, headers=headers)
+
+    def test_my_groups_clientonly(self):
+        headers = {'Authorization': 'Bearer client_token'}
+        self.testapp.get('/groups/me/groups',
+                         status=401, headers=headers)
+
+    def test_my_membership_clientonly(self):
+        headers = {'Authorization': 'Bearer client_token'}
+        self.testapp.get('/groups/me/groups/somegroupid',
+                         status=401, headers=headers)
