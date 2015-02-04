@@ -26,9 +26,16 @@ def datetime_hack_dict_factory(colnames, rows):
 
 
 class Client(object):
-    def __init__(self, contact_points, keyspace):
+    def __init__(self, contact_points, keyspace, use_eventlets=False):
+        self.log = LogWrapper('coreapis.cassandraclient')
+        connection_class = None
+        if use_eventlets:
+            from cassandra.io.eventletreactor import EventletConnection
+            connection_class = EventletConnection
+            self.log.info("Using eventlet based cassandra connection")
         cluster = Cluster(
-            contact_points=contact_points
+            contact_points=contact_points,
+            connection_class=connection_class,
         )
         self.default_columns = {
             'clients': 'owner,name,type,status,scopes_requested,client_secret,created,redirect_uri,descr,id,scopes,updated',
@@ -52,7 +59,6 @@ class Client(object):
         self.s_get_group = self.session.prepare('SELECT {} FROM groups WHERE id = ?'.format(self.default_columns['groups']))
         self.s_delete_group = self.session.prepare('DELETE FROM groups WHERE id = ?')
         self.s_get_group_logo = self.session.prepare('SELECT logo, updated FROM groups WHERE id = ?')
-        self.log = LogWrapper('coreapis.cassandraclient')
 
     def insert_client(self, id, client_secret, name, descr,
                       redirect_uri, scopes, scopes_requested, status,

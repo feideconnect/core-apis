@@ -25,8 +25,12 @@ def cassandra_main(app, config, client_max_share, client_max_rate, client_max_bu
     ratelimiter = RateLimiter(float(client_max_share),
                               int(client_max_burst_size),
                               float(client_max_rate))
+    if config.get('use_eventlets', '') == 'true':
+        use_eventlets = True
+    else:
+        use_eventlets = False
     return CassandraMiddleware(app, config['oauth_realm'], contact_points,
-                               keyspace, timer, ratelimiter)
+                               keyspace, timer, ratelimiter, use_eventlets)
 
 
 class CorsMiddleware(object):
@@ -157,11 +161,11 @@ class MockAuthMiddleware(AuthMiddleware):
 
 
 class CassandraMiddleware(AuthMiddleware):
-    def __init__(self, app, realm, contact_points, keyspace, timer, ratelimiter):
+    def __init__(self, app, realm, contact_points, keyspace, timer, ratelimiter, use_eventlet):
         super(CassandraMiddleware, self).__init__(app, realm)
         self.timer = timer
         self.ratelimiter = ratelimiter
-        self.session = cassandra_client.Client(contact_points, keyspace)
+        self.session = cassandra_client.Client(contact_points, keyspace, use_eventlet)
 
     def __call__(self, environ, start_response):
         if self.ratelimiter and self.ratelimiter.check_rate(environ['REMOTE_ADDR']) == False:
