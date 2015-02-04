@@ -96,22 +96,27 @@ class AdHocGroupBackend(BaseBackend):
         return result
 
     def get_member_groups(self, userid, show_all):
+        result = []
         for membership in self.session.get_group_memberships(userid, None, None, self.maxrows):
             group = self.session.get_group(membership['groupid'])
-            yield self.format_group(group, membership)
+            result.append(self.format_group(group, membership))
+        return result
 
     def get_groups(self, userid, query):
+        result = []
+        self.log.debug("Getting ad hoc groups")
         seen_groupids = set()
         for group in self.get_member_groups(userid, True):
             if query is None or query in group['displayName'] or ('description' in group and query in group['description']):
                 seen_groupids.add(group['id'])
-                yield group
+                result.append(group)
         for group in self.session.get_groups(['public = ?'], [True], self.maxrows):
             formatted = self.format_group(group, None)
             if query is None or query in formatted['displayName'] or ('description' in formatted and query in formatted['description']):
                 if formatted['id'] not in seen_groupids:
                     seen_groupids.add(formatted['id'])
-                    yield formatted
+                    result.append(formatted)
+        return result
 
     def grouptypes(self):
         return [
