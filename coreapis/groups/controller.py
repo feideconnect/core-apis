@@ -50,7 +50,7 @@ class GroupsController(object):
         mock_prefix = config.get_settings().get('groups_mock_backend', None)
         if mock_prefix:
             self.backends[mock_prefix] = MockBackend(mock_prefix, maxrows)
-        self.timeout = int(config.get_settings().get('groups_backend_timeout', '3000')) / 1000
+        self.timeout = int(config.get_settings().get('groups_timeout_backend', '3000')) / 1000
 
     def _backend(self, groupid):
         if not ':' in groupid:
