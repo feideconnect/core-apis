@@ -13,6 +13,7 @@ class GroupsController(object):
         maxrows = config.get_settings().get('groups_maxrows', 100)
         self.maxrows = maxrows
         self.log = LogWrapper('groups.GroupsController')
+        self.timer = config.get_settings().get('timer')
         self.backends = {}
         self.pool = GreenPool()
         self.timeout = int(config.get_settings().get('groups_timeout_backend', '3000')) / 1000
@@ -30,15 +31,18 @@ class GroupsController(object):
         return self.backends[grouptype]
 
     def _backend_call(self, method, *args, **kwargs):
-        with Timeout(self.timeout):
-            try:
-                return method(*args, **kwargs)
-            except Timeout:
-                self.log.warn("Timeout in group backend", backend=str(method.__self__),
-                              method=method.__name__)
-            except:
-                exception = traceback.format_exc()
-                self.log.error('unhandled exception in group backend', exception=exception)
+        backend = method.__self__.prefix
+        call = method.__name__
+        with self.timer.time('groups.{}.{}'.format(call, backend)):
+            with Timeout(self.timeout):
+                try:
+                    return method(*args, **kwargs)
+                except Timeout:
+                    self.log.warn("Timeout in group backend", backend=backend,
+                                  method=call)
+                except:
+                    exception = traceback.format_exc()
+                    self.log.error('unhandled exception in group backend', exception=exception)
         return []
 
     def _call_backends(self, func, *args, **kwargs):
@@ -51,7 +55,8 @@ class GroupsController(object):
                     yield value
 
     def get_member_groups(self, user, show_all):
-        return list(self._call_backends(lambda x: x.get_member_groups, user, show_all))
+        with self.timer.time('groups.get_member_groups'):
+            return list(self._call_backends(lambda x: x.get_member_groups, user, show_all))
 
     def get_membership(self, user, groupid):
         return self._backend(groupid).get_membership(user, groupid)
@@ -66,7 +71,8 @@ class GroupsController(object):
         return self._backend(groupid).get_members(user, groupid, show_all)
 
     def get_groups(self, user, query):
-        return list(self._call_backends(lambda x: x.get_groups, user, query))
+        with self.timer.time('groups.get_groups'):
+            return list(self._call_backends(lambda x: x.get_groups, user, query))
 
     def grouptypes(self):
         types = {}
