@@ -129,6 +129,22 @@ class ClientAdmTests(unittest.TestCase):
         out = res.json
         assert out['scopes'] == [otherscope]
 
+    def test_post_client_invalid_scope_requested(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_by_id.side_effect = KeyError
+        body = deepcopy(post_body_minimal)
+        body['scopes_requested'] = ['nosuchthing']
+        self.session.insert_client = mock.MagicMock()
+        self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
+
+    def test_post_client_invalid_gkscope_requested(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_by_id.side_effect = KeyError
+        body = deepcopy(post_body_minimal)
+        body['scopes_requested'] = ['gk_nosuchthing']
+        self.session.insert_client = mock.MagicMock()
+        self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
+
     def test_post_client_missing_name(self):
         headers = {'Authorization': 'Bearer user_token'}
         body = deepcopy(post_body_minimal)

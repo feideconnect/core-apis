@@ -1,6 +1,6 @@
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
-from coreapis.utils import LogWrapper, ts, public_userinfo
+from coreapis.utils import LogWrapper, ts, public_userinfo, ValidationError
 import json
 import uuid
 import valideer as V
@@ -58,6 +58,14 @@ class ClientAdmController(CrudControllerBase):
         client = self.session.get_client_by_id(clientid)
         return client
 
+    def is_valid_gkscope(self, scope):
+        return (scope.startswith('gk_') and
+                any([scope[3:] == apigk['id']
+                     for apigk in self.session.get_apigks([], [], self.maxrows)]))
+
+    def is_valid_scope(self, scope):
+        return scope in self.scopedefs or self.is_valid_gkscope(scope)
+
     def is_auto_scope(self, scope):
         try:
             return self.scopedefs[scope]['policy']['auto']
@@ -67,6 +75,9 @@ class ClientAdmController(CrudControllerBase):
     # Used both for add and update.
     # By default CQL does not distinguish between INSERT and UPDATE
     def _insert(self, client):
+        for scope in client['scopes_requested']:
+            if not self.is_valid_scope(scope):
+                raise ValidationError('invalid scope: {}'.format(scope))
         for scope in client['scopes_requested']:
             if self.is_auto_scope(scope) and scope not in client['scopes']:
                 client['scopes'].append(scope)
