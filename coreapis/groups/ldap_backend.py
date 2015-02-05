@@ -77,6 +77,30 @@ class LDAPBackend(BaseBackend):
                 result.append(self._get_orgunit(realm, orgUnitDN))
         return result
 
+    def get_membership(self, user, groupid):
+        my_groups = self.get_member_groups(user, True)
+        for group in my_groups:
+            if group['id'] == groupid:
+                return group['membership']
+        raise KeyError('Not found')
+
+    def get_group(self, user, groupid):
+        my_groups = self.get_member_groups(user, True)
+        for group in my_groups:
+            if group['id'] == groupid:
+                return group
+        raise KeyError('Not found')
+
+    def get_members(self, user, groupid, show_all):
+        return []
+
+    def get_groups(self, user, query):
+        my_groups = self.get_member_groups(user, True)
+        if not query:
+            return my_groups
+        return [group for group in my_groups
+                if query in group['displayName']]
+
     def grouptypes(self):
         return [
             {
