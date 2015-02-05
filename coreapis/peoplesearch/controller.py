@@ -1,5 +1,4 @@
 import datetime
-import pytz
 import json
 import ldap3
 import hashlib
@@ -8,7 +7,6 @@ from .tokens import crypt_token, decrypt_token
 from PIL import Image
 import io
 from cassandra.cluster import Cluster
-from cassandra.query import dict_factory
 from coreapis.cassandra_client import datetime_hack_dict_factory
 
 THUMB_SIZE = 128, 128
