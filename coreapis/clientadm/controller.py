@@ -103,13 +103,13 @@ class ClientAdmController(CrudControllerBase):
 
     def get_public_client(self, client):
         pubclient = {attr: client[attr] for attr in self.public_attrs}
-        pubclient.update({attr: [] for attr in self.scope_attrs})
         pubclient['owner'] = public_userinfo(
             self.session.get_user_by_id(client['owner']))
         return pubclient
 
     def get_gkscope_client(self, client, gkscopes):
         gkclient = self.get_public_client(client)
+        gkclient.update({attr: [] for attr in self.scope_attrs})
         for attr in self.scope_attrs:
             clientscopes = client[attr]
             if clientscopes:
