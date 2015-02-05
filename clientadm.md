@@ -59,16 +59,26 @@ owned by user.Returns `404 Not Found` if client does not exist.
      "scopes": null, "scopes_requested": ["clientadmin"], "descr": "test",
      "created": "2015-01-22T10:59:03.585000"}
 
-Returns `401 Not Authorized` if trying to fetch a client not owned by
-user, `404 Not Found` if client does not exist,
+If user is unauthenticated, a restricted view of the client is
+returned.
+
+    $ curl -X GET
+    'http://api.dev.feideconnect.no:6543/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9'
+
+    {"name": "per", "redirect_uri": ["http://example.org"],
+     "id": "9dd084a3-c497-4d4c-9832-a5096371a4c9",
+     "owner": { "id": "p:ce5e8798-df69-4b87-a2e7-9678ab9a2820", "name": "Peder Aas"},
+     "descr": "test"}
+
+Returns `404 Not Found` if client does not exist.
 
 ## Listing all clients owned by user
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
     'http://api.dev.feideconnect.no:6543/clientadm/clients/'
 
-    [{"type": "", "name": "per", "status": null, "client_secret": "",
-      "redirect_uri": ["http://example.org"], "id": "9dd084a3-c497-4d4c-9832-a5096371a4c9",
+    [{"name": "per","redirect_uri": ["http://example.org"],
+      "id": "9dd084a3-c497-4d4c-9832-a5096371a4c9",
       "owner": "ce5e8798-df69-4b87-a2e7-9678ab9a2820", "updated": "2015-01-22T11:03:29.983000",
       "scopes": null, "scopes_requested": ["clientadmin"], "descr": "test",
       "created": "2015-01-22T10:59:03.585000"},
