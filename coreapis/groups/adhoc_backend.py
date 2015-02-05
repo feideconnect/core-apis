@@ -22,6 +22,16 @@ def format_membership(group, membership):
     }
 
 
+def query_match(query, group):
+    if not query:
+        return True
+    if query in group['displayName']:
+        return True
+    if query in group.get('description', ''):
+        return True
+    return False
+
+
 class AdHocGroupBackend(BaseBackend):
     def __init__(self, prefix, maxrows, config):
         super(AdHocGroupBackend, self).__init__(prefix, maxrows, config)
@@ -111,17 +121,16 @@ class AdHocGroupBackend(BaseBackend):
         return result
 
     def get_groups(self, user, query):
-        userid = user['userid']
         result = []
         self.log.debug("Getting ad hoc groups")
         seen_groupids = set()
         for group in self.get_member_groups(user, True):
-            if query is None or query in group['displayName'] or ('description' in group and query in group['description']):
+            if query_match(query, group):
                 seen_groupids.add(group['id'])
                 result.append(group)
         for group in self.session.get_groups(['public = ?'], [True], self.maxrows):
             formatted = self.format_group(group, None)
-            if query is None or query in formatted['displayName'] or ('description' in formatted and query in formatted['description']):
+            if query_match(query, formatted):
                 if formatted['id'] not in seen_groupids:
                     seen_groupids.add(formatted['id'])
                     result.append(formatted)
