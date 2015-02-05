@@ -59,8 +59,9 @@ class ClientAdmController(CrudControllerBase):
         return client
 
     def is_valid_gkscope(self, scope):
-        return (scope.startswith('gk_') and
-                any([scope[3:] == apigk['id']
+        scopeparts = scope.split('_')
+        return (scopeparts[0] == 'gk' and len(scopeparts) > 1 and
+                any([scopeparts[1] == apigk['id']
                      for apigk in self.session.get_apigks([], [], self.maxrows)]))
 
     def is_valid_scope(self, scope):

@@ -36,6 +36,16 @@ class TestController(TestCase):
         res = self.controller.add(post_body, testuid)
         assert res['scopes'] == []
 
+
+    def test_add_with_gk_subscope(self):
+        testuid = uuid.UUID(userid_own)
+        post_body = deepcopy(post_body_minimal)
+        post_body['scopes_requested'] = [testgk + '_foo']
+        self.session.get_client_by_id.side_effect = KeyError
+        self.session.insert_client = mock.MagicMock()
+        res = self.controller.add(post_body, testuid)
+        assert res['scopes'] == []
+
     def test_update_with_ts(self):
         id = clientid
         self.session.get_client_by_id.return_value = deepcopy(retrieved_gk_client)
