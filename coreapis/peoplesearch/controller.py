@@ -3,7 +3,7 @@ import pytz
 import json
 import ldap3
 import hashlib
-from coreapis.utils import ValidationError, LogWrapper, now
+from coreapis.utils import ValidationError, LogWrapper, now, ResourcePool
 from .tokens import crypt_token, decrypt_token
 from PIL import Image
 import io
@@ -33,11 +33,12 @@ def make_etag(data):
 
 
 class LDAPController(object):
-    def __init__(self, timer):
+    def __init__(self, timer, pool=ResourcePool):
         self.t = timer
         self.config = json.load(open('ldap-config.json'))
         self.log = LogWrapper('peoplesearch.LDAPController')
         self.servers = {}
+        self.conpools = {}
         for org in self.config:
             orgconf = self.config[org]
             server_pool = ldap3.ServerPool(None, ldap3.POOLING_STRATEGY_ROUND_ROBIN, active=True)
@@ -50,6 +51,7 @@ class LDAPController(object):
                 server = ldap3.Server(host, port=port, use_ssl=True)
                 server_pool.add(server)
             self.servers[org] = server_pool
+            self.conpools[org] = pool(create=lambda: self.get_connection(org))
 
     def get_ldap_config(self):
         return self.config
@@ -77,14 +79,17 @@ class LDAPController(object):
             search = "(&{}(!{}))".format(search, exclude_filter)
         return search
 
+    def search(self, org, base_dn, search_filter, scope, attributes, size_limit=None):
+        with self.conpools[org].item() as con:
+            with self.t.time('ps.ldap_search'):
+                con.search(base_dn, search_filter, scope, attributes=attributes,
+                           size_limit=size_limit)
+            return con.response
+
     def ldap_search(self, org, search_filter, scope, attributes, size_limit=None):
-        with self.t.time('ps.ldap_connect'):
-            con = self.get_connection(org)
+        base_dn = self.get_base_dn(org)
         search_filter = self.handle_exclude(org, search_filter)
-        with self.t.time('ps.ldap_search'):
-            con.search(self.get_base_dn(org), search_filter, scope, attributes=attributes,
-                       size_limit=size_limit)
-        return con.response
+        return self.search(org, base_dn, search_filter, scope, attributes, size_limit)
 
 
 class CassandraCache(object):

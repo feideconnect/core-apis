@@ -9,6 +9,8 @@ import pytz
 from collections import defaultdict, deque
 import threading
 from aniso8601 import parse_datetime
+from queue import Queue, Empty
+from threading import Lock
 
 __local = threading.local()
 
@@ -226,3 +228,45 @@ def public_userinfo(user):
 
 def json_normalize(data):
     return json.loads(json.dumps(data, cls=CustomEncoder))
+
+
+class ResourcePool(object):
+    def __init__(self, min_size=0, max_size=4, order_as_stack=False, create=None):
+        self.create = create
+        self.min_size = min_size
+        self.max_size = max_size
+        self.q = Queue(max_size)
+        self.count = 0
+        self.lock = Lock()
+
+    def get(self):
+        try:
+            i = self.q.get(False)
+            return i
+        except Empty:
+            pass
+        create = False
+        with self.lock:
+            if self.count < self.max_size:
+                self.count += 1
+                create = True
+        if create:
+            return self.create()
+        return self.q.get(True)
+
+    def put(self, item):
+        self.q.put(item)
+
+    class Context(object):
+        def __init__(self, pool):
+            self.pool = pool
+
+        def __enter__(self):
+            self.item = self.pool.get()
+            return self.item
+
+        def __exit__(self, type, value, traceback):
+            self.pool.put(self.item)
+
+    def item(self):
+        return self.Context(self)
