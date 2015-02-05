@@ -37,6 +37,7 @@ class Client(object):
             contact_points=contact_points,
             connection_class=connection_class,
         )
+        self.prepared = {}
         self.default_columns = {
             'clients': 'owner,name,type,status,scopes_requested,client_secret,created,redirect_uri,descr,id,scopes,updated',
             'apigk': 'id,requireuser,created,name,scopedef,httpscertpinned,status,descr,expose,updated,trust,endpoints,owner',
@@ -60,10 +61,17 @@ class Client(object):
         self.s_delete_group = self.session.prepare('DELETE FROM groups WHERE id = ?')
         self.s_get_group_logo = self.session.prepare('SELECT logo, updated FROM groups WHERE id = ?')
 
+    def _prepare(self, query):
+        if query in self.prepared:
+            return self.prepared[query]
+        prep = self.session.prepare(query)
+        self.prepared[query] = prep
+        return prep
+
     def insert_client(self, id, client_secret, name, descr,
                       redirect_uri, scopes, scopes_requested, status,
                       type, create_ts, update_ts, owner):
-        prep = self.session.prepare('INSERT INTO clients (id, client_secret, name, descr, redirect_uri, scopes, scopes_requested, status, type, created, updated, owner) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+        prep = self._prepare('INSERT INTO clients (id, client_secret, name, descr, redirect_uri, scopes, scopes_requested, status, type, created, updated, owner) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
         self.session.execute(prep.bind([id, client_secret, name, descr,
                                         redirect_uri, scopes, scopes_requested,
                                         status, type, create_ts, update_ts, owner]))
@@ -85,7 +93,7 @@ class Client(object):
             stmt = 'SELECT {} from {} WHERE {} LIMIT {} ALLOW FILTERING'.format(cols, table, ' and '.join(selectors), maxrows)
         print("cql: {}".format(stmt))
         t0 = time.time()
-        prep = self.session.prepare(stmt)
+        prep = self._prepare(stmt)
         res = self.session.execute(prep.bind(values))
         print("Executed in %s ms" % ((time.time()-t0)*1000))
         return res
@@ -94,19 +102,19 @@ class Client(object):
         return self.get_generic('clients', selectors, values, maxrows)
 
     def get_clients_by_owner(self, owner):
-        prep = self.session.prepare('SELECT * from clients WHERE owner = ?')
+        prep = self._prepare('SELECT * from clients WHERE owner = ?')
         t0 = time.time()
         res = self.session.execute(prep.bind([owner]))
         print("Executed in %s ms" % ((time.time()-t0)*1000))
         return res
 
     def get_clients_by_scope(self, scope):
-        prep = self.session.prepare('SELECT * from clients WHERE scopes CONTAINS ?')
+        prep = self._prepare('SELECT * from clients WHERE scopes CONTAINS ?')
         res = self.session.execute(prep.bind([scope]))
         return res
 
     def get_clients_by_scope_requested(self, scope):
-        prep = self.session.prepare('SELECT * from clients WHERE scopes_requested CONTAINS ?')
+        prep = self._prepare('SELECT * from clients WHERE scopes_requested CONTAINS ?')
         res = self.session.execute(prep.bind([scope]))
         return res
 
@@ -132,7 +140,7 @@ class Client(object):
         return res[0]
 
     def get_user_by_userid_sec(self, sec):
-        prep = self.session.prepare('SELECT * from users where userid_sec CONTAINS ?')
+        prep = self._prepare('SELECT * from users where userid_sec CONTAINS ?')
         res = self.session.execute(prep.bind([sec]))
         if len(res) == 0:
             raise KeyError('No such user')
@@ -157,7 +165,7 @@ class Client(object):
         self.session.execute(prep.bind([id]))
 
     def insert_apigk(self, apigk):
-        prep = self.session.prepare('INSERT INTO apigk (id, created, descr, endpoints, expose, httpscertpinned, name, owner, requireuser, scopedef, status, trust, updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+        prep = self._prepare('INSERT INTO apigk (id, created, descr, endpoints, expose, httpscertpinned, name, owner, requireuser, scopedef, status, trust, updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
         self.session.execute(prep.bind([apigk['id'],
                                         apigk['created'],
                                         apigk['descr'],
@@ -184,7 +192,7 @@ class Client(object):
         return res[0]['logo'], res[0]['updated']
 
     def save_logo(self, table, itemid, data, updated):
-        prep = self.session.prepare('INSERT INTO {} (id, logo, updated) VALUES (?, ?, ?)'.format(table))
+        prep = self._prepare('INSERT INTO {} (id, logo, updated) VALUES (?, ?, ?)'.format(table))
         self.session.execute(prep.bind([itemid, data, updated]))
 
     def get_authorizations(self, userid):
@@ -195,7 +203,7 @@ class Client(object):
 
     def delete_authorization(self, userid, clientid):
         self.session.execute(self.s_delete_authorization.bind([userid, clientid]))
-        prep = self.session.prepare('SELECT access_token FROM oauth_tokens WHERE userid = ? AND clientid = ? ALLOW FILTERING')
+        prep = self._prepare('SELECT access_token FROM oauth_tokens WHERE userid = ? AND clientid = ? ALLOW FILTERING')
         for token in self.session.execute(prep.bind([userid, clientid])):
             tokenid = token['access_token']
             self.log.debug('deleting token', token=tokenid)
@@ -213,7 +221,7 @@ class Client(object):
         self.session.execute(prep.bind([groupid]))
 
     def insert_group(self, group):
-        prep = self.session.prepare('INSERT INTO groups (id, created, descr, name, owner, updated, public) VALUES (?, ?, ?, ?, ?, ?, ?)')
+        prep = self._prepare('INSERT INTO groups (id, created, descr, name, owner, updated, public) VALUES (?, ?, ?, ?, ?, ?, ?)')
         self.session.execute(prep.bind([
             group['id'],
             group['created'],
@@ -234,23 +242,23 @@ class Client(object):
         return self.get_generic('groups', selectors, values, maxrows)
 
     def get_group_members(self, groupid):
-        prep = self.session.prepare('SELECT * FROM group_members WHERE groupid=?')
+        prep = self._prepare('SELECT * FROM group_members WHERE groupid=?')
         return self.session.execute(prep.bind([groupid]))
 
     def add_group_member(self, groupid, userid, mtype, status):
-        prep = self.session.prepare('INSERT INTO group_members (groupid, userid, type, status) values (?,?,?,?)')
+        prep = self._prepare('INSERT INTO group_members (groupid, userid, type, status) values (?,?,?,?)')
         return self.session.execute(prep.bind([groupid, userid, mtype, status]))
 
     def set_group_member_status(self, groupid, userid, status):
-        prep = self.session.prepare('INSERT INTO group_members (groupid, userid, status) values (?,?,?)')
+        prep = self._prepare('INSERT INTO group_members (groupid, userid, status) values (?,?,?)')
         return self.session.execute(prep.bind([groupid, userid, status]))
 
     def del_group_member(self, groupid, userid):
-        prep = self.session.prepare('DELETE FROM group_members WHERE groupid = ? AND userid = ?')
+        prep = self._prepare('DELETE FROM group_members WHERE groupid = ? AND userid = ?')
         return self.session.execute(prep.bind([groupid, userid]))
 
     def get_membership_data(self, groupid, userid):
-        prep = self.session.prepare('SELECT * FROM group_members WHERE groupid=? AND userid=?')
+        prep = self._prepare('SELECT * FROM group_members WHERE groupid=? AND userid=?')
         return self.session.execute(prep.bind([groupid, userid]))
 
     def get_group_memberships(self, userid, mtype, status, maxrows):
