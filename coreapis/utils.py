@@ -96,22 +96,27 @@ class DebugLogFormatter(logging.Formatter):
 
 
 class Timer(object):
-    def __init__(self, server, port, prefix):
+    def __init__(self, server, port, prefix, log_results):
         self.client = statsd.StatsClient(server, port, prefix=prefix)
+        self.log_results = log_results
 
     class Context(object):
-        def __init__(self, client, name):
+        def __init__(self, client, name, log_results):
             self.client = client
             self.name = name
+            self.log_results = log_results
 
         def __enter__(self):
             self.t0 = time.time()
 
         def __exit__(self, type, value, traceback):
-            self.client.timing(self.name, (time.time() - self.t0) * 1000)
+            duration = (time.time() - self.t0) * 1000
+            if self.log_results:
+                logging.debug('Timed {} to {} ms'.format(self.name, duration))
+            self.client.timing(self.name, duration)
 
     def time(self, name):
-        return self.Context(self.client, name)
+        return self.Context(self.client, name, self.log_results)
 
 
 class RateLimiter(object):
@@ -182,8 +187,10 @@ class RequestTimingTween(object):
         else:
             routename = '__unknown__'
         timername = 'request.{}.{}'.format(routename, request.method)
-        logging.debug("Sending stats for %s", timername)
-        self.timer.client.timing(timername, (t1 - t0) * 1000)
+        duration = (t1 - t0) * 1000
+        if self.registry.settings.log_timings:
+            logging.debug("Timed %s to %f ms", timername, duration)
+        self.timer.client.timing(timername, duration)
         return response
 
 

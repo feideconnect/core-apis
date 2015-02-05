@@ -20,11 +20,14 @@ def main(global_config, **settings):
     authz_policy = TokenAuthorizationPolicy()
     config.set_authentication_policy(authn_policy)
     config.set_authorization_policy(authz_policy)
+    log_timings = global_config.get('log_timings', 'false').lower() == 'true'
+
     timer = Timer(global_config['statsd_server'], int(global_config['statsd_port']),
-                  global_config['statsd_prefix'])
+                  global_config['statsd_prefix'], log_timings)
     config.add_settings(cassandra_contact_points=global_config['cassandra_contact_points'].split(', '))
     config.add_settings(cassandra_keyspace=global_config['cassandra_keyspace'])
     config.add_settings(timer=timer)
+    config.add_settings(log_timings=log_timings)
     config.add_route('pre_flight', pattern='/*path', request_method='OPTIONS')
     config.add_view(options, route_name='pre_flight')
     if 'enabled_components' in settings:

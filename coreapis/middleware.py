@@ -20,8 +20,9 @@ def cors_main(app, config):
 def cassandra_main(app, config, client_max_share, client_max_rate, client_max_burst_size):
     contact_points = config['cassandra_contact_points'].split(', ')
     keyspace = config['cassandra_keyspace']
+    log_timings = config.get('log_timings', 'false').lower() == 'true'
     timer = Timer(config['statsd_server'], int(config['statsd_port']),
-                  config['statsd_prefix'])
+                  config['statsd_prefix'], log_timings)
     ratelimiter = RateLimiter(float(client_max_share),
                               int(client_max_burst_size),
                               float(client_max_rate))
