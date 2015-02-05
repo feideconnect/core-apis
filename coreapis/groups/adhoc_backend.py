@@ -115,7 +115,7 @@ class AdHocGroupBackend(BaseBackend):
         result = []
         self.log.debug("Getting ad hoc groups")
         seen_groupids = set()
-        for group in self.get_member_groups(userid, True):
+        for group in self.get_member_groups(user, True):
             if query is None or query in group['displayName'] or ('description' in group and query in group['description']):
                 seen_groupids.add(group['id'])
                 result.append(group)
