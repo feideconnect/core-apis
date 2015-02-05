@@ -9,7 +9,8 @@ from pyramid import testing
 from coreapis import main, middleware
 from coreapis.clientadm.tests.helper import (
     userid_own, userid_other, clientid, date_created, testscope, otherscope, testuri,
-    post_body_minimal, post_body_other_owner, post_body_maximal, retrieved_client, httptime)
+    post_body_minimal, post_body_other_owner, post_body_maximal, retrieved_client,
+    retrieved_user, httptime)
 
 class ClientAdmTests(unittest.TestCase):
     @mock.patch('coreapis.middleware.cassandra_client.Client')
@@ -41,10 +42,17 @@ class ClientAdmTests(unittest.TestCase):
         self.session.get_client_by_id.side_effect = KeyError()
         self.testapp.get('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=404, headers=headers)
 
+    def test_get_client_unauthenticated(self):
+        self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
+        self.session.get_user_by_id.return_value = retrieved_user
+        res = self.testapp.get('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=200)
+        out = res.json
+        assert out['descr'] == 'green'
+
     def test_get_client_missing_user(self):
         headers = {'Authorization': 'Bearer client_token'}
         self.session.get_client_by_id.return_value = {'foo': 'bar', 'owner': uuid.UUID(userid_own)}
-        self.testapp.get('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=401, headers=headers)
+        self.testapp.get('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=404, headers=headers)
 
     def test_list_clients(self):
         headers = {'Authorization': 'Bearer user_token'}

@@ -43,6 +43,8 @@ class ClientAdmController(CrudControllerBase):
         'status': V.Nullable(['string'], lambda: list()),
         'type': V.Nullable('string', ''),
     }
+    public_attrs = ['id', 'name', 'descr', 'redirect_uri', 'owner']
+    scope_attrs = ['scopes', 'scopes_requested']
 
     def __init__(self, contact_points, keyspace, scopedef_file, maxrows):
         super(ClientAdmController, self).__init__(maxrows)
@@ -99,14 +101,16 @@ class ClientAdmController(CrudControllerBase):
     def _save_logo(self, clientid, data, updated):
         self.session.save_logo('clients', clientid, data, updated)
 
-    def get_gkscope_client(self, client, gkscopes):
-        public_attrs = ['id', 'name', 'descr', 'redirect_uri', 'owner']
-        scope_attrs = ['scopes', 'scopes_requested']
-        gkclient = {attr: client[attr] for attr in public_attrs}
-        gkclient.update({attr: [] for attr in scope_attrs})
-        gkclient['owner'] = public_userinfo(
+    def get_public_client(self, client):
+        pubclient = {attr: client[attr] for attr in self.public_attrs}
+        pubclient.update({attr: [] for attr in self.scope_attrs})
+        pubclient['owner'] = public_userinfo(
             self.session.get_user_by_id(client['owner']))
-        for attr in scope_attrs:
+        return pubclient
+
+    def get_gkscope_client(self, client, gkscopes):
+        gkclient = self.get_public_client(client)
+        for attr in self.scope_attrs:
             clientscopes = client[attr]
             if clientscopes:
                 gkclient[attr] = [scope for scope in clientscopes
