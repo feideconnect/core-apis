@@ -12,8 +12,43 @@ class LDAPBackend(BaseBackend):
     def __init__(self, prefix, maxrows, config):
         super(LDAPBackend, self).__init__(prefix, maxrows, config)
         self.log = LogWrapper('groups.ldapbackend')
-        timer = config.get_settings().get('timer')
-        self.ldap = LDAPController(timer, pool=Pool)
+        self.timer = config.get_settings().get('timer')
+        self.ldap = LDAPController(self.timer, pool=Pool)
+
+    def _get_org(self, realm, dn):
+        org = self.ldap.search(realm, dn, '(objectClass=*)',
+                               ldap3.SEARCH_SCOPE_BASE_OBJECT,
+                               ldap3.ALL_ATTRIBUTES, 1)
+        if len(org) == 0:
+            raise KeyError('orgDN not found in catalog')
+        org = org[0]
+        orgAttributes = org['attributes']
+        return {
+            'id': '{}:{}'.format(self.prefix, realm),
+            'displayName': orgAttributes['cn'][0],
+            'type': 'eduperson:org',
+            'membership': {
+                'basic': 'member',
+            },
+        }
+
+    def _get_orgunit(self, realm, dn):
+        ou = self.ldap.search(realm, dn, '(objectClass=*)',
+                              ldap3.SEARCH_SCOPE_BASE_OBJECT,
+                              ldap3.ALL_ATTRIBUTES, 1)
+        if len(ou) == 0:
+            raise KeyError('orgUnitDN not found in catalog')
+        ou = ou[0]
+        ouAttributes = ou['attributes']
+        return {
+            'id': '{}:{}:{}'.format(self.prefix, realm,
+                                    ouAttributes['norEduOrgUnitUniqueIdentifier'][0]),
+            'displayName': ouAttributes['ou'][0],
+            'type': 'eduperson:orgunit',
+            'membership': {
+                'basic': 'member',
+            },
+        }
 
     def get_member_groups(self, user, show_all):
         result = []
@@ -36,39 +71,10 @@ class LDAPBackend(BaseBackend):
         attributes = res['attributes']
         if 'eduPersonOrgDN' in attributes:
             orgDN = attributes['eduPersonOrgDN'][0]
-            print("Got orgDN: {}".format(orgDN))
-            org = self.ldap.search(realm, orgDN, '(objectClass=*)'.format(feideid),
-                                   ldap3.SEARCH_SCOPE_BASE_OBJECT,
-                                   ldap3.ALL_ATTRIBUTES, 1)
-            if len(org) == 0:
-                raise KeyError('orgDN not found in catalog')
-            org = org[0]
-            orgAttributes = org['attributes']
-            # for key, value in orgAttributes.items():
-            #     print('{}: {}'.format(key, value))
-            result.append({
-                'id': '{}:{}'.format(self.prefix, realm),
-                'displayName': orgAttributes['cn'][0],
-                'type': 'eduperson:org',
-            })
+            result.append(self._get_org(realm, orgDN))
         if 'eduPersonOrgUnitDN' in attributes:
-            orgUnitDN = attributes['eduPersonOrgUnitDN'][0]
-            print("Got orgUnitDN: {}".format(orgUnitDN))
-            ou = self.ldap.search(realm, orgUnitDN, '(objectClass=*)'.format(feideid),
-                                  ldap3.SEARCH_SCOPE_BASE_OBJECT,
-                                  ldap3.ALL_ATTRIBUTES, 1)
-            if len(ou) == 0:
-                raise KeyError('orgUnitDN not found in catalog')
-            ou = ou[0]
-            ouAttributes = ou['attributes']
-            # for key, value in ouAttributes.items():
-            #     print('{}: {}'.format(key, value))
-            result.append({
-                'id': '{}:{}:{}'.format(self.prefix, realm,
-                                        ouAttributes['norEduOrgUnitUniqueIdentifier'][0]),
-                'displayName': ouAttributes['ou'][0],
-                'type': 'eduperson:orgunit',
-            })
+            for orgUnitDN in attributes['eduPersonOrgUnitDN']:
+                result.append(self._get_orgunit(realm, orgUnitDN))
         return result
 
     def grouptypes(self):
