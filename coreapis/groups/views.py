@@ -2,7 +2,7 @@ from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPNotFound, HTTPUnauthorized, HTTPNotModified
 from pyramid.response import Response
 from .controller import GroupsController
-from coreapis.utils import get_userid
+from coreapis.utils import get_user
 
 
 def configure(config):
@@ -22,34 +22,34 @@ def configure(config):
 
 @view_config(route_name='my_groups', renderer='json', permission='scope_groups')
 def my_groups(request):
-    userid = get_userid(request)
-    if not userid:
+    user = get_user(request)
+    if not user:
         raise HTTPUnauthorized
     if request.params.get('showAll', 'false').lower() == 'true':
         show_all = True
     else:
         show_all = False
-    return request.groups_controller.get_member_groups(userid, show_all)
+    return request.groups_controller.get_member_groups(user, show_all)
 
 
 @view_config(route_name='my_membership', renderer='json', permission='scope_groups')
 def get_membership(request):
-    userid = get_userid(request)
-    if not userid:
+    user = get_user(request)
+    if not user:
         raise HTTPUnauthorized
     groupid = request.matchdict['groupid']
     try:
-        return request.groups_controller.get_membership(userid, groupid)
+        return request.groups_controller.get_membership(user, groupid)
     except KeyError:
         raise HTTPNotFound
 
 
 @view_config(route_name='group', renderer='json', permission='scope_groups')
 def get_group(request):
-    userid = get_userid(request)
+    user = get_user(request)
     groupid = request.matchdict['groupid']
     try:
-        return request.groups_controller.get_group(userid, groupid)
+        return request.groups_controller.get_group(user, groupid)
     except KeyError:
         raise HTTPNotFound
 
@@ -77,20 +77,20 @@ def group_logo(request):
 @view_config(route_name='group_members', request_method="GET", permission='scope_groups',
              renderer="json")
 def group_members(request):
-    userid = get_userid(request)
+    user = get_user(request)
     groupid = request.matchdict['groupid']
     if request.params.get('showAll', 'false').lower() == 'true':
         show_all = True
     else:
         show_all = False
-    return request.groups_controller.get_members(userid, groupid, show_all)
+    return request.groups_controller.get_members(user, groupid, show_all)
 
 
 @view_config(route_name='groups', renderer='json', permission='scope_groups')
 def list_groups(request):
-    userid = get_userid(request)
+    user = get_user(request)
     query = request.params.get('query', None)
-    return request.groups_controller.get_groups(userid, query)
+    return request.groups_controller.get_groups(user, query)
 
 
 @view_config(route_name='grouptypes', renderer='json', permission='scope_groups')

@@ -214,6 +214,10 @@ def get_userid(request):
         return None
 
 
+def get_user(request):
+    return request.environ.get('FC_USER', None)
+
+
 def public_userinfo(user):
     userid = None
     for sec in user['userid_sec']:

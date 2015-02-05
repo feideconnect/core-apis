@@ -6,19 +6,19 @@ class BaseBackend(object):
     def _groupid(self, gid):
         return "{}:{}".format(self.prefix, gid)
 
-    def get_membership(self, userid, groupid):
+    def get_membership(self, user, groupid):
         pass
 
-    def get_group(self, userid, groupid):
+    def get_group(self, user, groupid):
         pass
 
-    def get_members(self, userid, groupid, show_all):
+    def get_members(self, user, groupid, show_all):
         pass
 
-    def get_member_groups(self, userid, show_all):
+    def get_member_groups(self, user, show_all):
         pass
 
-    def get_groups(self, userid, query):
+    def get_groups(self, user, query):
         pass
 
     def grouptypes(self):

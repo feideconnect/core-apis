@@ -20,13 +20,13 @@ group2 = {
 
 
 class StaleBackend(BaseBackend):
-    def get_groups(self, userid, query):
+    def get_groups(self, user, query):
         logging.debug('getting groups')
         for i in range(200):
             eventlet.sleep(0.2)
         return []
 
-    def get_member_groups(self, userid, show_all):
+    def get_member_groups(self, user, show_all):
         logging.debug('getting groups')
         for i in range(200):
             eventlet.sleep(0.2)
@@ -37,11 +37,11 @@ class StaleBackend(BaseBackend):
 
 
 class CrashBackend(BaseBackend):
-    def get_groups(self, userid, query):
+    def get_groups(self, user, query):
         logging.debug('getting groups')
         raise RuntimeError("crash backend in action")
 
-    def get_member_groups(self, userid, show_all):
+    def get_member_groups(self, user, show_all):
         logging.debug('getting groups')
         raise RuntimeError("crash backend in action")
 
@@ -50,20 +50,20 @@ class CrashBackend(BaseBackend):
 
 
 class MockBackend(BaseBackend):
-    def get_membership(self, userid, groupid):
-        if userid == user1 and groupid == groupid1:
+    def get_membership(self, user, groupid):
+        if user['userid'] == user1 and groupid == groupid1:
             return {
                 'basic': 'member',
             }
         raise KeyError('not member')
 
-    def get_group(self, userid, groupid):
-        if userid == user1 and groupid == groupid1:
+    def get_group(self, user, groupid):
+        if user['userid'] == user1 and groupid == groupid1:
             return group1
         raise KeyError('No such group')
 
-    def get_members(self, userid, groupid, show_all):
-        if userid == user1 and groupid == groupid1:
+    def get_members(self, user, groupid, show_all):
+        if user['userid'] == user1 and groupid == groupid1:
             result = [
                 {
                     "name": "test user 1",
@@ -83,14 +83,14 @@ class MockBackend(BaseBackend):
             return result
         raise KeyError("not member")
 
-    def get_member_groups(self, userid, show_all):
-        if userid == user1:
+    def get_member_groups(self, user, show_all):
+        if user['userid'] == user1:
             return [group1]
-        if userid == user2 and show_all:
+        if user['userid'] == user2 and show_all:
             return [group1]
         return []
 
-    def get_groups(self, userid, query):
+    def get_groups(self, user, query):
         return (g for g in (group1, group2) if query is None or query in g['displayName'])
 
     def grouptypes(self):

@@ -50,23 +50,23 @@ class GroupsController(object):
                 for value in result:
                     yield value
 
-    def get_member_groups(self, userid, show_all):
-        return list(self._call_backends(lambda x: x.get_member_groups, userid, show_all))
+    def get_member_groups(self, user, show_all):
+        return list(self._call_backends(lambda x: x.get_member_groups, user, show_all))
 
-    def get_membership(self, userid, groupid):
-        return self._backend(groupid).get_membership(userid, groupid)
+    def get_membership(self, user, groupid):
+        return self._backend(groupid).get_membership(user, groupid)
 
-    def get_group(self, userid, groupid):
-        return self._backend(groupid).get_group(userid, groupid)
+    def get_group(self, user, groupid):
+        return self._backend(groupid).get_group(user, groupid)
 
     def get_logo(self, groupid):
         return self._backend(groupid).get_logo(groupid)
 
-    def get_members(self, userid, groupid, show_all):
-        return self._backend(groupid).get_members(userid, groupid, show_all)
+    def get_members(self, user, groupid, show_all):
+        return self._backend(groupid).get_members(user, groupid, show_all)
 
-    def get_groups(self, userid, query):
-        return list(self._call_backends(lambda x: x.get_groups, userid, query))
+    def get_groups(self, user, query):
+        return list(self._call_backends(lambda x: x.get_groups, user, query))
 
     def grouptypes(self):
         types = {}

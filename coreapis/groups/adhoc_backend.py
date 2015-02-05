@@ -52,7 +52,8 @@ class AdHocGroupBackend(BaseBackend):
             data['membership'] = format_membership(group, membership)
         return data
 
-    def _get(self, userid, groupid):
+    def _get(self, user, groupid):
+        userid = user['userid']
         intgroupid = self._intid(groupid)
         group = self.session.get_group(intgroupid)
         membership = self.session.get_membership_data(intgroupid, userid)
@@ -64,17 +65,20 @@ class AdHocGroupBackend(BaseBackend):
             membership = membership[0]
         return group, membership
 
-    def get_membership(self, userid, groupid):
+    def get_membership(self, user, groupid):
+        userid = user['userid']
         group, membership = self._get(userid, groupid)
         if membership is None:
             raise KeyError("Not member of group")
         return dict(basic=basic(group, membership))
 
-    def get_group(self, userid, groupid):
+    def get_group(self, user, groupid):
+        userid = user['userid']
         group, membership = self._get(userid, groupid)
         return self.format_group(group, None)
 
-    def get_members(self, userid, groupid, show_all):
+    def get_members(self, user, groupid, show_all):
+        userid = user['userid']
         group, membership = self._get(userid, groupid)
         if membership is None:
             raise KeyError("Not member of group")
@@ -95,14 +99,16 @@ class AdHocGroupBackend(BaseBackend):
                 pass
         return result
 
-    def get_member_groups(self, userid, show_all):
+    def get_member_groups(self, user, show_all):
+        userid = user['userid']
         result = []
         for membership in self.session.get_group_memberships(userid, None, None, self.maxrows):
             group = self.session.get_group(membership['groupid'])
             result.append(self.format_group(group, membership))
         return result
 
-    def get_groups(self, userid, query):
+    def get_groups(self, user, query):
+        userid = user['userid']
         result = []
         self.log.debug("Getting ad hoc groups")
         seen_groupids = set()
