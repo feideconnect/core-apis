@@ -14,6 +14,7 @@ def get_scopedefs(filename):
     else:
         return {}
 
+
 def has_gkscope_match(scope, gkscopes):
     return any(scope == gkscope or scope.startswith(gkscope + '_')
                for gkscope in gkscopes)
@@ -128,4 +129,4 @@ class ClientAdmController(CrudControllerBase):
 
     def list_public_scopes(self):
         self.log.debug('List public scopes')
-        return {k: v for k,v in self.scopedefs.items() if v.get('public', False)}
+        return {k: v for k, v in self.scopedefs.items() if v.get('public', False)}

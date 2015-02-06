@@ -2,15 +2,15 @@ import uuid
 from copy import deepcopy
 from aniso8601 import parse_datetime
 
-userid_own   = '00000000-0000-0000-0000-000000000001'
+userid_own = '00000000-0000-0000-0000-000000000001'
 userid_other = '00000000-0000-0000-0000-000000000002'
-clientid     = '00000000-0000-0000-0000-000000000003'
+clientid = '00000000-0000-0000-0000-000000000003'
 date_created = '2015-01-12T13:05:16Z'
-testscope    = 'userinfo-mail'
-otherscope   = 'userinfo-feide'
-testgk    = 'gk_test1'
-othergk   = 'gk_test2'
-testuri      = 'http://example.org'
+testscope = 'userinfo-mail'
+otherscope = 'userinfo-feide'
+testgk = 'gk_test1'
+othergk = 'gk_test2'
+testuri = 'http://example.org'
 
 post_body_minimal = {
     'name': 'per', 'scopes_requested': [testscope], 'redirect_uri': [testuri]
@@ -37,7 +37,7 @@ retrieved_client = {
     'updated': parse_datetime(date_created)
 }
 
-retrieved_user =  {
+retrieved_user = {
     'userid_sec': ['p:foo'],
     'selectedsource': 'us',
     'name': {'us': 'foo'},
@@ -63,19 +63,21 @@ retrieved_gk_clients[2].update({
 retrieved_gk_clients[3].update({
     'id': '00000000-0000-0000-0000-000000000006',
     'scopes': [testgk],
-    'scopes_requested': [testgk,othergk],
+    'scopes_requested': [testgk, othergk],
 })
 
 retrieved_gk_client = retrieved_gk_clients[0]
+
 
 def httptime(timestamp):
     return timestamp.strftime("%a, %d %b %Y %H:%M:%S +0000")
 
 
 def mock_get_clients_by_scope(scope):
-    return [ client for client in retrieved_gk_clients
-      if scope in client['scopes']]
+    return [client for client in retrieved_gk_clients
+            if scope in client['scopes']]
+
 
 def mock_get_clients_by_scope_requested(scope):
-    return [ client for client in retrieved_gk_clients
-             if scope in client['scopes_requested']]
+    return [client for client in retrieved_gk_clients
+            if scope in client['scopes_requested']]

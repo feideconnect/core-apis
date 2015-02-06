@@ -12,6 +12,7 @@ from coreapis.clientadm.tests.helper import (
     post_body_minimal, post_body_other_owner, post_body_maximal, retrieved_client,
     retrieved_user, httptime)
 
+
 class ClientAdmTests(unittest.TestCase):
     @mock.patch('coreapis.middleware.cassandra_client.Client')
     def setUp(self, Client):
@@ -33,14 +34,16 @@ class ClientAdmTests(unittest.TestCase):
     def test_get_client(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.return_value = {'foo': 'bar', 'owner': uuid.UUID(userid_own)}
-        res = self.testapp.get('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=200, headers=headers)
+        res = self.testapp.get('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=200,
+                               headers=headers)
         out = res.json
         assert 'foo' in out
 
     def test_missing_client(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.side_effect = KeyError()
-        self.testapp.get('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=404, headers=headers)
+        self.testapp.get('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=404,
+                         headers=headers)
 
     def test_get_client_unauthenticated(self):
         self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
@@ -52,7 +55,8 @@ class ClientAdmTests(unittest.TestCase):
     def test_get_client_missing_user(self):
         headers = {'Authorization': 'Bearer client_token'}
         self.session.get_client_by_id.return_value = {'foo': 'bar', 'owner': uuid.UUID(userid_own)}
-        self.testapp.get('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=404, headers=headers)
+        self.testapp.get('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=404,
+                         headers=headers)
 
     def test_list_clients(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -71,14 +75,16 @@ class ClientAdmTests(unittest.TestCase):
     def test_list_clients_by_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_clients.return_value = [{'foo': 'bar'}]
-        res = self.testapp.get('/clientadm/clients/?owner={}'.format(uuid.UUID(userid_own)), status=200, headers=headers)
+        res = self.testapp.get('/clientadm/clients/?owner={}'.format(uuid.UUID(userid_own)),
+                               status=200, headers=headers)
         out = res.json
         assert 'foo' in out[0]
 
     def test_list_clients_by_other_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_clients.return_value = [{'foo': 'bar'}]
-        self.testapp.get('/clientadm/clients/?owner={}'.format(uuid.UUID(userid_other)), status=401, headers=headers)
+        self.testapp.get('/clientadm/clients/?owner={}'.format(uuid.UUID(userid_other)), status=401,
+                         headers=headers)
 
     def test_bad_client_filter(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -90,7 +96,8 @@ class ClientAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.side_effect = KeyError
         self.session.insert_client = mock.MagicMock()
-        res = self.testapp.post_json('/clientadm/clients/', post_body_minimal, status=201, headers=headers)
+        res = self.testapp.post_json('/clientadm/clients/', post_body_minimal, status=201,
+                                     headers=headers)
         out = res.json
         assert out['name'] == 'per'
 
@@ -99,7 +106,8 @@ class ClientAdmTests(unittest.TestCase):
         self.session.get_client_by_id.side_effect = KeyError
         self.session.insert_client = mock.MagicMock()
         self.session.get_client_by_id.side_effect = KeyError()
-        res = self.testapp.post_json('/clientadm/clients/', post_body_maximal, status=201, headers=headers)
+        res = self.testapp.post_json('/clientadm/clients/', post_body_maximal, status=201,
+                                     headers=headers)
         out = res.json
         assert out['owner'] == userid_own
 
@@ -107,7 +115,8 @@ class ClientAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.side_effect = KeyError
         self.session.insert_client = mock.MagicMock()
-        res = self.testapp.post_json('/clientadm/clients/', post_body_other_owner, status=201, headers=headers)
+        res = self.testapp.post_json('/clientadm/clients/', post_body_other_owner, status=201,
+                                     headers=headers)
         out = res.json
         assert out['owner'] == userid_own
 
@@ -115,7 +124,8 @@ class ClientAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.insert_client = mock.MagicMock()
         self.session.get_client_by_id.return_value = [{'foo': 'bar'}]
-        self.testapp.post_json('/clientadm/clients/', post_body_maximal, status=409, headers=headers)
+        self.testapp.post_json('/clientadm/clients/', post_body_maximal, status=409,
+                               headers=headers)
 
     def test_post_client_scope_given(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -203,7 +213,8 @@ class ClientAdmTests(unittest.TestCase):
     def test_delete_client(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.return_value = {'foo': 'bar', 'owner': uuid.UUID(userid_own)}
-        self.testapp.delete('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=204, headers=headers)
+        self.testapp.delete('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=204,
+                            headers=headers)
 
     def test_delete_client_no_id(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -215,34 +226,41 @@ class ClientAdmTests(unittest.TestCase):
 
     def test_delete_client_not_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_client_by_id.return_value = {'foo': 'bar', 'owner': uuid.UUID(userid_other)}
-        self.testapp.delete('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=401, headers=headers)
+        self.session.get_client_by_id.return_value = {'foo': 'bar',
+                                                      'owner': uuid.UUID(userid_other)}
+        self.testapp.delete('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=401,
+                            headers=headers)
 
     def test_update_client(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
         self.session.insert_client = mock.MagicMock()
-        res = self.testapp.patch_json('/clientadm/clients/{}'.format(clientid), {'descr': 'blue'}, status=200, headers=headers)
+        res = self.testapp.patch_json('/clientadm/clients/{}'.format(clientid), {'descr': 'blue'},
+                                      status=200, headers=headers)
         out = res.json
         assert out['descr'] == 'blue'
 
     def test_update_client_no_id(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.testapp.patch_json('/clientadm/clients/', {'descr': 'blue'}, status=404, headers=headers)
+        self.testapp.patch_json('/clientadm/clients/', {'descr': 'blue'}, status=404,
+                                headers=headers)
 
     def test_update_client_malformed_id(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.testapp.patch_json('/clientadm/clients/{}'.format('foo'), {'descr': 'blue'}, status=400, headers=headers)
+        self.testapp.patch_json('/clientadm/clients/{}'.format('foo'), {'descr': 'blue'},
+                                status=400, headers=headers)
 
     def test_update_client_invalid_json(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.testapp.patch('/clientadm/clients/{}'.format('foo'), 'bar', status=400, headers=headers)
+        self.testapp.patch('/clientadm/clients/{}'.format('foo'), 'bar', status=400,
+                           headers=headers)
 
     def test_update_missing_client(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.side_effect = KeyError()
         self.session.insert_client = mock.MagicMock()
-        self.testapp.patch_json('/clientadm/clients/{}'.format(clientid), {'descr': 'blue'}, status=404, headers=headers)
+        self.testapp.patch_json('/clientadm/clients/{}'.format(clientid), {'descr': 'blue'},
+                                status=404, headers=headers)
 
     def test_update_client_not_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -288,7 +306,8 @@ class ClientAdmTests(unittest.TestCase):
         date_older = updated - timedelta(minutes=1)
         headers = {'Authorization': 'Bearer user_token', 'If-Modified-Since': httptime(date_older)}
         self.session.get_client_logo.return_value = b'mylittlelogo', updated
-        res = self.testapp.get('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), status=200, headers=headers)
+        res = self.testapp.get('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), status=200,
+                               headers=headers)
         out = res.body
         assert b'mylittlelogo' in out
 
@@ -296,7 +315,8 @@ class ClientAdmTests(unittest.TestCase):
         updated = parse_datetime(date_created)
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_logo.return_value = None, updated
-        res = self.testapp.get('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), status=200, headers=headers)
+        res = self.testapp.get('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), status=200,
+                               headers=headers)
         out = res.body
         assert b'PNG' == out[1:4]
 
@@ -305,7 +325,8 @@ class ClientAdmTests(unittest.TestCase):
         date_newer = updated + timedelta(minutes=1)
         headers = {'Authorization': 'Bearer user_token', 'If-Modified-Since': httptime(date_newer)}
         self.session.get_client_logo.return_value = b'mylittlelogo', updated
-        self.testapp.get('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), status=304, headers=headers)
+        self.testapp.get('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), status=304,
+                         headers=headers)
 
     def test_get_client_logo_bad_id(self):
         updated = parse_datetime(date_created)
@@ -316,7 +337,8 @@ class ClientAdmTests(unittest.TestCase):
     def test_get_client_logo_missing_client(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_logo.side_effect = KeyError()
-        self.testapp.get('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), status=404, headers=headers)
+        self.testapp.get('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), status=404,
+                         headers=headers)
 
     def test_get_client_logo_default_logo_file_not_found(self):
         m = mock.mock_open()
@@ -325,7 +347,8 @@ class ClientAdmTests(unittest.TestCase):
             headers = {'Authorization': 'Bearer user_token'}
             m.side_effect = FileNotFoundError()
             self.session.get_client_logo.return_value = None, updated
-            self.testapp.get('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), status=500, headers=headers)
+            self.testapp.get('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), status=500,
+                             headers=headers)
 
     def test_post_client_logo_multipart(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -333,7 +356,8 @@ class ClientAdmTests(unittest.TestCase):
         self.session.save_logo = mock.MagicMock()
         with open('data/default-client.png', 'rb') as fh:
             logo = fh.read()
-            res = self.testapp.post('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), '', status=200, headers=headers,
+            res = self.testapp.post('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), '',
+                                    status=200, headers=headers,
                                     upload_files=[('logo', 'logo.png', logo)])
             out = res.json
             assert out == 'OK'
@@ -344,7 +368,8 @@ class ClientAdmTests(unittest.TestCase):
         self.session.save_logo = mock.MagicMock()
         with open('data/default-client.png', 'rb') as fh:
             logo = fh.read()
-            res = self.testapp.post('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), logo, status=200, headers=headers)
+            res = self.testapp.post('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), logo,
+                                    status=200, headers=headers)
             out = res.json
             assert out == 'OK'
 
@@ -354,13 +379,15 @@ class ClientAdmTests(unittest.TestCase):
         client['owner'] = uuid.UUID(userid_other)
         self.session.get_client_by_id.return_value = client
         logo = b'mylittlelogo'
-        self.testapp.post('/clientadm/clients/{}/logo'.format('foo'), logo, status=400, headers=headers)
+        self.testapp.post('/clientadm/clients/{}/logo'.format('foo'), logo, status=400,
+                          headers=headers)
 
     def test_post_client_logo_bad_data(self):
         headers = {'Authorization': 'Bearer user_token', 'Content-Type': 'image/png'}
         self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
         logo = b'mylittlelogo'
-        self.testapp.post('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), logo, status=400, headers=headers)
+        self.testapp.post('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), logo,
+                          status=400, headers=headers)
 
     def test_post_client_logo_not_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -368,7 +395,8 @@ class ClientAdmTests(unittest.TestCase):
         client['owner'] = uuid.UUID(userid_other)
         self.session.get_client_by_id.return_value = client
         logo = b'mylittlelogo'
-        self.testapp.post('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), logo, status=401, headers=headers)
+        self.testapp.post('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), logo,
+                          status=401, headers=headers)
 
     def test_list_public_scopes(self):
         res = self.testapp.get('/clientadm/scopes/', status=200)
