@@ -26,7 +26,10 @@
 	"longterm": {
 		"title": "Token uten uløpstid. Rettighetene beholdes helt til brukeren trekker dem tilbake.",
 		"descr": "bla blab la",
-		"public": true
+		"public": true,
+		"policy": {
+			"auto": true
+		}
 	},
 	"clientadm": {
 		"title": "Klientadministrasjon",
