@@ -76,15 +76,17 @@ class ClientAdmController(CrudControllerBase):
         except KeyError:
             return False
 
+    def handle_scope_request(self, client, scope):
+        if not self.is_valid_scope(scope):
+            raise ValidationError('invalid scope: {}'.format(scope))
+        if self.is_auto_scope(scope) and scope not in client['scopes']:
+            client['scopes'].append(scope)
+
     # Used both for add and update.
     # By default CQL does not distinguish between INSERT and UPDATE
     def _insert(self, client):
         for scope in client['scopes_requested']:
-            if not self.is_valid_scope(scope):
-                raise ValidationError('invalid scope: {}'.format(scope))
-        for scope in client['scopes_requested']:
-            if self.is_auto_scope(scope) and scope not in client['scopes']:
-                client['scopes'].append(scope)
+            self.handle_scope_request(client, scope)
         self.session.insert_client(client['id'], client['client_secret'], client['name'],
                                    client['descr'], client['redirect_uri'],
                                    client['scopes'], client['scopes_requested'],
