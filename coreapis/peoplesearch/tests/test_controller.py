@@ -85,20 +85,6 @@ class TestProfileImageFetch(TestCase):
                                                                 'keyspace', 0)
             self.controller.ldap = self.ldap
 
-    def test_feide_no_at(self):
-        with pytest.raises(ValidationError):
-            self.controller._profile_image_feide('foo')
-
-    def test_feide_ldap_injection(self):
-        with pytest.raises(ValidationError):
-            self.controller._profile_image_feide('foo)')
-        with pytest.raises(ValidationError):
-            self.controller._profile_image_feide('(bar')
-        with pytest.raises(ValidationError):
-            self.controller._profile_image_feide('baz*')
-        with pytest.raises(ValidationError):
-            self.controller._profile_image_feide('test\\')
-
     def test_feide_no_user(self):
         self.controller.ldap.ldap_search = mock.MagicMock(return_value=[])
         image, etag, modified = self.controller._profile_image_feide('noone@feide.no')
@@ -116,19 +102,35 @@ class TestProfileImageFetch(TestCase):
     def test_feide(self):
         with open('testdata/blank.jpg', 'rb') as fh:
             imgdata = fh.read()
-        self.controller.ldap.ldap_search = mock.MagicMock(return_value=[{'attributes': {'jpegPhoto': [imgdata]}}])
+        self.controller.ldap.lookup_feideid.return_value = {'jpegPhoto': [imgdata]}
         image, etag, modified = self.controller._profile_image_feide('noone@feide.no')
         assert etag == '29e57d60210642ece67970a0cd9fd11b'
         assert image == imgdata
 
+
+class TestLookupFeideid(TestCase):
+    def setUp(self):
+        self.ldap = controller.LDAPController(mock.MagicMock())
+
     def test_feide_multiple_users(self):
-        with open('testdata/blank.jpg', 'rb') as fh:
-            imgdata = fh.read()
-        self.controller.ldap.ldap_search = mock.MagicMock(return_value=[{'attributes': {'jpegPhoto': [imgdata]}},
-                                                                        {'attributes': {}}])
-        image, etag, modified = self.controller._profile_image_feide('noone@feide.no')
-        assert etag == '29e57d60210642ece67970a0cd9fd11b'
-        assert image == imgdata
+        self.ldap.ldap_search = mock.MagicMock(return_value=[{'attributes': {'cn': ['Test User']}},
+                                                             {'attributes': {}}])
+        res = self.ldap.lookup_feideid('noone@feide.no', ['cn'])
+        assert res == {'cn': ['Test User']}
+
+    def test_feide_no_at(self):
+        with pytest.raises(ValidationError):
+            self.ldap.lookup_feideid('foo', ['cn'])
+
+    def test_feide_ldap_injection(self):
+        with pytest.raises(ValidationError):
+            self.ldap.lookup_feideid('foo)', ['cn'])
+        with pytest.raises(ValidationError):
+            self.ldap.lookup_feideid('(bar', ['cn'])
+        with pytest.raises(ValidationError):
+            self.ldap.lookup_feideid('baz*', ['cn'])
+        with pytest.raises(ValidationError):
+            self.ldap.lookup_feideid('test\\', ['cn'])
 
 
 class TestFetchProfileImage(TestCase):

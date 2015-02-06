@@ -10,6 +10,8 @@ from cassandra.cluster import Cluster
 from coreapis.cassandra_client import datetime_hack_dict_factory
 
 THUMB_SIZE = 128, 128
+USER_INFO_ATTRIBUTES = ['cn', 'displayName', 'eduPersonPrincipalName']
+SINGLE_VALUED_ATTRIBUTES = ['cn', 'displayName', 'eduPersonPrincipalName']
 
 
 def flatten(user, attributes):
@@ -89,6 +91,22 @@ class LDAPController(object):
         search_filter = self.handle_exclude(org, search_filter)
         return self.search(org, base_dn, search_filter, scope, attributes, size_limit)
 
+    def lookup_feideid(self, feideid, attributes):
+        if not '@' in feideid:
+            raise ValidationError('feide id must contain @')
+        _, realm = feideid.split('@', 1)
+        validate_query(feideid)
+        search_filter = '(eduPersonPrincipalName={})'.format(feideid)
+        res = self.ldap_search(realm, search_filter,
+                               ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
+                               attributes=attributes, size_limit=1)
+        if len(res) == 0:
+            self.log.debug('Could not find user for %s' % feideid)
+            raise KeyError('User not found')
+        if len(res) > 1:
+            self.log.warn('Multiple matches to eduPersonPrincipalName')
+        return res[0]['attributes']
+
 
 class CassandraCache(object):
     def __init__(self, contact_points, keyspace):
@@ -131,6 +149,19 @@ class PeopleSearchController(object):
         conf = self.ldap.get_ldap_config()
         return {realm: data['display'] for realm, data in conf.items()}
 
+    def _format_person(self, person):
+        flatten(person, SINGLE_VALUED_ATTRIBUTES)
+        new_person = {}
+        if 'eduPersonPrincipalName' in person:
+            feideid = person['eduPersonPrincipalName']
+            person['id'] = 'feide:' + feideid
+            new_person['profile_image_token'] = crypt_token(person['id'], self.key)
+        if 'displayName' in person:
+            new_person['name'] = person['displayName']
+        elif 'cn' in person:
+            new_person['name'] = person['cn']
+        return new_person
+
     def search(self, org, query, max_replies=None):
         if max_replies is None or max_replies > self.search_max_replies:
             max_replies = self.search_max_replies
@@ -142,42 +173,20 @@ class PeopleSearchController(object):
         else:
             search_filter = '(cn=*{}*)'.format(query)
         search_filter = '(&{}(objectClass=person))'.format(search_filter)
-        attrs = ['cn', 'displayName', 'eduPersonPrincipalName']
         res = self.ldap.ldap_search(org, search_filter, ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
-                                    attributes=attrs, size_limit=max_replies)
+                                    attributes=USER_INFO_ATTRIBUTES, size_limit=max_replies)
         with self.t.time('ps.process_results'):
             result = [dict(r['attributes']) for r in res]
-            for person in result:
-                flatten(person, ('cn', 'displayName', 'eduPersonPrincipalName'))
             new_result = []
             for person in result:
-                new_person = {}
-                if 'eduPersonPrincipalName' in person:
-                    feideid = person['eduPersonPrincipalName']
-                    person['id'] = 'feide:' + feideid
-                    new_person['profile_image_token'] = crypt_token(person['id'], self.key)
-                if 'displayName' in person:
-                    new_person['name'] = person['displayName']
-                elif 'cn' in person:
-                    new_person['name'] = person['cn']
-                new_result.append(new_person)
+                new_result.append(self._format_person(person))
             return new_result
 
     def _profile_image_feide(self, user):
-        if not '@' in user:
-            raise ValidationError('feide id must contain @')
-        _, realm = user.split('@', 1)
-        validate_query(user)
-        search_filter = '(eduPersonPrincipalName={})'.format(user)
-        res = self.ldap.ldap_search(realm, search_filter,
-                                    ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
-                                    attributes=['jpegPhoto'], size_limit=1)
-        if len(res) == 0:
-            self.log.debug('Could not find user for %s' % user)
+        try:
+            attributes = self.ldap.lookup_feideid(user, ['jpegPhoto'])
+        except KeyError:
             return None, None, None
-        if len(res) > 1:
-            self.log.warn('Multiple matches to eduPersonPrincipalName')
-        attributes = res[0]['attributes']
         if not 'jpegPhoto' in attributes:
             self.log.debug('User %s has no jpegPhoto' % user)
             return None, None, None
@@ -234,27 +243,5 @@ class PeopleSearchController(object):
         self.db.insert(user, now(), last_modified, etag, data)
 
     def get_user(self, feideid):
-        if not '@' in feideid:
-            raise KeyError('bad feideid')
-        realm = feideid.split('@', 1)[1]
-        attrs = ['cn', 'displayName']
-        search_filter = '(eduPersonPrincipalName={})'.format(feideid)
-        res = self.ldap.ldap_search(realm, search_filter, ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
-                                    attributes=attrs, size_limit=1)
-        if len(res) == 0:
-            self.log.debug('Could not find user for %s' % user)
-            return None, None, None
-        if len(res) > 1:
-            self.log.warn('Multiple matches to eduPersonPrincipalName')
-        person = res[0]['attributes']
-        flatten(person, ('cn', 'displayName', 'eduPersonPrincipalName'))
-        new_person = {}
-        if 'eduPersonPrincipalName' in person:
-            feideid = person['eduPersonPrincipalName']
-            person['id'] = 'feide:' + feideid
-            new_person['profile_image_token'] = crypt_token(person['id'], self.key)
-        if 'displayName' in person:
-            new_person['name'] = person['displayName']
-        elif 'cn' in person:
-            new_person['name'] = person['cn']
-        return new_person
+        person = self.ldap.lookup_feideid(feideid, USER_INFO_ATTRIBUTES)
+        return self._format_person(person)
