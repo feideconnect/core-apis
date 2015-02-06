@@ -7,7 +7,8 @@ from aniso8601 import parse_datetime
 from coreapis.clientadm import controller
 from coreapis.clientadm.tests.helper import (
     userid_own, clientid, testgk, othergk, post_body_minimal, retrieved_gk_client, testscope,
-    retrieved_user, date_created, mock_get_clients_by_scope, mock_get_clients_by_scope_requested)
+    retrieved_user, date_created, mock_get_apigk, mock_get_clients_by_scope,
+    mock_get_clients_by_scope_requested)
 
 # A few cases that aren't exercised from the clientadm view tests
 
@@ -16,6 +17,7 @@ class TestController(TestCase):
     @mock.patch('coreapis.middleware.cassandra_client.Client')
     def setUp(self, Client):
         self.session = Client()
+        self.session.get_apigk.side_effect = mock_get_apigk
         self.controller = controller.ClientAdmController([], 'keyspace',
                                                          'scopedefs.json.example', 100)
 
@@ -32,15 +34,6 @@ class TestController(TestCase):
         testuid = uuid.UUID(userid_own)
         post_body = deepcopy(post_body_minimal)
         self.controller.scopedefs = {testscope: {}}
-        self.session.get_client_by_id.side_effect = KeyError
-        self.session.insert_client = mock.MagicMock()
-        res = self.controller.add(post_body, testuid)
-        assert res['scopes'] == []
-
-    def test_add_with_gk_subscope(self):
-        testuid = uuid.UUID(userid_own)
-        post_body = deepcopy(post_body_minimal)
-        post_body['scopes_requested'] = [testgk + '_foo']
         self.session.get_client_by_id.side_effect = KeyError
         self.session.insert_client = mock.MagicMock()
         res = self.controller.add(post_body, testuid)

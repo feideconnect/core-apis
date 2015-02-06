@@ -10,7 +10,7 @@ from coreapis import main, middleware
 from coreapis.clientadm.tests.helper import (
     userid_own, userid_other, clientid, date_created, testscope, otherscope, testuri,
     post_body_minimal, post_body_other_owner, post_body_maximal, retrieved_client,
-    retrieved_user, httptime, mock_get_apigk)
+    retrieved_user, testgk, othergk, httptime, mock_get_apigk)
 
 
 class ClientAdmTests(unittest.TestCase):
@@ -156,11 +156,35 @@ class ClientAdmTests(unittest.TestCase):
         self.session.insert_client = mock.MagicMock()
         self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
 
-    def test_post_client_invalid_gkscope_requested(self):
+    def test_post_client_gkscope_does_not_exist(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.side_effect = KeyError
         body = deepcopy(post_body_minimal)
         body['scopes_requested'] = ['gk_nosuchthing']
+        self.session.insert_client = mock.MagicMock()
+        self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
+
+    def test_post_client_gksubscope_given(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_by_id.side_effect = KeyError
+        body = deepcopy(post_body_minimal)
+        body['scopes_requested'] = [testgk + '_foo']
+        self.session.insert_client = mock.MagicMock()
+        self.testapp.post_json('/clientadm/clients/', body, status=201, headers=headers)
+
+    def test_post_client_gksubscope_does_not_exist(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_by_id.side_effect = KeyError
+        body = deepcopy(post_body_minimal)
+        body['scopes_requested'] = [testgk + '_bar']
+        self.session.insert_client = mock.MagicMock()
+        self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
+
+    def test_post_client_gksubscope_no_subscopedefs(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_by_id.side_effect = KeyError
+        body = deepcopy(post_body_minimal)
+        body['scopes_requested'] = [othergk + '_bar']
         self.session.insert_client = mock.MagicMock()
         self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
 

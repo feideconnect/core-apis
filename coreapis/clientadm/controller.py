@@ -61,34 +61,52 @@ class ClientAdmController(CrudControllerBase):
         client = self.session.get_client_by_id(clientid)
         return client
 
-    def handle_gkscope_request(self, client, scope):
-        scopeparts = scope.split('_')
-        gkname = scopeparts[1]
+    def add_scope_if_approved(self, client, scopedef, scope):
         try:
-            apigk = self.session.get_apigk(gkname)
+            if scopedef['policy']['auto']:
+                self.log.debug('Accept scope', scope=scope)
+                client['scopes'].append(scope)
+        except KeyError:
+            pass
+
+    def handle_gksubscope_request(self, client, scope, subname, subscopes):
+        try:
+            scopedef = subscopes[subname]
         except:
             raise ValidationError('invalid scope: {}'.format(scope))
-        print(apigk)
+        self.add_scope_if_approved(client, scopedef, scope)
 
-    def is_auto_scope(self, scope):
+    def handle_gkscope_request(self, client, scope):
+        nameparts = scope.split('_')
+        gkname = nameparts[1]
         try:
-            return self.scopedefs[scope]['policy']['auto']
-        except KeyError:
-            return False
+            apigk = self.session.get_apigk(gkname)
+            scopedef = apigk['scopedef']
+        except:
+            raise ValidationError('invalid scope: {}'.format(scope))
+        if len(nameparts) > 2:
+            if 'subscopes' in scopedef:
+                subname = nameparts[2]
+                self.handle_gksubscope_request(client, scope, subname, scopedef['subscopes'])
+            else:
+                raise ValidationError('invalid scope: {}'.format(scope))
+        else:
+            self.add_scope_if_approved(client, scopedef, scope)
 
     def handle_scope_request(self, client, scope):
         if scope.startswith('gk_'):
             self.handle_gkscope_request(client, scope)
         elif not scope in self.scopedefs:
             raise ValidationError('invalid scope: {}'.format(scope))
-        elif self.is_auto_scope(scope) and scope not in client['scopes']:
-            client['scopes'].append(scope)
+        else:
+            self.add_scope_if_approved(client, self.scopedefs[scope], scope)
 
     # Used both for add and update.
     # By default CQL does not distinguish between INSERT and UPDATE
     def _insert(self, client):
         for scope in client['scopes_requested']:
-            self.handle_scope_request(client, scope)
+            if not scope in client['scopes']:
+                self.handle_scope_request(client, scope)
         self.session.insert_client(client['id'], client['client_secret'], client['name'],
                                    client['descr'], client['redirect_uri'],
                                    client['scopes'], client['scopes_requested'],
