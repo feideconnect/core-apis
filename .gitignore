@@ -6,5 +6,8 @@ __pycache__
 .coverage
 development.ini
 ldap-config.json
+scopedefs.json
 *.egg-info
 testresults.xml
+htmlcov
+pylint.out
