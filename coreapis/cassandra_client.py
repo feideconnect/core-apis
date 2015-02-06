@@ -5,7 +5,7 @@ import time
 import json
 import datetime
 import pytz
-from coreapis.utils import LogWrapper
+from coreapis.utils import LogWrapper, now
 
 
 def parse_apigk(obj):
@@ -138,6 +138,28 @@ class Client(object):
         if len(res) == 0:
             raise KeyError('No such user')
         return res[0]
+
+    def insert_user(self, userid, email, name, profilephoto,
+                    profilephotohash, selectedsource, userid_sec):
+        ts = now()
+        sec_prep = self._prepare('INSERT INTO userid_sec (userid_sec, userid) VALUES (?, ?)')
+        for sec in userid_sec:
+            self.session.execute(sec_prep.bind([sec, userid]))
+
+        userid_sec_seen = {sec: ts for sec in userid_sec}
+        prep = self._prepare('INSERT INTO users (userid, created, email, name, profilephoto, profilephotohash, selectedsource, updated, userid_sec, userid_sec_seen) VALUES (?,?,?,?,?,?,?,?,?,?)')
+        self.session.execute(prep.bind([
+            userid,
+            ts,
+            email,
+            name,
+            profilephoto,
+            profilephotohash,
+            selectedsource,
+            ts,
+            userid_sec,
+            userid_sec_seen
+        ]))
 
     def get_userid_by_userid_sec(self, sec):
         prep = self._prepare('SELECT userid from userid_sec where userid_sec = ?')

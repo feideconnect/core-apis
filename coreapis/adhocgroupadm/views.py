@@ -13,7 +13,9 @@ def configure(config):
     keyspace = config.get_settings().get('cassandra_keyspace')
     maxrows = config.get_settings().get('adhocgroupadm_maxrows', 100)
     key = base64.b64decode(config.get_settings().get('profile_token_secret'))
-    ahgroupadm_controller = AdHocGroupAdmController(contact_points, keyspace, maxrows, key)
+    ps_controller = config.get_settings().get('ps_controller')
+    ahgroupadm_controller = AdHocGroupAdmController(contact_points, keyspace, maxrows, key,
+                                                    ps_controller)
     config.add_settings(ahgroupadm_controller=ahgroupadm_controller)
     config.add_request_method(lambda r: r.registry.settings.ahgroupadm_controller,
                               'ahgroupadm_controller', reify=True)

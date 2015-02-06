@@ -40,11 +40,12 @@ class AdHocGroupAdmController(CrudControllerBase):
     }]
     del_member_schema = [valid_member_id]
 
-    def __init__(self, contact_points, keyspace, maxrows, key):
+    def __init__(self, contact_points, keyspace, maxrows, key, ps_controller):
         super(AdHocGroupAdmController, self).__init__(maxrows)
         self.session = cassandra_client.Client(contact_points, keyspace)
         self.log = LogWrapper('adhocgroupadm.AdHocGroupAdmController')
         self.key = key
+        self.ps_controller = ps_controller
 
     def get(self, id):
         self.log.debug('Get group', id=id)
@@ -113,7 +114,18 @@ class AdHocGroupAdmController(CrudControllerBase):
             raise ValidationError(str(ex))
         for member in adapted:
             userid_sec = decrypt_token(member['token'], self.key)
-            userid = self.session.get_userid_by_userid_sec(userid_sec)
+            try:
+                userid = self.session.get_userid_by_userid_sec(userid_sec)
+            except KeyError:
+                userid = uuid.uuid4()
+                p = 'p:{}'.format(uuid.uuid4())
+                feideid = userid_sec.split(':', 1)[1]
+                realm = feideid.split('@', 1)[1]
+                person = self.ps_controller.get_user(feideid)
+                source = 'ps:{}'.format(realm)
+                name = {source: person['name']}
+                userid_sec = set([userid_sec, p])
+                self.session.insert_user(userid, None, name, None, None, source, userid_sec)
             self.add_member(groupid, userid, member['type'], 'unconfirmed')
 
     def del_members(self, groupid, data):

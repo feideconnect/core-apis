@@ -232,3 +232,29 @@ class PeopleSearchController(object):
     def cache_profile_image(self, user, last_modified, etag, data):
         last_modified = last_modified.replace(microsecond=0)
         self.db.insert(user, now(), last_modified, etag, data)
+
+    def get_user(self, feideid):
+        if not '@' in feideid:
+            raise KeyError('bad feideid')
+        realm = feideid.split('@', 1)[1]
+        attrs = ['cn', 'displayName']
+        search_filter = '(eduPersonPrincipalName={})'.format(feideid)
+        res = self.ldap.ldap_search(realm, search_filter, ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
+                                    attributes=attrs, size_limit=1)
+        if len(res) == 0:
+            self.log.debug('Could not find user for %s' % user)
+            return None, None, None
+        if len(res) > 1:
+            self.log.warn('Multiple matches to eduPersonPrincipalName')
+        person = res[0]['attributes']
+        flatten(person, ('cn', 'displayName', 'eduPersonPrincipalName'))
+        new_person = {}
+        if 'eduPersonPrincipalName' in person:
+            feideid = person['eduPersonPrincipalName']
+            person['id'] = 'feide:' + feideid
+            new_person['profile_image_token'] = crypt_token(person['id'], self.key)
+        if 'displayName' in person:
+            new_person['name'] = person['displayName']
+        elif 'cn' in person:
+            new_person['name'] = person['cn']
+        return new_person
