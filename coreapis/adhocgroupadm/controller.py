@@ -85,7 +85,10 @@ class AdHocGroupAdmController(CrudControllerBase):
         return group['owner'] == userid
 
     def is_admin(self, group, userid):
-        membership = self.session.get_membership_data(group['id'], userid)
+        try:
+            membership = self.session.get_membership_data(group['id'], userid)
+        except KeyError:
+            return False
         if membership['type'] == 'admin' and membership['status'] == 'normal':
             return True
         return False
