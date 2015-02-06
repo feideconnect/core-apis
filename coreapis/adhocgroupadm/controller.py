@@ -23,7 +23,7 @@ def valid_member_id(mid):
 class AdHocGroupAdmController(CrudControllerBase):
     FILTER_KEYS = {
         'owner': {'sel':  'owner = ?',
-                  'cast': uuid.UUID},
+                  'cast': lambda x: x},
     }
     schema = {
         '+name': 'string',
