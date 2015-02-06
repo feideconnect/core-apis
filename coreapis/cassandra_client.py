@@ -281,7 +281,10 @@ class Client(object):
 
     def get_membership_data(self, groupid, userid):
         prep = self._prepare('SELECT * FROM group_members WHERE groupid=? AND userid=?')
-        return self.session.execute(prep.bind([groupid, userid]))
+        memberships = self.session.execute(prep.bind([groupid, userid]))
+        if len(memberships) == 0:
+            raise KeyError('No such membership')
+        return memberships[0]
 
     def get_group_memberships(self, userid, mtype, status, maxrows):
         selectors = ['userid = ?']

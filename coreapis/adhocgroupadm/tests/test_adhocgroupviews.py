@@ -276,12 +276,12 @@ class AdHocGroupAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         group = deepcopy(group1)
         self.session().get_group.return_value = group
-        self.session().get_membership_data.return_value = [{
+        self.session().get_membership_data.return_value = {
             'groupid': groupid1,
             'userid': user1,
             'status': 'unconfirmed',
             'type': 'normal',
-        }]
+        }
         self.testapp.patch_json('/adhocgroups/memberships', [str(groupid1)], status=200,
                                 headers=headers)
         self.session().set_group_member_status.assert_called_with(groupid1, user1, "normal")
@@ -290,7 +290,7 @@ class AdHocGroupAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         group = deepcopy(group1)
         self.session().get_group.return_value = group
-        self.session().get_membership_data.return_value = []
+        self.session().get_membership_data.side_effect = KeyError
         self.testapp.patch_json('/adhocgroups/memberships', [str(groupid1)], status=409,
                                 headers=headers)
         assert not self.session().set_group_member_status.called
