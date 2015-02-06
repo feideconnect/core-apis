@@ -208,9 +208,7 @@ class AdHocGroupAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         group = deepcopy(group1)
         self.session().get_group.return_value = group
-        self.session().get_user_by_userid_sec.return_value = {
-            'userid': user1,
-        }
+        self.session().get_userid_by_userid_sec.return_value = user1
         data = [
             {
                 'token': member_token,
@@ -246,9 +244,7 @@ class AdHocGroupAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         group = deepcopy(group1)
         self.session().get_group.return_value = group
-        self.session().get_user_by_userid_sec.return_value = {
-            'userid': user1,
-        }
+        self.session().get_userid_by_userid_sec.return_value = user1
         data = [
             'p:' + str(user1),
         ]

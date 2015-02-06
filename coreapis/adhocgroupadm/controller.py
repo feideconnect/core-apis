@@ -113,8 +113,8 @@ class AdHocGroupAdmController(CrudControllerBase):
             raise ValidationError(str(ex))
         for member in adapted:
             userid_sec = decrypt_token(member['token'], self.key)
-            user = self.session.get_user_by_userid_sec(userid_sec)
-            self.add_member(groupid, user['userid'], member['type'], 'unconfirmed')
+            userid = self.session.get_userid_by_userid_sec(userid_sec)
+            self.add_member(groupid, userid, member['type'], 'unconfirmed')
 
     def del_members(self, groupid, data):
         validator = V.parse(self.del_member_schema, additional_properties=False)
@@ -123,8 +123,8 @@ class AdHocGroupAdmController(CrudControllerBase):
         except V.ValidationError as ex:
             raise ValidationError(str(ex))
         for member in adapted:
-            user = self.session.get_user_by_userid_sec(member)
-            self.session.del_group_member(groupid, user['userid'])
+            userid = self.session.get_userid_by_userid_sec(member)
+            self.session.del_group_member(groupid, userid)
 
     def get_memberships(self, userid, mtype=None, status=None):
         memberships = self.session.get_group_memberships(userid, mtype, status, self.maxrows)

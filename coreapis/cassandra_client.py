@@ -139,14 +139,14 @@ class Client(object):
             raise KeyError('No such user')
         return res[0]
 
-    def get_user_by_userid_sec(self, sec):
-        prep = self._prepare('SELECT * from users where userid_sec CONTAINS ?')
+    def get_userid_by_userid_sec(self, sec):
+        prep = self._prepare('SELECT userid from userid_sec where userid_sec = ?')
         res = self.session.execute(prep.bind([sec]))
         if len(res) == 0:
             raise KeyError('No such user')
         if len(res) > 1:
             raise RuntimeError('inconsistent database')
-        return res[0]
+        return res[0]['userid']
 
     def get_apigk(self, id):
         prep = self.s_get_apigk
