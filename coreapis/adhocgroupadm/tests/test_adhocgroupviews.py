@@ -25,6 +25,7 @@ post_body_maximal = {
 user1 = uuid.UUID("00000000-0000-0000-0000-000000000001")
 user2 = uuid.UUID("00000000-0000-0000-0000-000000000002")
 groupid1 = uuid.UUID("00000000-0000-0000-0001-000000000001")
+groupid2 = uuid.UUID("00000000-0000-0000-0001-000000000002")
 group1 = {
     "updated": parse_datetime("2015-01-26T16:05:59Z"),
     "created": parse_datetime("2015-01-23T13:50:09Z"),
@@ -70,18 +71,21 @@ class AdHocGroupAdmTests(unittest.TestCase):
 
     def test_list_groups(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session().get_groups.return_value = [{'foo': 'bar'}]
+        self.session().get_groups.return_value = [{'id': groupid1}]
+        self.session().get_group_memberships.return_value = [
+            {
+                'groupid': groupid1,
+            },
+            {
+                'groupid': groupid2,
+            }
+        ]
+        self.session().get_group.return_value = {'id': groupid2}
         res = self.testapp.get('/adhocgroups/', status=200, headers=headers)
         out = res.json
-        assert 'foo' in out[0]
-
-    def test_list_groups_by_owner(self):
-        headers = {'Authorization': 'Bearer user_token'}
-        self.session().get_groups.return_value = [{'foo': 'bar'}]
-        res = self.testapp.get('/adhocgroups/?owner={}'.format('00000000-0000-0000-0000-000000000001'),
-                               status=200, headers=headers)
-        out = res.json
-        assert 'foo' in out[0]
+        assert len(out) == 2
+        assert out[0]['id'] == "00000000-0000-0000-0001-000000000001"
+        assert out[1]['id'] == "00000000-0000-0000-0001-000000000002"
 
     def test_post_group_minimal(self):
         headers = {'Authorization': 'Bearer user_token'}

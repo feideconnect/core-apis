@@ -58,9 +58,7 @@ def check(request, permission):
 
 @view_config(route_name='list_groups', renderer='json', permission='scope_adhocgroupadmin')
 def list_groups(request):
-    params = {}
-    params['owner'] = get_userid(request)
-    return request.ahgroupadm_controller.list(params)
+    return request.ahgroupadm_controller.list(get_userid(request), request.params)
 
 
 @view_config(route_name='get_group', renderer='json', permission='scope_adhocgroupadmin')

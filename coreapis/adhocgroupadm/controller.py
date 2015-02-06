@@ -56,8 +56,16 @@ class AdHocGroupAdmController(CrudControllerBase):
         self.log.debug('Delete group', id=id)
         self.session.delete_group(id)
 
-    def _list(self, selectors, values, maxrows):
-        return self.session.get_groups(selectors, values, maxrows)
+    def list(self, userid, params):
+        groups = self.session.get_groups(['owner = ?'], [userid], self.maxrows)
+        seen_groups = set([group['id'] for group in groups])
+        memberships = self.session.get_group_memberships(userid, "admin", "normal", self.maxrows)
+        for mem in memberships:
+            groupid = mem['groupid']
+            if not groupid in seen_groups:
+                groups.append(self.get(groupid))
+                seen_groups.add(groupid)
+        return groups
 
     def add(self, item, userid):
         res = super(AdHocGroupAdmController, self).add(item, userid)
@@ -77,7 +85,10 @@ class AdHocGroupAdmController(CrudControllerBase):
         return group['owner'] == userid
 
     def is_admin(self, group, userid):
-        pass
+        membership = self.session.get_membership_data(group['id'], userid)
+        if membership['type'] == 'admin' and membership['status'] == 'normal':
+            return True
+        return False
 
     def is_owner_or_admin(self, group, userid):
         return self.is_owner(group, userid) or self.is_admin(group, userid)
