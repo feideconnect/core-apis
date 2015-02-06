@@ -10,7 +10,7 @@ from coreapis import main, middleware
 from coreapis.clientadm.tests.helper import (
     userid_own, userid_other, clientid, date_created, testscope, otherscope, testuri,
     post_body_minimal, post_body_other_owner, post_body_maximal, retrieved_client,
-    retrieved_user, httptime)
+    retrieved_user, httptime, mock_get_apigk)
 
 
 class ClientAdmTests(unittest.TestCase):
@@ -26,6 +26,7 @@ class ClientAdmTests(unittest.TestCase):
         }, enabled_components='clientadm', clientadm_scopedefs_file='scopedefs.json.example', clientadm_maxrows=100)
         mw = middleware.MockAuthMiddleware(app, 'test realm')
         self.session = Client()
+        self.session.get_apigk.side_effect = mock_get_apigk
         self.testapp = TestApp(mw)
 
     def tearDown(self):

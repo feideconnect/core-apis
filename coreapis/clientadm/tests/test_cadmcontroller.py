@@ -16,7 +16,6 @@ class TestController(TestCase):
     @mock.patch('coreapis.middleware.cassandra_client.Client')
     def setUp(self, Client):
         self.session = Client()
-        self.session.get_apigks.return_value = [{'id': 'test1'}]
         self.controller = controller.ClientAdmController([], 'keyspace',
                                                          'scopedefs.json.example', 100)
 

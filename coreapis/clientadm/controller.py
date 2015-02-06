@@ -61,14 +61,14 @@ class ClientAdmController(CrudControllerBase):
         client = self.session.get_client_by_id(clientid)
         return client
 
-    def is_valid_gkscope(self, scope):
+    def handle_gkscope_request(self, client, scope):
         scopeparts = scope.split('_')
-        return (scopeparts[0] == 'gk' and len(scopeparts) > 1 and
-                any([scopeparts[1] == apigk['id']
-                     for apigk in self.session.get_apigks([], [], self.maxrows)]))
-
-    def is_valid_scope(self, scope):
-        return scope in self.scopedefs or self.is_valid_gkscope(scope)
+        gkname = scopeparts[1]
+        try:
+            apigk = self.session.get_apigk(gkname)
+        except:
+            raise ValidationError('invalid scope: {}'.format(scope))
+        print(apigk)
 
     def is_auto_scope(self, scope):
         try:
@@ -77,9 +77,11 @@ class ClientAdmController(CrudControllerBase):
             return False
 
     def handle_scope_request(self, client, scope):
-        if not self.is_valid_scope(scope):
+        if scope.startswith('gk_'):
+            self.handle_gkscope_request(client, scope)
+        elif not scope in self.scopedefs:
             raise ValidationError('invalid scope: {}'.format(scope))
-        if self.is_auto_scope(scope) and scope not in client['scopes']:
+        elif self.is_auto_scope(scope) and scope not in client['scopes']:
             client['scopes'].append(scope)
 
     # Used both for add and update.

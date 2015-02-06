@@ -68,9 +68,19 @@ retrieved_gk_clients[3].update({
 
 retrieved_gk_client = retrieved_gk_clients[0]
 
+apigks = {'test1': {}}
+
 
 def httptime(timestamp):
     return timestamp.strftime("%a, %d %b %Y %H:%M:%S +0000")
+
+
+def mock_get_apigk(gkid):
+    print(gkid)
+    if gkid in apigks:
+        return {'id': gkid}
+    else:
+        raise KeyError('No such apigk')
 
 
 def mock_get_clients_by_scope(scope):
