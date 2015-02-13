@@ -69,10 +69,10 @@ retrieved_gk_clients[3].update({
 
 retrieved_gk_client = retrieved_gk_clients[0]
 
-apigks = {'test1': {'owner': userid_own,
-                    'scopedef': {'subscopes': {'foo': {}}}},
-          'test2': {'owner': userid_third,
-                    'scopedef': {}}}
+apigks = {testgk.split('_')[1]: {'owner': userid_own,
+                                 'scopedef': {'subscopes': {'foo': {}}}},
+          othergk.split('_')[1]: {'owner': userid_third,
+                                  'scopedef': {}}}
 
 
 def httptime(timestamp):
