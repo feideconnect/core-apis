@@ -176,4 +176,4 @@ class ClientAdmController(CrudControllerBase):
                 raise UnauthorizedError('User does not own API Gatekeeper')
             client['scopes'].append(scope)
         self.insert_client(client)
-        return(client)
+        return client
