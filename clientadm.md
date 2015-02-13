@@ -48,6 +48,9 @@ Request` if request body violates the schema or is malformed in some
 way. Returns `401 Not Authorized` if trying to update a client not
 owned by user.Returns `404 Not Found` if client does not exist.
 
+The owner of an API Gatekeeper is allowed to update 'scopes' with
+scopes it controls, as long as the client owner has requested the scope.
+
 ## Fetching a client
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
