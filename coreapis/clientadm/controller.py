@@ -1,6 +1,6 @@
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
-from coreapis.utils import LogWrapper, ts, public_userinfo, ValidationError
+from coreapis.utils import LogWrapper, ts, public_userinfo, ValidationError, UnauthorizedError
 import json
 import uuid
 import valideer as V
@@ -101,18 +101,28 @@ class ClientAdmController(CrudControllerBase):
         else:
             self.add_scope_if_approved(client, self.scopedefs[scope], scope)
 
+    def insert_client(self, client):
+        self.session.insert_client(client['id'], client['client_secret'], client['name'],
+                                   client['descr'], client['redirect_uri'],
+                                   client['scopes'], client['scopes_requested'],
+                                   client['status'], client['type'], client['created'],
+                                   client['updated'], client['owner'])
+
     # Used both for add and update.
     # By default CQL does not distinguish between INSERT and UPDATE
     def _insert(self, client):
         for scope in client['scopes_requested']:
             if not scope in client['scopes']:
                 self.handle_scope_request(client, scope)
-        self.session.insert_client(client['id'], client['client_secret'], client['name'],
-                                   client['descr'], client['redirect_uri'],
-                                   client['scopes'], client['scopes_requested'],
-                                   client['status'], client['type'], client['created'],
-                                   client['updated'], client['owner'])
+        self.insert_client(client)
         return client
+
+    def update(self, itemid, attrs):
+        client = self.validate_update(itemid, attrs)
+        for scope in client['scopes_requested']:
+            if not scope in client['scopes']:
+                self.handle_scope_request(client, scope)
+        return self._insert(client)
 
     def delete(self, clientid):
         self.log.debug('Delete client', clientid=clientid)
@@ -152,3 +162,18 @@ class ClientAdmController(CrudControllerBase):
     def list_public_scopes(self):
         self.log.debug('List public scopes')
         return {k: v for k, v in self.scopedefs.items() if v.get('public', False)}
+
+    def update_scopes(self, clientid, userid, scopes):
+        client = self.get(clientid)
+        for scope in [scope for scope in scopes
+                      if (scope not in client['scopes'] and
+                          scope in client['scopes_requested'] and
+                          scope.startswith('gk_'))]:
+            nameparts = scope.split('_')
+            gkname = nameparts[1]
+            apigk = self.session.get_apigk(gkname)
+            if apigk['owner'] != str(userid):
+                raise UnauthorizedError('User does not own API Gatekeeper')
+            client['scopes'].append(scope)
+        self.insert_client(client)
+        return(client)

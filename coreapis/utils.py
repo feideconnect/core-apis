@@ -214,6 +214,12 @@ class AlreadyExistsError(RuntimeError):
         self.message = message
 
 
+class UnauthorizedError(RuntimeError):
+    def __init__(self, message):
+        super(UnauthorizedError, self).__init__(message)
+        self.message = message
+
+
 def get_userid(request):
     try:
         return request.environ['FC_USER']['userid']

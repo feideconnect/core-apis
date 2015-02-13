@@ -318,6 +318,30 @@ class ClientAdmTests(unittest.TestCase):
         out = res.json
         assert out['scopes'] == [testscope]
 
+    def test_update_client_gkowner_changes_scopes(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        client['scopes_requested'] = [testgk]
+        client['owner'] = userid_other
+        self.session.get_client_by_id.return_value = client
+        self.session.insert_client = mock.MagicMock()
+        attrs = {'scopes': [testgk]}
+        res = self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
+                                      attrs, status=200, headers=headers)
+        out = res.json
+        assert out['scopes'] == [testgk]
+
+    def test_update_client_stranger_changes_scopes(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        client['scopes_requested'] = [othergk]
+        client['owner'] = userid_other
+        self.session.get_client_by_id.return_value = client
+        self.session.insert_client = mock.MagicMock()
+        attrs = {'scopes': [othergk]}
+        self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
+                                attrs, status=401, headers=headers)
+
     def test_update_client_invalid_list(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.return_value = deepcopy(retrieved_client)

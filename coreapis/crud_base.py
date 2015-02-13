@@ -73,8 +73,8 @@ class CrudControllerBase(object):
         self._insert(item)
         return item
 
-    def update(self, itemid, attrs):
-        self.log.debug('update item', itemid=itemid)
+    def validate_update(self, itemid, attrs):
+        self.log.debug('validate update item', itemid=itemid)
         try:
             item = self.get(itemid)
             for k, v in attrs.items():
@@ -85,6 +85,11 @@ class CrudControllerBase(object):
             self.log.debug('item is invalid: {}'.format(ex))
             raise ValidationError(ex)
         item['updated'] = now()
+        return item
+
+    def update(self, itemid, attrs):
+        self.log.debug('update item', itemid=itemid)
+        item = self.validate_update(itemid, attrs)
         self._insert(item)
         return item
 

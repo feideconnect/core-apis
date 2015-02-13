@@ -4,7 +4,7 @@ from pyramid.httpexceptions import (
 from pyramid.security import has_permission
 from pyramid.response import Response
 from .controller import ClientAdmController
-from coreapis.utils import AlreadyExistsError, get_userid
+from coreapis.utils import AlreadyExistsError, UnauthorizedError, get_userid
 import json
 import uuid
 
@@ -95,6 +95,13 @@ def delete_client(request):
     return Response(status='204 No Content', content_type=False)
 
 
+def update_scopes(request, clientid, userid, scopes):
+    try:
+        return request.cadm_controller.update_scopes(clientid, userid, scopes)
+    except UnauthorizedError as err:
+        raise HTTPUnauthorized(err.message)
+
+
 @view_config(route_name='update_client', renderer='json', permission='scope_clientadmin')
 def update_client(request):
     userid = get_userid(request)
@@ -107,9 +114,13 @@ def update_client(request):
     try:
         owner = request.cadm_controller.get_owner(clientid)
         if owner and owner != userid:
-            raise HTTPUnauthorized
-        attrs = allowed_attrs(payload, 'update')
-        client = request.cadm_controller.update(clientid, attrs)
+            if 'scopes' in payload:
+                client = update_scopes(request, clientid, userid, payload['scopes'])
+            else:
+                raise HTTPUnauthorized
+        else:
+            attrs = allowed_attrs(payload, 'update')
+            client = request.cadm_controller.update(clientid, attrs)
         return client
     except KeyError:
         raise HTTPNotFound

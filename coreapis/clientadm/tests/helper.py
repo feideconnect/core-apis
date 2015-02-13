@@ -4,7 +4,8 @@ from aniso8601 import parse_datetime
 
 userid_own = '00000000-0000-0000-0000-000000000001'
 userid_other = '00000000-0000-0000-0000-000000000002'
-clientid = '00000000-0000-0000-0000-000000000003'
+userid_third = '00000000-0000-0000-0000-000000000003'
+clientid = '00000000-0000-0000-0000-000000000004'
 date_created = '2015-01-12T13:05:16Z'
 testscope = 'userinfo-mail'
 otherscope = 'userinfo-feide'
@@ -68,8 +69,10 @@ retrieved_gk_clients[3].update({
 
 retrieved_gk_client = retrieved_gk_clients[0]
 
-apigks = {'test1': {'scopedef': {'subscopes': {'foo': {}}}},
-          'test2': {'scopedef': {}}}
+apigks = {'test1': {'owner': userid_own,
+                    'scopedef': {'subscopes': {'foo': {}}}},
+          'test2': {'owner': userid_third,
+                    'scopedef': {}}}
 
 
 def httptime(timestamp):
