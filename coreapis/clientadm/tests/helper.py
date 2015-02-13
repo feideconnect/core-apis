@@ -11,6 +11,7 @@ testscope = 'userinfo-mail'
 otherscope = 'userinfo-feide'
 testgk = 'gk_test1'
 othergk = 'gk_test2'
+nullscopedefgk = 'gk_nullscopedef'
 testuri = 'http://example.org'
 
 post_body_minimal = {
@@ -72,7 +73,8 @@ retrieved_gk_client = retrieved_gk_clients[0]
 apigks = {testgk.split('_')[1]: {'owner': userid_own,
                                  'scopedef': {'subscopes': {'foo': {}}}},
           othergk.split('_')[1]: {'owner': userid_third,
-                                  'scopedef': {}}}
+                                  'scopedef': {}},
+          nullscopedefgk.split('_')[1]: {'owner': userid_own, 'scopedef': None}}
 
 
 def httptime(timestamp):

@@ -10,7 +10,7 @@ from coreapis import main, middleware
 from coreapis.clientadm.tests.helper import (
     userid_own, userid_other, clientid, date_created, testscope, otherscope, testuri,
     post_body_minimal, post_body_other_owner, post_body_maximal, retrieved_client,
-    retrieved_user, testgk, othergk, httptime, mock_get_apigk)
+    retrieved_user, testgk, othergk, nullscopedefgk, httptime, mock_get_apigk)
 
 
 class ClientAdmTests(unittest.TestCase):
@@ -330,6 +330,17 @@ class ClientAdmTests(unittest.TestCase):
                                       attrs, status=200, headers=headers)
         out = res.json
         assert out['scopes'] == [testgk]
+
+    def test_update_client_gkscope_lacking_scopedef(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        self.session.get_client_by_id.return_value = client
+        self.session.insert_client = mock.MagicMock()
+        attrs = {'scopes_requested': [nullscopedefgk]}
+        res = self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
+                                      attrs, status=200, headers=headers)
+        out = res.json
+        assert out['scopes'] == [nullscopedefgk]
 
     def test_update_client_stranger_changes_scopes(self):
         headers = {'Authorization': 'Bearer user_token'}

@@ -81,7 +81,9 @@ class ClientAdmController(CrudControllerBase):
         gkname = nameparts[1]
         try:
             apigk = self.session.get_apigk(gkname)
-            scopedef = apigk['scopedef']
+            scopedef = apigk.get('scopedef', {})
+            if not scopedef:
+                scopedef = {}
         except:
             raise ValidationError('invalid scope: {}'.format(scope))
         if len(nameparts) > 2:
