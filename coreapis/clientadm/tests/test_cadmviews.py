@@ -340,7 +340,7 @@ class ClientAdmTests(unittest.TestCase):
         res = self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
                                       attrs, status=200, headers=headers)
         out = res.json
-        assert out['scopes'] == [nullscopedefgk]
+        assert out['scopes_requested'] == [nullscopedefgk]
 
     def test_update_client_stranger_changes_scopes(self):
         headers = {'Authorization': 'Bearer user_token'}
