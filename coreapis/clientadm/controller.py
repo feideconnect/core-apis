@@ -1,6 +1,7 @@
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.utils import LogWrapper, ts, public_userinfo, ValidationError, UnauthorizedError
+import blist
 import json
 import uuid
 import valideer as V
@@ -59,6 +60,9 @@ class ClientAdmController(CrudControllerBase):
     def get(self, clientid):
         self.log.debug('Get client', clientid=clientid)
         client = self.session.get_client_by_id(clientid)
+        for k, v in client.items():
+            if isinstance(v, blist.sortedset):
+                client[k] = list(v)
         return client
 
     def add_scope_if_approved(self, client, scopedef, scope):

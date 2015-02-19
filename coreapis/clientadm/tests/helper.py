@@ -1,3 +1,4 @@
+import blist
 import uuid
 from copy import deepcopy
 from aniso8601 import parse_datetime
@@ -30,12 +31,12 @@ post_body_maximal = {
 }
 
 retrieved_client = {
-    'name': 'per', 'scopes': [], 'redirect_uri': [testuri],
+    'name': 'per', 'scopes': blist.sortedset(), 'redirect_uri': [testuri],
     'owner': uuid.UUID(userid_own),
     'id': uuid.UUID(clientid),
     'client_secret': 'sekrit', 'created': parse_datetime(date_created),
     'descr': 'green',
-    'scopes_requested': [testscope], 'status': ['lab'], 'type': 'client',
+    'scopes_requested': blist.sortedset([testscope]), 'status': ['lab'], 'type': 'client',
     'updated': parse_datetime(date_created)
 }
 
