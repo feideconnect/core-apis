@@ -104,7 +104,6 @@ class ClientAdmTests(unittest.TestCase):
 
     def test_post_client_maximal(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_client_by_id.side_effect = KeyError
         self.session.insert_client = mock.MagicMock()
         self.session.get_client_by_id.side_effect = KeyError()
         res = self.testapp.post_json('/clientadm/clients/', post_body_maximal, status=201,
@@ -124,7 +123,7 @@ class ClientAdmTests(unittest.TestCase):
     def test_post_client_duplicate(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.insert_client = mock.MagicMock()
-        self.session.get_client_by_id.return_value = [{'foo': 'bar'}]
+        self.session.get_client_by_id.return_value = {'foo': 'bar'}
         self.testapp.post_json('/clientadm/clients/', post_body_maximal, status=409,
                                headers=headers)
 
