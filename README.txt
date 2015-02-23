@@ -15,6 +15,6 @@ pserve --reload development.ini
 
 
 To run unit tests:
-py.test -v
+py.test -v coreapis
 
 Requires Python 3.3 or newer. Debian Wheezy has 3.2, which is too old.
