@@ -117,9 +117,9 @@ class ClientAdmController(CrudControllerBase):
     # Used both for add and update.
     # By default CQL does not distinguish between INSERT and UPDATE
     def _insert(self, client):
-        for scope in client['scopes_requested']:
-            if not scope in client['scopes']:
-                self.handle_scope_request(client, scope)
+        client['scopes'] = list(set(client['scopes']).intersection(set(client['scopes_requested'])))
+        for scope in set(client['scopes_requested']).difference(set(client['scopes'])):
+            self.handle_scope_request(client, scope)
         self.insert_client(client)
         return client
 

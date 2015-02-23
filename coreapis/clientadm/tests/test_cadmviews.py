@@ -1,5 +1,6 @@
 import unittest
 import mock
+import blist
 import uuid
 from aniso8601 import parse_datetime
 from datetime import timedelta
@@ -351,6 +352,18 @@ class ClientAdmTests(unittest.TestCase):
         attrs = {'scopes': [othergk]}
         self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
                                 attrs, status=401, headers=headers)
+
+    def test_update_client_remove_requested_scope(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        client['scopes'] = blist.sortedset([otherscope])
+        self.session.get_client_by_id.return_value = client
+        self.session.insert_client = mock.MagicMock()
+        attrs = {'scopes_requested': [testscope]}
+        res = self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
+                                      attrs, status=200, headers=headers)
+        out = res.json
+        assert out['scopes'] == []
 
     def test_update_client_invalid_list(self):
         headers = {'Authorization': 'Bearer user_token'}
