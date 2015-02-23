@@ -15,7 +15,7 @@ end
 
 local backend = match[1]
 
-local res = ngx.location.capture('/gk/info/' .. backend)
+local res = ngx.location.capture('/gk/info/' .. backend, {'args': {'method': ngx.req.get_method()}})
 
 if not (res.status == ngx.HTTP_OK) then
    ngx.exit(res.status)

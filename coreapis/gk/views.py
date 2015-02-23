@@ -16,6 +16,17 @@ def configure(config):
     config.scan(__name__)
 
 
+@view_config(route_name='gk_info', renderer='json', request_param="method=OPTIONS")
+def options(self, request):
+    backend = request.matchdict['backend']
+    headers = request.gk_controller.options(backend)
+    if headers is None:
+        raise HTTPUnauthorized()
+    for header, value in headers.items():
+        request.response.headers['X-FeideConnect-' + header] = value
+    return ''
+
+
 @view_config(route_name='gk_info', renderer='json')
 def info(self, request):
     backend = request.matchdict['backend']

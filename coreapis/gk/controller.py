@@ -27,6 +27,16 @@ class GkController(object):
         self.session = cassandra_client.Client(contact_points, keyspace)
         self.log = LogWrapper('gk.GkController')
 
+    def options(self, backend_id):
+        backend = self.session.get_apigk(backend_id)
+        headers = dict()
+        headers['endpoint'] = random.choice(backend['endpoints'])
+        header, value = auth_header(backend['trust'])
+        headers[header] = value
+        self.log.debug('Gatekeeping OPTIONS call',
+                       gatekeeper=backend_id, endpoint=headers['endpoint'])
+        return headers
+
     def info(self, backend_id, client, user, scopes):
         backend = self.session.get_apigk(backend_id)
         if backend['requireuser'] and user is None:
