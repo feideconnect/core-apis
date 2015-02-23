@@ -216,12 +216,12 @@ class AdHocGroupAdmTests(unittest.TestCase):
         data = [
             {
                 'token': member_token,
-                'type': 'normal',
+                'type': 'member',
             }
         ]
         self.testapp.patch_json('/adhocgroups/{}/members'.format(groupid1), data, status=200,
                                 headers=headers)
-        self.session().add_group_member.assert_called_with(groupid1, user1, 'normal', 'unconfirmed')
+        self.session().add_group_member.assert_called_with(groupid1, user1, 'member', 'unconfirmed')
 
     def test_add_group_members_bad_group(self):
         headers = {'Authorization': 'Bearer user_token'}

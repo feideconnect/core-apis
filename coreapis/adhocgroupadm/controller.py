@@ -7,7 +7,7 @@ import valideer as V
 
 
 def valid_member_type(mtype):
-    if mtype == "normal" or mtype == "admin":
+    if mtype == "member" or mtype == "admin":
         return True
     return False
 
