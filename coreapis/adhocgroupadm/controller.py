@@ -52,9 +52,11 @@ class AdHocGroupAdmController(CrudControllerBase):
         group = self.session.get_group(id)
         return group
 
-    def delete(self, id):
-        self.log.debug('Delete group', id=id)
-        self.session.delete_group(id)
+    def delete(self, groupid):
+        self.log.debug('Delete group', id=groupid)
+        for member in self.session.get_group_members(groupid):
+            self.session.del_group_member(groupid, member['userid'])
+        self.session.delete_group(groupid)
 
     def list(self, userid, params):
         groups = self.session.get_groups(['owner = ?'], [userid], self.maxrows)
