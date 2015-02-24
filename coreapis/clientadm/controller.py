@@ -169,17 +169,32 @@ class ClientAdmController(CrudControllerBase):
         self.log.debug('List public scopes')
         return {k: v for k, v in self.scopedefs.items() if v.get('public', False)}
 
-    def update_scopes(self, clientid, userid, scopes):
-        client = self.get(clientid)
-        for scope in [scope for scope in scopes
-                      if (scope not in client['scopes'] and
-                          scope in client['scopes_requested'] and
-                          scope.startswith('gk_'))]:
-            nameparts = scope.split('_')
+    def is_gkowner(self, userid, scopename):
+        try:
+            nameparts = scopename.split('_')
             gkname = nameparts[1]
             apigk = self.session.get_apigk(gkname)
-            if apigk['owner'] != str(userid):
+            return apigk['owner'] == str(userid)
+        except KeyError:
+            return False
+
+    def update_scopes(self, clientid, userid, scopes):
+        client = self.get(clientid)
+        addition_candidates = [
+            scope for scope in scopes if (scope not in client['scopes'] and
+                                          scope in client['scopes_requested'] and
+                                          scope.startswith('gk_'))]
+        removal_candidates = [
+            scope for scope in client['scopes'] if scope not in scopes]
+        for scope in addition_candidates:
+            if not self.is_gkowner(userid, scope):
                 raise UnauthorizedError('User does not own API Gatekeeper')
             client['scopes'].append(scope)
+        for scope in removal_candidates:
+            if not scope.startswith('gk_'):
+                raise UnauthorizedError('{} is not an API Gatekeeper'.format(scope))
+            if not self.is_gkowner(userid, scope):
+                raise UnauthorizedError('User does not own API Gatekeeper')
+            client['scopes'].remove(scope)
         self.insert_client(client)
         return client

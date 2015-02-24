@@ -353,6 +353,39 @@ class ClientAdmTests(unittest.TestCase):
         self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
                                 attrs, status=401, headers=headers)
 
+    def test_update_client_stranger_removes_scope(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        client['scopes'] = [testscope]
+        client['owner'] = userid_other
+        self.session.get_client_by_id.return_value = client
+        self.session.insert_client = mock.MagicMock()
+        attrs = {'scopes': []}
+        self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
+                                attrs, status=401, headers=headers)
+
+    def test_update_client_stranger_removes_gkscope(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        client['scopes'] = [othergk]
+        client['owner'] = userid_other
+        self.session.get_client_by_id.return_value = client
+        self.session.insert_client = mock.MagicMock()
+        attrs = {'scopes': []}
+        self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
+                                attrs, status=401, headers=headers)
+
+    def test_update_client_stranger_removes_bad_gkscope(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        client['scopes'] = ['gk_nosuchthing']
+        client['owner'] = userid_other
+        self.session.get_client_by_id.return_value = client
+        self.session.insert_client = mock.MagicMock()
+        attrs = {'scopes': []}
+        self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
+                                attrs, status=401, headers=headers)
+
     def test_update_client_remove_requested_scope(self):
         headers = {'Authorization': 'Bearer user_token'}
         client = deepcopy(retrieved_client)
@@ -360,6 +393,19 @@ class ClientAdmTests(unittest.TestCase):
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
         attrs = {'scopes_requested': [testscope]}
+        res = self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
+                                      attrs, status=200, headers=headers)
+        out = res.json
+        assert out['scopes'] == []
+
+    def test_update_client_gkowner_removes_gkscope(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        client['scopes'] = blist.sortedset([testgk])
+        client['owner'] = userid_other
+        self.session.get_client_by_id.return_value = client
+        self.session.insert_client = mock.MagicMock()
+        attrs = {'scopes': []}
         res = self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
                                       attrs, status=200, headers=headers)
         out = res.json
