@@ -3,6 +3,8 @@ from coreapis.utils import LogWrapper, public_userinfo
 from . import BaseBackend
 import uuid
 from eventlet.greenpool import GreenPile
+import functools
+import logging
 
 adhoc_type = 'voot:ad-hoc'
 
@@ -30,6 +32,16 @@ def query_match(query, group):
     if query in group.get('description', ''):
         return True
     return False
+
+
+def failsafe(func):
+    def wrapped(func, *args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except:
+            logging.warn('suppressed error')
+            return None
+    return functools.partial(wrapped, func)
 
 
 class AdHocGroupBackend(BaseBackend):
@@ -115,9 +127,10 @@ class AdHocGroupBackend(BaseBackend):
         result = []
         pile = GreenPile()
         for membership in self.session.get_group_memberships(userid, None, None, self.maxrows):
-            pile.spawn(self.session.get_group, membership['groupid'])
+            pile.spawn(failsafe(self.session.get_group), membership['groupid'])
         for group in pile:
-            result.append(self.format_group(group, membership))
+            if group:
+                result.append(self.format_group(group, membership))
         return result
 
     def get_groups(self, user, query):
