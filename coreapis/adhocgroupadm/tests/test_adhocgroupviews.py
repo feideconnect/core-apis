@@ -234,7 +234,7 @@ class AdHocGroupAdmTests(unittest.TestCase):
         self.testapp.patch('/adhocgroups/{}/members'.format(groupid1), '"', status=400,
                            headers=headers)
 
-    def test_add_group_members_invalid_data(self):
+    def test_add_group_members_invalid_type(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_group.return_value = group1
         data = [{
@@ -243,6 +243,17 @@ class AdHocGroupAdmTests(unittest.TestCase):
         }]
         self.testapp.patch_json('/adhocgroups/{}/members'.format(groupid1), data, status=400,
                                 headers=headers)
+
+    def test_add_group_members_invalid_token(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().get_group.return_value = group1
+        data = [{
+            'token': '',
+            'type': 'member',
+        }]
+        res = self.testapp.patch_json('/adhocgroups/{}/members'.format(groupid1), data, status=400,
+                                      headers=headers)
+        assert 'message' in res.json
 
     def test_del_group_members(self):
         headers = {'Authorization': 'Bearer user_token'}

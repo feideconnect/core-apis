@@ -35,7 +35,7 @@ class AdHocGroupAdmController(CrudControllerBase):
         '+public': 'boolean',
     }
     member_schema = [{
-        '+token': 'string',
+        '+token': V.String(min_length=24),
         'type': valid_member_type,
     }]
     del_member_schema = [valid_member_id]
