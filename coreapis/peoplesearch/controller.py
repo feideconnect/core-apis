@@ -8,6 +8,7 @@ from PIL import Image
 import io
 from cassandra.cluster import Cluster
 from coreapis.cassandra_client import datetime_hack_dict_factory
+from functools import partial
 
 THUMB_SIZE = 128, 128
 USER_INFO_ATTRIBUTES = ['cn', 'displayName', 'eduPersonPrincipalName']
@@ -51,7 +52,7 @@ class LDAPController(object):
                 server = ldap3.Server(host, port=port, use_ssl=True)
                 server_pool.add(server)
             self.servers[org] = server_pool
-            self.conpools[org] = pool(create=lambda: self.get_connection(org))
+            self.conpools[org] = pool(create=partial(self.get_connection, org))
 
     def get_ldap_config(self):
         return self.config
