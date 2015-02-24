@@ -4,8 +4,7 @@ from pyramid.httpexceptions import (
 from pyramid.security import has_permission
 from pyramid.response import Response
 from .controller import ClientAdmController
-from coreapis.utils import AlreadyExistsError, UnauthorizedError, get_userid
-import json
+from coreapis.utils import AlreadyExistsError, UnauthorizedError, get_userid, get_payload
 import uuid
 
 
@@ -66,10 +65,7 @@ def allowed_attrs(attrs, operation):
              permission='scope_clientadmin')
 def add_client(request):
     userid = get_userid(request)
-    try:
-        payload = json.loads(request.body.decode(request.charset))
-    except:
-        raise HTTPBadRequest
+    payload = get_payload(request)
     try:
         attrs = allowed_attrs(payload, 'add')
         client = request.cadm_controller.add(attrs, userid)
@@ -106,9 +102,9 @@ def update_scopes(request, clientid, userid, scopes):
 def update_client(request):
     userid = get_userid(request)
     clientid = request.matchdict['id']
+    payload = get_payload(request)
     try:
         clientid = uuid.UUID(clientid)
-        payload = json.loads(request.body.decode(request.charset))
     except:
         raise HTTPBadRequest
     try:

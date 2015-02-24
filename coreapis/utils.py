@@ -11,6 +11,7 @@ import threading
 from aniso8601 import parse_datetime
 from queue import Queue, Empty
 from threading import Lock
+from pyramid.httpexceptions import HTTPBadRequest
 
 __local = threading.local()
 
@@ -229,6 +230,13 @@ def get_userid(request):
 
 def get_user(request):
     return request.environ.get('FC_USER', None)
+
+
+def get_payload(request):
+    try:
+        return request.json_body
+    except ValueError:
+        raise HTTPBadRequest('missing or malformed json body')
 
 
 def public_userinfo(user):

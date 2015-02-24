@@ -2,8 +2,7 @@ from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPConflict, HTTPUnauthorized, HTTPNotModified
 from pyramid.response import Response
 from .controller import APIGKAdmController
-from coreapis.utils import AlreadyExistsError, get_userid
-import json
+from coreapis.utils import AlreadyExistsError, get_userid, get_payload
 
 
 def configure(config):
@@ -78,10 +77,7 @@ def apigk_exists(request):
              permission='scope_apigkadmin')
 def add_apigk(request):
     userid = get_userid(request)
-    try:
-        payload = json.loads(request.body.decode(request.charset))
-    except:
-        raise HTTPBadRequest
+    payload = get_payload(request)
     try:
         attrs = allowed_attrs(payload, 'add')
         apigk = request.gkadm_controller.add(attrs, userid)
@@ -107,10 +103,7 @@ def delete_apigk(request):
 def update_apigk(request):
     userid = get_userid(request)
     gkid = request.matchdict['id']
-    try:
-        payload = json.loads(request.body.decode(request.charset))
-    except:
-        raise HTTPBadRequest
+    payload = get_payload(request)
     try:
         owner = request.gkadm_controller.get_owner(gkid)
         if owner and owner != userid:
