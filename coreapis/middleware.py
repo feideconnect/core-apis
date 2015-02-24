@@ -3,6 +3,7 @@ import json
 from . import cassandra_client
 from .utils import LogWrapper, Timer, RateLimiter, now, www_authenticate, init_request_id
 from aniso8601 import parse_datetime
+import urllib.parse
 
 
 def mock_main(app, config):
@@ -57,10 +58,20 @@ class CorsMiddleware(object):
 class LogMiddleware(object):
     def __init__(self, app):
         self.app = app
+        self.log = LogWrapper('access')
 
     def __call__(self, environ, start_response):
         init_request_id()
-        return self.app(environ, start_response)
+
+        def replace_start_response(status, headers):
+            req_uri = urllib.parse.quote(environ.get('SCRIPT_NAME', '')
+                                         + environ.get('PATH_INFO', ''))
+            if environ.get('QUERY_STRING'):
+                req_uri += '?'+environ['QUERY_STRING']
+            method = environ['REQUEST_METHOD']
+            self.log.info('access', uri=req_uri, method=method, status=status)
+            return start_response(status, headers)
+        return self.app(environ, replace_start_response)
 
 
 class AuthMiddleware(object):
