@@ -67,7 +67,7 @@ class LDAPController(object):
             password = None
         con = ldap3.Connection(self.servers[org], auto_bind=True,
                                user=user, password=password,
-                               client_strategy=ldap3.STRATEGY_SYNC,
+                               client_strategy=ldap3.STRATEGY_SYNC_RESTARTABLE,
                                check_names=True)
         return con
 
