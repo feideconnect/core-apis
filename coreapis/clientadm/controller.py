@@ -16,6 +16,10 @@ def get_scopedefs(filename):
         return {}
 
 
+def is_gkscopename(name):
+    return name.startswith('gk_')
+
+
 def has_gkscope_match(scope, gkscopes):
     return any(scope == gkscope or scope.startswith(gkscope + '_')
                for gkscope in gkscopes)
@@ -100,7 +104,7 @@ class ClientAdmController(CrudControllerBase):
             self.add_scope_if_approved(client, scopedef, scope)
 
     def handle_scope_request(self, client, scope):
-        if scope.startswith('gk_'):
+        if is_gkscopename(scope):
             self.handle_gkscope_request(client, scope)
         elif not scope in self.scopedefs:
             raise ValidationError('invalid scope: {}'.format(scope))
@@ -183,7 +187,7 @@ class ClientAdmController(CrudControllerBase):
         addition_candidates = [
             scope for scope in scopes if (scope not in client['scopes'] and
                                           scope in client['scopes_requested'] and
-                                          scope.startswith('gk_'))]
+                                          is_gkscopename(scope))]
         removal_candidates = [
             scope for scope in client['scopes'] if scope not in scopes]
         for scope in addition_candidates:
@@ -191,7 +195,7 @@ class ClientAdmController(CrudControllerBase):
                 raise UnauthorizedError('User does not own API Gatekeeper')
             client['scopes'].append(scope)
         for scope in removal_candidates:
-            if not scope.startswith('gk_'):
+            if not is_gkscopename(scope):
                 raise UnauthorizedError('{} is not an API Gatekeeper'.format(scope))
             if not self.is_gkowner(userid, scope):
                 raise UnauthorizedError('User does not own API Gatekeeper')
