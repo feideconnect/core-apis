@@ -41,7 +41,7 @@ class Client(object):
         self.default_columns = {
             'clients': 'owner,name,type,status,scopes_requested,client_secret,created,redirect_uri,descr,id,scopes,updated',
             'apigk': 'id,requireuser,created,name,scopedef,httpscertpinned,status,descr,expose,updated,trust,endpoints,owner',
-            'groups': 'id,created,descr,name,owner,public,updated',
+            'groups': 'id,created,descr,name,owner,public,updated,invitation_token',
             'group_members': 'userid,groupid,status,type',
         }
         self.session = cluster.connect(keyspace)
@@ -243,7 +243,7 @@ class Client(object):
         self.session.execute(prep.bind([groupid]))
 
     def insert_group(self, group):
-        prep = self._prepare('INSERT INTO groups (id, created, descr, name, owner, updated, public) VALUES (?, ?, ?, ?, ?, ?, ?)')
+        prep = self._prepare('INSERT INTO groups (id, created, descr, name, owner, updated, public, invitation_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
         self.session.execute(prep.bind([
             group['id'],
             group['created'],
@@ -252,6 +252,7 @@ class Client(object):
             group['owner'],
             group['updated'],
             group['public'],
+            group['invitation_token'],
         ]))
 
     def get_group_logo(self, groupid):

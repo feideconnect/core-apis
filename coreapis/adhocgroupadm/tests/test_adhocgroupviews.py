@@ -34,6 +34,7 @@ group1 = {
     "name": "pre update",
     "descr": "some data",
     "public": False,
+    'invitation_token': '62649b1d-353a-4588-8483-6f4a31863c78',
 }
 
 member_token = '9nFIGK7dEiuVfXdGhVcgvaQVOBZScQ_6y9Yd2BTdMizUtL8yB5b7Im5Zcr3W9hjd'
@@ -278,6 +279,31 @@ class AdHocGroupAdmTests(unittest.TestCase):
         self.session().get_group.return_value = group
         self.testapp.delete_json('/adhocgroups/{}/members'.format(groupid1), "foobar", status=400,
                                  headers=headers)
+
+    def test_get_memberships(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        group = deepcopy(group1)
+        self.session().get_group.return_value = group
+        self.session().get_group_memberships.return_value = [
+            {
+                'groupid': groupid1,
+                'userid': user1,
+                'status': 'normal',
+                'type': 'member',
+            },
+        ]
+
+        res = self.testapp.get('/adhocgroups/memberships', status=200,
+                               headers=headers)
+        memberships = res.json
+        assert len(memberships) == 1
+        membership = memberships[0]
+        assert 'group' in membership
+        assert 'type' in membership
+        assert 'status' in membership
+#        assert len(membership) == 3
+        group = membership['group']
+        assert 'invitation_token' not in group
 
     def test_leave_group(self):
         headers = {'Authorization': 'Bearer user_token'}

@@ -33,6 +33,7 @@ class AdHocGroupAdmController(CrudControllerBase):
         'descr': V.Nullable('string'),
         'updated': V.AdaptBy(ts),
         '+public': 'boolean',
+        'invitation_token': V.Nullable('string'),
     }
     member_schema = [{
         '+token': V.String(min_length=24),
@@ -75,6 +76,8 @@ class AdHocGroupAdmController(CrudControllerBase):
         return res
 
     def _insert(self, group):
+        if not group.get('invitation_token', None):
+            group['invitation_token'] = str(uuid.uuid4())
         return self.session.insert_group(group)
 
     def get_logo(self, groupid):
@@ -160,6 +163,7 @@ class AdHocGroupAdmController(CrudControllerBase):
         for mem in memberships:
             try:
                 group = self.get(mem['groupid'])
+                del group['invitation_token']
                 mem['group'] = group
                 del mem['userid']
                 res.append(mem)
