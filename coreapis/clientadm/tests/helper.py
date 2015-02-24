@@ -12,6 +12,7 @@ testscope = 'userinfo-mail'
 otherscope = 'userinfo-feide'
 testgk = 'gk_test1'
 othergk = 'gk_test2'
+owngk = 'gk_test3'
 nullscopedefgk = 'gk_nullscopedef'
 testuri = 'http://example.org'
 
@@ -71,11 +72,13 @@ retrieved_gk_clients[3].update({
 
 retrieved_gk_client = retrieved_gk_clients[0]
 
-apigks = {testgk.split('_')[1]: {'owner': userid_own,
+apigks = {testgk.split('_')[1]: {'owner': userid_other,
                                  'scopedef': {'subscopes': {'foo': {}}}},
           othergk.split('_')[1]: {'owner': userid_third,
                                   'scopedef': {}},
-          nullscopedefgk.split('_')[1]: {'owner': userid_own, 'scopedef': None}}
+          owngk.split('_')[1]: {'owner': userid_own,
+                                'scopedef': {}},
+          nullscopedefgk.split('_')[1]: {'owner': userid_other, 'scopedef': None}}
 
 
 def httptime(timestamp):

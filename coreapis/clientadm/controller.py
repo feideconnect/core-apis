@@ -94,7 +94,9 @@ class ClientAdmController(CrudControllerBase):
                 scopedef = {}
         except:
             raise ValidationError('invalid scope: {}'.format(scope))
-        if len(nameparts) > 2:
+        if str(apigk['owner']) == str(client['owner']):
+            client['scopes'].append(scope)
+        elif len(nameparts) > 2:
             if 'subscopes' in scopedef:
                 subname = nameparts[2]
                 self.handle_gksubscope_request(client, scope, subname, scopedef['subscopes'])

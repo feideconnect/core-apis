@@ -11,7 +11,7 @@ from coreapis import main, middleware
 from coreapis.clientadm.tests.helper import (
     userid_own, userid_other, clientid, date_created, testscope, otherscope, testuri,
     post_body_minimal, post_body_other_owner, post_body_maximal, retrieved_client,
-    retrieved_user, testgk, othergk, nullscopedefgk, httptime, mock_get_apigk)
+    retrieved_user, testgk, othergk, owngk, nullscopedefgk, httptime, mock_get_apigk)
 
 
 class ClientAdmTests(unittest.TestCase):
@@ -318,18 +318,30 @@ class ClientAdmTests(unittest.TestCase):
         out = res.json
         assert out['scopes'] == [testscope]
 
-    def test_update_client_gkowner_changes_scopes(self):
+    def test_update_client_owner_of_gk_and_client_changes_scopes(self):
         headers = {'Authorization': 'Bearer user_token'}
         client = deepcopy(retrieved_client)
-        client['scopes_requested'] = [testgk]
-        client['owner'] = userid_other
+        client['scopes_requested'] = [owngk]
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
-        attrs = {'scopes': [testgk]}
+        attrs = {'scopes': [owngk]}
         res = self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
                                       attrs, status=200, headers=headers)
         out = res.json
-        assert out['scopes'] == [testgk]
+        assert out['scopes'] == [owngk]
+
+    def test_update_client_gkowner_changes_scopes(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        client['scopes_requested'] = [owngk]
+        client['owner'] = userid_other
+        self.session.get_client_by_id.return_value = client
+        self.session.insert_client = mock.MagicMock()
+        attrs = {'scopes': [owngk]}
+        res = self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
+                                      attrs, status=200, headers=headers)
+        out = res.json
+        assert out['scopes'] == [owngk]
 
     def test_update_client_gkscope_lacking_scopedef(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -401,7 +413,7 @@ class ClientAdmTests(unittest.TestCase):
     def test_update_client_gkowner_removes_gkscope(self):
         headers = {'Authorization': 'Bearer user_token'}
         client = deepcopy(retrieved_client)
-        client['scopes'] = blist.sortedset([testgk])
+        client['scopes'] = blist.sortedset([owngk])
         client['owner'] = userid_other
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
