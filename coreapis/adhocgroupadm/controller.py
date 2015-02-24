@@ -188,3 +188,19 @@ class AdHocGroupAdmController(CrudControllerBase):
             self.session.get_membership_data(groupid, userid)  # Raises KeyError if not member
         for groupid in groups:
             self.session.set_group_member_status(groupid, userid, 'normal')
+
+    def invitation_token(self, groupid, userid, token):
+        try:
+            self.session.get_membership_data(groupid, userid)
+            return None
+        except KeyError:
+            pass
+        group = self.get(groupid)
+        if group['invitation_token'] != token:
+            return None
+        self.add_member(groupid, userid, "member", "normal")
+        return {
+            'groupid': groupid,
+            'type': 'member',
+            'status': 'normal',
+        }

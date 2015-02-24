@@ -27,6 +27,7 @@ def configure(config):
     config.add_route('update_group', '/{id}', request_method='PATCH')
     config.add_route('ahgroup_logo', '/{id}/logo')
     config.add_route('ahgroup_members', '/{id}/members')
+    config.add_route('ahgroup_invitation', '/{id}/invitation')
     config.scan(__name__)
 
 
@@ -197,3 +198,22 @@ def confirm_groups(request):
         return request.ahgroupadm_controller.confirm_groups(userid, payload)
     except KeyError:
         raise HTTPConflict('Not member of group')
+
+
+@view_config(route_name='ahgroup_invitation', request_method='POST',
+             permission='scope_adhocgroupadmin', renderer="json")
+def invitation_token(request):
+    userid = get_userid(request)
+    groupid = get_groupid(request)
+    try:
+        payload = json.loads(request.body.decode(request.charset))
+    except:
+        raise HTTPBadRequest
+    if 'invitation_token' not in payload:
+        raise HTTPBadRequest('missing required field "invitation_token"')
+    membership = request.ahgroupadm_controller.invitation_token(groupid,
+                                                                userid,
+                                                                payload['invitation_token'])
+    if not membership:
+        raise HTTPConflict('Already a member or incorrect invitation token')
+    return membership

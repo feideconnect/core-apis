@@ -26,6 +26,7 @@ user1 = uuid.UUID("00000000-0000-0000-0000-000000000001")
 user2 = uuid.UUID("00000000-0000-0000-0000-000000000002")
 groupid1 = uuid.UUID("00000000-0000-0000-0001-000000000001")
 groupid2 = uuid.UUID("00000000-0000-0000-0001-000000000002")
+group1_invitation = '62649b1d-353a-4588-8483-6f4a31863c78'
 group1 = {
     "updated": parse_datetime("2015-01-26T16:05:59Z"),
     "created": parse_datetime("2015-01-23T13:50:09Z"),
@@ -34,7 +35,7 @@ group1 = {
     "name": "pre update",
     "descr": "some data",
     "public": False,
-    'invitation_token': '62649b1d-353a-4588-8483-6f4a31863c78',
+    'invitation_token': group1_invitation,
 }
 
 member_token = '9nFIGK7dEiuVfXdGhVcgvaQVOBZScQ_6y9Yd2BTdMizUtL8yB5b7Im5Zcr3W9hjd'
@@ -335,3 +336,41 @@ class AdHocGroupAdmTests(unittest.TestCase):
         self.testapp.patch_json('/adhocgroups/memberships', [str(groupid1)], status=409,
                                 headers=headers)
         assert not self.session().set_group_member_status.called
+
+    def test_invitation_token(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        group = deepcopy(group1)
+        self.session().get_group.return_value = group
+        self.session().get_membership_data.side_effect = KeyError
+        res = self.testapp.post_json('/adhocgroups/{}/invitation'.format(groupid1),
+                                     {'invitation_token':
+                                      group1_invitation}, status=200,
+                                     headers=headers)
+        assert res.json == json_normalize({
+            'groupid': groupid1,
+            'status': 'normal',
+            'type': 'member',
+        })
+
+    def test_wrong_invitation_token(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        group = deepcopy(group1)
+        self.session().get_group.return_value = group
+        self.session().get_membership_data.side_effect = KeyError
+        self.testapp.post_json('/adhocgroups/{}/invitation'.format(groupid1),
+                               {'invitation_token': 'foo'},
+                               status=409, headers=headers)
+
+    def test_invitation_token_member(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        group = deepcopy(group1)
+        self.session().get_group.return_value = group
+        self.session().get_membership_data.return_value = {
+            'groupid': groupid1,
+            'userid': user1,
+            'type': 'member',
+            'status': 'unconfirmed',
+        }
+        self.testapp.post_json('/adhocgroups/{}/invitation'.format(groupid1),
+                               {'invitation_token': 'foo'},
+                               status=409, headers=headers)
