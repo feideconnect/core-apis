@@ -93,13 +93,6 @@ def delete_client(request):
     return Response(status='204 No Content', content_type=False)
 
 
-def update_scopes(request, clientid, userid, scopes):
-    try:
-        return request.cadm_controller.update_scopes(clientid, userid, scopes)
-    except UnauthorizedError as err:
-        raise HTTPForbidden(err.message)
-
-
 @view_config(route_name='update_client', renderer='json', permission='scope_clientadmin')
 def update_client(request):
     userid = get_userid(request)
@@ -108,13 +101,9 @@ def update_client(request):
     try:
         owner = request.cadm_controller.get_owner(clientid)
         if owner and owner != userid:
-            if 'scopes' in payload:
-                client = update_scopes(request, clientid, userid, payload['scopes'])
-            else:
-                raise HTTPForbidden('Not owner')
-        else:
-            attrs = allowed_attrs(payload, 'update')
-            client = request.cadm_controller.update(clientid, attrs)
+            raise HTTPForbidden('Not owner')
+        attrs = allowed_attrs(payload, 'update')
+        client = request.cadm_controller.update(clientid, attrs)
         return client
     except KeyError:
         raise HTTPNotFound
