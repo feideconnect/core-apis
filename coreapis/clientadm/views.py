@@ -118,7 +118,8 @@ def update_gkscopes(request):
     scopes_add = payload.get('scopes_add', [])
     scopes_remove = payload.get('scopes_remove', [])
     try:
-        return request.cadm_controller.update_gkscopes(clientid, userid, scopes_add, scopes_remove)
+        request.cadm_controller.update_gkscopes(clientid, userid, scopes_add, scopes_remove)
+        return "OK"
     except ForbiddenError as err:
         raise HTTPForbidden(err.message)
 

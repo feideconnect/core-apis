@@ -417,7 +417,7 @@ class ClientAdmTests(unittest.TestCase):
         res = self.testapp.patch_json('/clientadm/clients/{}/gkscopes'.format(clientid),
                                       attrs, status=200, headers=headers)
         out = res.json
-        assert out['scopes'] == [owngk]
+        assert out == "OK"
 
     def test_update_client_gkowner_removes_gkscope(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -430,7 +430,7 @@ class ClientAdmTests(unittest.TestCase):
         res = self.testapp.patch_json('/clientadm/clients/{}/gkscopes'.format(clientid),
                                       attrs, status=200, headers=headers)
         out = res.json
-        assert out['scopes'] == []
+        assert out == "OK"
 
     def test_update_client_gkowner_adds_unwanted_gkscope(self):
         headers = {'Authorization': 'Bearer user_token'}

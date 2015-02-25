@@ -209,4 +209,3 @@ class ClientAdmController(CrudControllerBase):
         client = self.add_gkscopes(client, userid, scopes_add)
         client = self.remove_gkscopes(client, userid, scopes_remove)
         self.insert_client(client)
-        return client
