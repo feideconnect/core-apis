@@ -8,6 +8,14 @@ from coreapis.utils import AlreadyExistsError, UnauthorizedError, get_userid, ge
 import uuid
 
 
+def get_clientid(request):
+    try:
+        clientid = request.matchdict['id']
+        clientid = uuid.UUID(clientid)
+    except ValueError:
+        raise HTTPBadRequest('malformed client id')
+
+
 def configure(config):
     contact_points = config.get_settings().get('cassandra_contact_points')
     keyspace = config.get_settings().get('cassandra_keyspace')
@@ -40,7 +48,7 @@ def list_clients(request):
 @view_config(route_name='get_client', renderer='json')
 def get_client(self, request):
     userid = get_userid(request)
-    clientid = uuid.UUID(request.matchdict['id'])
+    clientid = get_clientid(request)
     try:
         client = request.cadm_controller.get(clientid)
         owner = client.get('owner', None)
@@ -77,11 +85,7 @@ def add_client(request):
 @view_config(route_name='delete_client', renderer='json', permission='scope_clientadmin')
 def delete_client(request):
     userid = get_userid(request)
-    clientid = request.matchdict['id']
-    try:
-        clientid = uuid.UUID(clientid)
-    except ValueError:
-        raise HTTPBadRequest
+    clientid = get_clientid(request)
     owner = request.cadm_controller.get_owner(clientid)
     if owner and owner != userid:
         raise HTTPForbidden('Not owner')
@@ -99,12 +103,8 @@ def update_scopes(request, clientid, userid, scopes):
 @view_config(route_name='update_client', renderer='json', permission='scope_clientadmin')
 def update_client(request):
     userid = get_userid(request)
-    clientid = request.matchdict['id']
+    clientid = get_clientid(request)
     payload = get_payload(request)
-    try:
-        clientid = uuid.UUID(clientid)
-    except:
-        raise HTTPBadRequest
     try:
         owner = request.cadm_controller.get_owner(clientid)
         if owner and owner != userid:
@@ -122,11 +122,7 @@ def update_client(request):
 
 @view_config(route_name='client_logo')
 def client_logo(request):
-    clientid = request.matchdict['id']
-    try:
-        clientid = uuid.UUID(clientid)
-    except:
-        raise HTTPBadRequest
+    clientid = get_clientid(request)
     try:
         logo, updated = request.cadm_controller.get_logo(clientid)
         if logo is None:
@@ -148,11 +144,7 @@ def client_logo(request):
              renderer="json")
 def upload_logo(request):
     userid = get_userid(request)
-    clientid = request.matchdict['id']
-    try:
-        clientid = uuid.UUID(clientid)
-    except:
-        raise HTTPBadRequest
+    clientid = get_clientid(request)
     owner = request.cadm_controller.get_owner(clientid)
     if owner and owner != userid:
         raise HTTPForbidden('Not owner')
