@@ -10,10 +10,11 @@ log = LogWrapper('error_views')
 def forbidden(request):
     if 'FC_CLIENT' in request.environ:
         auth = www_authenticate(request.registry.settings.realm, 'invalid_scope', 'Supplied token does not give access to perform the request')
+        request.response.status_code = 403
     else:
         auth = www_authenticate(request.registry.settings.realm)
+        request.response.status_code = 401
     request.response.headers['WWW-Authenticate'] = auth
-    request.response.status_code = 401
     return {'message': 'Not authorized'}
 
 

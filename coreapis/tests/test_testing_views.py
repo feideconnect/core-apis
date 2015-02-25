@@ -76,7 +76,7 @@ class ViewTests(unittest.TestCase):
 
     def test_test_scope_missing(self):
         headers = {'Authorization': 'Bearer user_token'}
-        res = self.testapp.get('/test/scope', status=401, headers=headers)
+        res = self.testapp.get('/test/scope', status=403, headers=headers)
         authtype, params = res.www_authenticate
         assert authtype == "Bearer"
         params = parse_auth_params(params)
