@@ -40,16 +40,40 @@ malformed in some way.
      "scopes_requested": ["clientadmin"], "descr": "test",
      "created": "2015-01-22T10:59:03.585000"}
 
-`id`, `created`, `owner`, `scopes` and `updated` may be given, but are
+`id`, `created`, `owner`, `scopes`and `updated` may be given, but are
 silently ignored.
+
+`scopes_requested` is treated as follows: `scopes` in the updated client will only contain scopes
+listed in `scopes_requested` attribute. Scopes are included
+in the client only if at least one of the following applies:
+
+- The scope has policy `auto:true` in `scopedefs.json`
+- The scope is owned by the client's owner.
+- The scope is named `gk_<foo>`, where
+  `<foo>` is the name of an API gatekeeper, whose scopedef
+  has policy `auto:true`.
+- The scope is named `gk_<foo>_<bar>`, where
+  `<foo>` is the name of an API gatekeeper which has subscope
+  `<bar>`. The  scopedef of `<bar>` should have policy `auto:true`.
 
 Returns `200 OK`, and client as json in body. Returns `400 Bad
 Request` if request body violates the schema or is malformed in some
 way. Returns `403 Forbidden` if trying to update a client not
-owned by user.Returns `404 Not Found` if client does not exist.
+owned by user. Returns `404 Not Found` if client does not exist.
 
-The owner of an API Gatekeeper is allowed to update 'scopes' with
-scopes it controls, as long as the client owner has requested the scope.
+## Updating scopes for a client
+
+The owner of an API Gatekeeper can add or remove scopes it controls
+to/from a client's 'scopes', as long as the client owner has requested
+the scope.
+
+    $ curl -X PATCH -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+    -d '{"scopes_add": ["gk_foo_bar"], "scopes_remove": ["gk_foo_quux"]}' \
+    'http://api.dev.feideconnect.no:6543/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9/scopes'
+
+    "OK"
+
+List scopes to be added in `scopes_add` and scopes to be removed in `scopes_remove`.
 
 ## Fetching a client
 
