@@ -184,8 +184,9 @@ class AdHocGroupAdmTests(unittest.TestCase):
         to_update = deepcopy(group1)
         to_update['owner'] = uuid.uuid4()
         self.session().get_group.return_value = to_update
-        self.testapp.patch_json('/adhocgroups/{}'.format(groupid1), {},
-                                status=401, headers=headers)
+        res = self.testapp.patch_json('/adhocgroups/{}'.format(groupid1), {},
+                                      status=403, headers=headers)
+        assert res.www_authenticate is None
 
     def test_get_group_members(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -200,14 +201,14 @@ class AdHocGroupAdmTests(unittest.TestCase):
         group['owner'] = user2
         self.session().get_group.return_value = group
         self.session().get_group_members.return_value = []
-        self.testapp.get('/adhocgroups/{}/members'.format(groupid1), status=401, headers=headers)
+        self.testapp.get('/adhocgroups/{}/members'.format(groupid1), status=403, headers=headers)
 
     def test_add_group_members_no_access(self):
         headers = {'Authorization': 'Bearer user_token'}
         group = deepcopy(group1)
         group['owner'] = user2
         self.session().get_group.return_value = group
-        self.testapp.patch_json('/adhocgroups/{}/members'.format(groupid1), [], status=401,
+        self.testapp.patch_json('/adhocgroups/{}/members'.format(groupid1), [], status=403,
                                 headers=headers)
 
     def test_add_group_members(self):

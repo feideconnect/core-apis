@@ -1,5 +1,5 @@
 from pyramid.view import view_config
-from pyramid.httpexceptions import HTTPNotFound, HTTPUnauthorized, HTTPNotModified
+from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden, HTTPNotModified
 from pyramid.response import Response
 from .controller import GroupsController
 from coreapis.utils import get_user
@@ -24,7 +24,7 @@ def configure(config):
 def my_groups(request):
     user = get_user(request)
     if not user:
-        raise HTTPUnauthorized
+        raise HTTPForbidden('This resource requires a personal token')
     if request.params.get('showAll', 'false').lower() == 'true':
         show_all = True
     else:
@@ -36,7 +36,7 @@ def my_groups(request):
 def get_membership(request):
     user = get_user(request)
     if not user:
-        raise HTTPUnauthorized
+        raise HTTPForbidden('This resource requires a personal token')
     groupid = request.matchdict['groupid']
     try:
         return request.groups_controller.get_membership(user, groupid)

@@ -1,5 +1,5 @@
 from pyramid.view import view_config
-from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPUnauthorized, HTTPNotModified, HTTPConflict
+from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPForbidden, HTTPNotModified, HTTPConflict
 from pyramid.response import Response
 from .controller import AdHocGroupAdmController
 from coreapis.utils import get_userid, get_payload
@@ -52,7 +52,7 @@ def check(request, permission):
     except KeyError:
         raise HTTPNotFound
     if not request.ahgroupadm_controller.has_permission(group, userid, permission):
-        raise HTTPUnauthorized
+        raise HTTPForbidden('no permission')
     return userid, group
 
 

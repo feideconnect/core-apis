@@ -276,7 +276,7 @@ class APIGKAdmTests(unittest.TestCase):
         to_update['owner'] = uuid.uuid4()
         self.session().get_apigk.return_value = to_update
         self.testapp.patch_json('/apigkadm/apigks/updatable', {},
-                                status=401, headers=headers)
+                                status=403, headers=headers)
 
     def test_apigk_exists(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -312,4 +312,4 @@ class APIGKAdmTests(unittest.TestCase):
     def test_apigk_get_owner_clients_not_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.testapp.get('/apigkadm/apigks/owners/{}/clients/'.format(uuid.uuid4()),
-                         status=401, headers=headers)
+                         status=403, headers=headers)

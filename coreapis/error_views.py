@@ -1,21 +1,27 @@
 from pyramid.view import view_config, forbidden_view_config, notfound_view_config
 from .utils import www_authenticate, ValidationError, LogWrapper
-import logging
 import traceback
 
 log = LogWrapper('error_views')
 
 
 @forbidden_view_config(renderer='json')
-def forbidden(request):
+def forbidden(context, request):
+    auth = None
     if 'FC_CLIENT' in request.environ:
-        auth = www_authenticate(request.registry.settings.realm, 'invalid_scope', 'Supplied token does not give access to perform the request')
+        if context.detail.endswith('failed permission check'):
+            auth = www_authenticate(request.registry.settings.realm,
+                                    'invalid_scope',
+                                    'Supplied token does not give access to perform the request')
         request.response.status_code = 403
+        message = str(context)
     else:
         auth = www_authenticate(request.registry.settings.realm)
         request.response.status_code = 401
-    request.response.headers['WWW-Authenticate'] = auth
-    return {'message': 'Not authorized'}
+        message = 'Not authorized'
+    if auth:
+        request.response.headers['WWW-Authenticate'] = auth
+    return {'message': message}
 
 
 @notfound_view_config(renderer='json')

@@ -1,5 +1,5 @@
 from pyramid.view import view_config
-from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPConflict, HTTPUnauthorized, HTTPNotModified
+from pyramid.httpexceptions import HTTPNotFound, HTTPConflict, HTTPForbidden, HTTPNotModified
 from pyramid.response import Response
 from .controller import APIGKAdmController
 from coreapis.utils import AlreadyExistsError, get_userid, get_payload
@@ -37,8 +37,6 @@ def list_apigks(request):
     userid = str(get_userid(request))
     params = {}
     for k, v in request.params.items():
-        if k == 'owner' and v != str(userid):
-            raise HTTPUnauthorized
         params[k] = v
     params['owner'] = userid
     return request.gkadm_controller.list(params)
@@ -57,7 +55,7 @@ def get_apigk(request):
         apigk = request.gkadm_controller.get(gkid)
         owner = apigk.get('owner', None)
         if owner and owner != userid:
-            raise HTTPUnauthorized
+            raise HTTPForbidden('Not owner')
     except KeyError:
         raise HTTPNotFound()
     return apigk
@@ -94,7 +92,7 @@ def delete_apigk(request):
     gkid = request.matchdict['id']
     owner = request.gkadm_controller.get_owner(gkid)
     if owner and owner != userid:
-        raise HTTPUnauthorized
+        raise HTTPForbidden('Not owner')
     request.gkadm_controller.delete(gkid)
     return Response(status=204, content_type=False)
 
@@ -107,7 +105,7 @@ def update_apigk(request):
     try:
         owner = request.gkadm_controller.get_owner(gkid)
         if owner and owner != userid:
-            raise HTTPUnauthorized
+            raise HTTPForbidden('Not owner')
         attrs = allowed_attrs(payload, 'update')
         apigk = request.gkadm_controller.update(gkid, attrs)
         return apigk
@@ -142,7 +140,7 @@ def upload_logo(request):
     apigkid = request.matchdict['id']
     owner = request.gkadm_controller.get_owner(apigkid)
     if owner and owner != userid:
-        raise HTTPUnauthorized
+        raise HTTPForbidden('Not owner')
 
     if 'logo' in request.POST:
         input_file = request.POST['logo'].file
@@ -153,10 +151,11 @@ def upload_logo(request):
     request.gkadm_controller.update_logo(apigkid, data)
     return 'OK'
 
+
 @view_config(route_name='apigk_owner_clients', renderer='json', permission='scope_apigkadmin')
 def apigk_owner_clients(request):
     userid = str(get_userid(request))
     ownerid = request.matchdict['ownerid']
     if ownerid != userid:
-        raise HTTPUnauthorized
+        raise HTTPForbidden('wrong owner')
     return request.gkadm_controller.get_gkowner_clients(ownerid)

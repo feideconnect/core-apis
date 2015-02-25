@@ -1,5 +1,5 @@
 from pyramid.view import view_config
-from pyramid.httpexceptions import HTTPUnauthorized
+from pyramid.httpexceptions import HTTPForbidden
 from pyramid.security import has_permission
 from .controller import GkController
 import logging
@@ -20,8 +20,6 @@ def configure(config):
 def options(self, request):
     backend = request.matchdict['backend']
     headers = request.gk_controller.options(backend)
-    if headers is None:
-        raise HTTPUnauthorized()
     for header, value in headers.items():
         request.response.headers['X-FeideConnect-' + header] = value
     return ''
@@ -32,13 +30,13 @@ def info(self, request):
     backend = request.matchdict['backend']
     if not has_permission('scope_gk_{}'.format(backend), self, request):
         logging.debug('not authorized')
-        raise HTTPUnauthorized()
+        raise HTTPForbidden('Unauthorized: scope_gk_{} failed permission check'.format(backend))
     client = request.environ['FC_CLIENT']
     user = request.environ.get('FC_USER', None)
     scopes = request.environ['FC_SCOPES']
     headers = request.gk_controller.info(backend, client, user, scopes)
     if headers is None:
-        raise HTTPUnauthorized()
+        raise HTTPForbidden('token with user required')
     for header, value in headers.items():
         request.response.headers['X-FeideConnect-' + header] = value
     return ''

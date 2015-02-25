@@ -85,8 +85,9 @@ class ClientAdmTests(unittest.TestCase):
     def test_list_clients_by_other_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_clients.return_value = [{'foo': 'bar'}]
-        self.testapp.get('/clientadm/clients/?owner={}'.format(uuid.UUID(userid_other)), status=401,
+        self.testapp.get('/clientadm/clients/?owner={}'.format(uuid.UUID(userid_other)), status=200,
                          headers=headers)
+        assert self.session.get_clients.call_args[0][1][0] == uuid.UUID(userid_own)
 
     def test_bad_client_filter(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -253,7 +254,7 @@ class ClientAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.return_value = {'foo': 'bar',
                                                       'owner': uuid.UUID(userid_other)}
-        self.testapp.delete('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=401,
+        self.testapp.delete('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=403,
                             headers=headers)
 
     def test_update_client(self):
@@ -294,7 +295,7 @@ class ClientAdmTests(unittest.TestCase):
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
         self.testapp.patch_json('/clientadm/clients/{}'.format(clientid), {'descr': 'blue'},
-                                status=401, headers=headers)
+                                status=403, headers=headers)
 
     def test_update_client_change_timestamp(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -363,7 +364,7 @@ class ClientAdmTests(unittest.TestCase):
         self.session.insert_client = mock.MagicMock()
         attrs = {'scopes': [othergk]}
         self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
-                                attrs, status=401, headers=headers)
+                                attrs, status=403, headers=headers)
 
     def test_update_client_stranger_removes_scope(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -374,7 +375,7 @@ class ClientAdmTests(unittest.TestCase):
         self.session.insert_client = mock.MagicMock()
         attrs = {'scopes': []}
         self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
-                                attrs, status=401, headers=headers)
+                                attrs, status=403, headers=headers)
 
     def test_update_client_stranger_removes_gkscope(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -385,7 +386,7 @@ class ClientAdmTests(unittest.TestCase):
         self.session.insert_client = mock.MagicMock()
         attrs = {'scopes': []}
         self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
-                                attrs, status=401, headers=headers)
+                                attrs, status=403, headers=headers)
 
     def test_update_client_stranger_removes_bad_gkscope(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -396,7 +397,7 @@ class ClientAdmTests(unittest.TestCase):
         self.session.insert_client = mock.MagicMock()
         attrs = {'scopes': []}
         self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
-                                attrs, status=401, headers=headers)
+                                attrs, status=403, headers=headers)
 
     def test_update_client_remove_requested_scope(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -526,7 +527,7 @@ class ClientAdmTests(unittest.TestCase):
         self.session.get_client_by_id.return_value = client
         logo = b'mylittlelogo'
         self.testapp.post('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), logo,
-                          status=401, headers=headers)
+                          status=403, headers=headers)
 
     def test_list_public_scopes(self):
         res = self.testapp.get('/clientadm/scopes/', status=200)

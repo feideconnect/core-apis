@@ -45,7 +45,7 @@ silently ignored.
 
 Returns `200 OK`, and client as json in body. Returns `400 Bad
 Request` if request body violates the schema or is malformed in some
-way. Returns `401 Not Authorized` if trying to update a client not
+way. Returns `403 Forbidden` if trying to update a client not
 owned by user.Returns `404 Not Found` if client does not exist.
 
 The owner of an API Gatekeeper is allowed to update 'scopes' with
@@ -116,7 +116,7 @@ are not one of scope and owner, or if a parmeter value is missing or malformed.
     $ curl -v -X DELETE -H "Authorization: Bearer $TOKEN" \
     'http://api.dev.feideconnect.no:6543/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9'
 
-Returns `204 No Content`, or `401 Not Authorized` if trying to delete a
+Returns `204 No Content`, or `403 Forbidden` if trying to delete a
 client not owned by user. No body is returned.
 
 ## Getting client logo
@@ -133,7 +133,7 @@ or:
 
     $ curl -v -H "Authorization: Bearer $TOKEN" -H 'Content-Type: image/png' --data-binary '@new_logo.png' http://api.dev.feideconnect.no:6543/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9/logo
 
-Returns `401 Not Authorized` if trying to change logo of a client not owned by user. `404 Not found` if no client with that id exists and `200 OK` otherwise, `400 Bad Request` if the uploaded file is not in a recognized image format.
+Returns `403 Forbidden` if trying to change logo of a client not owned by user. `404 Not found` if no client with that id exists and `200 OK` otherwise, `400 Bad Request` if the uploaded file is not in a recognized image format.
 
 ## Listing public scope definitions
 

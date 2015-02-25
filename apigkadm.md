@@ -82,7 +82,7 @@ All parameters have the same meaning as when creating, but none are mandatory an
 
 - `200 OK`: When the request is successful this code is returned and the a json representation of the updated object is returned
 - `400 Bad Request`: Some parameter passed was invalid
-- `401 Unauthorized`: Current user does not own the object to be updated
+- `403 Forbidden`: Current user does not own the object to be updated
 
 ## Fetching a gatekeeper
 
@@ -101,7 +101,7 @@ All parameters have the same meaning as when creating, but none are mandatory an
 ### Return values
 
 - `200 OK`: When successful this is returned with the json representation of the object in the response body
-- `401 Unauthorized`: Current user does not own the object requested
+- `403 Forbidden`: Current user does not own the object requested
 - `404 Not Found`: The provided gatekeeper id does not exist in database
 
 ## Listing all gatekeepers owned by user
@@ -133,7 +133,7 @@ even if resulting list is empty.
 ### Return values
 
 - `204 No Content`: The object was successfully deleted
-- `401 Unauthorized`: Current user does not own the object to be deleted
+- `403 Forbidden`: Current user does not own the object to be deleted
 - `404 Not Found`: The provided gatekeeper id does not exist in database
 
 ## Getting api gatekeeper logo
@@ -159,7 +159,7 @@ or:
 
 - `200 OK`: On success
 - `400 Bad Request`: The image data uploaded is not in a recognized format
-- `401 Unauthorized`: Current user does not own the gatekeeper to update
+- `403 Forbidden`: Current user does not own the gatekeeper to update
 - `404 Not Found`: The provided gatekeeper id does not exist in database
 
 ## Getting public information about api gatekeepers
@@ -192,7 +192,7 @@ Returns `200 OK` on success with a single boolean in the json body indicating wh
 ### Return value
 
 - `200 OK`: On success
-- `401 Unauthorized`: Current user is not allowed to see the owner's clients
+- `403 Forbidden`: Current user is not allowed to see the owner's clients
 
 On success, the json body consists of a list of clients matching the
 request. If the owner owns an apigk with id `foo`, clients having

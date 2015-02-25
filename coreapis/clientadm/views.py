@@ -1,6 +1,6 @@
 from pyramid.view import view_config
 from pyramid.httpexceptions import (
-    HTTPBadRequest, HTTPNotFound, HTTPConflict, HTTPUnauthorized, HTTPNotModified)
+    HTTPBadRequest, HTTPNotFound, HTTPConflict, HTTPForbidden, HTTPNotModified)
 from pyramid.security import has_permission
 from pyramid.response import Response
 from .controller import ClientAdmController
@@ -32,8 +32,6 @@ def list_clients(request):
     userid = str(get_userid(request))
     params = {}
     for k, v in request.params.items():
-        if k == 'owner' and v != str(userid):
-            raise HTTPUnauthorized
         params[k] = v
     params['owner'] = userid
     return request.cadm_controller.list(params)
@@ -86,7 +84,7 @@ def delete_client(request):
         raise HTTPBadRequest
     owner = request.cadm_controller.get_owner(clientid)
     if owner and owner != userid:
-        raise HTTPUnauthorized
+        raise HTTPForbidden('Not owner')
     request.cadm_controller.delete(clientid)
     return Response(status='204 No Content', content_type=False)
 
@@ -95,7 +93,7 @@ def update_scopes(request, clientid, userid, scopes):
     try:
         return request.cadm_controller.update_scopes(clientid, userid, scopes)
     except UnauthorizedError as err:
-        raise HTTPUnauthorized(err.message)
+        raise HTTPForbidden(err.message)
 
 
 @view_config(route_name='update_client', renderer='json', permission='scope_clientadmin')
@@ -113,7 +111,7 @@ def update_client(request):
             if 'scopes' in payload:
                 client = update_scopes(request, clientid, userid, payload['scopes'])
             else:
-                raise HTTPUnauthorized
+                raise HTTPForbidden('Not owner')
         else:
             attrs = allowed_attrs(payload, 'update')
             client = request.cadm_controller.update(clientid, attrs)
@@ -157,7 +155,7 @@ def upload_logo(request):
         raise HTTPBadRequest
     owner = request.cadm_controller.get_owner(clientid)
     if owner and owner != userid:
-        raise HTTPUnauthorized
+        raise HTTPForbidden('Not owner')
 
     if 'logo' in request.POST:
         input_file = request.POST['logo'].file
