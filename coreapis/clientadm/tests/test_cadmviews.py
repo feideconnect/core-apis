@@ -406,6 +406,76 @@ class ClientAdmTests(unittest.TestCase):
         self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
                                 attrs, status=400, headers=headers)
 
+    def test_update_client_gkowner_adds_gkscope(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        client['scopes_requested'] = [owngk]
+        client['owner'] = userid_other
+        self.session.get_client_by_id.return_value = client
+        self.session.insert_client = mock.MagicMock()
+        attrs = {'scopes_add': [owngk]}
+        res = self.testapp.patch_json('/clientadm/clients/{}/gkscopes'.format(clientid),
+                                      attrs, status=200, headers=headers)
+        out = res.json
+        assert out['scopes'] == [owngk]
+
+    def test_update_client_gkowner_removes_gkscope(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        client['scopes'] = blist.sortedset([owngk])
+        client['owner'] = userid_other
+        self.session.get_client_by_id.return_value = client
+        self.session.insert_client = mock.MagicMock()
+        attrs = {'scopes_remove': [owngk]}
+        res = self.testapp.patch_json('/clientadm/clients/{}/gkscopes'.format(clientid),
+                                      attrs, status=200, headers=headers)
+        out = res.json
+        assert out['scopes'] == []
+
+    def test_update_client_gkowner_adds_unwanted_gkscope(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        client['scopes_requested'] = []
+        client['owner'] = userid_other
+        self.session.get_client_by_id.return_value = client
+        self.session.insert_client = mock.MagicMock()
+        attrs = {'scopes_add': [owngk]}
+        self.testapp.patch_json('/clientadm/clients/{}/gkscopes'.format(clientid),
+                                attrs, status=403, headers=headers)
+
+    def test_update_client_gkowner_adds_bad_gkscope(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        client['scopes_requested'] = ['gk_nosuchthing']
+        client['owner'] = userid_other
+        self.session.get_client_by_id.return_value = client
+        self.session.insert_client = mock.MagicMock()
+        attrs = {'scopes_add': ['gk_nosuchthing']}
+        res = self.testapp.patch_json('/clientadm/clients/{}/gkscopes'.format(clientid),
+                                      attrs, status=403, headers=headers)
+
+    def test_update_client_gkowner_adds_normal_scope(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        client['scopes_requested'] = [testscope]
+        client['owner'] = userid_other
+        self.session.get_client_by_id.return_value = client
+        self.session.insert_client = mock.MagicMock()
+        attrs = {'scopes_add': [testscope]}
+        self.testapp.patch_json('/clientadm/clients/{}/gkscopes'.format(clientid),
+                                attrs, status=403, headers=headers)
+
+    def test_update_client_stranger_adds_gkscope(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        client['scopes_requested'] = [testgk]
+        client['owner'] = userid_other
+        self.session.get_client_by_id.return_value = client
+        self.session.insert_client = mock.MagicMock()
+        attrs = {'scopes_add': [testgk]}
+        res = self.testapp.patch_json('/clientadm/clients/{}/gkscopes'.format(clientid),
+                                      attrs, status=403, headers=headers)
+
     def test_get_client_logo(self):
         updated = parse_datetime(date_created)
         date_older = updated - timedelta(minutes=1)

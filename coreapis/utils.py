@@ -215,9 +215,9 @@ class AlreadyExistsError(RuntimeError):
         self.message = message
 
 
-class UnauthorizedError(RuntimeError):
+class ForbiddenError(RuntimeError):
     def __init__(self, message):
-        super(UnauthorizedError, self).__init__(message)
+        super(ForbiddenError, self).__init__(message)
         self.message = message
 
 

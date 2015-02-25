@@ -1,6 +1,6 @@
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
-from coreapis.utils import LogWrapper, ts, public_userinfo, ValidationError, UnauthorizedError
+from coreapis.utils import LogWrapper, ts, public_userinfo, ValidationError, ForbiddenError
 import blist
 import json
 import uuid
@@ -184,23 +184,29 @@ class ClientAdmController(CrudControllerBase):
         except KeyError:
             return False
 
-    def update_scopes(self, clientid, userid, scopes):
-        client = self.get(clientid)
-        addition_candidates = [
-            scope for scope in scopes if (scope not in client['scopes'] and
-                                          scope in client['scopes_requested'] and
-                                          is_gkscopename(scope))]
-        removal_candidates = [
-            scope for scope in client['scopes'] if scope not in scopes]
-        for scope in addition_candidates:
-            if not self.is_gkowner(userid, scope):
-                raise UnauthorizedError('User does not own API Gatekeeper')
+    def validate_gkscope(self, client, userid, scope):
+        if not is_gkscopename(scope):
+            raise ForbiddenError('{} is not an API Gatekeeper'.format(scope))
+        if not self.is_gkowner(userid, scope):
+            raise ForbiddenError('User does not own API Gatekeeper')
+
+    def add_gkscopes(self, client, userid, scopes_add):
+        for scope in [scope for scope in scopes_add if scope not in client['scopes']]:
+            if not scope in client['scopes_requested']:
+                raise ForbiddenError('Client owner has not requested scope {}'.format(scope))
+            self.validate_gkscope(client, userid, scope)
             client['scopes'].append(scope)
-        for scope in removal_candidates:
-            if not is_gkscopename(scope):
-                raise UnauthorizedError('{} is not an API Gatekeeper'.format(scope))
-            if not self.is_gkowner(userid, scope):
-                raise UnauthorizedError('User does not own API Gatekeeper')
+        return client
+
+    def remove_gkscopes(self, client, userid, scopes_remove):
+        for scope in [scope for scope in scopes_remove if scope in client['scopes']]:
+            self.validate_gkscope(client, userid, scope)
             client['scopes'].remove(scope)
+        return client
+
+    def update_gkscopes(self, clientid, userid, scopes_add, scopes_remove):
+        client = self.get(clientid)
+        client = self.add_gkscopes(client, userid, scopes_add)
+        client = self.remove_gkscopes(client, userid, scopes_remove)
         self.insert_client(client)
         return client

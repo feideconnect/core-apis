@@ -4,7 +4,7 @@ from pyramid.httpexceptions import (
 from pyramid.security import has_permission
 from pyramid.response import Response
 from .controller import ClientAdmController
-from coreapis.utils import AlreadyExistsError, UnauthorizedError, get_userid, get_payload
+from coreapis.utils import AlreadyExistsError, ForbiddenError, get_userid, get_payload
 import uuid
 
 
@@ -30,6 +30,7 @@ def configure(config):
     config.add_route('add_client', '/clients/', request_method='POST')
     config.add_route('delete_client', '/clients/{id}', request_method='DELETE')
     config.add_route('update_client', '/clients/{id}', request_method='PATCH')
+    config.add_route('update_gkscopes', '/clients/{id}/gkscopes', request_method='PATCH')
     config.add_route('client_logo', '/clients/{id}/logo')
     config.add_route('list_scopes', '/scopes/')
     config.scan(__name__)
@@ -107,6 +108,19 @@ def update_client(request):
         return client
     except KeyError:
         raise HTTPNotFound
+
+
+@view_config(route_name='update_gkscopes', renderer="json", permission='scope_clientadmin')
+def update_gkscopes(request):
+    userid = get_userid(request)
+    clientid = get_clientid(request)
+    payload = get_payload(request)
+    scopes_add = payload.get('scopes_add', [])
+    scopes_remove = payload.get('scopes_remove', [])
+    try:
+        return request.cadm_controller.update_gkscopes(clientid, userid, scopes_add, scopes_remove)
+    except ForbiddenError as err:
+        raise HTTPForbidden(err.message)
 
 
 @view_config(route_name='client_logo')
