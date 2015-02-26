@@ -473,8 +473,8 @@ class ClientAdmTests(unittest.TestCase):
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
         attrs = {'scopes_add': ['gk_nosuchthing']}
-        res = self.testapp.patch_json('/clientadm/clients/{}/gkscopes'.format(clientid),
-                                      attrs, status=403, headers=headers)
+        self.testapp.patch_json('/clientadm/clients/{}/gkscopes'.format(clientid),
+                                attrs, status=403, headers=headers)
 
     def test_update_client_gkowner_adds_normal_scope(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -495,8 +495,8 @@ class ClientAdmTests(unittest.TestCase):
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
         attrs = {'scopes_add': [testgk]}
-        res = self.testapp.patch_json('/clientadm/clients/{}/gkscopes'.format(clientid),
-                                      attrs, status=403, headers=headers)
+        self.testapp.patch_json('/clientadm/clients/{}/gkscopes'.format(clientid),
+                                attrs, status=403, headers=headers)
 
     def test_get_client_logo(self):
         updated = parse_datetime(date_created)
