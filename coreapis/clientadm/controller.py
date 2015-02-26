@@ -202,6 +202,8 @@ class ClientAdmController(CrudControllerBase):
         for scope in [scope for scope in scopes_remove if scope in client['scopes']]:
             self.validate_gkscope(client, userid, scope)
             client['scopes'].remove(scope)
+            if scope in client['scopes_requested']:
+                client['scopes_requested'].remove(scope)
         return client
 
     def update_gkscopes(self, clientid, userid, scopes_add, scopes_remove):

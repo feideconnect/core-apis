@@ -418,6 +418,7 @@ class ClientAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         client = deepcopy(retrieved_client)
         client['scopes'] = blist.sortedset([owngk])
+        client['scopes_requested'] = blist.sortedset([owngk])
         client['owner'] = userid_other
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
@@ -437,6 +438,19 @@ class ClientAdmTests(unittest.TestCase):
         attrs = {'scopes_add': [owngk]}
         self.testapp.patch_json('/clientadm/clients/{}/gkscopes'.format(clientid),
                                 attrs, status=403, headers=headers)
+
+    def test_update_client_gkowner_removes_unwanted_gkscope(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        client['scopes'] = blist.sortedset([owngk])
+        client['owner'] = userid_other
+        self.session.get_client_by_id.return_value = client
+        self.session.insert_client = mock.MagicMock()
+        attrs = {'scopes_remove': [owngk]}
+        res = self.testapp.patch_json('/clientadm/clients/{}/gkscopes'.format(clientid),
+                                      attrs, status=200, headers=headers)
+        out = res.json
+        assert out == "OK"
 
     def test_update_client_gkowner_adds_bad_gkscope(self):
         headers = {'Authorization': 'Bearer user_token'}
