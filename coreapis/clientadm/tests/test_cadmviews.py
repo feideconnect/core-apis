@@ -271,14 +271,9 @@ class ClientAdmTests(unittest.TestCase):
         self.testapp.patch_json('/clientadm/clients/', {'descr': 'blue'}, status=404,
                                 headers=headers)
 
-    def test_update_client_malformed_id(self):
-        headers = {'Authorization': 'Bearer user_token'}
-        self.testapp.patch_json('/clientadm/clients/{}'.format('foo'), {'descr': 'blue'},
-                                status=400, headers=headers)
-
     def test_update_client_invalid_json(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.testapp.patch('/clientadm/clients/{}'.format('foo'), 'bar', status=400,
+        self.testapp.patch('/clientadm/clients/{}'.format(clientid), 'bar', status=400,
                            headers=headers)
 
     def test_update_missing_client(self):
@@ -503,12 +498,6 @@ class ClientAdmTests(unittest.TestCase):
         self.testapp.get('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), status=304,
                          headers=headers)
 
-    def test_get_client_logo_bad_id(self):
-        updated = parse_datetime(date_created)
-        headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_client_logo.return_value = None, updated
-        self.testapp.get('/clientadm/clients/{}/logo'.format('foo'), status=400, headers=headers)
-
     def test_get_client_logo_missing_client(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_logo.side_effect = KeyError()
@@ -547,15 +536,6 @@ class ClientAdmTests(unittest.TestCase):
                                     status=200, headers=headers)
             out = res.json
             assert out == 'OK'
-
-    def test_post_client_logo_bad_id(self):
-        headers = {'Authorization': 'Bearer user_token'}
-        client = deepcopy(retrieved_client)
-        client['owner'] = uuid.UUID(userid_other)
-        self.session.get_client_by_id.return_value = client
-        logo = b'mylittlelogo'
-        self.testapp.post('/clientadm/clients/{}/logo'.format('foo'), logo, status=400,
-                          headers=headers)
 
     def test_post_client_logo_bad_data(self):
         headers = {'Authorization': 'Bearer user_token', 'Content-Type': 'image/png'}
