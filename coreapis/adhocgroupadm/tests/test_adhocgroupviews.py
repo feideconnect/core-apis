@@ -247,6 +247,15 @@ class AdHocGroupAdmTests(unittest.TestCase):
         self.testapp.patch_json('/adhocgroups/{}/members'.format(groupid1), data, status=400,
                                 headers=headers)
 
+    def test_add_group_members_only_type(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().get_group.return_value = group1
+        data = [{
+            'type': 'member',
+        }]
+        self.testapp.patch_json('/adhocgroups/{}/members'.format(groupid1), data, status=400,
+                                headers=headers)
+
     def test_add_group_members_invalid_token(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_group.return_value = group1
@@ -257,6 +266,63 @@ class AdHocGroupAdmTests(unittest.TestCase):
         res = self.testapp.patch_json('/adhocgroups/{}/members'.format(groupid1), data, status=400,
                                       headers=headers)
         assert 'message' in res.json
+
+    def test_update_group_member_type(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        group = deepcopy(group1)
+        self.session().get_group.return_value = group
+        self.session().get_userid_by_userid_sec.return_value = user1
+        data = [
+            {
+                'id': 'p:' + str(user1),
+                'type': 'member',
+            }
+        ]
+        self.testapp.patch_json('/adhocgroups/{}/members'.format(groupid1), data, status=200,
+                                headers=headers)
+        self.session().set_group_member_type.assert_called_with(groupid1, user1, 'member')
+
+    def test_update_group_member_invalid_type(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        group = deepcopy(group1)
+        self.session().get_group.return_value = group
+        self.session().get_userid_by_userid_sec.return_value = user1
+        data = [
+            {
+                'id': 'p:' + str(user1),
+                'type': 'ninja',
+            }
+        ]
+        self.testapp.patch_json('/adhocgroups/{}/members'.format(groupid1), data, status=400,
+                                headers=headers)
+
+    def test_update_group_member_invalid_user(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        group = deepcopy(group1)
+        self.session().get_group.return_value = group
+        self.session().get_userid_by_userid_sec.side_effect = KeyError('No such user')
+        data = [
+            {
+                'id': 'p:' + str(user1),
+                'type': 'member',
+            }
+        ]
+        self.testapp.patch_json('/adhocgroups/{}/members'.format(groupid1), data, status=400,
+                                headers=headers)
+
+    def test_update_group_member_not_member(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        group = deepcopy(group1)
+        self.session().get_group.return_value = group
+        self.session().get_membership_data.side_effect = KeyError('No such membership')
+        data = [
+            {
+                'id': 'p:' + str(user1),
+                'type': 'member',
+            }
+        ]
+        self.testapp.patch_json('/adhocgroups/{}/members'.format(groupid1), data, status=400,
+                                headers=headers)
 
     def test_del_group_members(self):
         headers = {'Authorization': 'Bearer user_token'}

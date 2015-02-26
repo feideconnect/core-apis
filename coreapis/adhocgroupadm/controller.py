@@ -36,7 +36,8 @@ class AdHocGroupAdmController(CrudControllerBase):
         'invitation_token': V.Nullable('string'),
     }
     member_schema = [{
-        '+token': V.String(min_length=24),
+        'token': V.String(min_length=24),
+        'id': valid_member_id,
         'type': valid_member_type,
     }]
     del_member_schema = [valid_member_id]
@@ -141,6 +142,14 @@ class AdHocGroupAdmController(CrudControllerBase):
             self.session.insert_user(userid, None, name, None, None, source, userid_sec)
         self.add_member(groupid, userid, mtype, 'unconfirmed')
 
+    def update_group_member(self, groupid, mid, mtype):
+        try:
+            userid = self.session.get_userid_by_userid_sec(mid)
+            self.session.get_membership_data(groupid, userid)
+        except KeyError as ex:
+            raise ValidationError(str(ex))
+        self.session.set_group_member_type(groupid, userid, mtype)
+
     def add_members(self, groupid, data):
         validator = V.parse(self.member_schema, additional_properties=False)
         try:
@@ -148,7 +157,12 @@ class AdHocGroupAdmController(CrudControllerBase):
         except V.ValidationError as ex:
             raise ValidationError(str(ex))
         for member in adapted:
-            self.add_member_from_token(groupid, member['token'], member['type'])
+            if 'token' in member:
+                self.add_member_from_token(groupid, member['token'], member['type'])
+            elif 'id' in member:
+                self.update_group_member(groupid, member['id'], member['type'])
+            else:
+                raise ValidationError('id or token must be given')
 
     def del_members(self, groupid, data):
         validator = V.parse(self.del_member_schema, additional_properties=False)

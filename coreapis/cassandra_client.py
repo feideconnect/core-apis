@@ -276,6 +276,10 @@ class Client(object):
         prep = self._prepare('INSERT INTO group_members (groupid, userid, status) values (?,?,?)')
         return self.session.execute(prep.bind([groupid, userid, status]))
 
+    def set_group_member_type(self, groupid, userid, mtype):
+        prep = self._prepare('INSERT INTO group_members (groupid, userid, type) values (?,?,?)')
+        return self.session.execute(prep.bind([groupid, userid, mtype]))
+
     def del_group_member(self, groupid, userid):
         prep = self._prepare('DELETE FROM group_members WHERE groupid = ? AND userid = ?')
         return self.session.execute(prep.bind([groupid, userid]))
