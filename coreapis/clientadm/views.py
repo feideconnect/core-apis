@@ -11,7 +11,7 @@ import uuid
 def get_clientid(request):
     try:
         clientid = request.matchdict['id']
-        clientid = uuid.UUID(clientid)
+        return uuid.UUID(clientid)
     except ValueError:
         raise HTTPBadRequest('malformed client id')
 
