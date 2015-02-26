@@ -13,7 +13,7 @@ def get_clientid(request):
         clientid = request.matchdict['id']
         return uuid.UUID(clientid)
     except ValueError:
-        raise HTTPBadRequest('malformed client id')
+        raise HTTPNotFound('malformed client id')
 
 
 def configure(config):
