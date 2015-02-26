@@ -180,7 +180,7 @@ class ClientAdmController(CrudControllerBase):
             nameparts = scopename.split('_')
             gkname = nameparts[1]
             apigk = self.session.get_apigk(gkname)
-            return apigk['owner'] == str(userid)
+            return str(apigk['owner']) == str(userid)
         except KeyError:
             return False
 
