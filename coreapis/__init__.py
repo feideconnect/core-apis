@@ -55,7 +55,7 @@ def main(global_config, **settings):
     config.scan('coreapis.error_views')
     config.add_settings(realm=global_config['oauth_realm'])
     config.add_tween('coreapis.utils.RequestTimingTween')
-    json_renderer = pyramid.renderers.JSON()
+    json_renderer = pyramid.renderers.JSON(indent=4)
     json_renderer.add_adapter(datetime.datetime, lambda x, y: format_datetime(x))
     json_renderer.add_adapter(blist.sortedset, lambda x, y: list(x))
     json_renderer.add_adapter(uuid.UUID, lambda x, y: str(x))
