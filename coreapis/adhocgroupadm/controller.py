@@ -125,6 +125,22 @@ class AdHocGroupAdmController(CrudControllerBase):
     def add_member(self, groupid, userid, mtype, status):
         self.session.add_group_member(groupid, userid, mtype, status)
 
+    def add_member_from_token(self, groupid, token, mtype):
+        userid_sec = decrypt_token(token, self.key)
+        try:
+            userid = self.session.get_userid_by_userid_sec(userid_sec)
+        except KeyError:
+            userid = uuid.uuid4()
+            p = 'p:{}'.format(uuid.uuid4())
+            feideid = userid_sec.split(':', 1)[1]
+            realm = feideid.split('@', 1)[1]
+            person = self.ps_controller.get_user(feideid)
+            source = 'ps:{}'.format(realm)
+            name = {source: person['name']}
+            userid_sec = set([userid_sec, p])
+            self.session.insert_user(userid, None, name, None, None, source, userid_sec)
+        self.add_member(groupid, userid, mtype, 'unconfirmed')
+
     def add_members(self, groupid, data):
         validator = V.parse(self.member_schema, additional_properties=False)
         try:
@@ -132,20 +148,7 @@ class AdHocGroupAdmController(CrudControllerBase):
         except V.ValidationError as ex:
             raise ValidationError(str(ex))
         for member in adapted:
-            userid_sec = decrypt_token(member['token'], self.key)
-            try:
-                userid = self.session.get_userid_by_userid_sec(userid_sec)
-            except KeyError:
-                userid = uuid.uuid4()
-                p = 'p:{}'.format(uuid.uuid4())
-                feideid = userid_sec.split(':', 1)[1]
-                realm = feideid.split('@', 1)[1]
-                person = self.ps_controller.get_user(feideid)
-                source = 'ps:{}'.format(realm)
-                name = {source: person['name']}
-                userid_sec = set([userid_sec, p])
-                self.session.insert_user(userid, None, name, None, None, source, userid_sec)
-            self.add_member(groupid, userid, member['type'], 'unconfirmed')
+            self.add_member_from_token(groupid, member['token'], member['type'])
 
     def del_members(self, groupid, data):
         validator = V.parse(self.del_member_schema, additional_properties=False)
