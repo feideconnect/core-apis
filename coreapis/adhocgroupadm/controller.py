@@ -52,6 +52,7 @@ class AdHocGroupAdmController(CrudControllerBase):
     def format_group(self, group):
         res = {}
         res.update(group)
+        res['owner'] = public_userinfo(self.session.get_user_by_id(group['owner']))
         del res['invitation_token']
         return res
 
