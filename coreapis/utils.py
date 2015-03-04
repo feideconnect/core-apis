@@ -102,8 +102,8 @@ class Timer(object):
         self.log_results = log_results
 
     class Context(object):
-        def __init__(self, client, name, log_results):
-            self.client = client
+        def __init__(self, pool, name, log_results):
+            self.pool = pool
             self.name = name
             self.log_results = log_results
 
