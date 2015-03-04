@@ -4,7 +4,8 @@ import uuid
 import blist
 import pyramid.renderers
 from .aaa import TokenAuthenticationPolicy, TokenAuthorizationPolicy
-from .utils import Timer, format_datetime
+from .utils import Timer, format_datetime, ResourcePool
+from eventlet.pools import Pool as EventletPool
 
 
 def options(request):
@@ -20,10 +21,14 @@ def main(global_config, **settings):
     authz_policy = TokenAuthorizationPolicy()
     config.set_authentication_policy(authn_policy)
     config.set_authorization_policy(authz_policy)
+    if global_config.get('use_eventlets', '') == 'true':
+        pool = EventletPool
+    else:
+        pool = ResourcePool
     log_timings = global_config.get('log_timings', 'false').lower() == 'true'
 
     timer = Timer(global_config['statsd_server'], int(global_config['statsd_port']),
-                  global_config['statsd_prefix'], log_timings)
+                  global_config['statsd_prefix'], log_timings, pool)
     config.add_settings(cassandra_contact_points=global_config['cassandra_contact_points'].split(', '))
     config.add_settings(cassandra_keyspace=global_config['cassandra_keyspace'])
     config.add_settings(timer=timer)

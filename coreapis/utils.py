@@ -97,8 +97,8 @@ class DebugLogFormatter(logging.Formatter):
 
 
 class Timer(object):
-    def __init__(self, server, port, prefix, log_results):
-        self.client = statsd.StatsClient(server, port, prefix=prefix)
+    def __init__(self, server, port, prefix, log_results, pool):
+        self.pool = pool(create=lambda: statsd.StatsClient(server, port, prefix=prefix))
         self.log_results = log_results
 
     class Context(object):
@@ -114,7 +114,8 @@ class Timer(object):
             duration = (time.time() - self.t0) * 1000
             if self.log_results:
                 logging.debug('Timed {} to {} ms'.format(self.name, duration))
-            self.client.timing(self.name, duration)
+            with self.pool.item() as client:
+                client.timing(self.name, duration)
 
     def time(self, name):
         return self.Context(self.client, name, self.log_results)
@@ -191,7 +192,8 @@ class RequestTimingTween(object):
         duration = (t1 - t0) * 1000
         if self.registry.settings.log_timings:
             logging.debug("Timed %s to %f ms", timername, duration)
-        self.timer.client.timing(timername, duration)
+        with self.timer.pool.item() as client:
+            client.timing(timername, duration)
         return response
 
 

@@ -1,9 +1,10 @@
 import uuid
 import json
 from . import cassandra_client
-from .utils import LogWrapper, Timer, RateLimiter, now, www_authenticate, init_request_id
+from .utils import LogWrapper, Timer, RateLimiter, now, www_authenticate, init_request_id, ResourcePool
 from aniso8601 import parse_datetime
 import urllib.parse
+from eventlet.pools import Pool as EventletPool
 
 
 def mock_main(app, config):
@@ -22,8 +23,12 @@ def cassandra_main(app, config, client_max_share, client_max_rate, client_max_bu
     contact_points = config['cassandra_contact_points'].split(', ')
     keyspace = config['cassandra_keyspace']
     log_timings = config.get('log_timings', 'false').lower() == 'true'
+    if config.get('use_eventlets', '') == 'true':
+        pool = EventletPool
+    else:
+        pool = ResourcePool
     timer = Timer(config['statsd_server'], int(config['statsd_port']),
-                  config['statsd_prefix'], log_timings)
+                  config['statsd_prefix'], log_timings, pool)
     ratelimiter = RateLimiter(float(client_max_share),
                               int(client_max_burst_size),
                               float(client_max_rate))
