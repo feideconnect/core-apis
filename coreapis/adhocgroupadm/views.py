@@ -65,8 +65,22 @@ def list_groups(request):
 
 @view_config(route_name='get_group', renderer='json', permission='scope_adhocgroupadmin')
 def get_group(request):
-    userid, group = check(request, "view")
-    return request.ahgroupadm_controller.format_group(group)
+    userid = get_userid(request)
+    groupid = get_groupid(request)
+    try:
+        group = request.ahgroupadm_controller.get(groupid)
+    except KeyError:
+        raise HTTPNotFound
+    allowed = False
+    if 'invitation_token' in request.params:
+        if request.params['invitation_token'] == group['invitation_token']:
+            allowed = True
+    if request.ahgroupadm_controller.has_permission(group, userid, "view"):
+        allowed = True
+    if allowed:
+        return request.ahgroupadm_controller.format_group(group)
+    else:
+        raise HTTPForbidden('no permission')
 
 
 @view_config(route_name='get_group_details', renderer='json', permission='scope_adhocgroupadmin')

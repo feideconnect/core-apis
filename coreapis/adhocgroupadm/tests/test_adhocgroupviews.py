@@ -58,6 +58,15 @@ group2 = {
     "public": True,
     'invitation_token': group2_invitation,
 }
+group2_view = {
+    "updated": "2015-01-26T16:05:59Z",
+    "created": "2015-01-23T13:50:09Z",
+    "id": str(groupid2),
+    "owner": str(user2),
+    "name": "pre update",
+    "descr": "some data",
+    "public": True,
+}
 
 
 member_token = '9nFIGK7dEiuVfXdGhVcgvaQVOBZScQ_6y9Yd2BTdMizUtL8yB5b7Im5Zcr3W9hjd'
@@ -82,11 +91,38 @@ class AdHocGroupAdmTests(unittest.TestCase):
     def tearDown(self):
         testing.tearDown()
 
-    def test_get_group(self):
+    def test_get_group_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_group.return_value = group1
         res = self.testapp.get('/adhocgroups/{}'.format(uuid.uuid4()), status=200, headers=headers)
         assert res.json == group1_view
+
+    def test_get_group_invitation(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().get_group.return_value = group2
+        res = self.testapp.get('/adhocgroups/{}'.format(uuid.uuid4()),
+                               {'invitation_token': group2_invitation},
+                               status=200, headers=headers)
+        assert res.json == group2_view
+
+    def test_get_group_wrong_invitation(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().get_group.return_value = group2
+        self.testapp.get('/adhocgroups/{}'.format(uuid.uuid4()),
+                         {'invitation_token': group1_invitation},
+                         status=403, headers=headers)
+
+    def test_get_group_no_access(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().get_group.return_value = group2
+        self.testapp.get('/adhocgroups/{}'.format(uuid.uuid4()), status=403, headers=headers)
+
+    def test_get_group_member(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().get_group.return_value = group2
+        self.session().get_membership_data.return_value = dict(type='member', status='normal')
+        res = self.testapp.get('/adhocgroups/{}'.format(uuid.uuid4()), status=200, headers=headers)
+        assert res.json == group2_view
 
     def test_get_group_details(self):
         headers = {'Authorization': 'Bearer user_token'}
