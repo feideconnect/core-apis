@@ -118,7 +118,7 @@ class Timer(object):
                 client.timing(self.name, duration)
 
     def time(self, name):
-        return self.Context(self.client, name, self.log_results)
+        return self.Context(self.pool, name, self.log_results)
 
 
 class RateLimiter(object):
