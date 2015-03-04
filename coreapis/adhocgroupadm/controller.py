@@ -49,6 +49,12 @@ class AdHocGroupAdmController(CrudControllerBase):
         self.key = key
         self.ps_controller = ps_controller
 
+    def format_group(self, group):
+        res = {}
+        res.update(group)
+        del res['invitation_token']
+        return res
+
     def get(self, id):
         self.log.debug('Get group', id=id)
         group = self.session.get_group(id)
@@ -99,8 +105,20 @@ class AdHocGroupAdmController(CrudControllerBase):
             return True
         return False
 
+    def is_member(self, group, userid):
+        try:
+            membership = self.session.get_membership_data(group['id'], userid)
+        except KeyError:
+            return False
+        if membership['type'] == 'admin' or membership['type'] == 'member':
+            return True
+        return False
+
     def is_owner_or_admin(self, group, userid):
         return self.is_owner(group, userid) or self.is_admin(group, userid)
+
+    def is_owner_or_member(self, group, userid):
+        return self.is_owner(group, userid) or self.is_member(group, userid)
 
     def has_permission(self, group, userid, permission):
         if permission == "update":
@@ -108,9 +126,11 @@ class AdHocGroupAdmController(CrudControllerBase):
         if permission == "delete":
             return self.is_owner(group, userid)
         if permission == "view":
+            return self.is_owner_or_member(group, userid)
+        if permission == "view_details":
             return self.is_owner_or_admin(group, userid)
         if permission == "view_members":
-            return self.is_owner_or_admin(group, userid)
+            return self.is_owner_or_member(group, userid)
         if permission == "edit_members":
             return self.is_owner_or_admin(group, userid)
 
@@ -180,8 +200,7 @@ class AdHocGroupAdmController(CrudControllerBase):
         for mem in memberships:
             try:
                 group = self.get(mem['groupid'])
-                del group['invitation_token']
-                mem['group'] = group
+                mem['group'] = self.format_group(group)
                 del mem['userid']
                 res.append(mem)
             except KeyError:

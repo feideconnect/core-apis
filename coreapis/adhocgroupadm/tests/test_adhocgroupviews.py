@@ -27,6 +27,7 @@ user2 = uuid.UUID("00000000-0000-0000-0000-000000000002")
 groupid1 = uuid.UUID("00000000-0000-0000-0001-000000000001")
 groupid2 = uuid.UUID("00000000-0000-0000-0001-000000000002")
 group1_invitation = '62649b1d-353a-4588-8483-6f4a31863c78'
+group2_invitation = '62649b1d-353a-4588-8483-6f4a31863c79'
 group1 = {
     "updated": parse_datetime("2015-01-26T16:05:59Z"),
     "created": parse_datetime("2015-01-23T13:50:09Z"),
@@ -37,6 +38,27 @@ group1 = {
     "public": False,
     'invitation_token': group1_invitation,
 }
+group1_view = {
+    "updated": "2015-01-26T16:05:59Z",
+    "created": "2015-01-23T13:50:09Z",
+    "id": str(groupid1),
+    "owner": str(user1),
+    "name": "pre update",
+    "descr": "some data",
+    "public": False,
+}
+
+group2 = {
+    "updated": parse_datetime("2015-01-26T16:05:59Z"),
+    "created": parse_datetime("2015-01-23T13:50:09Z"),
+    "id": groupid2,
+    "owner": user2,
+    "name": "pre update",
+    "descr": "some data",
+    "public": True,
+    'invitation_token': group2_invitation,
+}
+
 
 member_token = '9nFIGK7dEiuVfXdGhVcgvaQVOBZScQ_6y9Yd2BTdMizUtL8yB5b7Im5Zcr3W9hjd'
 
@@ -64,6 +86,12 @@ class AdHocGroupAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_group.return_value = group1
         res = self.testapp.get('/adhocgroups/{}'.format(uuid.uuid4()), status=200, headers=headers)
+        assert res.json == group1_view
+
+    def test_get_group_details(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().get_group.return_value = group1
+        res = self.testapp.get('/adhocgroups/{}/details'.format(uuid.uuid4()), status=200, headers=headers)
         assert res.json == json_normalize(group1)
 
     def test_missing_group(self):
@@ -73,7 +101,7 @@ class AdHocGroupAdmTests(unittest.TestCase):
 
     def test_list_groups(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session().get_groups.return_value = [{'id': groupid1}]
+        self.session().get_groups.return_value = [group1]
         self.session().get_group_memberships.return_value = [
             {
                 'groupid': groupid1,
@@ -82,7 +110,7 @@ class AdHocGroupAdmTests(unittest.TestCase):
                 'groupid': groupid2,
             }
         ]
-        self.session().get_group.return_value = {'id': groupid2}
+        self.session().get_group.return_value = group2
         res = self.testapp.get('/adhocgroups/', status=200, headers=headers)
         out = res.json
         assert len(out) == 2

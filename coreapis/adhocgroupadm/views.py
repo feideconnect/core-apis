@@ -20,6 +20,7 @@ def configure(config):
                               'ahgroupadm_controller', reify=True)
     config.add_route('group_memberships', '/memberships')
     config.add_route('get_group', '/{id}', request_method='GET')
+    config.add_route('get_group_details', '/{id}/details', request_method='GET')
     config.add_route('list_groups', '/', request_method='GET')
     config.add_route('add_group', '/', request_method='POST')
     config.add_route('delete_group', '/{id}', request_method='DELETE')
@@ -58,12 +59,19 @@ def check(request, permission):
 
 @view_config(route_name='list_groups', renderer='json', permission='scope_adhocgroupadmin')
 def list_groups(request):
-    return request.ahgroupadm_controller.list(get_userid(request), request.params)
+    groups = request.ahgroupadm_controller.list(get_userid(request), request.params)
+    return [request.ahgroupadm_controller.format_group(group) for group in groups]
 
 
 @view_config(route_name='get_group', renderer='json', permission='scope_adhocgroupadmin')
 def get_group(request):
     userid, group = check(request, "view")
+    return request.ahgroupadm_controller.format_group(group)
+
+
+@view_config(route_name='get_group_details', renderer='json', permission='scope_adhocgroupadmin')
+def get_group_details(request):
+    userid, group = check(request, "view_details")
     return group
 
 
