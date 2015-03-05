@@ -102,7 +102,7 @@ Input is a list of objects. Each object has a `type` field which can be either `
 
 ## Remove group members
 
-    $ curl -X DELETE -H "Authorization: Bearer $TOKEN"  -H "Content-Type: application/json" -d '[
+    $ curl -X DELETE -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '[
     <id from membership list>,
     <id from membership list>,
     ...
@@ -113,3 +113,54 @@ Input is a list of objects. Each object has a `type` field which can be either `
 
 - Group owner
 - Group admins
+
+## List memberships
+
+    $ curl -H "Authorization: Bearer $TOKEN" \
+    'http://api.dev.feideconnect.no:6543/adhocgroups/memberships'
+
+### Description
+
+Returns information about all groups current user is a member of, and information about the membership (status, and membership type)
+
+## Leave groups
+
+    $ curl -X DELETE -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '[
+    <group id>,
+    <group id>,
+    ...
+    ]' \
+    'http://api.dev.feideconnect.no:6543/adhocgroups/memberships'
+
+### Description
+
+Remove current user from member lists if the groups indicated.
+
+## Confirm group memberships
+
+    $ curl -X PATCH -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '[
+    <group id>,
+    <group id>,
+    ...
+    ]' \
+    'http://api.dev.feideconnect.no:6543/adhocgroups/memberships'
+
+### Description
+
+When a member is added to a group by a group owner or admin the status
+of the membership is set to `unconfirmed`. The user can then use this
+call to confirm his membeships, and get status to `normal`. Any number
+of groups can be confirmed in one call.
+
+## Join group using invitation token
+
+    $ curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{
+    "invitation_token": <invitation_token>
+    }' \
+    'http://api.dev.feideconnect.no:6543/adhocgroups/<group id>/invitaiton'
+
+### Description
+
+Use this call to join a group given a group id and invitation
+token. Group owners and admins can access the groups invitation token
+and distribute it with the group id to people they want to invite.
