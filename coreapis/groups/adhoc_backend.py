@@ -126,11 +126,13 @@ class AdHocGroupBackend(BaseBackend):
         userid = user['userid']
         result = []
         pile = GreenPile()
+        memberships = {}
         for membership in self.session.get_group_memberships(userid, None, None, self.maxrows):
+            memberships[membership['groupid']] = membership
             pile.spawn(failsafe(self.session.get_group), membership['groupid'])
         for group in pile:
             if group:
-                result.append(self.format_group(group, membership))
+                result.append(self.format_group(group, memberships[group['id']]))
         return result
 
     def get_groups(self, user, query):
