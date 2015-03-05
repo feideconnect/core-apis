@@ -185,3 +185,29 @@ of groups can be confirmed in one call.
 Use this call to join a group given a group id and invitation
 token. Group owners and admins can access the groups invitation token
 and distribute it with the group id to people they want to invite.
+
+## Getting the group logo logo
+
+    $ curl http://api.dev.feideconnect.no:6543/adhocgroups/<groupid>/logo|display
+
+### Return values
+
+- `200 OK`: On success. If no logo has been uploaded a default logo is provided
+- `404 Not Found`: The provided group id does not exist in database
+- `304 Not Modified`: if request has the `If-Modified-Since` header set to a timestamp equal or higher than the updated column for this group
+
+## Uploading a new group logo
+
+    $ curl -v -H "Authorization: Bearer $TOKEN" -F 'logo=@new_logo.png' \
+    'http://api.dev.feideconnect.no:6543/adhocgroups/<group id>/logo'
+
+or:
+
+    $ curl -v -H "Authorization: Bearer $TOKEN" -H 'Content-Type: image/png' \
+    --data-binary '@new_logo.png' \
+    'http://api.dev.feideconnect.no:6543/adhocgroups/<group id>/logo'
+
+- `200 OK`: On success
+- `400 Bad Request`: The image data uploaded is not in a recognized format
+- `403 Forbidden`: Current user does not own the group to update
+- `404 Not Found`: The provided group id does not exist in database
