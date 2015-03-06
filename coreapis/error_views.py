@@ -1,4 +1,5 @@
 from pyramid.view import view_config, forbidden_view_config, notfound_view_config
+from pyramid.httpexceptions import HTTPConflict
 from .utils import www_authenticate, ValidationError, LogWrapper
 import traceback
 
@@ -41,6 +42,14 @@ def exception_handler(context, request):
 @view_config(context=ValidationError, renderer='json')
 def validation_error(context, request):
     request.response.status_code = 400
+    exception = traceback.format_exc()
+    log.error('validation error', exception=exception)
+    return {'message': context.message}
+
+
+@view_config(context=HTTPConflict, renderer='json')
+def conflict_handler(context, request):
+    request.response.status_code = 409
     exception = traceback.format_exc()
     log.error('validation error', exception=exception)
     return {'message': context.message}
