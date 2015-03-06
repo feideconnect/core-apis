@@ -223,6 +223,12 @@ class ForbiddenError(RuntimeError):
         self.message = message
 
 
+class ResourceError(RuntimeError):
+    def __init__(self, message):
+        super(ResourceError, self).__init__(message)
+        self.message = message
+
+
 def get_userid(request):
     try:
         return request.environ['FC_USER']['userid']

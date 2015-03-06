@@ -92,6 +92,7 @@ class AdHocGroupAdmTests(unittest.TestCase):
             'cassandra_contact_points': '',
             'cassandra_keyspace': 'notused',
         }, enabled_components='adhocgroupadm', adhocgroupadm_maxrows=100,
+            adhocgroupadm_max_add_members=4,
             profile_token_secret='AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=')
         mw = middleware.MockAuthMiddleware(app, 'test realm')
         self.session = Client
@@ -286,6 +287,14 @@ class AdHocGroupAdmTests(unittest.TestCase):
         group['owner'] = user2
         self.session().get_group.return_value = group
         self.testapp.patch_json('/adhocgroups/{}/members'.format(groupid1), [], status=403,
+                                headers=headers)
+
+    def test_add_group_members_over_limit(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        group = deepcopy(group1)
+        self.session().get_group.return_value = group
+        self.session().get_group_members.return_value = list(range(10))
+        self.testapp.patch_json('/adhocgroups/{}/members'.format(groupid1), [], status=409,
                                 headers=headers)
 
     def test_add_group_members(self):

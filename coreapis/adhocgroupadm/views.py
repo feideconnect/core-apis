@@ -2,7 +2,7 @@ from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPForbidden, HTTPNotModified, HTTPConflict
 from pyramid.response import Response
 from .controller import AdHocGroupAdmController
-from coreapis.utils import get_userid, get_payload
+from coreapis.utils import get_userid, get_payload, ResourceError
 import uuid
 import base64
 
@@ -13,8 +13,9 @@ def configure(config):
     maxrows = config.get_settings().get('adhocgroupadm_maxrows', 100)
     key = base64.b64decode(config.get_settings().get('profile_token_secret'))
     ps_controller = config.get_settings().get('ps_controller')
+    max_add_members = int(config.get_settings().get('adhocgroupadm_max_add_members', '50'))
     ahgroupadm_controller = AdHocGroupAdmController(contact_points, keyspace, maxrows, key,
-                                                    ps_controller)
+                                                    ps_controller, max_add_members)
     config.add_settings(ahgroupadm_controller=ahgroupadm_controller)
     config.add_request_method(lambda r: r.registry.settings.ahgroupadm_controller,
                               'ahgroupadm_controller', reify=True)
@@ -164,7 +165,10 @@ def group_members(request):
 def add_group_members(request):
     userid, group = check(request, "edit_members")
     payload = get_payload(request)
-    return request.ahgroupadm_controller.add_members(group['id'], payload)
+    try:
+        return request.ahgroupadm_controller.add_members(group['id'], payload)
+    except ResourceError as ex:
+        raise HTTPConflict(ex.message)
 
 
 @view_config(route_name='ahgroup_members', request_method="DELETE",

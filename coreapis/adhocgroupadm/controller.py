@@ -1,6 +1,6 @@
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
-from coreapis.utils import LogWrapper, ts, ValidationError, public_userinfo
+from coreapis.utils import LogWrapper, ts, ValidationError, public_userinfo, ResourceError
 from coreapis.peoplesearch.tokens import decrypt_token
 import uuid
 import valideer as V
@@ -42,12 +42,13 @@ class AdHocGroupAdmController(CrudControllerBase):
     }]
     del_member_schema = [valid_member_id]
 
-    def __init__(self, contact_points, keyspace, maxrows, key, ps_controller):
+    def __init__(self, contact_points, keyspace, maxrows, key, ps_controller, max_add_members):
         super(AdHocGroupAdmController, self).__init__(maxrows)
         self.session = cassandra_client.Client(contact_points, keyspace)
         self.log = LogWrapper('adhocgroupadm.AdHocGroupAdmController')
         self.key = key
         self.ps_controller = ps_controller
+        self.max_add_members = max_add_members
 
     def format_group(self, group):
         res = {}
@@ -177,6 +178,10 @@ class AdHocGroupAdmController(CrudControllerBase):
             adapted = validator.validate(data)
         except V.ValidationError as ex:
             raise ValidationError(str(ex))
+        members = len(self.session.get_group_members(groupid))
+        to_add = len([member for member in adapted if 'token' in member])
+        if to_add + members > self.max_add_members:
+            raise ResourceError("Can not add more than {} members".format(self.max_add_members))
         for member in adapted:
             if 'token' in member:
                 self.add_member_from_token(groupid, member['token'], member['type'])
