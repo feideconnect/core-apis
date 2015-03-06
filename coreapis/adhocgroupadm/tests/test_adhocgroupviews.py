@@ -294,7 +294,28 @@ class AdHocGroupAdmTests(unittest.TestCase):
         group = deepcopy(group1)
         self.session().get_group.return_value = group
         self.session().get_group_members.return_value = list(range(10))
-        self.testapp.patch_json('/adhocgroups/{}/members'.format(groupid1), [], status=409,
+        data = [
+            {
+                'token': member_token,
+                'type': 'member',
+            }
+        ]
+        self.testapp.patch_json('/adhocgroups/{}/members'.format(groupid1), data, status=409,
+                                headers=headers)
+
+    def test_change_membership_type_over_limit(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        group = deepcopy(group1)
+        self.session().get_group.return_value = group
+        self.session().get_group_members.return_value = list(range(10))
+        self.session().get_userid_by_userid_sec.return_value = user1
+        data = [
+            {
+                'id': 'p:' + str(user1),
+                'type': 'member',
+            }
+        ]
+        self.testapp.patch_json('/adhocgroups/{}/members'.format(groupid1), data, status=200,
                                 headers=headers)
 
     def test_add_group_members(self):
