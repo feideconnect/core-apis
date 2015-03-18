@@ -27,6 +27,8 @@ class LDAPBackend(BaseBackend):
             'id': self._groupid(realm),
             'displayName': orgAttributes['cn'][0],
             'type': 'fc:org',
+            'active': True,
+            'public': True,
             'membership': {
                 'basic': 'member',
             },
@@ -45,6 +47,8 @@ class LDAPBackend(BaseBackend):
                 ouAttributes['norEduOrgUnitUniqueIdentifier'][0])),
             'displayName': ouAttributes['ou'][0],
             'type': 'fc:org',
+            'active': True,
+            'public': True,
             'membership': {
                 'basic': 'member',
             },
