@@ -26,7 +26,7 @@ class LDAPBackend(BaseBackend):
         return {
             'id': self._groupid(realm),
             'displayName': orgAttributes['cn'][0],
-            'type': 'eduperson:org',
+            'type': 'fc:org',
             'membership': {
                 'basic': 'member',
             },
@@ -44,7 +44,7 @@ class LDAPBackend(BaseBackend):
             'id': self._groupid('{}:unit:{}'.format(realm,
                 ouAttributes['norEduOrgUnitUniqueIdentifier'][0])),
             'displayName': ouAttributes['ou'][0],
-            'type': 'eduperson:orgunit',
+            'type': 'fc:org',
             'membership': {
                 'basic': 'member',
             },
@@ -104,17 +104,10 @@ class LDAPBackend(BaseBackend):
     def grouptypes(self):
         return [
             {
-                "id": "eduperson:orgunit",
+                "id": "fc:org",
                 "displayName": {
-                    "en": "Organizational unit",
-                    "nb": "Organisasjonsenhet"
-                }
-            },
-            {
-                "id": "eduperson:org",
-                "displayName": {
-                    "en": "Organization",
-                    "nb": "Organisasjon"
+                    "en": "Uninett connect organization",
+                    "nb": "Uninett connect organisasjon"
                 }
             },
         ]
