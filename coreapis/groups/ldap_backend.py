@@ -5,7 +5,24 @@ ldap3 = eventlet.import_patched('ldap3')
 from coreapis.peoplesearch.controller import LDAPController
 from eventlet.pools import Pool
 
-ldap_type = 'voot:ldap_feide'
+org_attribute_names = {
+    'eduOrgLegalName',
+    'norEduOrgNIN',
+    'mail',
+    'telephoneNumber',
+    'postalAddress',
+    'eduOrgHomePageURI',
+    'eduOrgIdentityAuthNPolicyURI',
+    'eduOrgWhitePagesURI',
+    'facsimileTelephoneNumber',
+    'l',
+    'labeledURI',
+    'norEduOrgAcronym',
+    'norEduOrgUniqueIdentifier',
+    'postalCode',
+    'postOfficeBox',
+    'street',
+}
 
 
 class LDAPBackend(BaseBackend):
@@ -23,7 +40,7 @@ class LDAPBackend(BaseBackend):
             raise KeyError('orgDN not found in catalog')
         org = org[0]
         orgAttributes = org['attributes']
-        return {
+        res = {
             'id': self._groupid(realm),
             'displayName': orgAttributes['cn'][0],
             'type': 'fc:org',
@@ -33,6 +50,10 @@ class LDAPBackend(BaseBackend):
                 'basic': 'member',
             },
         }
+        for attribute in org_attribute_names:
+            if attribute in orgAttributes:
+                res[attribute] = orgAttributes[attribute][0]
+        return res
 
     def _get_orgunit(self, realm, dn):
         ou = self.ldap.search(realm, dn, '(objectClass=*)',
