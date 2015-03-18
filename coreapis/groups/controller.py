@@ -5,6 +5,7 @@ import traceback
 from paste.deploy.util import lookup_object
 
 BACKEND_CONFIG_KEY = 'groups_backend_'
+ID_PREFIX = 'fc'
 
 
 class GroupsController(object):
@@ -19,13 +20,17 @@ class GroupsController(object):
         self.timeout = int(config.get_settings().get('groups_timeout_backend', '3000')) / 1000
         for key, value in config.get_settings().items():
             if key.startswith(BACKEND_CONFIG_KEY):
-                prefix = key[len(BACKEND_CONFIG_KEY):]
-                self.backends[prefix] = lookup_object(value)(prefix, maxrows, config)
+                grouptype = key[len(BACKEND_CONFIG_KEY):]
+                prefix = ID_PREFIX + ':' + grouptype
+                self.backends[grouptype] = lookup_object(value)(prefix, maxrows, config)
 
     def _backend(self, groupid):
-        if not ':' in groupid:
+        parts = groupid.split(':', 2)
+        if parts[0] != ID_PREFIX:
+            raise KeyError('This group does not belong to us')
+        if len(parts) < 3:
             raise KeyError('Malformed group id')
-        grouptype, subid = groupid.split(':', 1)
+        prefix, grouptype, subid = parts
         if not grouptype in self.backends:
             raise KeyError('bad group id')
         return self.backends[grouptype]

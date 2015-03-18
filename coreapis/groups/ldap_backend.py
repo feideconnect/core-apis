@@ -24,7 +24,7 @@ class LDAPBackend(BaseBackend):
         org = org[0]
         orgAttributes = org['attributes']
         return {
-            'id': '{}:{}'.format(self.prefix, realm),
+            'id': self._groupid(realm),
             'displayName': orgAttributes['cn'][0],
             'type': 'eduperson:org',
             'membership': {
@@ -41,8 +41,8 @@ class LDAPBackend(BaseBackend):
         ou = ou[0]
         ouAttributes = ou['attributes']
         return {
-            'id': '{}:{}:{}'.format(self.prefix, realm,
-                                    ouAttributes['norEduOrgUnitUniqueIdentifier'][0]),
+            'id': self._groupid('{}:unit:{}'.format(realm,
+                ouAttributes['norEduOrgUnitUniqueIdentifier'][0])),
             'displayName': ouAttributes['ou'][0],
             'type': 'eduperson:orgunit',
             'membership': {

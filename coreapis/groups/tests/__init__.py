@@ -5,8 +5,8 @@ import logging
 
 user1 = uuid.UUID("00000000-0000-0000-0000-000000000001")
 user2 = uuid.UUID("00000000-0000-0000-0000-000000000002")
-groupid1 = 'test:1'
-groupid2 = 'test:2'
+groupid1 = 'fc:test:1'
+groupid2 = 'fc:test:2'
 
 group1 = {
     'id': groupid1,
