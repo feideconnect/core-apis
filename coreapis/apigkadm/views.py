@@ -156,6 +156,8 @@ def upload_logo(request):
 def apigk_owner_clients(request):
     userid = str(get_userid(request))
     ownerid = request.matchdict['ownerid']
+    if ownerid == 'me':
+        ownerid = userid
     if ownerid != userid:
         raise HTTPForbidden('wrong owner')
     return request.gkadm_controller.get_gkowner_clients(ownerid)

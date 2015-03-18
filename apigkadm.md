@@ -194,6 +194,8 @@ Returns `200 OK` on success with a single boolean in the json body indicating wh
 - `200 OK`: On success
 - `403 Forbidden`: Current user is not allowed to see the owner's clients
 
+'me' can be used as owner id and means the userid of the calling user.
+
 On success, the json body consists of a list of clients matching the
 request. If the owner owns an apigk with id `foo`, clients having
 `gk_foo` in scopes or scoes_requested are considered
