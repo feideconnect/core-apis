@@ -45,6 +45,7 @@ class LDAPBackend(BaseBackend):
         return {
             'id': self._groupid('{}:unit:{}'.format(realm,
                 ouAttributes['norEduOrgUnitUniqueIdentifier'][0])),
+            'parent': self._groupid(realm),
             'displayName': ouAttributes['ou'][0],
             'type': 'fc:org',
             'active': True,
