@@ -24,6 +24,7 @@ requires = [
     'pytest',
     'python3-ldap',
     'pytz',
+    'requests',
     'statsd',
     'valideer',
     'webtest',

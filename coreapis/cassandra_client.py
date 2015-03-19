@@ -301,3 +301,8 @@ class Client(object):
             selectors.append('status = ?')
             values.append(status)
         return self.get_generic('group_members', selectors, values, maxrows)
+
+    def insert_grep_code(self, grep):
+        prep = self._prepare('INSERT INTO grep_codes (id, code, title, type, last_changed) values (?,?,?,?,?)')
+        return self.session.execute(prep.bind([grep['id'], grep['code'], grep['title'],
+                                               grep['type'], grep['last_changed']]))
