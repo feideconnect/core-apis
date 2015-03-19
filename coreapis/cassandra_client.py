@@ -306,3 +306,10 @@ class Client(object):
         prep = self._prepare('INSERT INTO grep_codes (id, code, title, type, last_changed) values (?,?,?,?,?)')
         return self.session.execute(prep.bind([grep['id'], grep['code'], grep['title'],
                                                grep['type'], grep['last_changed']]))
+
+    def get_grep_code(self, grepid):
+        prep = self._prepare('SELECT * from grep_codes WHERE id = ?')
+        data = self.session.execute(prep.bind([grepid]))
+        if len(data) == 0:
+            raise KeyError('No such grep code')
+        return data[0]

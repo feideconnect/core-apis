@@ -4,6 +4,7 @@ import eventlet
 ldap3 = eventlet.import_patched('ldap3')
 from coreapis.peoplesearch.controller import LDAPController
 from eventlet.pools import Pool
+from coreapis import cassandra_client
 
 org_attribute_names = {
     'eduOrgLegalName',
@@ -23,6 +24,7 @@ org_attribute_names = {
     'postOfficeBox',
     'street',
 }
+GREP_PREFIX = 'urn:mace:feide.no:go:grep:'
 
 
 class LDAPBackend(BaseBackend):
@@ -31,6 +33,9 @@ class LDAPBackend(BaseBackend):
         self.log = LogWrapper('groups.ldapbackend')
         self.timer = config.get_settings().get('timer')
         self.ldap = LDAPController(self.timer, pool=Pool)
+        contact_points = config.get_settings().get('cassandra_contact_points')
+        keyspace = config.get_settings().get('cassandra_keyspace')
+        self.session = cassandra_client.Client(contact_points, keyspace, True)
 
     def _get_org(self, realm, dn):
         org = self.ldap.search(realm, dn, '(objectClass=*)',
@@ -76,6 +81,33 @@ class LDAPBackend(BaseBackend):
             },
         }
 
+    def _handle_grepcode(self, grep_id):
+        grep_data = self.session.get_grep_code(grep_id)
+        result = {
+            'id': 'fc:grep:{}'.format(grep_id),
+            'displayName': grep_data['title']['default'],
+            'type': 'fc:grep',
+            'membership': {
+                'basic': 'member',
+            },
+            'active': True,
+            'grep_type': grep_data['type'],
+        }
+        code = grep_data.get('code', None)
+        if code is not None:
+            result['code'] = code
+        return result
+
+    def _handle_grepcodes(self, attributes):
+        res = []
+        for val in attributes['eduPersonEntitlement']:
+            if val.startswith(GREP_PREFIX):
+                try:
+                    res.append(self._handle_grepcode(val[len(GREP_PREFIX):]))
+                except KeyError:
+                    pass
+        return res
+
     def get_member_groups(self, user, show_all):
         result = []
         feideid = None
@@ -90,7 +122,7 @@ class LDAPBackend(BaseBackend):
         base_dn = self.ldap.get_base_dn(realm)
         res = self.ldap.search(realm, base_dn, '(eduPersonPrincipalName={})'.format(feideid),
                                ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
-                               ('eduPersonOrgDN', 'eduPersonOrgUnitDN'), 1)
+                               ('eduPersonOrgDN', 'eduPersonOrgUnitDN', 'eduPersonEntitlement'), 1)
         if len(res) == 0:
             raise KeyError('could not find user in catalog')
         res = res[0]
@@ -101,6 +133,7 @@ class LDAPBackend(BaseBackend):
         if 'eduPersonOrgUnitDN' in attributes:
             for orgUnitDN in attributes['eduPersonOrgUnitDN']:
                 result.append(self._get_orgunit(realm, orgUnitDN))
+        result.extend(self._handle_grepcodes(attributes))
         return result
 
     def get_membership(self, user, groupid):
