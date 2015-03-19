@@ -11,6 +11,7 @@ TYPES = [
     'programomraader',
     'aarstrinn',
     'utdanningsprogram',
+    'fagkoder',
 ]
 
 
