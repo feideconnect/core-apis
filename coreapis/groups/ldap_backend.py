@@ -47,7 +47,7 @@ class LDAPBackend(BaseBackend):
         orgAttributes = org['attributes']
         res = {
             'id': self._groupid(realm),
-            'displayName': orgAttributes['cn'][0],
+            'displayName': orgAttributes['eduOrgLegalName'][0],
             'type': 'fc:org',
             'active': True,
             'public': True,
