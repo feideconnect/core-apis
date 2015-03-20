@@ -53,10 +53,9 @@ class AdHocGroupBackend(BaseBackend):
         self.log = LogWrapper('groups.adhocgroupbackend')
 
     def _intid(self, groupid):
-        if not ':' in groupid:
-            raise KeyError('Bad group id')
+        intid = super(AdHocGroupBackend, self)._intid(groupid)
         try:
-            intid = uuid.UUID(groupid.split(':', 1)[1])
+            intid = uuid.UUID(intid)
         except ValueError:
             raise KeyError('Bad group id')
         return intid

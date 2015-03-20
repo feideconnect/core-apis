@@ -14,6 +14,12 @@ class BaseBackend(object):
     def _groupid(self, gid):
         return "{}:{}".format(self.prefix, gid)
 
+    def _intid(self, groupid):
+        parts = groupid.split(':', 2)
+        if len(parts) != 3:
+            raise KeyError('Bad group id')
+        return parts[2]
+
     def get_id_handlers(self):
         return {
             self.prefix: IDHandler(self.get_group, self.get_membership,
