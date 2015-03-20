@@ -106,6 +106,7 @@ class LDAPBackend(BaseBackend):
             'displayName': grep_data['title']['default'],
             'type': 'fc:grep',
             'active': True,
+            'public': True,
             'grep_type': grep_data['type'],
         }
         if is_member:
