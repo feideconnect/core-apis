@@ -28,6 +28,14 @@ GREP_PREFIX = 'urn:mace:feide.no:go:grep:'
 GREP_ID_PREFIX = 'fc:grep'
 
 
+def quote(x, safe=''):
+    return x.replace('/', '_')
+
+
+def unquote(x):
+    return x.replace('_', '/')
+
+
 class LDAPBackend(BaseBackend):
     def __init__(self, prefix, maxrows, config):
         super(LDAPBackend, self).__init__(prefix, maxrows, config)
@@ -42,7 +50,7 @@ class LDAPBackend(BaseBackend):
         return {
             self.prefix: IDHandler(self.get_group, self.get_membership,
                                    self.get_members, self.get_logo),
-            GREP_ID_PREFIX: IDHandler(self.get_group, self.get_membership,
+            GREP_ID_PREFIX: IDHandler(self.get_grep_group, self.get_membership,
                                       self.get_members, self.get_logo),
         }
 
@@ -90,19 +98,21 @@ class LDAPBackend(BaseBackend):
             },
         }
 
-    def _handle_grepcode(self, grep_id):
+    def _handle_grepcode(self, grep_id, is_member):
         with self.timer.time('getting grep code'):
             grep_data = self.session.get_grep_code(grep_id)
         result = {
-            'id': '{}:{}'.format(GREP_ID_PREFIX, grep_id),
+            'id': '{}:{}'.format(GREP_ID_PREFIX, quote(grep_id, safe='')),
             'displayName': grep_data['title']['default'],
             'type': 'fc:grep',
-            'membership': {
-                'basic': 'member',
-            },
             'active': True,
             'grep_type': grep_data['type'],
         }
+        if is_member:
+            result['membership'] = {
+                'basic': 'member',
+            }
+
         code = grep_data.get('code', None)
         if code is not None:
             result['code'] = code
@@ -113,7 +123,7 @@ class LDAPBackend(BaseBackend):
         for val in entitlements:
             if val.startswith(GREP_PREFIX):
                 try:
-                    res.append(self._handle_grepcode(val[len(GREP_PREFIX):]))
+                    res.append(self._handle_grepcode(val[len(GREP_PREFIX):], True))
                 except KeyError:
                     pass
         return res
@@ -160,6 +170,15 @@ class LDAPBackend(BaseBackend):
             if group['id'] == groupid:
                 return group
         raise KeyError('Not found')
+
+    def get_grep_group(self, user, groupid):
+        try:
+            return self.get_group(user, groupid)
+        except KeyError:
+            pass
+        grep_id = unquote(self._intid(groupid))
+
+        return self._handle_grepcode(grep_id, False)
 
     def get_members(self, user, groupid, show_all):
         return []
