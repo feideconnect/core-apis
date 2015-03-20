@@ -1,5 +1,5 @@
 from coreapis.utils import LogWrapper
-from . import BaseBackend
+from . import BaseBackend, IDHandler
 import eventlet
 ldap3 = eventlet.import_patched('ldap3')
 from coreapis.peoplesearch.controller import LDAPController
@@ -25,6 +25,7 @@ org_attribute_names = {
     'street',
 }
 GREP_PREFIX = 'urn:mace:feide.no:go:grep:'
+GREP_ID_PREFIX = 'fc:grep'
 
 
 class LDAPBackend(BaseBackend):
@@ -36,6 +37,14 @@ class LDAPBackend(BaseBackend):
         contact_points = config.get_settings().get('cassandra_contact_points')
         keyspace = config.get_settings().get('cassandra_keyspace')
         self.session = cassandra_client.Client(contact_points, keyspace, True)
+
+    def get_id_handlers(self):
+        return {
+            self.prefix: IDHandler(self.get_group, self.get_membership,
+                                   self.get_members, self.get_logo),
+            GREP_ID_PREFIX: IDHandler(self.get_group, self.get_membership,
+                                      self.get_members, self.get_logo),
+        }
 
     def _get_org(self, realm, dn):
         org = self.ldap.search(realm, dn, '(objectClass=*)',
@@ -84,7 +93,7 @@ class LDAPBackend(BaseBackend):
     def _handle_grepcode(self, grep_id):
         grep_data = self.session.get_grep_code(grep_id)
         result = {
-            'id': 'fc:grep:{}'.format(grep_id),
+            'id': '{}:{}'.format(GREP_ID_PREFIX, grep_id),
             'displayName': grep_data['title']['default'],
             'type': 'fc:grep',
             'membership': {
