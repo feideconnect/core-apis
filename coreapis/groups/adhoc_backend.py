@@ -127,9 +127,13 @@ class AdHocGroupBackend(BaseBackend):
         result = []
         pile = GreenPile()
         memberships = {}
+        empty = True
         for membership in self.session.get_group_memberships(userid, None, None, self.maxrows):
+            empty = False
             memberships[membership['groupid']] = membership
             pile.spawn(failsafe(self.session.get_group), membership['groupid'])
+        if empty:
+            return []
         for group in pile:
             if group:
                 result.append(self.format_group(group, memberships[group['id']]))
