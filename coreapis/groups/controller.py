@@ -23,6 +23,9 @@ class GroupsController(object):
                 grouptype = key[len(BACKEND_CONFIG_KEY):]
                 prefix = ID_PREFIX + ':' + grouptype
                 self.backends[grouptype] = lookup_object(value)(prefix, maxrows, config)
+        self.id_handlers = {}
+        for backend in self.backends.values():
+            self.id_handlers.update(backend.get_id_handlers())
 
     def _backend(self, groupid):
         parts = groupid.split(':', 2)
@@ -31,9 +34,10 @@ class GroupsController(object):
         if len(parts) < 3:
             raise KeyError('Malformed group id')
         prefix, grouptype, subid = parts
-        if not grouptype in self.backends:
+        handler = '{}:{}'.format(prefix, grouptype)
+        if not handler in self.id_handlers:
             raise KeyError('bad group id')
-        return self.backends[grouptype]
+        return self.id_handlers[handler]
 
     def _backend_call(self, method, *args, **kwargs):
         backend = method.__self__.prefix
