@@ -107,9 +107,9 @@ class LDAPBackend(BaseBackend):
             result['code'] = code
         return result
 
-    def _handle_grepcodes(self, attributes):
+    def _handle_grepcodes(self, entitlements):
         res = []
-        for val in attributes['eduPersonEntitlement']:
+        for val in entitlements:
             if val.startswith(GREP_PREFIX):
                 try:
                     res.append(self._handle_grepcode(val[len(GREP_PREFIX):]))
@@ -142,7 +142,8 @@ class LDAPBackend(BaseBackend):
         if 'eduPersonOrgUnitDN' in attributes:
             for orgUnitDN in attributes['eduPersonOrgUnitDN']:
                 result.append(self._get_orgunit(realm, orgUnitDN))
-        result.extend(self._handle_grepcodes(attributes))
+        if 'eduPersonEntitlement' in attributes:
+            result.extend(self._handle_grepcodes(attributes['eduPersonEntitlement']))
         return result
 
     def get_membership(self, user, groupid):
