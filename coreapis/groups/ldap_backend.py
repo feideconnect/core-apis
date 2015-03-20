@@ -91,7 +91,8 @@ class LDAPBackend(BaseBackend):
         }
 
     def _handle_grepcode(self, grep_id):
-        grep_data = self.session.get_grep_code(grep_id)
+        with self.timer.time('getting grep code'):
+            grep_data = self.session.get_grep_code(grep_id)
         result = {
             'id': '{}:{}'.format(GREP_ID_PREFIX, grep_id),
             'displayName': grep_data['title']['default'],
