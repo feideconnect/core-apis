@@ -83,7 +83,10 @@ def group_members(request):
         show_all = True
     else:
         show_all = False
-    return request.groups_controller.get_members(user, groupid, show_all)
+    try:
+        return request.groups_controller.get_members(user, groupid, show_all)
+    except KeyError:
+        raise HTTPNotFound
 
 
 @view_config(route_name='groups', renderer='json', permission='scope_groups')
