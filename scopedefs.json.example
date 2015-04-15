@@ -12,12 +12,20 @@
 		"descr": "Brukerens e-postadresse",
 		"public": true,
 		"policy": {
-			"auto": false
+			"auto": true
 		}
 	},
 	"userinfo-feide": {
 		"title": "Feide-navn",
 		"descr": "Brukerens identifikator i Feide. Tilsvarende eduPersonPrincipalName.",
+		"public": true,
+		"policy": {
+			"auto": true
+		}
+	},
+	"userinfo-photo": {
+		"title": "Profile Photo",
+		"descr": "Tthe profile photo of the user.",
 		"public": true,
 		"policy": {
 			"auto": true
@@ -34,22 +42,9 @@
 	"longterm": {
 		"title": "Longterm",
 		"descr": "Langvarig tilgang. Tilgang inntil brukeren trekker rettighetene tilbake.",
-		"public": true
-	},
-	"clientadmin": {	
-		"title": "Klient Admin",
-		"descr": "Adminsitrer klienter",
-		"public": false,
+		"public": true,
 		"policy": {
-			"auto": false
-		}
-	},
-	"apigkadmin": {	
-		"title": "API Gatekeeper Admin",
-		"descr": "Administrer API Gatekeeper instanser.",
-		"public": false,
-		"policy": {
-			"auto": false
+			"auto": true
 		}
 	},
 	"peoplesearch": {
@@ -57,15 +52,31 @@
 		"descr": "Search for users",
 		"public": true,
 		"policy": {
-			"auto": false
+			"auto": true
 		}
 	},
-	"groups": {	
+	"groups": {
 		"title": "Grupper",
 		"descr": "Tilgang til basis gruppeinfo",
 		"public": true,
 		"policy": {
 			"auto": true
+		}
+	},
+	"clientadmin": {
+		"title": "Klient Admin",
+		"descr": "Adminsitrer klienter",
+		"public": false,
+		"policy": {
+			"auto": false
+		}
+	},
+	"apigkadmin": {
+		"title": "API Gatekeeper Admin",
+		"descr": "Administrer API Gatekeeper instanser.",
+		"public": false,
+		"policy": {
+			"auto": false
 		}
 	},
 	"adhocgroupadmin": {
