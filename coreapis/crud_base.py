@@ -1,4 +1,4 @@
-from coreapis.utils import now, ValidationError, AlreadyExistsError
+from coreapis.utils import now, ValidationError, AlreadyExistsError, LogWrapper
 import uuid
 import valideer as V
 import io
@@ -8,8 +8,11 @@ LOGO_SIZE = 128, 128
 
 
 class CrudControllerBase(object):
+    schema = {}
+
     def __init__(self, maxrows):
         self.maxrows = maxrows
+        self.log = LogWrapper('crud_base')
 
     def list(self, params):
         self.log.debug('list', num_params=len(params))
