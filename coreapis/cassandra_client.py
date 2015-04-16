@@ -54,6 +54,9 @@ class Client(object):
         self.prepared[query] = prep
         return prep
 
+    def _default_get(self, table):
+        return self._prepare('SELECT {} FROM {} WHERE id = ?'.format(self.default_columns[table], table))
+
     def insert_client(self, id, client_secret, name, descr,
                       redirect_uri, scopes, scopes_requested, status,
                       type, create_ts, update_ts, owner):
@@ -63,7 +66,7 @@ class Client(object):
                                         status, type, create_ts, update_ts, owner]))
 
     def get_client_by_id(self, clientid):
-        prep = self._prepare('SELECT {} FROM clients WHERE id = ?'.format(self.default_columns['clients']))
+        prep = self._default_get('clients')
         res = self.session.execute(prep.bind([clientid]))
         if len(res) == 0:
             raise KeyError('No such client')
@@ -157,7 +160,7 @@ class Client(object):
         return res[0]['userid']
 
     def get_apigk(self, id):
-        prep = self._prepare('SELECT {} FROM apigk WHERE id = ?'.format(self.default_columns['apigk']))
+        prep = self._default_get('apigk')
         res = self.session.execute(prep.bind([id]))
         if len(res) == 0:
             raise KeyError('No such apigk')
@@ -223,7 +226,7 @@ class Client(object):
             self.delete_token(tokenid)
 
     def get_group(self, groupid):
-        prep = self._prepare('SELECT {} FROM groups WHERE id = ?'.format(self.default_columns['groups']))
+        prep = self._default_get('groups')
         res = self.session.execute(prep.bind([groupid]))
         if len(res) == 0:
             raise KeyError('No such group')
