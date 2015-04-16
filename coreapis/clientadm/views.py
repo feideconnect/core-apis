@@ -1,7 +1,6 @@
 from pyramid.view import view_config
 from pyramid.httpexceptions import (
     HTTPBadRequest, HTTPNotFound, HTTPConflict, HTTPForbidden, HTTPNotModified)
-from pyramid.security import has_permission
 from pyramid.response import Response
 from .controller import ClientAdmController
 from coreapis.utils import AlreadyExistsError, ForbiddenError, get_userid, get_payload
@@ -47,14 +46,14 @@ def list_clients(request):
 
 
 @view_config(route_name='get_client', renderer='json')
-def get_client(self, request):
+def get_client(request):
     userid = get_userid(request)
     clientid = get_clientid(request)
     try:
         client = request.cadm_controller.get(clientid)
         owner = client.get('owner', None)
         if ((owner and owner != userid) or
-                (not has_permission('scope_clientadmin', self, request))):
+                (not request.has_permission('scope_clientadmin'))):
             return request.cadm_controller.get_public_client(client)
     except KeyError:
         raise HTTPNotFound
