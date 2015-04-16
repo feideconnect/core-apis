@@ -1,6 +1,6 @@
 from pyramid.view import view_config
 from pyramid.httpexceptions import (
-    HTTPBadRequest, HTTPNotFound, HTTPConflict, HTTPForbidden, HTTPNotModified)
+    HTTPNotFound, HTTPConflict, HTTPForbidden, HTTPNotModified)
 from pyramid.response import Response
 from .controller import ClientAdmController
 from coreapis.utils import AlreadyExistsError, ForbiddenError, get_userid, get_payload
