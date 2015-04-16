@@ -46,20 +46,6 @@ class Client(object):
         }
         self.session = cluster.connect(keyspace)
         self.session.row_factory = datetime_hack_dict_factory
-        self.s_get_client = self.session.prepare('SELECT {} FROM clients WHERE id = ?'.format(self.default_columns['clients']))
-        self.s_delete_client = self.session.prepare('DELETE FROM clients WHERE id = ?')
-        self.s_get_token = self.session.prepare('SELECT * FROM oauth_tokens WHERE access_token = ?')
-        self.s_get_user = self.session.prepare('SELECT * FROM users WHERE userid = ?')
-        self.s_get_apigk = self.session.prepare('SELECT {} FROM apigk WHERE id = ?'.format(self.default_columns['apigk']))
-        self.s_delete_apigk = self.session.prepare('DELETE FROM apigk WHERE id = ?')
-        self.s_get_client_logo = self.session.prepare('SELECT logo, updated FROM clients WHERE id = ?')
-        self.s_get_apigk_logo = self.session.prepare('SELECT logo, updated FROM apigk WHERE id = ?')
-        self.s_get_authorizations = self.session.prepare('SELECT * FROM oauth_authorizations WHERE userid = ?')
-        self.s_delete_authorization = self.session.prepare('DELETE FROM oauth_authorizations WHERE userid = ? AND clientid = ?')
-        self.s_delete_token = self.session.prepare('DELETE FROM oauth_tokens WHERE access_token = ?')
-        self.s_get_group = self.session.prepare('SELECT {} FROM groups WHERE id = ?'.format(self.default_columns['groups']))
-        self.s_delete_group = self.session.prepare('DELETE FROM groups WHERE id = ?')
-        self.s_get_group_logo = self.session.prepare('SELECT logo, updated FROM groups WHERE id = ?')
 
     def _prepare(self, query):
         if query in self.prepared:
@@ -77,7 +63,7 @@ class Client(object):
                                         status, type, create_ts, update_ts, owner]))
 
     def get_client_by_id(self, clientid):
-        prep = self.s_get_client
+        prep = self._prepare('SELECT {} FROM clients WHERE id = ?'.format(self.default_columns['clients']))
         res = self.session.execute(prep.bind([clientid]))
         if len(res) == 0:
             raise KeyError('No such client')
@@ -119,21 +105,21 @@ class Client(object):
         return res
 
     def delete_client(self, clientid):
-        prep = self.s_delete_client
+        prep = self._prepare('DELETE FROM clients WHERE id = ?')
         t0 = time.time()
         self.session.execute(prep.bind([clientid]))
         t0 = time.time()
         print("Executed in %s ms" % ((time.time()-t0)*1000))
 
     def get_token(self, tokenid):
-        prep = self.s_get_token
+        prep = self._prepare('SELECT * FROM oauth_tokens WHERE access_token = ?')
         res = self.session.execute(prep.bind([tokenid]))
         if len(res) == 0:
             raise KeyError('No such token')
         return res[0]
 
     def get_user_by_id(self, userid):
-        prep = self.s_get_user
+        prep = self._prepare('SELECT * FROM users WHERE userid = ?')
         res = self.session.execute(prep.bind([userid]))
         if len(res) == 0:
             raise KeyError('No such user')
@@ -171,7 +157,7 @@ class Client(object):
         return res[0]['userid']
 
     def get_apigk(self, id):
-        prep = self.s_get_apigk
+        prep = self._prepare('SELECT {} FROM apigk WHERE id = ?'.format(self.default_columns['apigk']))
         res = self.session.execute(prep.bind([id]))
         if len(res) == 0:
             raise KeyError('No such apigk')
@@ -183,7 +169,7 @@ class Client(object):
         return [parse_apigk(gk) for gk in self.get_generic('apigk', selectors, values, maxrows)]
 
     def delete_apigk(self, id):
-        prep = self.s_delete_apigk
+        prep = self._prepare('DELETE FROM apigk WHERE id = ?')
         self.session.execute(prep.bind([id]))
 
     def insert_apigk(self, apigk):
@@ -202,13 +188,15 @@ class Client(object):
                                         apigk['updated']]))
 
     def get_client_logo(self, clientid):
-        res = self.session.execute(self.s_get_client_logo.bind([clientid]))
+        prep = self._prepare('SELECT logo, updated FROM clients WHERE id = ?')
+        res = self.session.execute(prep.bind([clientid]))
         if len(res) == 0:
             raise KeyError('no such client')
         return res[0]['logo'], res[0]['updated']
 
     def get_apigk_logo(self, gkid):
-        res = self.session.execute(self.s_get_apigk_logo.bind([gkid]))
+        prep = self._prepare('SELECT logo, updated FROM apigk WHERE id = ?')
+        res = self.session.execute(prep.bind([gkid]))
         if len(res) == 0:
             raise KeyError('no such client')
         return res[0]['logo'], res[0]['updated']
@@ -218,28 +206,31 @@ class Client(object):
         self.session.execute(prep.bind([itemid, data, updated]))
 
     def get_authorizations(self, userid):
-        return self.session.execute(self.s_get_authorizations.bind([userid]))
+        prep = self._prepare('SELECT * FROM oauth_authorizations WHERE userid = ?')
+        return self.session.execute(prep.bind([userid]))
 
     def delete_token(self, token):
-        return self.session.execute(self.s_delete_token.bind([token]))
+        prep = self._prepare('DELETE FROM oauth_tokens WHERE access_token = ?')
+        return self.session.execute(prep.bind([token]))
 
     def delete_authorization(self, userid, clientid):
-        self.session.execute(self.s_delete_authorization.bind([userid, clientid]))
-        prep = self._prepare('SELECT access_token FROM oauth_tokens WHERE userid = ? AND clientid = ? ALLOW FILTERING')
-        for token in self.session.execute(prep.bind([userid, clientid])):
+        prep_del_auth = self._prepare('DELETE FROM oauth_authorizations WHERE userid = ? AND clientid = ?')
+        self.session.execute(prep_del_auth.bind([userid, clientid]))
+        prep_find_tokens = self._prepare('SELECT access_token FROM oauth_tokens WHERE userid = ? AND clientid = ? ALLOW FILTERING')
+        for token in self.session.execute(prep_find_tokens.bind([userid, clientid])):
             tokenid = token['access_token']
             self.log.debug('deleting token', token=tokenid)
             self.delete_token(tokenid)
 
     def get_group(self, groupid):
-        prep = self.s_get_group
+        prep = self._prepare('SELECT {} FROM groups WHERE id = ?'.format(self.default_columns['groups']))
         res = self.session.execute(prep.bind([groupid]))
         if len(res) == 0:
             raise KeyError('No such group')
         return res[0]
 
     def delete_group(self, groupid):
-        prep = self.s_delete_group
+        prep = self._prepare('DELETE FROM groups WHERE id = ?')
         self.session.execute(prep.bind([groupid]))
 
     def insert_group(self, group):
@@ -256,7 +247,8 @@ class Client(object):
         ]))
 
     def get_group_logo(self, groupid):
-        res = self.session.execute(self.s_get_group_logo.bind([groupid]))
+        prep = self._prepare('SELECT logo, updated FROM groups WHERE id = ?')
+        res = self.session.execute(prep.bind([groupid]))
         if len(res) == 0:
             raise KeyError('no such group')
         return res[0]['logo'], res[0]['updated']
