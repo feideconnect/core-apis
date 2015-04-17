@@ -5,7 +5,7 @@ import time
 import json
 import datetime
 import pytz
-from coreapis.utils import LogWrapper, now
+from coreapis.utils import LogWrapper, now, translatable
 
 
 def parse_apigk(obj):
@@ -308,3 +308,21 @@ class Client(object):
         if len(data) == 0:
             raise KeyError('No such grep code')
         return data[0]
+
+    def get_org_by_realm(self, realm):
+        prep = self._prepare('SELECT organization_number,type,realm,id,name from organizations where realm = ?')
+        data = self.session.execute(prep.bind([realm]))
+        if len(data) == 0:
+            raise KeyError('no such organization')
+        data = data[0]
+        if 'name' in data:
+            data['name'] = translatable(data['name'])
+        return data
+
+    def list_orgs(self):
+        prep = self._prepare('SELECT organization_number,type,realm,id,name from organizations')
+        data = self.session.execute(prep)
+        for a in data:
+            if 'name' in a:
+                a['name'] = translatable(a['name'])
+        return data

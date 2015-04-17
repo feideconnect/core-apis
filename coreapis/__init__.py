@@ -57,6 +57,8 @@ def main(global_config, **settings):
         config.include('coreapis.adhocgroupadm.views.configure', route_prefix='adhocgroups')
     if all_enabled or 'groups' in enabled_components:
         config.include('coreapis.groups.views.configure', route_prefix='groups')
+    if all_enabled or 'org' in enabled_components:
+        config.include('coreapis.org.views.configure', route_prefix='orgs')
     config.scan('coreapis.error_views')
     config.add_settings(realm=global_config['oauth_realm'])
     config.add_tween('coreapis.utils.RequestTimingTween')

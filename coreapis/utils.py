@@ -303,3 +303,40 @@ class ResourcePool(object):
 
     def item(self):
         return self.Context(self)
+
+
+class translatable(dict):
+    def pick_lang(self, request):
+        """Returns a translated string from a dict of lang -> string mappings
+        based on the accept_language headers of the request. If there is
+        no accept-language header or there is no overlap between accepted
+        and available language returns an arbitary language
+
+        """
+        lang = None
+        if request.accept_language:
+            lang = request.accept_language.best_match(self.keys())
+        if not lang:
+            for a in ('nb', 'nn', 'en', 'se'):
+                if a in self:
+                    lang = a
+                    break
+        if not lang:
+            lang = list(self.keys())[0]
+        return self[lang]
+
+
+def pick_lang(request, data):
+    if request.params.get('translate', 'true') == 'false':
+        return data
+    if isinstance(data, translatable):
+        return data.pick_lang(request)
+    elif isinstance(data, dict):
+        res = {}
+        for key, value in data.items():
+            res[key] = pick_lang(request, value)
+        return res
+    elif isinstance(data, list):
+        return [pick_lang(request, v) for v in data]
+    else:
+        return data
