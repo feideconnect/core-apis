@@ -16,3 +16,9 @@ class OrgController(object):
 
     def list_orgs(self):
         return self.session.list_orgs()
+
+    def get_logo(self, realm):
+        logo, updated = self.session.get_org_logo(realm)
+        if logo is None or updated is None:
+            return None, None
+        return logo, updated

@@ -326,3 +326,10 @@ class Client(object):
             if 'name' in a:
                 a['name'] = translatable(a['name'])
         return data
+
+    def get_org_logo(self, realm):
+        prep = self._prepare('SELECT logo, logo_updated FROM organizations WHERE realm = ?')
+        res = self.session.execute(prep.bind([realm]))
+        if len(res) == 0:
+            raise KeyError('no such organization')
+        return res[0]['logo'], res[0]['logo_updated']
