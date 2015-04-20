@@ -238,7 +238,7 @@ class ClientAdmTests(unittest.TestCase):
 
     def test_delete_client(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_client_by_id.return_value = {'foo': 'bar', 'owner': uuid.UUID(userid_own)}
+        self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
         self.testapp.delete('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=204,
                             headers=headers)
 
@@ -273,6 +273,7 @@ class ClientAdmTests(unittest.TestCase):
 
     def test_update_client_invalid_json(self):
         headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
         self.testapp.patch('/clientadm/clients/{}'.format(clientid), 'bar', status=400,
                            headers=headers)
 

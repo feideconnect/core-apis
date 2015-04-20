@@ -35,6 +35,18 @@ def configure(config):
     config.scan(__name__)
 
 
+def check(request):
+    userid = get_userid(request)
+    clientid = get_clientid(request)
+    try:
+        client = request.cadm_controller.get(clientid)
+        if not request.cadm_controller.has_permission(client, userid):
+            raise HTTPForbidden('Insufficient permissions')
+        return client
+    except KeyError:
+        raise HTTPNotFound()
+
+
 @view_config(route_name='list_clients', renderer='json', permission='scope_clientadmin')
 def list_clients(request):
     userid = str(get_userid(request))
@@ -51,9 +63,8 @@ def get_client(request):
     clientid = get_clientid(request)
     try:
         client = request.cadm_controller.get(clientid)
-        owner = client.get('owner', None)
-        if ((owner and owner != userid) or
-                (not request.has_permission('scope_clientadmin'))):
+        if not request.cadm_controller.has_permission(client, userid) or \
+           (not request.has_permission('scope_clientadmin')):
             return request.cadm_controller.get_public_client(client)
     except KeyError:
         raise HTTPNotFound
@@ -84,28 +95,18 @@ def add_client(request):
 
 @view_config(route_name='delete_client', renderer='json', permission='scope_clientadmin')
 def delete_client(request):
-    userid = get_userid(request)
-    clientid = get_clientid(request)
-    try:
-        request.cadm_controller.delete(clientid, userid)
-        return Response(status='204 No Content', content_type=False)
-    except ForbiddenError as err:
-        raise HTTPForbidden(err.message)
+    client = check(request)
+    request.cadm_controller.delete(client['id'])
+    return Response(status='204 No Content', content_type=False)
 
 
 @view_config(route_name='update_client', renderer='json', permission='scope_clientadmin')
 def update_client(request):
-    userid = get_userid(request)
-    clientid = get_clientid(request)
+    client = check(request)
     payload = get_payload(request)
-    try:
-        attrs = allowed_attrs(payload, 'update')
-        client = request.cadm_controller.update(clientid, attrs, userid)
-        return client
-    except KeyError:
-        raise HTTPNotFound
-    except ForbiddenError as err:
-        raise HTTPForbidden(err.message)
+    attrs = allowed_attrs(payload, 'update')
+    client = request.cadm_controller.update(client['id'], attrs)
+    return client
 
 
 @view_config(route_name='update_gkscopes', renderer="json", permission='scope_clientadmin')
@@ -145,18 +146,14 @@ def client_logo(request):
 @view_config(route_name='client_logo', request_method="POST", permission='scope_clientadmin',
              renderer="json")
 def upload_logo(request):
-    userid = get_userid(request)
-    clientid = get_clientid(request)
-    client = request.cadm_controller.get(clientid)
-    if not request.cadm_controller.has_permission(client, userid):
-        raise HTTPForbidden("Insufficient permissions")
+    client = check(request)
     if 'logo' in request.POST:
         input_file = request.POST['logo'].file
     else:
         input_file = request.body_file_seekable
     input_file.seek(0)
     data = input_file.read()
-    request.cadm_controller.update_logo(clientid, data)
+    request.cadm_controller.update_logo(client['id'], data)
     return 'OK'
 
 
