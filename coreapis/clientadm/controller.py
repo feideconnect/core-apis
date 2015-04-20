@@ -61,6 +61,11 @@ class ClientAdmController(CrudControllerBase):
     def _list(self, selectors, values, maxrows):
         return self.session.get_clients(selectors, values, maxrows)
 
+    def has_permission(self, client, userid):
+        if client['owner'] == userid:
+            return True
+        return False
+
     def get(self, clientid):
         self.log.debug('Get client', clientid=clientid)
         client = self.session.get_client_by_id(clientid)
@@ -129,16 +134,23 @@ class ClientAdmController(CrudControllerBase):
         self.insert_client(client)
         return client
 
-    def update(self, itemid, attrs):
+    def update(self, itemid, attrs, userid):
+        client = self.get(itemid)
+        if not self.has_permission(client, userid):
+            raise ForbiddenError('Insufficient permissions')
         client = self.validate_update(itemid, attrs)
         for scope in client['scopes_requested']:
             if not scope in client['scopes']:
                 self.handle_scope_request(client, scope)
         return self._insert(client)
 
-    def delete(self, clientid):
+    def delete(self, clientid, userid):
         self.log.debug('Delete client', clientid=clientid)
-        self.session.delete_client(clientid)
+        client = self.get(clientid)
+        if self.has_permission(client, userid):
+            self.session.delete_client(clientid)
+        else:
+            raise ForbiddenError('Insufficient permissions')
 
     def get_logo(self, clientid):
         return self.session.get_client_logo(clientid)

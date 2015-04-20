@@ -44,7 +44,7 @@ class TestController(TestCase):
         self.session.get_client_by_id.return_value = deepcopy(retrieved_gk_client)
         self.session.insert_client = mock.MagicMock()
         attrs = {'created': '2000-01-01T00:00:00+01:00'}
-        res = self.controller.update(id, attrs)
+        res = self.controller.update(id, attrs, uuid.UUID(userid_own))
         assert res['created'] == parse_datetime(date_created)
 
     def test_get_gkscope_clients(self):
