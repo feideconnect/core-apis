@@ -59,6 +59,11 @@ class APIGKAdmController(CrudControllerBase):
         self.log = LogWrapper('apigkadm.APIGKAdmController')
         self.cadm_controller = ClientAdmController(contact_points, keyspace, None, maxrows)
 
+    def has_permission(self, apigk, userid):
+        if apigk['owner'] == userid:
+            return True
+        return False
+
     def get(self, id):
         self.log.debug('Get apigk', id=id)
         apigk = self.session.get_apigk(id)

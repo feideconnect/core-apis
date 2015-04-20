@@ -32,6 +32,18 @@ def allowed_attrs(attrs, operation):
     return {k: v for k, v in attrs.items() if k not in protected_keys}
 
 
+def check(request):
+    userid = get_userid(request)
+    gkid = request.matchdict['id']
+    try:
+        gk = request.gkadm_controller.get(gkid)
+        if not request.gkadm_controller.has_permission(gk, userid):
+            raise HTTPForbidden('Insufficient permissions')
+        return gk
+    except KeyError:
+        raise HTTPNotFound()
+
+
 @view_config(route_name='list_apigks', renderer='json', permission='scope_apigkadmin')
 def list_apigks(request):
     userid = str(get_userid(request))
@@ -49,16 +61,7 @@ def list_public_apigks(request):
 
 @view_config(route_name='get_apigk', renderer='json', permission='scope_apigkadmin')
 def get_apigk(request):
-    userid = get_userid(request)
-    gkid = request.matchdict['id']
-    try:
-        apigk = request.gkadm_controller.get(gkid)
-        owner = apigk.get('owner', None)
-        if owner and owner != userid:
-            raise HTTPForbidden('Not owner')
-    except KeyError:
-        raise HTTPNotFound()
-    return apigk
+    return check(request)
 
 
 @view_config(route_name='apigk_exists', renderer='json', permission='scope_apigkadmin')
@@ -88,29 +91,18 @@ def add_apigk(request):
 
 @view_config(route_name='delete_apigk', renderer='json', permission='scope_apigkadmin')
 def delete_apigk(request):
-    userid = get_userid(request)
-    gkid = request.matchdict['id']
-    owner = request.gkadm_controller.get_owner(gkid)
-    if owner and owner != userid:
-        raise HTTPForbidden('Not owner')
-    request.gkadm_controller.delete(gkid)
+    gk = check(request)
+    request.gkadm_controller.delete(gk['id'])
     return Response(status=204, content_type=False)
 
 
 @view_config(route_name='update_apigk', renderer='json', permission='scope_apigkadmin')
 def update_apigk(request):
-    userid = get_userid(request)
-    gkid = request.matchdict['id']
+    gk = check(request)
     payload = get_payload(request)
-    try:
-        owner = request.gkadm_controller.get_owner(gkid)
-        if owner and owner != userid:
-            raise HTTPForbidden('Not owner')
-        attrs = allowed_attrs(payload, 'update')
-        apigk = request.gkadm_controller.update(gkid, attrs)
-        return apigk
-    except KeyError:
-        raise HTTPNotFound
+    attrs = allowed_attrs(payload, 'update')
+    apigk = request.gkadm_controller.update(gk['id'], attrs)
+    return apigk
 
 
 @view_config(route_name='apigk_logo')
@@ -136,11 +128,7 @@ def apigk_logo(request):
 @view_config(route_name='apigk_logo', request_method="POST", permission='scope_apigkadmin',
              renderer="json")
 def upload_logo(request):
-    userid = get_userid(request)
-    apigkid = request.matchdict['id']
-    owner = request.gkadm_controller.get_owner(apigkid)
-    if owner and owner != userid:
-        raise HTTPForbidden('Not owner')
+    gk = check(request)
 
     if 'logo' in request.POST:
         input_file = request.POST['logo'].file
@@ -148,7 +136,7 @@ def upload_logo(request):
         input_file = request.body_file_seekable
     input_file.seek(0)
     data = input_file.read()
-    request.gkadm_controller.update_logo(apigkid, data)
+    request.gkadm_controller.update_logo(gk['id'], data)
     return 'OK'
 
 

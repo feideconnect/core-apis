@@ -126,10 +126,10 @@ class APIGKAdmTests(unittest.TestCase):
 
     def test_get_apigk(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session().get_apigk.return_value = {'foo': 'bar'}
+        self.session().get_apigk.return_value = pre_update
         res = self.testapp.get('/apigkadm/apigks/{}'.format(uuid.uuid4()), status=200, headers=headers)
         out = res.json
-        assert 'foo' in out
+        assert out['id'] == 'updateable'
 
     def test_missing_apigk(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -245,8 +245,9 @@ class APIGKAdmTests(unittest.TestCase):
 
     def test_delete_apigk(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session().get_apigk.return_value = {'owner': uuid.UUID('00000000-0000-0000-0000-000000000001')}
-        self.testapp.delete('/apigkadm/apigks/{}'.format(uuid.uuid4()), status=204, headers=headers)
+        id = uuid.uuid4()
+        self.session().get_apigk.return_value = {'owner': uuid.UUID('00000000-0000-0000-0000-000000000001', 'id': id)}
+        self.testapp.delete('/apigkadm/apigks/{}'.format(id), status=204, headers=headers)
 
     def test_delete_apigk_no_id(self):
         headers = {'Authorization': 'Bearer user_token'}
