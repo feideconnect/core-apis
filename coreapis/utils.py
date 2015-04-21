@@ -240,6 +240,18 @@ def get_user(request):
     return request.environ.get('FC_USER', None)
 
 
+def get_feideid(user):
+    feideid = None
+    for sec in user['userid_sec']:
+        if sec.startswith('feide:'):
+            feideid = sec.split(':', 1)[1]
+    if not feideid:
+        raise RuntimeError('could not find feide id')
+    if not '@' in feideid:
+        raise RuntimeError('invalid feide id')
+    return feideid
+
+
 def get_payload(request):
     try:
         return request.json_body

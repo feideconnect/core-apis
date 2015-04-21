@@ -1,4 +1,4 @@
-from coreapis.utils import LogWrapper
+from coreapis.utils import LogWrapper, get_feideid
 from . import BaseBackend, IDHandler
 import eventlet
 ldap3 = eventlet.import_patched('ldap3')
@@ -131,14 +131,7 @@ class LDAPBackend(BaseBackend):
 
     def get_member_groups(self, user, show_all):
         result = []
-        feideid = None
-        for sec in user['userid_sec']:
-            if sec.startswith('feide:'):
-                feideid = sec.split(':', 1)[1]
-        if not feideid:
-            raise RuntimeError('could not find feide id')
-        if not '@' in feideid:
-            raise RuntimeError('invalid feide id')
+        feideid = get_feideid(user)
         realm = feideid.split('@', 1)[1]
         base_dn = self.ldap.get_base_dn(realm)
         res = self.ldap.search(realm, base_dn, '(eduPersonPrincipalName={})'.format(feideid),
