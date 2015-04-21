@@ -29,6 +29,7 @@ class APIGKAdmController(CrudControllerBase):
     schema = {
         '+name': 'string',
         'owner': V.AdaptTo(uuid.UUID),
+        'organization': V.Nullable('string'),
         '+id': re.compile('^[a-z][a-z0-9\-]{2,14}$'),
         'created': V.AdaptBy(ts),
         'descr': V.Nullable('string'),
@@ -59,10 +60,14 @@ class APIGKAdmController(CrudControllerBase):
         self.log = LogWrapper('apigkadm.APIGKAdmController')
         self.cadm_controller = ClientAdmController(contact_points, keyspace, None, maxrows)
 
-    def has_permission(self, apigk, userid):
-        if apigk['owner'] == userid:
-            return True
-        return False
+    def has_permission(self, apigk, user):
+        org = apigk.get('organization', None)
+        if org:
+            return self.is_org_admin(user, org)
+        else:
+            if apigk['owner'] == user['userid']:
+                return True
+            return False
 
     def get(self, id):
         self.log.debug('Get apigk', id=id)

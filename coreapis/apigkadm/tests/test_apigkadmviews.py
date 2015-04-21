@@ -65,7 +65,8 @@ pre_update = {
         "https://example.com"
     ],
     "name": "pre update",
-    "requireuser": False
+    "requireuser": False,
+    "organization": None,
 }
 
 

@@ -2,7 +2,7 @@ from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPNotFound, HTTPConflict, HTTPForbidden, HTTPNotModified
 from pyramid.response import Response
 from .controller import APIGKAdmController
-from coreapis.utils import AlreadyExistsError, get_userid, get_payload
+from coreapis.utils import AlreadyExistsError, get_userid, get_payload, get_user
 
 
 def configure(config):
@@ -29,15 +29,16 @@ def allowed_attrs(attrs, operation):
     protected_keys = ['created', 'owner', 'scopes', 'updated']
     if operation != 'add':
         protected_keys.append('id')
+        protected_keys.append('organization')
     return {k: v for k, v in attrs.items() if k not in protected_keys}
 
 
 def check(request):
-    userid = get_userid(request)
+    user = get_user(request)
     gkid = request.matchdict['id']
     try:
         gk = request.gkadm_controller.get(gkid)
-        if not request.gkadm_controller.has_permission(gk, userid):
+        if not request.gkadm_controller.has_permission(gk, user):
             raise HTTPForbidden('Insufficient permissions')
         return gk
     except KeyError:
@@ -81,6 +82,10 @@ def add_apigk(request):
     payload = get_payload(request)
     try:
         attrs = allowed_attrs(payload, 'add')
+        if 'organization' in attrs:
+            user = get_user(request)
+            if not request.gkadm_controller.is_org_admin(user, attrs['organization']):
+                raise HTTPForbidden('Not administrator for organization')
         apigk = request.gkadm_controller.add(attrs, userid)
         request.response.status = 201
         request.response.location = "{}{}".format(request.url, apigk['id'])

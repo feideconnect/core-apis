@@ -40,7 +40,7 @@ class Client(object):
         self.prepared = {}
         self.default_columns = {
             'clients': 'owner,name,type,status,scopes_requested,client_secret,created,redirect_uri,descr,id,scopes,updated,organization',
-            'apigk': 'id,requireuser,created,name,scopedef,httpscertpinned,status,descr,expose,updated,trust,endpoints,owner',
+            'apigk': 'id,requireuser,created,name,scopedef,httpscertpinned,status,descr,expose,updated,trust,endpoints,owner,organization',
             'groups': 'id,created,descr,name,owner,public,updated,invitation_token',
             'group_members': 'userid,groupid,status,type',
         }
@@ -176,19 +176,22 @@ class Client(object):
         self.session.execute(prep.bind([id]))
 
     def insert_apigk(self, apigk):
-        prep = self._prepare('INSERT INTO apigk (id, created, descr, endpoints, expose, httpscertpinned, name, owner, requireuser, scopedef, status, trust, updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-        self.session.execute(prep.bind([apigk['id'],
-                                        apigk['created'],
-                                        apigk['descr'],
-                                        apigk['endpoints'],
-                                        json.dumps(apigk['expose']),
-                                        apigk['httpscertpinned'],
-                                        apigk['name'], apigk['owner'],
-                                        apigk['requireuser'],
-                                        json.dumps(apigk['scopedef']),
-                                        apigk['status'],
-                                        json.dumps(apigk['trust']),
-                                        apigk['updated']]))
+        prep = self._prepare('INSERT INTO apigk (id, created, descr, endpoints, expose, httpscertpinned, name, owner, requireuser, scopedef, status, trust, updated, organization) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+        self.session.execute(prep.bind([
+            apigk['id'],
+            apigk['created'],
+            apigk['descr'],
+            apigk['endpoints'],
+            json.dumps(apigk['expose']),
+            apigk['httpscertpinned'],
+            apigk['name'], apigk['owner'],
+            apigk['requireuser'],
+            json.dumps(apigk['scopedef']),
+            apigk['status'],
+            json.dumps(apigk['trust']),
+            apigk['updated'],
+            apigk['organization'],
+        ]))
 
     def get_client_logo(self, clientid):
         prep = self._prepare('SELECT logo, updated FROM clients WHERE id = ?')
