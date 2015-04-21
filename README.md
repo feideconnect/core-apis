@@ -25,8 +25,13 @@ Then, assuming python3 is installed and virtualenvwrapper is configured, run the
 	pserve --reload development.ini
 
 
+## Requirements
+
+Requires Python 3.3 or newer. Debian Wheezy has 3.2, which is too old.
+
+
+## Running the tests
+
 To run unit tests:
 
 	py.test -v coreapis
-
-Requires Python 3.3 or newer. Debian Wheezy has 3.2, which is too old.
