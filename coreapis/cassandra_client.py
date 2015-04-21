@@ -60,7 +60,7 @@ class Client(object):
     def insert_client(self, id, client_secret, name, descr,
                       redirect_uri, scopes, scopes_requested, status,
                       type, create_ts, update_ts, owner, organization):
-        prep = self._prepare('INSERT INTO clients (id, client_secret, name, descr, redirect_uri, scopes, scopes_requested, status, type, created, updated, owner, organizatoin) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+        prep = self._prepare('INSERT INTO clients (id, client_secret, name, descr, redirect_uri, scopes, scopes_requested, status, type, created, updated, owner, organization) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
         self.session.execute(prep.bind([id, client_secret, name, descr,
                                         redirect_uri, scopes, scopes_requested,
                                         status, type, create_ts, update_ts, owner, organization]))
