@@ -30,7 +30,9 @@ class ClientAdmController(CrudControllerBase):
         'owner': {'sel':  'owner = ?',
                   'cast': uuid.UUID},
         'scope': {'sel':  'scopes contains ?',
-                  'cast': lambda u: u}
+                  'cast': lambda u: u},
+        'organization': {'sel': 'organization = ?',
+                         'cast': lambda u: u},
     }
     schema = {
         # Required
