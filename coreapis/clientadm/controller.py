@@ -1,6 +1,6 @@
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
-from coreapis.utils import LogWrapper, ts, public_userinfo, ValidationError, ForbiddenError, get_feideid
+from coreapis.utils import LogWrapper, ts, public_userinfo, ValidationError, ForbiddenError
 import blist
 import json
 import uuid
@@ -226,7 +226,3 @@ class ClientAdmController(CrudControllerBase):
         client = self.add_gkscopes(client, userid, scopes_add)
         client = self.remove_gkscopes(client, userid, scopes_remove)
         self.insert_client(client)
-
-    def is_org_admin(self, user, org):
-        feideid = get_feideid(user)
-        return self.session.is_org_admin(feideid, org)
