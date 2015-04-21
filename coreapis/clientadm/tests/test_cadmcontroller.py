@@ -21,6 +21,21 @@ class TestController(TestCase):
         self.controller = controller.ClientAdmController([], 'keyspace',
                                                          'scopedefs.json.example', 100)
 
+    def test_has_permission(self):
+        assert self.controller.has_permission(retrieved_gk_client, None) is False
+        other_user = deepcopy(retrieved_user)
+        other_user['userid'] = uuid.uuid4()
+        assert self.controller.has_permission(retrieved_gk_client, other_user) is False
+        assert self.controller.has_permission(retrieved_gk_client, retrieved_user) is True
+        client = deepcopy(retrieved_gk_client)
+        client['organization'] = 'test:org'
+        is_org_admin = mock.MagicMock()
+        self.controller.is_org_admin = is_org_admin
+        is_org_admin.return_value = False
+        assert self.controller.has_permission(client, retrieved_user) is False
+        is_org_admin.return_value = True
+        assert self.controller.has_permission(client, retrieved_user) is True
+
     def test_add_with_owner(self):
         testuid = uuid.UUID(userid_own)
         post_body = deepcopy(post_body_minimal)

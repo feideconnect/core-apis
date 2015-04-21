@@ -34,6 +34,7 @@ post_body_maximal = {
 retrieved_client = {
     'name': 'per', 'scopes': blist.sortedset(), 'redirect_uri': [testuri],
     'owner': uuid.UUID(userid_own),
+    'organization': None,
     'id': uuid.UUID(clientid),
     'client_secret': 'sekrit', 'created': parse_datetime(date_created),
     'descr': 'green',
@@ -45,6 +46,7 @@ retrieved_user = {
     'userid_sec': ['p:foo'],
     'selectedsource': 'us',
     'name': {'us': 'foo'},
+    'userid': uuid.UUID(userid_own),
 }
 
 retrieved_gk_clients = [deepcopy(retrieved_client) for i in range(4)]

@@ -1,6 +1,6 @@
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
-from coreapis.utils import LogWrapper, ts, public_userinfo, ValidationError, ForbiddenError
+from coreapis.utils import LogWrapper, ts, public_userinfo, ValidationError, ForbiddenError, get_feideid
 import blist
 import json
 import uuid
@@ -41,6 +41,7 @@ class ClientAdmController(CrudControllerBase):
         'created': V.AdaptBy(ts),
         'id': V.Nullable(V.AdaptTo(uuid.UUID)),
         'owner': V.AdaptTo(uuid.UUID),
+        'organization': V.Nullable('string', None),
         'updated': V.AdaptBy(ts),
         # Other attributes
         'client_secret': V.Nullable('string', ''),
@@ -61,10 +62,16 @@ class ClientAdmController(CrudControllerBase):
     def _list(self, selectors, values, maxrows):
         return self.session.get_clients(selectors, values, maxrows)
 
-    def has_permission(self, client, userid):
-        if client['owner'] == userid:
-            return True
-        return False
+    def has_permission(self, client, user):
+        if user is None:
+            return False
+        org = client.get('organization', None)
+        if org:
+            return self.is_org_admin(user, org)
+        else:
+            if client['owner'] == user['userid']:
+                return True
+            return False
 
     def get(self, clientid):
         self.log.debug('Get client', clientid=clientid)
@@ -123,7 +130,8 @@ class ClientAdmController(CrudControllerBase):
                                    client['descr'], client['redirect_uri'],
                                    client['scopes'], client['scopes_requested'],
                                    client['status'], client['type'], client['created'],
-                                   client['updated'], client['owner'])
+                                   client['updated'], client['owner'],
+                                   client['organization'])
 
     # Used both for add and update.
     # By default CQL does not distinguish between INSERT and UPDATE
@@ -218,3 +226,7 @@ class ClientAdmController(CrudControllerBase):
         client = self.add_gkscopes(client, userid, scopes_add)
         client = self.remove_gkscopes(client, userid, scopes_remove)
         self.insert_client(client)
+
+    def is_org_admin(self, user, org):
+        feideid = get_feideid(user)
+        return self.session.is_org_admin(feideid, org)

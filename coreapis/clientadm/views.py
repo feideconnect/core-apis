@@ -3,7 +3,7 @@ from pyramid.httpexceptions import (
     HTTPNotFound, HTTPConflict, HTTPForbidden, HTTPNotModified)
 from pyramid.response import Response
 from .controller import ClientAdmController
-from coreapis.utils import AlreadyExistsError, ForbiddenError, get_userid, get_payload
+from coreapis.utils import AlreadyExistsError, ForbiddenError, get_userid, get_payload, get_user
 import uuid
 
 
@@ -36,11 +36,11 @@ def configure(config):
 
 
 def check(request):
-    userid = get_userid(request)
+    user = get_user(request)
     clientid = get_clientid(request)
     try:
         client = request.cadm_controller.get(clientid)
-        if not request.cadm_controller.has_permission(client, userid):
+        if not request.cadm_controller.has_permission(client, user):
             raise HTTPForbidden('Insufficient permissions')
         return client
     except KeyError:
@@ -59,11 +59,11 @@ def list_clients(request):
 
 @view_config(route_name='get_client', renderer='json')
 def get_client(request):
-    userid = get_userid(request)
+    user = get_user(request)
     clientid = get_clientid(request)
     try:
         client = request.cadm_controller.get(clientid)
-        if not request.cadm_controller.has_permission(client, userid) or \
+        if not request.cadm_controller.has_permission(client, user) or \
            (not request.has_permission('scope_clientadmin')):
             return request.cadm_controller.get_public_client(client)
     except KeyError:
@@ -75,6 +75,7 @@ def allowed_attrs(attrs, operation):
     protected_keys = ['created', 'owner', 'scopes', 'updated']
     if operation != 'add':
         protected_keys.append('id')
+        protected_keys.append('organization')
     return {k: v for k, v in attrs.items() if k not in protected_keys}
 
 
@@ -85,6 +86,10 @@ def add_client(request):
     payload = get_payload(request)
     try:
         attrs = allowed_attrs(payload, 'add')
+        if 'organization' in attrs:
+            user = get_user(request)
+            if not request.cadm_controller.is_org_admin(user, attrs['organization']):
+                raise HTTPForbidden('Not administrator for organization')
         client = request.cadm_controller.add(attrs, userid)
         request.response.status = '201 Created'
         request.response.location = "{}{}".format(request.url, client['id'])

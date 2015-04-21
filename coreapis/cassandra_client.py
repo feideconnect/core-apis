@@ -59,11 +59,11 @@ class Client(object):
 
     def insert_client(self, id, client_secret, name, descr,
                       redirect_uri, scopes, scopes_requested, status,
-                      type, create_ts, update_ts, owner):
-        prep = self._prepare('INSERT INTO clients (id, client_secret, name, descr, redirect_uri, scopes, scopes_requested, status, type, created, updated, owner) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+                      type, create_ts, update_ts, owner, organization):
+        prep = self._prepare('INSERT INTO clients (id, client_secret, name, descr, redirect_uri, scopes, scopes_requested, status, type, created, updated, owner, organizatoin) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
         self.session.execute(prep.bind([id, client_secret, name, descr,
                                         redirect_uri, scopes, scopes_requested,
-                                        status, type, create_ts, update_ts, owner]))
+                                        status, type, create_ts, update_ts, owner, organization]))
 
     def get_client_by_id(self, clientid):
         prep = self._default_get('clients')
@@ -333,3 +333,10 @@ class Client(object):
         if len(res) == 0:
             raise KeyError('no such organization')
         return res[0]['logo'], res[0]['logo_updated']
+
+    def is_org_admin(self, feideid, orgid):
+        prep = self._prepare('SELECT role from roles where feideid = ? AND orgid = ?')
+        res = self.session.execute(prep.bind([feideid, orgid]))
+        if len(res) == 0:
+            return False
+        return 'admin' in res[0]['role']
