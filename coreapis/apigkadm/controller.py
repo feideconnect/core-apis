@@ -25,6 +25,8 @@ class APIGKAdmController(CrudControllerBase):
     FILTER_KEYS = {
         'owner': {'sel':  'owner = ?',
                   'cast': uuid.UUID},
+        'organization': {'sel': 'organization = ?',
+                         'cast': lambda u: u},
     }
     schema = {
         '+name': 'string',

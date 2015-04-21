@@ -48,11 +48,16 @@ def check(request):
 
 @view_config(route_name='list_apigks', renderer='json', permission='scope_apigkadmin')
 def list_apigks(request):
-    userid = str(get_userid(request))
+    user = get_user(request)
     params = {}
-    for k, v in request.params.items():
-        params[k] = v
-    params['owner'] = userid
+    organization = request.params.get('organization', None)
+    if organization:
+        if request.cadm_controller.is_org_admin(user, organization):
+            params['organization'] = organization
+        else:
+            raise HTTPForbidden('user is not admin for given organization')
+    else:
+        params['owner'] = str(user['userid'])
     return request.gkadm_controller.list(params)
 
 
