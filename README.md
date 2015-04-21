@@ -1,6 +1,12 @@
 
 Core apis and authorization middleware for feide connect.
 
+Core APIs is a component of the [UNINETT Connect Platform](http://feideconnect.no).
+
+
+
+## Running Core-APIs
+
 To run:
 
 Copy `development.ini.example` to `development.ini` and change `statsd_server`, `contact_points` and keyspace to proper values.
