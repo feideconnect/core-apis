@@ -104,3 +104,7 @@ class APIGKAdmController(CrudControllerBase):
     def get_gkowner_clients(self, ownerid):
         gkscopes = ['gk_{}'.format(r['id']) for r in self.list({'owner': ownerid})]
         return self.cadm_controller.get_gkscope_clients(gkscopes)
+
+    def get_gkorg_clients(self, orgid):
+        gkscopes = ['gk_{}'.format(r['id']) for r in self.list({'organization': orgid})]
+        return self.cadm_controller.get_gkscope_clients(gkscopes)

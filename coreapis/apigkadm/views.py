@@ -22,6 +22,7 @@ def configure(config):
     config.add_route('apigk_exists', '/apigks/{id}/exists')
     config.add_route('apigk_logo', '/apigks/{id}/logo')
     config.add_route('apigk_owner_clients', '/apigks/owners/{ownerid}/clients/')
+    config.add_route('apigk_org_clients', '/apigks/orgs/{orgid}/clients/')
     config.scan(__name__)
 
 
@@ -154,3 +155,12 @@ def apigk_owner_clients(request):
     if ownerid != userid:
         raise HTTPForbidden('wrong owner')
     return request.gkadm_controller.get_gkowner_clients(ownerid)
+
+
+@view_config(route_name='apigk_org_clients', renderer='json', permission='scope_apigkadmin')
+def apigk_org_clients(request):
+    user = get_user(request)
+    orgid = request.matchdict['orgid']
+    if not request.gkadm_controller.is_org_admin(user, orgid):
+        raise HTTPForbidden('No access')
+    return request.gkadm_controller.get_gkorg_clients(orgid)

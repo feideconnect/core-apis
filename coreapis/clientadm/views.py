@@ -116,13 +116,13 @@ def update_client(request):
 
 @view_config(route_name='update_gkscopes', renderer="json", permission='scope_clientadmin')
 def update_gkscopes(request):
-    userid = get_userid(request)
+    user = get_user(request)
     clientid = get_clientid(request)
     payload = get_payload(request)
     scopes_add = payload.get('scopes_add', [])
     scopes_remove = payload.get('scopes_remove', [])
     try:
-        request.cadm_controller.update_gkscopes(clientid, userid, scopes_add, scopes_remove)
+        request.cadm_controller.update_gkscopes(clientid, user, scopes_add, scopes_remove)
         return "OK"
     except ForbiddenError as err:
         raise HTTPForbidden(err.message)

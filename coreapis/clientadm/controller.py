@@ -189,40 +189,40 @@ class ClientAdmController(CrudControllerBase):
         self.log.debug('List public scopes')
         return {k: v for k, v in self.scopedefs.items() if v.get('public', False)}
 
-    def is_gkowner(self, userid, scopename):
+    def scope_to_gk(self, scopename):
         try:
             nameparts = scopename.split('_')
             gkname = nameparts[1]
-            apigk = self.session.get_apigk(gkname)
-            return str(apigk['owner']) == str(userid)
+            return self.session.get_apigk(gkname)
         except KeyError:
-            return False
+            return None
 
-    def validate_gkscope(self, client, userid, scope):
+    def validate_gkscope(self, client, user, scope):
         if not is_gkscopename(scope):
             raise ForbiddenError('{} is not an API Gatekeeper'.format(scope))
-        if not self.is_gkowner(userid, scope):
-            raise ForbiddenError('User does not own API Gatekeeper')
+        gk = self.scope_to_gk(scope)
+        if not gk or not self.has_permission(gk, user):
+            raise ForbiddenError('User does not have access to manage API Gatekeeper')
 
-    def add_gkscopes(self, client, userid, scopes_add):
+    def add_gkscopes(self, client, user, scopes_add):
         for scope in [scope for scope in scopes_add if scope not in client['scopes']]:
             if not scope in client['scopes_requested']:
                 raise ForbiddenError('Client owner has not requested scope {}'.format(scope))
-            self.validate_gkscope(client, userid, scope)
+            self.validate_gkscope(client, user, scope)
             client['scopes'].append(scope)
         return client
 
-    def remove_gkscopes(self, client, userid, scopes_remove):
+    def remove_gkscopes(self, client, user, scopes_remove):
         for scope in scopes_remove:
-            self.validate_gkscope(client, userid, scope)
+            self.validate_gkscope(client, user, scope)
             if scope in client['scopes']:
                 client['scopes'].remove(scope)
             if scope in client['scopes_requested']:
                 client['scopes_requested'].remove(scope)
         return client
 
-    def update_gkscopes(self, clientid, userid, scopes_add, scopes_remove):
+    def update_gkscopes(self, clientid, user, scopes_add, scopes_remove):
         client = self.get(clientid)
-        client = self.add_gkscopes(client, userid, scopes_add)
-        client = self.remove_gkscopes(client, userid, scopes_remove)
+        client = self.add_gkscopes(client, user, scopes_add)
+        client = self.remove_gkscopes(client, user, scopes_remove)
         self.insert_client(client)
