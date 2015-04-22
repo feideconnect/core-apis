@@ -22,10 +22,14 @@ Fills in `id` if not given. `name` must be given. `scopes_requested` and
 user. `created`, `scopes` and `updated` may be given, but are silently
 ignored - values are set by system.
 
+Set `organization` to an organization id to register a client owned by
+an orangization. You must be admin for that organization to do this.
+
 Returns `201 Created` with url in `Location` header, and client as json in
 body. Returns `409 Conflict` if `id` is given and is already in
 use. Returns `400 Bad Request` if request body violates the schema or is
-malformed in some way.
+malformed in some way. Returns `403 Forbidden` if `organization` is set
+but user is not admin of that organizatoin
 
 ## Updating a client
 
@@ -40,7 +44,7 @@ malformed in some way.
      "scopes_requested": ["clientadmin"], "descr": "test",
      "created": "2015-01-22T10:59:03.585000"}
 
-`id`, `created`, `owner`, `scopes`and `updated` may be given, but are
+`id`, `organization`, `created`, `owner`, `scopes` and `updated` may be given, but are
 silently ignored.
 
 `scopes_requested` is treated as follows: `scopes` in the updated client will only contain scopes
@@ -118,6 +122,27 @@ Returns `404 Not Found` if client does not exist.
 
 Returns `200 OK`, and list of clients as json in body. Status is `200 OK`
 even if resulting list is empty.
+
+## Listing all clients owned by an organization
+
+    $ curl -X GET -H "Authorization: Bearer $TOKEN" \
+    'http://api.dev.feideconnect.no:6543/clientadm/clients/?organization=<org-id>'
+
+    [{"name": "per","redirect_uri": ["http://example.org"],
+      "id": "9dd084a3-c497-4d4c-9832-a5096371a4c9",
+      "owner": "ce5e8798-df69-4b87-a2e7-9678ab9a2820", "updated": "2015-01-22T11:03:29.983000",
+      "scopes": null, "scopes_requested": ["clientadmin"], "descr": "test",
+      "created": "2015-01-22T10:59:03.585000"},
+     {"type": "client", "name": "test_clientadm", "status": ["production"],
+      "client_secret": "88c7cdbf-d2bd-4d1b-825d-683770cd4bd3",
+      "redirect_uri": ["http://example.org"], "id": "f3f043db-9fd6-4c5a-b0bc-61992bea9eca",
+      "owner": "ce5e8798-df69-4b87-a2e7-9678ab9a2820", "updated": "2015-01-12T13:05:16.884000",
+      "scopes": ["clientadmin"], "scopes_requested": ["clientadmin"],
+      "descr": "Test client for client admin api", "created": "2015-01-12T13:05:16.884000"}]
+
+Returns `200 OK`, and list of clients as json in body. Status is `200 OK`
+even if resulting list is empty. Returns `403 Forbidden` if user is not admin
+of the requested organization
 
 ## Filtering list of clients by scope
 

@@ -54,6 +54,7 @@ To test the API, obtain an authentication token and
   - `token`: The `token` attribute is passed in the `X-Feideconnect-Auth`-header
 - `status`: To be defined
 - `scopedef`: To be defined
+- `organization`: When set the gatekeeper will be owned by the organization with this id. Token must be associated with a user that is org admin for the organization. When not set the gatekeeper will be personal.
 
 ### Read only parameters
 
@@ -67,6 +68,7 @@ These attributes are returned from queries, and will be ignored in updates and w
 - `201 Created`: When the request is successful this code is returned and a json representation of the created object is returned in the response body
 - `409 Conflict`: Returned if the selected `id` is already in use
 - `400 Bad Request`: Returned if required parameters are missing or some parameter is malformed
+- `403 Forbidden`: User is not admin of the organization mentioned in `organization`
 
 ## Updating a client
 
@@ -76,7 +78,7 @@ These attributes are returned from queries, and will be ignored in updates and w
 
 ### Parameters
 
-All parameters have the same meaning as when creating, but none are mandatory and `id` is read only (it's presence in a request will be ignored)
+All parameters have the same meaning as when creating, but none are mandatory and `id` and `organization` is read only (it's presence in a request will be ignored)
 
 ### Return values
 
@@ -124,6 +126,27 @@ All parameters have the same meaning as when creating, but none are mandatory an
 
 Returns `200 OK`, and list of clients as json in body. Status is `200 OK`
 even if resulting list is empty.
+
+## Listing all gatekeepers owned by an organization
+
+    $ curl -X GET -H "Authorization: Bearer $TOKEN" \
+    'http://api.dev.feideconnect.no:6543/apigkadm/apigks/?organization=<org-id>'
+
+    [{"scopedef": null, "expose": {"userid": false, "scopes": false, "clientid": false},
+      "trust": {"type": "bearer", "token": "adsfSFDsdfasdfa"},"status": null,
+      "endpoints": ["https://api.feide.no"], "httpscertpinned": null, "name": "feide api",
+      "descr": "The feide api", "id": "feideapi", "owner": "52a55f50-3b1f-4d25-8b14-d34ca715c30e",
+      "updated": "2015-01-26T16:05:59Z", "requireuser": false, "created": "2015-01-23T13:50:09Z"},
+     {"scopedef": null, "expose": {"clientid": false, "userid": false, "scopes": true},
+      "trust": {"type": "bearer", "token": "absd"}, "status": null,
+       "endpoints": ["https://testgk.uninett.no"], "httpscertpinned": null, "name": "testgk",
+       "descr": "sigmund tester", "id": "testgk", "owner": "52a55f50-3b1f-4d25-8b14-d34ca715c30e",
+       "updated": "2015-01-26T12:43:31Z", "requireuser": true, "created": "2015-01-26T12:43:31Z"}]
+
+### Return values
+
+Returns `200 OK`, and list of clients as json in body. Status is `200 OK`
+even if resulting list is empty. Returns `403 Forbidden` if user is not admin for the specified organization
 
 ## Deleting a gatekeeper
 
@@ -195,6 +218,27 @@ Returns `200 OK` on success with a single boolean in the json body indicating wh
 - `403 Forbidden`: Current user is not allowed to see the owner's clients
 
 'me' can be used as owner id and means the userid of the calling user.
+
+On success, the json body consists of a list of clients matching the
+request. If the owner owns an apigk with id `foo`, clients having
+`gk_foo` in scopes or scoes_requested are considered
+matching. Example:
+
+    [{"descr": "Example", "id": "a7f407fd-ace2-4fbe-a07a-db123821ff59",
+      "name": "example",
+      "owner": {"id": "p:497ff70b-4b73-47a9-b9f4-8a87d844a410", "name": "Pelle"},
+      "redirect_uri": ["http://example.org"],"scopes": [],
+      "scopes_requested": ["gk_foo", "gk_bar"]}]
+
+## Listing clients interested in an organization's api gatekeepers
+
+    $ curl -X GET -H "Authorization: Bearer $TOKEN" \
+    'http://api.dev.feideconnect.no:6543/apigkadm/apigks/orgs/<organization id>/clients/'
+
+### Return value
+
+- `200 OK`: On success
+- `403 Forbidden`: Current user is not allowed to see the owner's clients
 
 On success, the json body consists of a list of clients matching the
 request. If the owner owns an apigk with id `foo`, clients having
