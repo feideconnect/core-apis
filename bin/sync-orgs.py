@@ -100,6 +100,10 @@ def make_org(kindorg, orgid):
     }
 
 
+def rolekey(role):
+    return '#'.join([role['feideid'], role['orgid']])
+
+
 def adapt_orgno(organization_number):
     if organization_number:
         rexp = r"^([a-z]{2})?(\d{9,})$"
@@ -144,7 +148,7 @@ class Syncer(object):
             self.ko_validator = V.parse(ko_schema)
             self.kor_validator = V.parse(kor_schema)
 
-    def make_roles(self, kindorg, orgid):
+    def roles_from_api(self, kindorg, orgid):
         rolenames = {
             'contacts_admin': 'admin',
             'contacts_technical': 'technical',
@@ -169,10 +173,26 @@ class Syncer(object):
                 'role': roles
             }
 
+    def roles_from_db(self, rows):
+        for row in rows:
+            yield {
+                'feideid': row[0],
+                'orgid': row[1],
+                'role': row[2]
+            }
+
     def drop_roles(self, orgid):
         roles = self.client.get_roles_by_orgid(orgid)
         for role in roles:
             self.client.delete_role(role[0], role[1])
+
+    def prune_roles(self, newroles, oldroles):
+        newkeys = {rolekey(nrole) for nrole in newroles}
+        for orole in oldroles:
+            if not rolekey(orole) in newkeys:
+                self.log.info('Dropping role', feideid=orole['feideid'],
+                              orgid=orole['orgid'])
+                self.client.delete_role(orole['feideid'], orole['orgid'])
 
     def drop_org(self, orgid):
         self.drop_roles(orgid)
@@ -190,9 +210,11 @@ class Syncer(object):
             try:
                 ko_cooked = self.ko_validator.validate(kindorg)
                 oldorgs = self.client.get_orgs_by_kindid(int(kindorg['id']))
+                oldroles = []
                 if len(oldorgs) > 0:
                     orgid = oldorgs[0][0]
-                    self.drop_roles(orgid)
+                    rows = self.client.get_roles_by_orgid(orgid)
+                    oldroles = list(self.roles_from_db(rows))
                 else:
                     orgid = make_orgid(ko_cooked)
                 org = make_org(ko_cooked, orgid)
@@ -201,7 +223,7 @@ class Syncer(object):
                                  organization_number=kindorg['organization_number'],
                                  realm=kindorg['realm'], name=kindorg['name'])
                 continue
-            roles = list(self.make_roles(ko_cooked, org['id']))
+            roles = list(self.roles_from_api(ko_cooked, org['id']))
             try:
                 self.client.insert_org(org)
             except TypeError as ex:
@@ -209,6 +231,7 @@ class Syncer(object):
                 continue
             for role in roles:
                 self.client.insert_role(role)
+            self.prune_roles(roles, oldroles)
 
     def sync_orgs(self, kindorgs):
         known_kindids = {org[1] for org in self.client.get_orgs()}
