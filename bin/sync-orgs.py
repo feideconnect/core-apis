@@ -194,6 +194,11 @@ class Syncer(object):
                               orgid=orole['orgid'])
                 self.client.delete_role(orole['feideid'], orole['orgid'])
 
+    def sync_roles(self, newroles, oldroles):
+        for role in newroles:
+            self.client.insert_role(role)
+        self.prune_roles(newroles, oldroles)
+
     def drop_org(self, orgid):
         self.drop_roles(orgid)
         self.client.delete_organization(orgid)
@@ -230,9 +235,7 @@ class Syncer(object):
             except TypeError as ex:
                 self.log.error("Exception inserting org", exception=ex, org=org)
                 continue
-            for role in roles:
-                self.client.insert_role(role)
-            self.prune_roles(roles, oldroles)
+            self.sync_roles(roles, oldroles)
 
     def sync_orgs(self, kindorgs):
         known_kindids = {org[1] for org in self.client.get_orgs()}
