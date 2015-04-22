@@ -127,11 +127,11 @@ class ClientAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.side_effect = KeyError
         body = deepcopy(post_body_minimal)
-        body['scopes'] = [otherscope]
+        body['scopes'] = [testscope]
         self.session.insert_client = mock.MagicMock()
         res = self.testapp.post_json('/clientadm/clients/', body, status=201, headers=headers)
         out = res.json
-        assert out['scopes'] == [testscope]
+        assert out['scopes'] == []
 
     def test_post_client_autoscope_requested(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -386,7 +386,7 @@ class ClientAdmTests(unittest.TestCase):
         res = self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
                                       attrs, status=200, headers=headers)
         out = res.json
-        assert out['scopes'] == [testscope]
+        assert out['scopes'] == []
 
     def test_update_client_invalid_list(self):
         headers = {'Authorization': 'Bearer user_token'}
