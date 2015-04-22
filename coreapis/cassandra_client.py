@@ -345,3 +345,16 @@ class Client(object):
         if len(res) == 0:
             return False
         return 'admin' in res[0]['role']
+
+    def get_mandatory_clients(self, realm):
+        prep = self._prepare('SELECT clientid from mandatory_clients where realm = ?')
+        res = self.session.execute(prep.bind([realm]))
+        return [x['clientid'] for x in res]
+
+    def add_mandatory_client(self, realm, clientid):
+        prep = self._prepare('INSERT INTO mandatory_clients (realm, clientid) values (?, ?)')
+        return self.session.execute(prep.bind([realm, clientid]))
+
+    def del_mandatory_client(self, realm, clientid):
+        prep = self._prepare('DELETE FROM mandatory_clients WHERE realm = ? AND clientid = ?')
+        return self.session.execute(prep.bind([realm, clientid]))
