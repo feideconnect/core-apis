@@ -9,7 +9,7 @@ To test the API, obtain an authentication token and
     $ curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
     -d '{ "name" : "per", "scopes_requested" : ["clientadmin"],
           "redirect_uri" : ["http://example.org"] }' \
-    'http://api.dev.feideconnect.no:6543/clientadm/clients/'
+    'https://api.feideconnect.no/clientadm/clients/'
 
     {"type": "", "name": "per", "status": [], "redirect_uri": ["http://example.org"],
      "client_secret": "", "id": "9dd084a3-c497-4d4c-9832-a5096371a4c9",
@@ -35,7 +35,7 @@ but user is not admin of that organizatoin
 
     $ curl -X PATCH -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
     -d '{"descr": "test"}' \
-    'http://api.dev.feideconnect.no:6543/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9'
+    'https://api.feideconnect.no/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9'
 
     {"type": "", "name": "per", "status": [], "client_secret": "",
      "redirect_uri": ["http://example.org"], "id": "9dd084a3-c497-4d4c-9832-a5096371a4c9",
@@ -73,7 +73,7 @@ the scope.
 
     $ curl -X PATCH -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
     -d '{"scopes_add": ["gk_foo_bar"], "scopes_remove": ["gk_foo_quux"]}' \
-    'http://api.dev.feideconnect.no:6543/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9/scopes'
+    'https://api.feideconnect.no/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9/scopes'
 
     "OK"
 
@@ -82,7 +82,7 @@ List scopes to be added in `scopes_add` and scopes to be removed in `scopes_remo
 ## Fetching a client
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
-    'http://api.dev.feideconnect.no:6543/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9'
+    'https://api.feideconnect.no/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9'
 
     {"type": "", "name": "per", "status": null, "client_secret": "",
      "redirect_uri": ["http://example.org"], "id": "9dd084a3-c497-4d4c-9832-a5096371a4c9",
@@ -94,7 +94,7 @@ If user is unauthenticated, a restricted view of the client is
 returned.
 
     $ curl -X GET
-    'http://api.dev.feideconnect.no:6543/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9'
+    'https://api.feideconnect.no/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9'
 
     {"name": "per", "redirect_uri": ["http://example.org"],
      "id": "9dd084a3-c497-4d4c-9832-a5096371a4c9",
@@ -106,7 +106,7 @@ Returns `404 Not Found` if client does not exist.
 ## Listing all clients owned by user
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
-    'http://api.dev.feideconnect.no:6543/clientadm/clients/'
+    'https://api.feideconnect.no/clientadm/clients/'
 
     [{"name": "per","redirect_uri": ["http://example.org"],
       "id": "9dd084a3-c497-4d4c-9832-a5096371a4c9",
@@ -126,7 +126,7 @@ even if resulting list is empty.
 ## Listing all clients owned by an organization
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
-    'http://api.dev.feideconnect.no:6543/clientadm/clients/?organization=<org-id>'
+    'https://api.feideconnect.no/clientadm/clients/?organization=<org-id>'
 
     [{"name": "per","redirect_uri": ["http://example.org"],
       "id": "9dd084a3-c497-4d4c-9832-a5096371a4c9",
@@ -147,7 +147,7 @@ of the requested organization
 ## Filtering list of clients by scope
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
-    'http://api.dev.feideconnect.no:6543/clientadm/clients/?scope=clientadmin'
+    'https://api.feideconnect.no/clientadm/clients/?scope=clientadmin'
 
     [{"type": "client", "name": "test_clientadm", "status": ["production"],
       "client_secret": "88c7cdbf-d2bd-4d1b-825d-683770cd4bd3",
@@ -163,30 +163,30 @@ are not one of scope and owner, or if a parmeter value is missing or malformed.
 ## Deleting a client
 
     $ curl -v -X DELETE -H "Authorization: Bearer $TOKEN" \
-    'http://api.dev.feideconnect.no:6543/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9'
+    'https://api.feideconnect.no/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9'
 
 Returns `204 No Content`, or `403 Forbidden` if trying to delete a
 client not owned by user. No body is returned.
 
 ## Getting client logo
 
-    $ curl http://api.dev.feideconnect.no:6543/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9/logo|display
+    $ curl https://api.feideconnect.no/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9/logo|display
 
 Returns `404 Not Found` if id does not map to an existing client in the database, `304 Not Modified` if request has the `If-Modified-Since` header set to a timestamp equal or higher than the updated column for that client and `200 OK` otherwise. If no logo has been uploaded for this client a default image will be returned
 
 ## Uploading a new client logo
 
-    $ curl -v -H "Authorization: Bearer $TOKEN" -F 'logo=@new_logo.png' http://api.dev.feideconnect.no:6543/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9/logo
+    $ curl -v -H "Authorization: Bearer $TOKEN" -F 'logo=@new_logo.png' https://api.feideconnect.no/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9/logo
 
 or:
 
-    $ curl -v -H "Authorization: Bearer $TOKEN" -H 'Content-Type: image/png' --data-binary '@new_logo.png' http://api.dev.feideconnect.no:6543/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9/logo
+    $ curl -v -H "Authorization: Bearer $TOKEN" -H 'Content-Type: image/png' --data-binary '@new_logo.png' https://api.feideconnect.no/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9/logo
 
 Returns `403 Forbidden` if trying to change logo of a client not owned by user. `404 Not found` if no client with that id exists and `200 OK` otherwise, `400 Bad Request` if the uploaded file is not in a recognized image format.
 
 ## Listing public scope definitions
 
-    $ curl http://api.dev.feideconnect.no:6543/clientadm/scopes/
+    $ curl https://api.feideconnect.no/clientadm/scopes/
 
     {"userinfo": {"policy": {"auto": true}, "title": "Grunnleggende informasjon om brukeren",
                   "descr": "bla blab la", "public": true},

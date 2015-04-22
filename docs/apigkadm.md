@@ -30,7 +30,7 @@ To test the API, obtain an authentication token and
     "status": null,
     "scopedef": null
     }' \
-    'http://api.dev.feideconnect.no:6543/apigkadm/apigks/'
+    'https://api.feideconnect.no/apigkadm/apigks/'
 
 ### Required parameters
 
@@ -74,7 +74,7 @@ These attributes are returned from queries, and will be ignored in updates and w
 
     $ curl -X PATCH  -H "Authorization: Bearer $TOKEN" \
      -H "Content-Type: application/json" -d '{"name": "New gatekeeper name"}' \
-    'http://api.dev.feideconnect.no:6543/apigkadm/apigks/<gatekeeper id>'
+    'https://api.feideconnect.no/apigkadm/apigks/<gatekeeper id>'
 
 ### Parameters
 
@@ -89,7 +89,7 @@ All parameters have the same meaning as when creating, but none are mandatory an
 ## Fetching a gatekeeper
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
-    'http://api.dev.feideconnect.no:6543/apigkadm/apigks/<api gatekeeper id>'
+    'https://api.feideconnect.no/apigkadm/apigks/<api gatekeeper id>'
 
     {"scopedef": null, "expose": {"clientid": false, "userid": false,
     "scopes": true}, "trust": {"type": "bearer", "token": "absd"},
@@ -109,7 +109,7 @@ All parameters have the same meaning as when creating, but none are mandatory an
 ## Listing all gatekeepers owned by user
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
-    'http://api.dev.feideconnect.no:6543/apigkadm/apigks/'
+    'https://api.feideconnect.no/apigkadm/apigks/'
 
     [{"scopedef": null, "expose": {"userid": false, "scopes": false, "clientid": false},
       "trust": {"type": "bearer", "token": "adsfSFDsdfasdfa"},"status": null,
@@ -130,7 +130,7 @@ even if resulting list is empty.
 ## Listing all gatekeepers owned by an organization
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
-    'http://api.dev.feideconnect.no:6543/apigkadm/apigks/?organization=<org-id>'
+    'https://api.feideconnect.no/apigkadm/apigks/?organization=<org-id>'
 
     [{"scopedef": null, "expose": {"userid": false, "scopes": false, "clientid": false},
       "trust": {"type": "bearer", "token": "adsfSFDsdfasdfa"},"status": null,
@@ -151,7 +151,7 @@ even if resulting list is empty. Returns `403 Forbidden` if user is not admin fo
 ## Deleting a gatekeeper
 
     $ curl -v -X DELETE -H "Authorization: Bearer $TOKEN" \
-    'http://api.dev.feideconnect.no:6543/apigkadm/apigks/<api gatekeeper id>'
+    'https://api.feideconnect.no/apigkadm/apigks/<api gatekeeper id>'
 
 ### Return values
 
@@ -161,7 +161,7 @@ even if resulting list is empty. Returns `403 Forbidden` if user is not admin fo
 
 ## Getting api gatekeeper logo
 
-    $ curl http://api.dev.feideconnect.no:6543/apigkadm/apigks/<api gatekeeper id>/logo|display
+    $ curl https://api.feideconnect.no/apigkadm/apigks/<api gatekeeper id>/logo|display
 
 ### Return values
 
@@ -172,13 +172,13 @@ even if resulting list is empty. Returns `403 Forbidden` if user is not admin fo
 ## Uploading a new api gatekeeper logo
 
     $ curl -v -H "Authorization: Bearer $TOKEN" -F 'logo=@new_logo.png' \
-    'http://api.dev.feideconnect.no:6543/apigkadm/apigks/<api gatekeeper id>/logo'
+    'https://api.feideconnect.no/apigkadm/apigks/<api gatekeeper id>/logo'
 
 or:
 
     $ curl -v -H "Authorization: Bearer $TOKEN" -H 'Content-Type: image/png' \
     --data-binary '@new_logo.png' \
-    'http://api.dev.feideconnect.no:6543/apigkadm/apigks/<api gatekeeper id>/logo'
+    'https://api.feideconnect.no/apigkadm/apigks/<api gatekeeper id>/logo'
 
 - `200 OK`: On success
 - `400 Bad Request`: The image data uploaded is not in a recognized format
@@ -187,7 +187,7 @@ or:
 
 ## Getting public information about api gatekeepers
 
-    $ curl http://api.dev.feideconnect.no:6543/apigkadm/public
+    $ curl https://api.feideconnect.no/apigkadm/public
 
     [{"id": "feideapi", "expose": {"userid": false, "clientid": false, "scopes": false},
       "name": "feide api", "owner": {"id": "p:6fc96878-fdc5-4fc3-abfc-6fcc018ff0fc",
@@ -201,7 +201,7 @@ Lists some public infomation about the registered api gatekeepers for clients to
 ## Checking whether a gatekeeper id is already in use
 
     $ curl -v -H "Authorization: Bearer $TOKEN" -F 'logo=@new_logo.png' \
-    'http://api.dev.feideconnect.no:6543/apigkadm/apigks/<api gatekeeper id>/exists'
+    'https://api.feideconnect.no/apigkadm/apigks/<api gatekeeper id>/exists'
 
 ### Return value
 
@@ -210,7 +210,7 @@ Returns `200 OK` on success with a single boolean in the json body indicating wh
 ## Listing clients interested in a user's api gatekeepers
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
-    'http://api.dev.feideconnect.no:6543/apigkadm/apigks/owners/<owner id>/clients/'
+    'https://api.feideconnect.no/apigkadm/apigks/owners/<owner id>/clients/'
 
 ### Return value
 
@@ -233,7 +233,7 @@ matching. Example:
 ## Listing clients interested in an organization's api gatekeepers
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
-    'http://api.dev.feideconnect.no:6543/apigkadm/apigks/orgs/<organization id>/clients/'
+    'https://api.feideconnect.no/apigkadm/apigks/orgs/<organization id>/clients/'
 
 ### Return value
 

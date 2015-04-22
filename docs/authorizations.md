@@ -6,7 +6,7 @@ To test the API, obtain an authentication token and
 
 ## Listing all authorizations for current user
 
-    $ curl -H "Authorization: Bearer $token" http://api.dev.feideconnect.no:6543/authorizations/
+    $ curl -H "Authorization: Bearer $token" https://api.feideconnect.no/authorizations/
 
     [
       {
@@ -28,7 +28,7 @@ To test the API, obtain an authentication token and
 ## Delete an authorization
 
     $ curl -X DELETE -H "Authorization: Bearer $token" \
-        http://api.dev.feideconnect.no:6543/authorizations/<client id>
+        https://api.feideconnect.no/authorizations/<client id>
 
 ### Parameters
 
