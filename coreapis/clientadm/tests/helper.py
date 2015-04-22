@@ -8,6 +8,7 @@ userid_other = '00000000-0000-0000-0000-000000000002'
 userid_third = '00000000-0000-0000-0000-000000000003'
 clientid = '00000000-0000-0000-0000-000000000004'
 date_created = '2015-01-12T13:05:16Z'
+# testscope has policy auto=false, otherscope has auto=true
 testscope = 'clientadmin'
 otherscope = 'userinfo-feide'
 testgk = 'gk_test1'
