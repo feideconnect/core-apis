@@ -13,21 +13,21 @@ def configure(config):
     config.add_settings(org_controller=org_controller)
     config.add_request_method(lambda r: r.registry.settings.org_controller, 'org_controller',
                               reify=True)
-    config.add_route('org', '/{realm}')
+    config.add_route('org', '/{id}')
     config.add_route('orgs', '/')
-    config.add_route('org_logo', '/{realm}/logo')
+    config.add_route('org_logo', '/{id}/logo')
     config.scan(__name__)
 
 
 @view_config(route_name='org', request_method='GET', renderer='json')
 def get_org(request):
-    realm = request.matchdict['realm']
+    orgid = request.matchdict['id']
     try:
-        data = request.org_controller.show_org(realm)
+        data = request.org_controller.show_org(orgid)
         data = pick_lang(request, data)
         return data
     except KeyError:
-        raise HTTPNotFound('No org with realm {} was found'.format(realm))
+        raise HTTPNotFound('No org with id {} was found'.format(orgid))
 
 
 @view_config(route_name='orgs', request_method='GET', renderer='json')
@@ -39,9 +39,9 @@ def list_org(request):
 
 @view_config(route_name='org_logo')
 def client_logo(request):
-    realm = request.matchdict['realm']
+    orgid = request.matchdict['id']
     try:
-        logo, updated = request.org_controller.get_logo(realm)
+        logo, updated = request.org_controller.get_logo(orgid)
         if logo is None:
             with open('data/default-organization.png', 'rb') as fh:
                 logo = fh.read()

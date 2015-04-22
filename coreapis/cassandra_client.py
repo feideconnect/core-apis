@@ -43,6 +43,8 @@ class Client(object):
             'apigk': 'id,requireuser,created,name,scopedef,httpscertpinned,status,descr,expose,updated,trust,endpoints,owner,organization',
             'groups': 'id,created,descr,name,owner,public,updated,invitation_token',
             'group_members': 'userid,groupid,status,type',
+            'organizations': 'organization_number,type,realm,id,name',
+
         }
         self.session = cluster.connect(keyspace)
         self.session.row_factory = datetime_hack_dict_factory
@@ -312,9 +314,9 @@ class Client(object):
             raise KeyError('No such grep code')
         return data[0]
 
-    def get_org_by_realm(self, realm):
-        prep = self._prepare('SELECT organization_number,type,realm,id,name from organizations where realm = ?')
-        data = self.session.execute(prep.bind([realm]))
+    def get_org(self, orgid):
+        prep = self._default_get('organizations')
+        data = self.session.execute(prep.bind([orgid]))
         if len(data) == 0:
             raise KeyError('no such organization')
         data = data[0]
@@ -330,9 +332,9 @@ class Client(object):
                 a['name'] = translatable(a['name'])
         return data
 
-    def get_org_logo(self, realm):
-        prep = self._prepare('SELECT logo, logo_updated FROM organizations WHERE realm = ?')
-        res = self.session.execute(prep.bind([realm]))
+    def get_org_logo(self, orgid):
+        prep = self._prepare('SELECT logo, logo_updated FROM organizations WHERE id = ?')
+        res = self.session.execute(prep.bind([orgid]))
         if len(res) == 0:
             raise KeyError('no such organization')
         return res[0]['logo'], res[0]['logo_updated']

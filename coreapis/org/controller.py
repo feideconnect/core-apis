@@ -10,15 +10,15 @@ class OrgController(object):
         self.log = LogWrapper('org.OrgController')
         self.session = cassandra_client.Client(contact_points, keyspace)
 
-    def show_org(self, realm):
-        org = self.session.get_org_by_realm(realm)
+    def show_org(self, orgid):
+        org = self.session.get_org(orgid)
         return org
 
     def list_orgs(self):
         return self.session.list_orgs()
 
-    def get_logo(self, realm):
-        logo, updated = self.session.get_org_logo(realm)
+    def get_logo(self, orgid):
+        logo, updated = self.session.get_org_logo(orgid)
         if logo is None or updated is None:
             return None, None
         return logo, updated
