@@ -43,7 +43,7 @@ def client_logo(request):
     try:
         logo, updated = request.org_controller.get_logo(realm)
         if logo is None:
-            with open('data/default-client.png', 'rb') as fh:
+            with open('data/default-organization.png', 'rb') as fh:
                 logo = fh.read()
         if updated is None:
             updated = now()
