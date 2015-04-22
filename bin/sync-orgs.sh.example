@@ -1,0 +1,9 @@
+#!/bin/bash
+#
+# Set variables appropriately
+# Will sync daily if placed in /etc/cron.daily
+BASE_DIR=/home/sigmunda/core-apis
+VENV=$BASE_DIR/venv
+CONFIG=$BASE_DIR/production.ini
+source $VENV/bin/activate
+python $BASE_DIR/bin/sync-orgs.py -c $CONFIG
