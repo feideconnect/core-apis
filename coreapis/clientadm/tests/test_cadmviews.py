@@ -89,12 +89,6 @@ class ClientAdmTests(unittest.TestCase):
                          headers=headers)
         assert self.session.get_clients.call_args[0][1][0] == uuid.UUID(userid_own)
 
-    def test_bad_client_filter(self):
-        headers = {'Authorization': 'Bearer user_token'}
-        res = self.testapp.get('/clientadm/clients/?scope=', status=400, headers=headers)
-        out = res.json
-        assert out['message'] == 'missing filter value'
-
     def test_post_client_minimal(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.side_effect = KeyError
