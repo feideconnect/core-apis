@@ -7,7 +7,7 @@ from coreapis.utils import pick_lang, now
 
 def configure(config):
     contact_points = config.get_settings().get('cassandra_contact_points')
-    keyspace = config.get_settings().get('peoplesearch.cache_keyspace')
+    keyspace = config.get_settings().get('cassandra_keyspace')
     timer = config.get_settings().get('timer')
     org_controller = OrgController(contact_points, keyspace, timer)
     config.add_settings(org_controller=org_controller)
