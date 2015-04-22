@@ -1,0 +1,26 @@
+{
+	"userinfo": {
+		"title": "Brukerinfo",
+		"descr": "Basisinformasjon om brukere. BrukerID, navn og profilbilde.",
+		"public": true,
+		"policy": {
+			"auto": true
+		}
+	},
+	"userinfo-feide": {
+		"title": "Feide-navn",
+		"descr": "Brukerens identifikator i Feide. Tilsvarende eduPersonPrincipalName.",
+		"public": true,
+		"policy": {
+			"auto": true
+		}
+	},
+	"clientadmin": {
+		"title": "Klient Admin",
+		"descr": "Adminsitrer klienter",
+		"public": false,
+		"policy": {
+			"auto": false
+		}
+	}
+}
