@@ -199,11 +199,12 @@ class Syncer(object):
         self.client.delete_organization(orgid)
 
     def drop_orgs(self, dropped_kindids):
-        self.log.debug("Dropping kindids", dropped_kindids=dropped_kindids)
         for kindid in dropped_kindids:
             orgs = self.client.get_orgs_by_kindid(kindid)
             if len(orgs) > 0:
-                self.drop_org(orgs[0][0])
+                orgid = orgs[0][0]
+                self.log.info("Dropping org", orgid=orgid)
+                self.drop_org(orgid)
 
     def load_orgs(self, kindorgs):
         for kindorg in kindorgs:
