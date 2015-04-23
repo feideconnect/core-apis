@@ -99,6 +99,7 @@ class ClientAdmTests(unittest.TestCase):
                                      headers=headers)
         out = res.json
         assert out['name'] == 'per'
+        assert out['organization'] is None
 
     def test_post_client_maximal(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -108,6 +109,7 @@ class ClientAdmTests(unittest.TestCase):
                                      headers=headers)
         out = res.json
         assert out['owner'] == userid_own
+        assert out['organization'] is None
 
     def test_post_client_other_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -144,6 +146,17 @@ class ClientAdmTests(unittest.TestCase):
         res = self.testapp.post_json('/clientadm/clients/', body, status=201, headers=headers)
         out = res.json
         assert out['scopes'] == [otherscope]
+
+    def test_post_client_organization(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_by_id.side_effect = KeyError
+        body = deepcopy(post_body_minimal)
+        body['organization'] = 'fc:org:example.com'
+        self.session.insert_client = mock.MagicMock()
+        self.session.is_org_admin.return_value = True
+        res = self.testapp.post_json('/clientadm/clients/', body, status=201, headers=headers)
+        out = res.json
+        assert out['organization'] == 'fc:org:example.com'
 
     def test_post_client_invalid_scope_requested(self):
         headers = {'Authorization': 'Bearer user_token'}
