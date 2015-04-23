@@ -52,7 +52,7 @@ def list_apigks(request):
     params = {}
     organization = request.params.get('organization', None)
     if organization:
-        if request.cadm_controller.is_org_admin(user, organization):
+        if request.gkadm_controller.is_org_admin(user, organization):
             params['organization'] = organization
         else:
             raise HTTPForbidden('user is not admin for given organization')
