@@ -335,6 +335,17 @@ class ClientAdmTests(unittest.TestCase):
         out = res.json
         assert out['created'] == date_created
 
+    def test_update_client_change_owner_org(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
+        self.session.insert_client = mock.MagicMock()
+        attrs = {'owner': userid_other, 'organization': 'fc:org:example.com'}
+        res = self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
+                                      attrs, status=200, headers=headers)
+        out = res.json
+        assert out['owner'] == userid_own
+        assert out['organization'] is None
+
     def test_update_client_change_scopes(self):
         headers = {'Authorization': 'Bearer user_token'}
         client = deepcopy(retrieved_client)
