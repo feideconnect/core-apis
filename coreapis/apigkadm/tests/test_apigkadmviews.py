@@ -61,6 +61,22 @@ class APIGKAdmTests(unittest.TestCase):
         out = res.json
         assert 'foo' in out[0]
 
+    def test_list_apigks_by_org(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().get_apigks.return_value = [{'foo': 'bar'}]
+        self.session().is_org_admin.return_value = True
+        res = self.testapp.get('/apigkadm/apigks/?organization={}'.format('fc:org:example.com'),
+                               status=200, headers=headers)
+        out = res.json
+        assert 'foo' in out[0]
+
+    def test_list_apigks_by_org_not_admin(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().get_apigks.return_value = [{'foo': 'bar'}]
+        self.session().is_org_admin.return_value = False
+        self.testapp.get('/apigkadm/apigks/?organization={}'.format('fc:org:example.com'),
+                         status=403, headers=headers)
+
     def test_post_apigk_minimal(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().insert_apigk = mock.MagicMock()
@@ -76,6 +92,27 @@ class APIGKAdmTests(unittest.TestCase):
         res = self.testapp.post_json('/apigkadm/apigks/', post_body_maximal, status=201, headers=headers)
         out = res.json
         assert out['owner'] == '00000000-0000-0000-0000-000000000001'
+        assert out['organization'] is None
+
+    def test_post_apigk_org(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().insert_apigk = mock.MagicMock()
+        self.session().get_apigk.side_effect = KeyError()
+        self.session().is_org_admin.return_value = True
+        data = deepcopy(post_body_maximal)
+        data['organization'] = 'fc:org:example.com'
+        res = self.testapp.post_json('/apigkadm/apigks/', data, status=201, headers=headers)
+        out = res.json
+        assert out['owner'] == '00000000-0000-0000-0000-000000000001'
+
+    def test_post_apigk_org_not_admin(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().insert_apigk = mock.MagicMock()
+        self.session().get_apigk.side_effect = KeyError()
+        self.session().is_org_admin.return_value = False
+        data = deepcopy(post_body_maximal)
+        data['organization'] = 'fc:org:example.com'
+        self.testapp.post_json('/apigkadm/apigks/', data, status=403, headers=headers)
 
     def test_post_apigk_duplicate(self):
         headers = {'Authorization': 'Bearer user_token'}
