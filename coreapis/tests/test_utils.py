@@ -90,11 +90,12 @@ class TestTranslatable(TestCase):
         request.body = b'translate=false'
         request.environ['CONTENT_LENGTH'] = str(len(request.body))
         request.environ['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
-        data = [{'foo': self.data}, [{'bar': self.data}]]
+        data = [{'foo': self.data, 'baz': 'ugle'}, [{'bar': self.data}]]
         expected = [
             {
                 'foo': {'nb': 'unittesting er gøy',
                         'en': 'unittesting is fun'},
+                'baz': 'ugle',
             },
             [
                 {
