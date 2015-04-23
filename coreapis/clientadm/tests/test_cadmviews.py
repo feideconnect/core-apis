@@ -91,6 +91,21 @@ class ClientAdmTests(unittest.TestCase):
                          headers=headers)
         assert self.session.get_clients.call_args[0][1][0] == uuid.UUID(userid_own)
 
+    def test_list_clients_by_org(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_clients.return_value = [{'foo': 'bar'}]
+        self.session.is_org_admin.return_value = True
+        res = self.testapp.get('/clientadm/clients/?organization={}'.format('fc:org:example.com'),
+                               status=200, headers=headers)
+        out = res.json
+        assert 'foo' in out[0]
+
+    def test_list_clients_by_org_not_admin(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.is_org_admin.return_value = False
+        self.testapp.get('/clientadm/clients/?organization={}'.format('fc:org:example.com'),
+                         status=403, headers=headers)
+
     def test_post_client_minimal(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.side_effect = KeyError
