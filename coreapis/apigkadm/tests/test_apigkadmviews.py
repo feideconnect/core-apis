@@ -4,47 +4,9 @@ import uuid
 from copy import deepcopy
 from webtest import TestApp
 from pyramid import testing
-from coreapis import main, middleware, apigkadm
-from coreapis.utils import ValidationError, parse_datetime, json_normalize
-import py.test
-
-post_body_minimal = {
-    'id': 'testgk',
-    'name': 'per',
-    'owner': '4f4e4b2b-bf7b-49f8-b703-cc6f4fc93493',
-    'endpoints': ['https://foo.no'],
-    'requireuser': False,
-    'trust': {
-        'type': 'basic',
-        'username': 'username',
-        'password': 'secrit',
-    },
-}
-
-post_body_maximal = {
-    'name': 'per',
-    'owner': '4f4e4b2b-bf7b-49f8-b703-cc6f4fc93493',
-    'id': 'max-gk',
-    'created': '2015-01-12T14:05:16+01:00', 'descr': 'green',
-    'status': ['lab'],
-    'updated': '2015-01-12T14:05:16+01:00',
-    'endpoints': ['https://foo.com', 'https://ugle.org:5000'],
-    'requireuser': True,
-    'httpscertpinned': '',
-    'expose': {
-        'userid': True,
-        'clientid': True,
-        'scopes': True,
-        'groups': False,
-        'userid-sec': ['feide'],
-    },
-    'scopedef': {},
-    'trust': {
-        'type': 'basic',
-        'username': 'username',
-        'password': 'secrit',
-    },
-}
+from coreapis import main, middleware
+from coreapis.utils import parse_datetime, json_normalize
+from coreapis.apigkadm.tests.data import post_body_minimal, post_body_maximal
 
 pre_update = {
     "httpscertpinned": None,
@@ -68,43 +30,6 @@ pre_update = {
     "requireuser": False,
     "organization": None,
 }
-
-
-class TestValidation(unittest.TestCase):
-    @mock.patch('coreapis.apigkadm.controller.cassandra_client.Client')
-    def setUp(self, Client):
-        self.controller = apigkadm.controller.APIGKAdmController([], '', 20)
-
-    def test_validation(self):
-        self.controller.validate(post_body_maximal)
-        self.controller.validate(post_body_minimal)
-        testdata = deepcopy(post_body_minimal)
-        testdata['id'] = 'ab1'
-        self.controller.validate(testdata)
-        testdata['id'] = 'ab1-12abc123'
-        self.controller.validate(testdata)
-        with py.test.raises(ValidationError):
-            testdata['id'] = 'a'
-            self.controller.validate(testdata)
-        with py.test.raises(ValidationError):
-            testdata['id'] = '1ab'
-            self.controller.validate(testdata)
-        with py.test.raises(ValidationError):
-            testdata['id'] = 'abcdefghijklmeno'
-            self.controller.validate(testdata)
-        with py.test.raises(ValidationError):
-            testdata['id'] = '.'
-            self.controller.validate(testdata)
-        with py.test.raises(ValidationError):
-            testdata['id'] = '/'
-            self.controller.validate(testdata)
-        with py.test.raises(ValidationError):
-            testdata['id'] = ':'
-            self.controller.validate(testdata)
-        with py.test.raises(ValidationError):
-            testdata['id'] = 'ab1'
-            testdata['created'] = 42
-            self.controller.validate(testdata)
 
 
 class APIGKAdmTests(unittest.TestCase):
