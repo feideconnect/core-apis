@@ -42,3 +42,16 @@ class TestValidation(unittest.TestCase):
             testdata['id'] = 'ab1'
             testdata['created'] = 42
             self.controller.validate(testdata)
+
+
+class TestValidEndPoint(unittest.TestCase):
+    def test_valid_endpoints(self):
+        assert apigkadm.controller.valid_endpoint('https://example.com')
+        assert apigkadm.controller.valid_endpoint('http://example.com')
+        assert apigkadm.controller.valid_endpoint('https://example.com:123')
+
+    def test_invalid_endpoints(self):
+        assert not apigkadm.controller.valid_endpoint('ftp://example.com')
+        assert not apigkadm.controller.valid_endpoint('https://example.com/file')
+        assert not apigkadm.controller.valid_endpoint('https://foo:baR@example.com')
+        assert not apigkadm.controller.valid_endpoint('https:///FOO')
