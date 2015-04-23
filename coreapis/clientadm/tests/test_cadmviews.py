@@ -232,6 +232,14 @@ class ClientAdmTests(unittest.TestCase):
         self.session.insert_client = mock.MagicMock()
         self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
 
+    def test_post_client_org_not_admin(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        body = deepcopy(post_body_minimal)
+        body['organization'] = 'fc:org:example.com'
+        self.session.insert_client = mock.MagicMock()
+        self.session.is_org_admin.return_value = False
+        self.testapp.post_json('/clientadm/clients/', body, status=403, headers=headers)
+
     def test_delete_client(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.return_value = deepcopy(retrieved_client)

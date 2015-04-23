@@ -128,7 +128,7 @@ class MockAuthMiddleware(AuthMiddleware):
                 "userid": uuid.UUID("00000000-0000-0000-0000-000000000001"),
                 "selectedsource": "feide:example.com",
                 "userid_sec_seen": {},
-                "userid_sec": [],
+                "userid_sec": ["feide:test@example.com"],
                 "email": {"feide:example.com": "dummy@example.com"}
             },
 
