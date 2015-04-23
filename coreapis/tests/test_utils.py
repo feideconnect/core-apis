@@ -80,8 +80,8 @@ class TestTranslatable(TestCase):
     def test_pick_lang(self):
         request = Request({})
         request.headers['Accept-Language'] = 'en-US,en;q=0.8,nb;q=0.6'
-        data = [{'foo': self.data}, [{'bar': self.data}]]
-        assert utils.pick_lang(request, data) == [{'foo': 'unittesting is fun'}, [{'bar': 'unittesting is fun'}]]
+        data = [{'foo': self.data, 'baz': 'ugle'}, [{'bar': self.data}]]
+        assert utils.pick_lang(request, data) == [{'foo': 'unittesting is fun', 'baz': 'ugle'}, [{'bar': 'unittesting is fun'}]]
 
     def test_disable_translation(self):
         request = Request({})
