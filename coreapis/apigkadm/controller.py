@@ -63,6 +63,8 @@ class APIGKAdmController(CrudControllerBase):
         self.cadm_controller = ClientAdmController(contact_points, keyspace, None, maxrows)
 
     def has_permission(self, apigk, user):
+        if user is None:
+            return False
         org = apigk.get('organization', None)
         if org:
             return self.is_org_admin(user, org)

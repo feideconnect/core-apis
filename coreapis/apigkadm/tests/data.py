@@ -1,3 +1,7 @@
+from coreapis.utils import parse_datetime
+import uuid
+
+
 post_body_minimal = {
     'id': 'testgk',
     'name': 'per',
@@ -34,4 +38,28 @@ post_body_maximal = {
         'username': 'username',
         'password': 'secrit',
     },
+}
+
+
+pre_update = {
+    "httpscertpinned": None,
+    "scopedef": None,
+    "descr": None,
+    "status": None,
+    "updated": parse_datetime("2015-01-26T16:05:59Z"),
+    "created": parse_datetime("2015-01-23T13:50:09Z"),
+    "id": "updateable",
+    "expose": {
+    },
+    "owner": uuid.UUID("00000000-0000-0000-0000-000000000001"),
+    "trust": {
+        "token": "abcderf",
+        "type": "bearer"
+    },
+    "endpoints": [
+        "https://example.com"
+    ],
+    "name": "pre update",
+    "requireuser": False,
+    "organization": None,
 }

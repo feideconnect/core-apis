@@ -5,31 +5,8 @@ from copy import deepcopy
 from webtest import TestApp
 from pyramid import testing
 from coreapis import main, middleware
-from coreapis.utils import parse_datetime, json_normalize
-from coreapis.apigkadm.tests.data import post_body_minimal, post_body_maximal
-
-pre_update = {
-    "httpscertpinned": None,
-    "scopedef": None,
-    "descr": None,
-    "status": None,
-    "updated": parse_datetime("2015-01-26T16:05:59Z"),
-    "created": parse_datetime("2015-01-23T13:50:09Z"),
-    "id": "updateable",
-    "expose": {
-    },
-    "owner": uuid.UUID("00000000-0000-0000-0000-000000000001"),
-    "trust": {
-        "token": "abcderf",
-        "type": "bearer"
-    },
-    "endpoints": [
-        "https://example.com"
-    ],
-    "name": "pre update",
-    "requireuser": False,
-    "organization": None,
-}
+from coreapis.utils import json_normalize
+from coreapis.apigkadm.tests.data import post_body_minimal, post_body_maximal, pre_update
 
 
 class APIGKAdmTests(unittest.TestCase):
