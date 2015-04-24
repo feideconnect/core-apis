@@ -9,7 +9,6 @@ class OrgController(CrudControllerBase):
     def __init__(self, contact_points, keyspace, timer, maxrows):
         super(OrgController, self).__init__(maxrows)
         self.t = timer
-        self.config = json.load(open('ldap-config.json'))
         self.log = LogWrapper('org.OrgController')
         self.session = cassandra_client.Client(contact_points, keyspace)
         self.log.debug('org controller init', keyspace=keyspace)
