@@ -1,7 +1,7 @@
 import unittest
 import mock
 import uuid
-from coreapis.groups.adhoc_backend import AdHocGroupBackend
+from coreapis.groups.adhoc_backend import *
 from coreapis.utils import parse_datetime
 
 user1 = uuid.UUID("00000000-0000-0000-0000-000000000001")
@@ -64,6 +64,37 @@ groups = {
     groupid1: group1,
     groupid2: group2
 }
+
+
+class TestQueryMatch(unittest.TestCase):
+    def test_no_query(self):
+        assert query_match(None, {})
+
+    def test_match_displayName(self):
+        assert query_match('foo', {'displayName': 'a foo group'})
+
+    def test_match_description(self):
+        assert query_match('foo', {'displayName': 'test group', 'description': 'a foo group'})
+
+    def test_no_description(self):
+        assert not query_match('foo', {'displayName': 'test group'})
+
+    def test_no_match(self):
+        assert not query_match('foo', {'displayName': 'no match', 'description': 'no match'})
+
+
+class TestFormatMembership(unittest.TestCase):
+    def test_owner_admin(self):
+        assert format_membership(group1, {'userid': user1, 'type': 'admin'}) == {'basic': 'owner'}
+
+    def test_owner_member(self):
+        assert format_membership(group1, {'userid': user1, 'type': 'admin'}) == {'basic': 'owner'}
+
+    def test_member(self):
+        assert format_membership(group1, {'userid': user2, 'type': 'member'}) == {'basic': 'member'}
+
+    def test_admin(self):
+        assert format_membership(group1, {'userid': user2, 'type': 'admin'}) == {'basic': 'admin'}
 
 
 class TestAdHocBackend(unittest.TestCase):
