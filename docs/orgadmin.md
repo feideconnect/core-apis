@@ -39,4 +39,4 @@ Returns a list of objects representing clients that are currently marked as mand
 
 Removes a client from list of mandatory clients for an
 organization. Both `org-id` and `client-id` are passed in the
-url. Returns `209 No Content` on success.
+url. Returns `204 No Content` on success.
