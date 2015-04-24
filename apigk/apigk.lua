@@ -22,10 +22,10 @@ if not (res.status == ngx.HTTP_OK) then
 end
 
 for k, v in pairs(res.header) do
-   if string.sub(k, 1, 15) == 'X-FeideConnect-' then
-      if k == 'X-FeideConnect-Authorization' then
+   if string.lower(string.sub(k, 1, 15)) == string.lower('X-FeideConnect-') then
+      if string.lower(k) == string.lower('X-FeideConnect-Authorization') then
          ngx.req.set_header('Authorization', v)
-      elseif k == 'X-FeideConnect-endpoint' then
+      elseif string.lower(k) == string.lower('X-FeideConnect-endpoint') then
             ngx.var.endpoint = v
       else
          ngx.req.set_header(k, v)
