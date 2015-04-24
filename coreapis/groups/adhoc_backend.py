@@ -62,8 +62,7 @@ class AdHocGroupBackend(BaseBackend):
             data['membership'] = format_membership(group, membership)
         return data
 
-    def _get(self, user, groupid):
-        userid = user['userid']
+    def _get(self, userid, groupid):
         intgroupid = self._intid(groupid)
         group = self.session.get_group(intgroupid)
         membership = self.session.get_membership_data(intgroupid, userid)
