@@ -89,6 +89,10 @@ def add_mandatory_clients(request):
     except ValueError:
         raise ValidationError('playload must be only a client id')
     request.org_controller.add_mandatory_client(user, orgid, clientid)
+    request.response.status = 201
+    request.response.location = request.route_path('org_mandatory_client', id=orgid,
+                                                   clientid=clientid)
+    return clientid
 
 
 @view_config(route_name='org_mandatory_client', permission='scope_orgadmin',
