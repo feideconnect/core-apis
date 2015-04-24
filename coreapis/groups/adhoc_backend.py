@@ -65,14 +65,13 @@ class AdHocGroupBackend(BaseBackend):
     def _get(self, userid, groupid):
         intgroupid = self._intid(groupid)
         group = self.session.get_group(intgroupid)
-        membership = self.session.get_membership_data(intgroupid, userid)
-        if len(membership) == 0:
+        try:
+            membership = self.session.get_membership_data(intgroupid, userid)
+            return group, membership
+        except KeyError:
             if not group['public'] and not group['owner'] == userid:
                 raise KeyError("Group access denied")
-            membership = None
-        else:
-            membership = membership[0]
-        return group, membership
+            return group, None
 
     def get_membership(self, user, groupid):
         userid = user['userid']
