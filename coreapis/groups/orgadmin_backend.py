@@ -1,6 +1,7 @@
-from coreapis.utils import LogWrapper, get_feideid
+from coreapis.utils import LogWrapper, get_feideid, failsafe
 from . import BaseBackend
 from coreapis import cassandra_client
+from eventlet.greenpool import GreenPile
 
 orgadmin_type = 'fc:orgadmin'
 
@@ -26,12 +27,12 @@ def format_membership(role):
     }
 
 
-def get_orgname(orgid):
+def get_orgtag(orgid):
     try:
-        orgname = orgid.split(':')[2]
+        orgtag = orgid.split(':')[2]
     except IndexError:
         raise BadOrgidError("Bad orgid: {}".format(orgid))
-    return orgname
+    return orgtag
 
 
 class OrgAdminBackend(BaseBackend):
@@ -45,11 +46,12 @@ class OrgAdminBackend(BaseBackend):
 
     def format_orgadmin_group(self, role):
         orgid = role['orgid']
-        orgname = get_orgname(orgid)
+        orgtag = get_orgtag(orgid)
+        orgname = role['orgname']
 
         displayname = 'Administratorer for {}'.format(orgname)
         return {
-            'id': '{}:{}'.format(orgadmin_type, orgname),
+            'id': '{}:{}'.format(orgadmin_type, orgtag),
             'type': orgadmin_type,
             'org': '{}'.format(orgid),
             'parent': '{}'.format(orgid),
@@ -60,9 +62,26 @@ class OrgAdminBackend(BaseBackend):
 
     def get_member_groups(self, user, show_all):
         result = []
+        orgnames = {}
         feideid = get_feideid(user)
-        for role in self.session.get_roles(feideid, None, self.maxrows):
+        pile = GreenPile()
+        roles = self.session.get_roles(feideid, None, self.maxrows)
+        if len(roles) == 0:
+            return []
+        for role in roles:
+            orgid = role['orgid']
+            orgnames[orgid] = {}
+        for orgid in orgnames.keys():
+            pile.spawn(failsafe(self.session.get_org), orgid)
+        for org in pile:
+            if org:
+                orgnames[org['id']] = org.get('name', {})
+        for role in roles:
             try:
+                orgid = role['orgid']
+                fallback = get_orgtag(orgid)
+                # Hardcoding Norwegian displaynames for now
+                role['orgname'] = orgnames[orgid].get('nb', fallback)
                 result.append(self.format_orgadmin_group(role))
             except RuntimeError as ex:
                 self.log.warn('Skipping role: {}'.format(ex.message))
