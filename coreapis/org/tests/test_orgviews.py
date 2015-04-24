@@ -89,6 +89,13 @@ class OrgViewTests(unittest.TestCase):
                                headers=headers)
         assert res.json == []
 
+    def test_list_mandatory_clients_no_access(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.is_org_admin.return_value = False
+        self.session.get_org.return_value = testorg
+        self.testapp.get('/orgs/{}/mandatory_clients/'.format(testorg_id), status=403,
+                         headers=headers)
+
     def test_add_mandatory_client(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.is_org_admin.return_value = True
@@ -99,6 +106,14 @@ class OrgViewTests(unittest.TestCase):
         self.session.add_mandatory_client.assert_called_with(testorg_realm, clientid)
         assert res.json == str(clientid)
 
+    def test_add_mandatory_client_malformed(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.is_org_admin.return_value = True
+        self.session.get_org.return_value = testorg
+        clientid = "malformed uuid"
+        self.testapp.post_json('/orgs/{}/mandatory_clients/'.format(testorg_id),
+                               str(clientid), status=400, headers=headers)
+
     def test_del_mandatory_client(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.is_org_admin.return_value = True
@@ -107,3 +122,11 @@ class OrgViewTests(unittest.TestCase):
         self.testapp.delete('/orgs/{}/mandatory_clients/{}'.format(testorg_id, clientid),
                             status=204, headers=headers)
         self.session.del_mandatory_client.assert_called_with(testorg_realm, clientid)
+
+    def test_del_mandatory_client_malformed(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.is_org_admin.return_value = True
+        self.session.get_org.return_value = testorg
+        clientid = "foo"
+        self.testapp.delete('/orgs/{}/mandatory_clients/{}'.format(testorg_id, clientid),
+                            status=404, headers=headers)
