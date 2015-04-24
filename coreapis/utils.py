@@ -6,6 +6,7 @@ import blist
 import statsd
 import time
 import pytz
+import functools
 from collections import defaultdict, deque
 import threading
 from aniso8601 import parse_datetime
@@ -352,3 +353,13 @@ def pick_lang(request, data):
         return [pick_lang(request, v) for v in data]
     else:
         return data
+
+
+def failsafe(func):
+    def wrapped(func, *args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except:
+            logging.warn('suppressed error')
+            return None
+    return functools.partial(wrapped, func)

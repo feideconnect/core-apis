@@ -1,10 +1,8 @@
 from coreapis import cassandra_client
-from coreapis.utils import LogWrapper, public_userinfo
+from coreapis.utils import LogWrapper, public_userinfo, failsafe
 from . import BaseBackend
 import uuid
 from eventlet.greenpool import GreenPile
-import functools
-import logging
 
 adhoc_type = 'voot:ad-hoc'
 
@@ -32,16 +30,6 @@ def query_match(query, group):
     if query in group.get('description', ''):
         return True
     return False
-
-
-def failsafe(func):
-    def wrapped(func, *args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except:
-            logging.warn('suppressed error')
-            return None
-    return functools.partial(wrapped, func)
 
 
 class AdHocGroupBackend(BaseBackend):
