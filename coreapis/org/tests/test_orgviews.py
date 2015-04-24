@@ -52,6 +52,10 @@ class OrgViewTests(unittest.TestCase):
         assert out['realm'] == 'example.com'
 
     def test_get_org_not_found(self):
+        self.session.get_org.side_effect = KeyError
+        self.testapp.get('/orgs/{}'.format(testorg), status=404)
+
+    def test_list_orgs(self):
         self.session.list_orgs.return_value = [testorg, testorg2]
         res = self.testapp.get('/orgs/', status=200)
         out = res.json
@@ -70,5 +74,9 @@ class OrgViewTests(unittest.TestCase):
         res = self.testapp.get('/orgs/{}/logo'.format(testorg), status=200)
         out = res.body
         assert out == b"A logo"
+
+    def test_get_org_logo_no_org(self):
+        self.session.get_org_logo.side_effect = KeyError
+        self.testapp.get('/orgs/{}/logo'.format(testorg), status=404)
 
     
