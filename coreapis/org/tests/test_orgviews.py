@@ -8,11 +8,12 @@ from coreapis import main, middleware
 from coreapis.utils import json_normalize, now
 
 testorg_id = 'fc:org:example.com'
+testorg_realm = 'example.com'
 testorg = {
     'id': testorg_id,
     'organization_number': 'NO00000001',
     'type': ['service_provider'],
-    'realm': 'example.com',
+    'realm': testorg_realm,
     'name': {'nb': 'testorganisasjon',
              'en': 'test organization', },
 }
@@ -79,4 +80,30 @@ class OrgViewTests(unittest.TestCase):
         self.session.get_org_logo.side_effect = KeyError
         self.testapp.get('/orgs/{}/logo'.format(testorg), status=404)
 
-    
+    def test_list_mandatory_clients(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.is_org_admin.return_value = True
+        self.session.get_mandatory_clients.return_value = []
+        self.session.get_org.return_value = testorg
+        res = self.testapp.get('/orgs/{}/mandatory_clients/'.format(testorg_id), status=200,
+                               headers=headers)
+        assert res.json == []
+
+    def test_add_mandatory_client(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.is_org_admin.return_value = True
+        self.session.get_org.return_value = testorg
+        clientid = uuid.uuid4()
+        res = self.testapp.post_json('/orgs/{}/mandatory_clients/'.format(testorg_id),
+                                     str(clientid), status=201, headers=headers)
+        self.session.add_mandatory_client.assert_called_with(testorg_realm, clientid)
+        assert res.json == str(clientid)
+
+    def test_del_mandatory_client(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.is_org_admin.return_value = True
+        self.session.get_org.return_value = testorg
+        clientid = uuid.uuid4()
+        self.testapp.delete('/orgs/{}/mandatory_clients/{}'.format(testorg_id, clientid),
+                            status=204, headers=headers)
+        self.session.del_mandatory_client.assert_called_with(testorg_realm, clientid)
