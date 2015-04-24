@@ -42,7 +42,7 @@ def list_org(request):
 
 
 @view_config(route_name='org_logo')
-def client_logo(request):
+def org_logo(request):
     orgid = request.matchdict['id']
     try:
         logo, updated = request.org_controller.get_logo(orgid)
