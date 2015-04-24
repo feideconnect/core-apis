@@ -2,6 +2,14 @@ from coreapis.utils import LogWrapper, get_feideid
 from . import BaseBackend
 from coreapis import cassandra_client
 
+orgadmin_type = 'fc:orgadmin'
+
+
+class BadOrgidError(RuntimeError):
+    def __init__(self, message):
+        super(BadOrgidError, self).__init__(message)
+        self.message = message
+
 
 def basic(role):
     if 'admin' in role:
@@ -18,6 +26,14 @@ def format_membership(role):
     }
 
 
+def get_orgname(orgid):
+    try:
+        orgname = orgid.split(':')[2]
+    except IndexError:
+        raise BadOrgidError("Bad orgid: {}".format(orgid))
+    return orgname
+
+
 class OrgAdminBackend(BaseBackend):
     def __init__(self, prefix, maxrows, config):
         super(OrgAdminBackend, self).__init__(prefix, maxrows, config)
@@ -28,17 +44,17 @@ class OrgAdminBackend(BaseBackend):
         self.session = cassandra_client.Client(contact_points, keyspace, True)
 
     def format_orgadmin_group(self, role):
-        grouptype = 'fc:orgadmin'
         orgid = role['orgid']
-        orgname = orgid.split(':')[2]
+        orgname = get_orgname(orgid)
 
-        displayname = '{} Administratorer'.format(orgname)
+        displayname = 'Administratorer for {}'.format(orgname)
         return {
-            'id': '{}:{}'.format(grouptype, orgname),
-            'type': grouptype,
+            'id': '{}:{}'.format(orgadmin_type, orgname),
+            'type': orgadmin_type,
             'org': '{}'.format(orgid),
             'parent': '{}'.format(orgid),
             'displayName': displayname,
+            'orgName': orgname,
             'membership': format_membership(role['role'])
         }
 
@@ -46,5 +62,20 @@ class OrgAdminBackend(BaseBackend):
         result = []
         feideid = get_feideid(user)
         for role in self.session.get_roles(feideid, None, self.maxrows):
-            result.append(self.format_orgadmin_group(role))
+            try:
+                result.append(self.format_orgadmin_group(role))
+            except RuntimeError as ex:
+                self.log.warn('Skipping role: {}'.format(ex.message))
+                continue
         return result
+
+    def grouptypes(self):
+        return [
+            {
+                'id': orgadmin_type,
+                "displayName": {
+                    "en": "Organization Administrator Group",
+                    "nb": "Organisasjonadministratorgruppe",
+                }
+            }
+        ]
