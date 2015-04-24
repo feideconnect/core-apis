@@ -44,6 +44,7 @@ class Client(object):
             'groups': 'id,created,descr,name,owner,public,updated,invitation_token',
             'group_members': 'userid,groupid,status,type',
             'organizations': 'organization_number,type,realm,id,name',
+            'roles': 'feideid,orgid,role',
 
         }
         self.session = cluster.connect(keyspace)
@@ -358,3 +359,11 @@ class Client(object):
     def del_mandatory_client(self, realm, clientid):
         prep = self._prepare('DELETE FROM mandatory_clients WHERE realm = ? AND clientid = ?')
         return self.session.execute(prep.bind([realm, clientid]))
+
+    def get_roles(self, feideid, orgid, maxrows):
+        selectors = ['feideid = ?']
+        values = [feideid]
+        if not orgid is None:
+            selectors.append('orgid = ?')
+            values.append(orgid)
+        return self.get_generic('roles', selectors, values, maxrows)
