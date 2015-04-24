@@ -259,3 +259,27 @@ class APIGKAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.testapp.get('/apigkadm/apigks/owners/{}/clients/'.format(uuid.uuid4()),
                          status=403, headers=headers)
+
+    def test_apigk_get_org_clients(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        org = 'fc:org:example.com'
+        apigks = [{ 'id': 'fooapi', 'organization': org}, { 'id': 'barapi', 'organization': org}]
+        self.session().is_org_admin.return_value = True
+        for count in [0, 1, 2]:
+            self.session().get_apigks.return_value = apigks[:count]
+            with mock.patch('coreapis.clientadm.controller.ClientAdmController.get_gkscope_clients',
+                            return_value=[]):
+                self.testapp.get('/apigkadm/apigks/orgs/{}/clients/'.format(org),
+                                 status=200, headers=headers)
+
+    def test_apigk_get_org_clients_not_admin(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        org = 'fc:org:example.com'
+        apigks = [{ 'id': 'fooapi', 'organization': org}, { 'id': 'barapi', 'organization': org}]
+        self.session().is_org_admin.return_value = False
+        for count in [0, 1, 2]:
+            self.session().get_apigks.return_value = apigks[:count]
+            with mock.patch('coreapis.clientadm.controller.ClientAdmController.get_gkscope_clients',
+                            return_value=[]):
+                self.testapp.get('/apigkadm/apigks/orgs/{}/clients/'.format(org),
+                                 status=403, headers=headers)
