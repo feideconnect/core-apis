@@ -65,7 +65,8 @@ class OrgAdminBackend(BaseBackend):
         orgnames = {}
         feideid = get_feideid(user)
         pile = GreenPile()
-        roles = self.session.get_roles(feideid, None, self.maxrows)
+        roles = self.session.get_roles(['feideid = ?'], [feideid],
+                                       self.maxrows)
         if len(roles) == 0:
             return []
         for role in roles:

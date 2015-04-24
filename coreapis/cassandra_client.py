@@ -360,10 +360,5 @@ class Client(object):
         prep = self._prepare('DELETE FROM mandatory_clients WHERE realm = ? AND clientid = ?')
         return self.session.execute(prep.bind([realm, clientid]))
 
-    def get_roles(self, feideid, orgid, maxrows):
-        selectors = ['feideid = ?']
-        values = [feideid]
-        if not orgid is None:
-            selectors.append('orgid = ?')
-            values.append(orgid)
+    def get_roles(self, selectors, values, maxrows):
         return self.get_generic('roles', selectors, values, maxrows)
