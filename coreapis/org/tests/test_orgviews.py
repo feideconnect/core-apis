@@ -22,7 +22,7 @@ testorg2 = {
     'id': testorg2_id,
     'organization_number': 'NO00000002',
     'type': ['service_provider'],
-    'realm': 'example.org',
+    'realm': None,
     'name': {'nb': 'testorganisasjon 2',
              'en': 'test organization 2', },
 }
@@ -94,6 +94,13 @@ class OrgViewTests(unittest.TestCase):
         self.session.is_org_admin.return_value = False
         self.session.get_org.return_value = testorg
         self.testapp.get('/orgs/{}/mandatory_clients/'.format(testorg_id), status=403,
+                         headers=headers)
+
+    def test_list_mandatory_clients_no_realm(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.is_org_admin.return_value = True
+        self.session.get_org.return_value = testorg2
+        self.testapp.get('/orgs/{}/mandatory_clients/'.format(testorg2_id), status=403,
                          headers=headers)
 
     def test_add_mandatory_client(self):
