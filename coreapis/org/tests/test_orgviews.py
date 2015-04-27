@@ -78,6 +78,12 @@ class OrgViewTests(unittest.TestCase):
         assert len(out) == 1
         assert out[0]['id'] == testorg2_id
 
+    def test_list_orgs_invalid_param(self):
+        self.session.list_orgs.return_value = [testorg, testorg2]
+        res = self.testapp.get('/orgs/?peoplesearch=ugle', status=200)
+        out = res.json
+        assert len(out) == 2
+
     def test_get_org_logo_default(self):
         self.session.get_org_logo.return_value = (None, None)
         res = self.testapp.get('/orgs/{}/logo'.format(testorg), status=200)
