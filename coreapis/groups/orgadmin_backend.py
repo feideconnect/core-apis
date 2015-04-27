@@ -5,6 +5,12 @@ from eventlet.greenpool import GreenPile
 
 orgadmin_type = 'fc:orgadmin'
 
+role_nb = {
+    'admin': 'admin',
+    'technical': 'teknisk',
+    'mercantile': 'merkantil'
+}
+
 
 class BadOrgidError(RuntimeError):
     def __init__(self, message):
@@ -20,9 +26,10 @@ def basic(role):
 
 
 def format_membership(role):
+    displayname = ", ".join([role_nb.get(elem, elem) for elem in role]).title()
     return {
         'basic': basic(role),
-        'displayName': ", ".join(role).title(),
+        'displayName': displayname,
         'adminRoles': role
     }
 
