@@ -11,7 +11,8 @@ def configure(config):
     keyspace = config.get_settings().get('cassandra_keyspace')
     timer = config.get_settings().get('timer')
     maxrows = config.get_settings().get('clientadm_maxrows')
-    org_controller = OrgController(contact_points, keyspace, timer, maxrows)
+    ldap_config = config.get_settings().get('ldap_config_file', 'ldap-config.json')
+    org_controller = OrgController(contact_points, keyspace, timer, maxrows, ldap_config)
     config.add_settings(org_controller=org_controller)
     config.add_request_method(lambda r: r.registry.settings.org_controller, 'org_controller',
                               reify=True)
@@ -36,7 +37,16 @@ def get_org(request):
 
 @view_config(route_name='orgs', request_method='GET', renderer='json')
 def list_org(request):
-    data = request.org_controller.list_orgs()
+    peoplesearch = None
+    if 'peoplesearch' in request.params:
+        peoplesearch = request.params['peoplesearch']
+        if peoplesearch == 'true':
+            peoplesearch = True
+        elif peoplesearch == 'false':
+            peoplesearch = False
+        else:
+            peoplesearch = None
+    data = request.org_controller.list_orgs(peoplesearch)
     data = pick_lang(request, data)
     return data
 

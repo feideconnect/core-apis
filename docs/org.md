@@ -9,6 +9,10 @@
         "organization_number": "no940192226", "realm": "t-fk.no"},
      ...]
 
+### Query parameters
+
+- `peoplesearch`: When set to `true`, returns only organizations with peoplesearch available. When set to `false` returns only organizations without peoplesearch. Otherwise returns all organizations
+
 ## Show public information about one organization
 
     $ curl 'https://api.feideconnect.no/orgs/<org-id>'

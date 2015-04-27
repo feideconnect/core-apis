@@ -6,20 +6,36 @@ from coreapis.clientadm.controller import ClientAdmController
 
 
 class OrgController(CrudControllerBase):
-    def __init__(self, contact_points, keyspace, timer, maxrows):
+    def __init__(self, contact_points, keyspace, timer, maxrows, ldap_config):
         super(OrgController, self).__init__(maxrows)
         self.t = timer
         self.log = LogWrapper('org.OrgController')
         self.session = cassandra_client.Client(contact_points, keyspace)
         self.log.debug('org controller init', keyspace=keyspace)
         self.cadm_controller = ClientAdmController(contact_points, keyspace, None, maxrows)
+        self.ldap_config = json.load(open(ldap_config))
 
-    def show_org(self, orgid):
-        org = self.session.get_org(orgid)
+    def format_org(self, org):
+        has_peoplesearch = False
+        if org['realm'] in self.ldap_config:
+            has_peoplesearch = True
+        org['has_peoplesearch'] = has_peoplesearch
         return org
 
-    def list_orgs(self):
-        return self.session.list_orgs()
+    def show_org(self, orgid):
+        org = self.format_org(self.session.get_org(orgid))
+        return org
+
+    def list_orgs(self, want_peoplesearch=None):
+        res = []
+        for org in self.session.list_orgs():
+            org = self.format_org(org)
+            if want_peoplesearch is None:
+                res.append(org)
+            else:
+                if want_peoplesearch == org['has_peoplesearch']:
+                    res.append(org)
+        return res
 
     def get_logo(self, orgid):
         logo, updated = self.session.get_org_logo(orgid)

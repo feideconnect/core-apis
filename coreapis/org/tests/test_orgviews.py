@@ -7,8 +7,8 @@ from pyramid import testing
 from coreapis import main, middleware
 from coreapis.utils import json_normalize, now
 
-testorg_id = 'fc:org:example.com'
-testorg_realm = 'example.com'
+testorg_id = 'fc:org:realm1.example.com'
+testorg_realm = 'realm1.example.com'
 testorg = {
     'id': testorg_id,
     'organization_number': 'NO00000001',
@@ -38,7 +38,7 @@ class OrgViewTests(unittest.TestCase):
             'oauth_realm': 'test realm',
             'cassandra_contact_points': '',
             'cassandra_keyspace': 'notused',
-        }, enabled_components='org', clientadm_maxrows=100)
+        }, enabled_components='org', clientadm_maxrows=100, ldap_config_file='testdata/test-ldap-config.json')
         mw = middleware.MockAuthMiddleware(app, 'test realm')
         self.session = Client()
         self.testapp = TestApp(mw)
@@ -50,7 +50,7 @@ class OrgViewTests(unittest.TestCase):
         self.session.get_org.return_value = testorg
         res = self.testapp.get('/orgs/{}'.format(testorg), status=200)
         out = res.json
-        assert out['realm'] == 'example.com'
+        assert out['realm'] == testorg_realm
 
     def test_get_org_not_found(self):
         self.session.get_org.side_effect = KeyError
@@ -63,6 +63,20 @@ class OrgViewTests(unittest.TestCase):
         assert len(out) == 2
         assert out[0]['id'] == testorg_id
         assert out[1]['id'] == testorg2_id
+
+    def test_list_orgs_with_peoplesearch(self):
+        self.session.list_orgs.return_value = [testorg, testorg2]
+        res = self.testapp.get('/orgs/?peoplesearch=true', status=200)
+        out = res.json
+        assert len(out) == 1
+        assert out[0]['id'] == testorg_id
+
+    def test_list_orgs_without_peoplesearch(self):
+        self.session.list_orgs.return_value = [testorg, testorg2]
+        res = self.testapp.get('/orgs/?peoplesearch=false', status=200)
+        out = res.json
+        assert len(out) == 1
+        assert out[0]['id'] == testorg2_id
 
     def test_get_org_logo_default(self):
         self.session.get_org_logo.return_value = (None, None)
