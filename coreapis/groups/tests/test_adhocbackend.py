@@ -1,4 +1,6 @@
 import unittest
+from copy import deepcopy
+import py.test
 import mock
 from coreapis.groups.adhoc_backend import query_match, format_membership, AdHocGroupBackend
 from coreapis.adhocgroupadm.tests.data import \
@@ -33,6 +35,13 @@ groups = {
     groupid2: group2
 }
 
+membership1 = {
+    'groupid': groupid1,
+    'userid': user1,
+    'status': 'normal',
+    'type': 'normal',
+}
+
 
 class TestQueryMatch(unittest.TestCase):
     def test_no_query(self):
@@ -65,12 +74,14 @@ class TestFormatMembership(unittest.TestCase):
         assert format_membership(group1, {'userid': user2, 'type': 'admin'}) == {'basic': 'admin'}
 
 
-class TestAdHocBackend(unittest.TestCase):
+class TestAdHocBackendBase(unittest.TestCase):
     @mock.patch('coreapis.middleware.cassandra_client.Client')
     def setUp(self, Client):
         self.session = Client()
         self.backend = AdHocGroupBackend('adhoc', 100, mock.Mock())
 
+
+class TestAdHocBackend(TestAdHocBackendBase):
     def test_get_member_groups(self):
         self.session.get_group_memberships.return_value = [
             {
@@ -89,3 +100,43 @@ class TestAdHocBackend(unittest.TestCase):
         self.session.get_group.side_effect = groups.get
         res = self.backend.get_member_groups(dict(userid=user3), False)
         assert res == [group1_view, group2_view]
+
+
+class TestAdHocBackendGet(TestAdHocBackendBase):
+    def test_normal(self):
+        self.session.get_group.return_value = group1
+        self.session.get_membership_data.return_value = membership1
+        assert self.backend._get(user1, 'fc:adhoc:{}'.format(groupid1)) == (group1, membership1)
+
+    def test_not_member(self):
+        group = deepcopy(group1)
+        self.session.get_group.return_value = group
+        self.session.get_membership_data.side_effect = KeyError
+        with py.test.raises(KeyError):
+            self.backend._get(user2, 'fc:adhoc:{}'.format(groupid1))
+
+    def test_not_member_but_owner(self):
+        group = deepcopy(group1)
+        self.session.get_group.return_value = group
+        self.session.get_membership_data.side_effect = KeyError
+        assert self.backend._get(user1, 'fc:adhoc:{}'.format(groupid1)) == (group1, None)
+
+    def test_not_member_but_public(self):
+        group = deepcopy(group1)
+        group['public'] = True
+        self.session.get_group.return_value = group
+        self.session.get_membership_data.side_effect = KeyError
+        self.backend._get(user2, 'fc:adhoc:{}'.format(groupid1)) == (group1, None)
+
+
+class TestAdHocBackendGetMembership(TestAdHocBackendBase):
+    def test_normal(self):
+        with mock.patch('coreapis.groups.adhoc_backend.AdHocGroupBackend._get') as _get:
+            _get.return_value = group1, membership1
+            assert self.backend.get_membership({'userid': user1}, 'fc:adhoc:{}'.format(groupid1)) == {'basic': 'owner'}
+
+    def test_not_member(self):
+        with mock.patch('coreapis.groups.adhoc_backend.AdHocGroupBackend._get') as _get:
+            _get.return_value = group1, None
+            with py.test.raises(KeyError):
+                self.backend.get_membership({'userid': user1}, 'fc:adhoc:{}'.format(groupid1))
