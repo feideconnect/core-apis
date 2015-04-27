@@ -111,8 +111,7 @@ class TestProfileImageFetch(TestCase):
 class TestLookupFeideid(TestCase):
     def setUp(self):
         m = mock.mock_open(read_data='{}')
-        with mock.patch('coreapis.peoplesearch.controller.open', m, create=True):
-            self.ldap = controller.LDAPController(mock.MagicMock(), 'test-ldap-config.json')
+        self.ldap = controller.LDAPController(mock.MagicMock(), 'testdata/test-ldap-config.json')
 
     def test_feide_multiple_users(self):
         self.ldap.ldap_search = mock.MagicMock(return_value=[{'attributes': {'cn': ['Test User']}},
