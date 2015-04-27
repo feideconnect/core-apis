@@ -101,8 +101,8 @@ class OrgAdminBackend(BaseBackend):
         for orgid in orgnames.keys():
             pile.spawn(failsafe(self.session.get_org), orgid)
         for org in pile:
-            if org:
-                orgnames[org['id']] = org.get('name', {})
+            if org and 'name' in org and org['name']:
+                orgnames[org['id']] = org['name']
         for role in roles:
             try:
                 orgid = role['orgid']
