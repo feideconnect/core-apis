@@ -60,6 +60,25 @@ class OrgAdminBackend(BaseBackend):
             'membership': format_membership(role['role'])
         }
 
+    def get_members(self, user, groupid, show_all):
+        feideid = get_feideid(user)
+        orgtag = get_orgtag(groupid)
+        orgid = 'fc:org:{}'.format(orgtag)
+        result = []
+        found = False
+        roles = self.session.get_roles(['orgid = ?'], [orgid],
+                                       self.maxrows)
+        for role in roles:
+            if role['feideid'] == feideid:
+                found = True
+            result.append({
+                'userid': 'feide:{}'.format(role['feideid']),
+                'membership': format_membership(role['role'])
+            })
+        if not found:
+            raise KeyError("Not member of group")
+        return result
+
     def get_member_groups(self, user, show_all):
         result = []
         orgnames = {}
