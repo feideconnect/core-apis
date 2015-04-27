@@ -55,7 +55,6 @@ class OrgAdminBackend(BaseBackend):
         orgid = role['orgid']
         orgtag = get_orgtag(orgid)
         orgname = role['orgname']
-
         displayname = 'Administratorer for {}'.format(orgname)
         return {
             'id': '{}:{}'.format(orgadmin_type, orgtag),
@@ -70,7 +69,10 @@ class OrgAdminBackend(BaseBackend):
     def get_members(self, user, groupid, show_all):
         feideid = get_feideid(user)
         orgtag = get_orgtag(groupid)
-        orgid = 'fc:org:{}'.format(orgtag)
+        if not groupid.startswith("{}:".format(orgadmin_type)):
+            raise KeyError("Not an orgadmin group")
+        org_type = orgadmin_type[:orgadmin_type.rfind("admin")]
+        orgid = '{}:{}'.format(org_type, orgtag)
         result = []
         found = False
         roles = self.session.get_roles(['orgid = ?'], [orgid],
