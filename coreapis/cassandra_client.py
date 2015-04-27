@@ -321,7 +321,7 @@ class Client(object):
         if len(data) == 0:
             raise KeyError('no such organization')
         data = data[0]
-        if 'name' in data:
+        if 'name' in data and data['name'] is not None:
             data['name'] = translatable(data['name'])
         return data
 
@@ -329,7 +329,7 @@ class Client(object):
         prep = self._prepare('SELECT organization_number,type,realm,id,name from organizations')
         data = self.session.execute(prep)
         for a in data:
-            if 'name' in a:
+            if 'name' in a and a['name'] is not None:
                 a['name'] = translatable(a['name'])
         return data
 
