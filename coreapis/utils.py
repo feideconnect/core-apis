@@ -355,6 +355,12 @@ def pick_lang(request, data):
         return data
 
 
+def translation(func):
+    def wrapper(request):
+        return pick_lang(request, func(request))
+    return wrapper
+
+
 def failsafe(func):
     def wrapped(func, *args, **kwargs):
         try:

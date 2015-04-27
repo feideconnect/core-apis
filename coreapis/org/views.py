@@ -3,7 +3,7 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPNotModified, HTTPForbidden
 from pyramid.response import Response
 import uuid
 from .controller import OrgController
-from coreapis.utils import pick_lang, now, get_user, get_payload, ValidationError
+from coreapis.utils import pick_lang, now, get_user, get_payload, ValidationError, translation
 
 
 def configure(config):
@@ -25,17 +25,17 @@ def configure(config):
 
 
 @view_config(route_name='org', request_method='GET', renderer='json')
+@translation
 def get_org(request):
     orgid = request.matchdict['id']
     try:
-        data = request.org_controller.show_org(orgid)
-        data = pick_lang(request, data)
-        return data
+        return request.org_controller.show_org(orgid)
     except KeyError:
         raise HTTPNotFound('No org with id {} was found'.format(orgid))
 
 
 @view_config(route_name='orgs', request_method='GET', renderer='json')
+@translation
 def list_org(request):
     peoplesearch = None
     if 'peoplesearch' in request.params:
@@ -46,9 +46,7 @@ def list_org(request):
             peoplesearch = False
         else:
             peoplesearch = None
-    data = request.org_controller.list_orgs(peoplesearch)
-    data = pick_lang(request, data)
-    return data
+    return request.org_controller.list_orgs(peoplesearch)
 
 
 @view_config(route_name='org_logo')
