@@ -90,16 +90,13 @@ class OrgAdminBackend(BaseBackend):
 
     def get_member_groups(self, user, show_all):
         result = []
-        orgnames = {}
         feideid = get_feideid(user)
         pile = GreenPile()
         roles = self.session.get_roles(['feideid = ?'], [feideid],
                                        self.maxrows)
         if len(roles) == 0:
             return []
-        for role in roles:
-            orgid = role['orgid']
-            orgnames[orgid] = {}
+        orgnames = {role['orgid']: {} for role in roles}
         for orgid in orgnames.keys():
             pile.spawn(failsafe(self.session.get_org), orgid)
         for org in pile:
