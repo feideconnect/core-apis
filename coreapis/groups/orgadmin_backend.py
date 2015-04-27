@@ -3,9 +3,9 @@ from . import BaseBackend
 from coreapis import cassandra_client
 from eventlet.greenpool import GreenPile
 
-orgadmin_type = 'fc:orgadmin'
+ORGADMIN_TYPE = 'fc:orgadmin'
 
-role_nb = {
+ROLE_NB = {
     'admin': 'admin',
     'technical': 'teknisk',
     'mercantile': 'merkantil'
@@ -26,7 +26,7 @@ def basic(role):
 
 
 def format_membership(role):
-    displayname = ", ".join([role_nb.get(elem, elem) for elem in role]).title()
+    displayname = ", ".join([ROLE_NB.get(elem, elem) for elem in role]).title()
     return {
         'basic': basic(role),
         'displayName': displayname,
@@ -42,6 +42,22 @@ def get_orgtag(orgid):
     return orgtag
 
 
+def format_orgadmin_group(role):
+    orgid = role['orgid']
+    orgtag = get_orgtag(orgid)
+    orgname = role['orgname']
+    displayname = 'Administratorer for {}'.format(orgname)
+    return {
+        'id': '{}:{}'.format(ORGADMIN_TYPE, orgtag),
+        'type': ORGADMIN_TYPE,
+        'org': '{}'.format(orgid),
+        'parent': '{}'.format(orgid),
+        'displayName': displayname,
+        'orgName': orgname,
+        'membership': format_membership(role['role'])
+    }
+
+
 class OrgAdminBackend(BaseBackend):
     def __init__(self, prefix, maxrows, config):
         super(OrgAdminBackend, self).__init__(prefix, maxrows, config)
@@ -51,27 +67,12 @@ class OrgAdminBackend(BaseBackend):
         keyspace = config.get_settings().get('cassandra_keyspace')
         self.session = cassandra_client.Client(contact_points, keyspace, True)
 
-    def format_orgadmin_group(self, role):
-        orgid = role['orgid']
-        orgtag = get_orgtag(orgid)
-        orgname = role['orgname']
-        displayname = 'Administratorer for {}'.format(orgname)
-        return {
-            'id': '{}:{}'.format(orgadmin_type, orgtag),
-            'type': orgadmin_type,
-            'org': '{}'.format(orgid),
-            'parent': '{}'.format(orgid),
-            'displayName': displayname,
-            'orgName': orgname,
-            'membership': format_membership(role['role'])
-        }
-
     def get_members(self, user, groupid, show_all):
         feideid = get_feideid(user)
         orgtag = get_orgtag(groupid)
-        if not groupid.startswith("{}:".format(orgadmin_type)):
+        if not groupid.startswith("{}:".format(ORGADMIN_TYPE)):
             raise KeyError("Not an orgadmin group")
-        org_type = orgadmin_type[:orgadmin_type.rfind("admin")]
+        org_type = ORGADMIN_TYPE[:ORGADMIN_TYPE.rfind("admin")]
         orgid = '{}:{}'.format(org_type, orgtag)
         result = []
         found = False
@@ -108,16 +109,16 @@ class OrgAdminBackend(BaseBackend):
                 fallback = get_orgtag(orgid)
                 # Hardcoding Norwegian displaynames for now
                 role['orgname'] = orgnames[orgid].get('nb', fallback)
-                result.append(self.format_orgadmin_group(role))
+                result.append(format_orgadmin_group(role))
             except RuntimeError as ex:
-                self.log.warn('Skipping role: {}'.format(ex.message))
+                self.log.warn('Skipping role: {}'.format(ex))
                 continue
         return result
 
     def grouptypes(self):
         return [
             {
-                'id': orgadmin_type,
+                'id': ORGADMIN_TYPE,
                 "displayName": {
                     "en": "Organization Administrator Group",
                     "nb": "Organisasjonadministratorgruppe",
