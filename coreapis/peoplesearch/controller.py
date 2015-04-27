@@ -34,9 +34,9 @@ def make_etag(data):
 
 
 class LDAPController(object):
-    def __init__(self, timer, pool=ResourcePool):
+    def __init__(self, timer, ldap_config, pool=ResourcePool):
         self.t = timer
-        self.config = json.load(open('ldap-config.json'))
+        self.config = json.load(open(ldap_config))
         self.log = LogWrapper('peoplesearch.LDAPController')
         self.servers = {}
         self.conpools = {}

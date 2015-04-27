@@ -11,7 +11,8 @@ def configure(config):
     keyspace = config.get_settings().get('peoplesearch.cache_keyspace')
     cache_update_seconds = int(config.get_settings().get('peoplesearch.cache_update_seconds', 3600))
     timer = config.get_settings().get('timer')
-    ldap_controller = LDAPController(timer)
+    ldap_config = config.get_settings().get('ldap_config_file', 'ldap-config.json')
+    ldap_controller = LDAPController(timer, ldap_config)
     ps_controller = PeopleSearchController(key, timer, ldap_controller, contact_points, keyspace,
                                            cache_update_seconds)
     config.add_settings(ldap_controller=ldap_controller, ps_controller=ps_controller)
