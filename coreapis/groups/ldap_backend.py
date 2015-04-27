@@ -1,4 +1,4 @@
-from coreapis.utils import LogWrapper, get_feideid
+from coreapis.utils import LogWrapper, get_feideid, translatable
 from . import BaseBackend, IDHandler
 import eventlet
 ldap3 = eventlet.import_patched('ldap3')
@@ -189,9 +189,9 @@ class LDAPBackend(BaseBackend):
         return [
             {
                 "id": "fc:org",
-                "displayName": {
+                "displayName": translatable({
                     "en": "Uninett connect organization",
                     "nb": "Uninett connect organisasjon"
-                }
+                })
             },
         ]

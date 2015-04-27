@@ -2,7 +2,7 @@ from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden, HTTPNotModified
 from pyramid.response import Response
 from .controller import GroupsController
-from coreapis.utils import get_user
+from coreapis.utils import get_user, translation
 
 
 def configure(config):
@@ -21,6 +21,7 @@ def configure(config):
 
 
 @view_config(route_name='my_groups', renderer='json', permission='scope_groups')
+@translation
 def my_groups(request):
     user = get_user(request)
     if not user:
@@ -33,6 +34,7 @@ def my_groups(request):
 
 
 @view_config(route_name='my_membership', renderer='json', permission='scope_groups')
+@translation
 def get_membership(request):
     user = get_user(request)
     if not user:
@@ -45,6 +47,7 @@ def get_membership(request):
 
 
 @view_config(route_name='group', renderer='json', permission='scope_groups')
+@translation
 def get_group(request):
     user = get_user(request)
     groupid = request.matchdict['groupid']
@@ -90,6 +93,7 @@ def group_members(request):
 
 
 @view_config(route_name='groups', renderer='json', permission='scope_groups')
+@translation
 def list_groups(request):
     user = get_user(request)
     query = request.params.get('query', None)
@@ -97,5 +101,6 @@ def list_groups(request):
 
 
 @view_config(route_name='grouptypes', renderer='json', permission='scope_groups')
+@translation
 def grouptypes(request):
     return request.groups_controller.grouptypes()

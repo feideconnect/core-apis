@@ -1,5 +1,5 @@
 from coreapis import cassandra_client
-from coreapis.utils import LogWrapper, public_userinfo, failsafe
+from coreapis.utils import LogWrapper, public_userinfo, failsafe, translatable
 from . import BaseBackend
 import uuid
 from eventlet.greenpool import GreenPile
@@ -144,9 +144,9 @@ class AdHocGroupBackend(BaseBackend):
         return [
             {
                 'id': adhoc_type,
-                "displayName": {
+                "displayName": translatable({
                     "en": "Ad-Hoc Group",
                     "nb": "Ad-Hoc gruppe",
-                }
+                })
             }
         ]

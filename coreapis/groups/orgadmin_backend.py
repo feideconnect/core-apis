@@ -1,4 +1,4 @@
-from coreapis.utils import LogWrapper, get_feideid, failsafe
+from coreapis.utils import LogWrapper, get_feideid, failsafe, translatable
 from . import BaseBackend
 from coreapis import cassandra_client
 from eventlet.greenpool import GreenPile
@@ -9,6 +9,12 @@ ROLE_NB = {
     'admin': 'admin',
     'technical': 'teknisk',
     'mercantile': 'merkantil'
+}
+
+ORGADMIN_DISPLAYNAMES = {
+    'nb': 'Administratorer for {}',
+    'nn': 'Administratorer for {}',
+    'en': 'Administrators for {}',
 }
 
 
@@ -46,7 +52,7 @@ def format_orgadmin_group(role):
     orgid = role['orgid']
     orgtag = get_orgtag(orgid)
     orgname = role['orgname']
-    displayname = 'Administratorer for {}'.format(orgname)
+    displayname = translatable({lang: ORGADMIN_DISPLAYNAMES[lang].format(orgname[lang]) for lang in orgname if lang in ORGADMIN_DISPLAYNAMES})
     return {
         'id': '{}:{}'.format(ORGADMIN_TYPE, orgtag),
         'type': ORGADMIN_TYPE,
@@ -106,9 +112,8 @@ class OrgAdminBackend(BaseBackend):
         for role in roles:
             try:
                 orgid = role['orgid']
-                fallback = get_orgtag(orgid)
                 # Hardcoding Norwegian displaynames for now
-                role['orgname'] = orgnames[orgid].get('nb', fallback)
+                role['orgname'] = translatable(orgnames[orgid])
                 result.append(format_orgadmin_group(role))
             except RuntimeError as ex:
                 self.log.warn('Skipping role: {}'.format(ex))
@@ -119,9 +124,9 @@ class OrgAdminBackend(BaseBackend):
         return [
             {
                 'id': ORGADMIN_TYPE,
-                "displayName": {
+                "displayName": translatable({
                     "en": "Organization Administrator Group",
                     "nb": "Organisasjonadministratorgruppe",
-                }
+                })
             }
         ]
