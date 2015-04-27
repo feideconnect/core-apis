@@ -1,35 +1,12 @@
 import unittest
 import mock
-import uuid
-from coreapis.groups.adhoc_backend import *
-from coreapis.utils import parse_datetime
+from coreapis.groups.adhoc_backend import query_match, format_membership, AdHocGroupBackend
+from coreapis.adhocgroupadm.tests.data import \
+    user1, user2, user3, \
+    groupid1, group1, \
+    groupid2, group2
 
-user1 = uuid.UUID("00000000-0000-0000-0000-000000000001")
-user2 = uuid.UUID("00000000-0000-0000-0000-000000000002")
-user3 = uuid.UUID("00000000-0000-0000-0000-000000000003")
-groupid1 = uuid.UUID("00000000-0000-0000-0001-000000000001")
-groupid2 = uuid.UUID("00000000-0000-0000-0001-000000000002")
-group1_invitation = '62649b1d-353a-4588-8483-6f4a31863c78'
-group2_invitation = '62649b1d-353a-4588-8483-6f4a31863c79'
-group1 = {
-    "updated": parse_datetime("2015-01-26T16:05:59Z"),
-    "created": parse_datetime("2015-01-23T13:50:09Z"),
-    "id": groupid1,
-    "owner": user1,
-    "name": "pre update",
-    "descr": "some data",
-    "public": False,
-    'invitation_token': group1_invitation,
-}
-public_userinfo = {
-    'userid_sec': ['p:foo'],
-    'selectedsource': 'us',
-    'name': {'us': 'foo'},
-}
-public_userinfo_view = {
-    'id': 'p:foo',
-    'name': 'foo',
-}
+
 group1_view = {
     "id": 'adhoc:' + str(groupid1),
     "displayName": "pre update",
@@ -40,16 +17,6 @@ group1_view = {
     }
 }
 
-group2 = {
-    "updated": parse_datetime("2015-01-26T16:05:59Z"),
-    "created": parse_datetime("2015-01-23T13:50:09Z"),
-    "id": groupid2,
-    "owner": user2,
-    "name": "pre update",
-    "descr": "some data",
-    "public": True,
-    'invitation_token': group2_invitation,
-}
 group2_view = {
     "id": 'adhoc:' + str(groupid2),
     "displayName": "pre update",
@@ -60,6 +27,7 @@ group2_view = {
         "basic": "admin",
     }
 }
+
 groups = {
     groupid1: group1,
     groupid2: group2
