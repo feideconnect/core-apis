@@ -12,6 +12,7 @@ ROLE_NB = {
 }
 
 ORGADMIN_DISPLAYNAMES = {
+    'fallback': 'Administratorer for {}',
     'nb': 'Administratorer for {}',
     'nn': 'Administratorer for {}',
     'en': 'Administrators for {}',
@@ -112,8 +113,9 @@ class OrgAdminBackend(BaseBackend):
         for role in roles:
             try:
                 orgid = role['orgid']
-                # Hardcoding Norwegian displaynames for now
                 role['orgname'] = translatable(orgnames[orgid])
+                fallback = get_orgtag(orgid)
+                role['orgname']['fallback'] = fallback
                 result.append(format_orgadmin_group(role))
             except RuntimeError as ex:
                 self.log.warn('Skipping role: {}'.format(ex))
