@@ -114,24 +114,14 @@ def update_apigk(request):
     return apigk
 
 
-@view_config(route_name='apigk_logo')
+@view_config(route_name='apigk_logo', renderer="logo")
 def apigk_logo(request):
     apigkid = request.matchdict['id']
     try:
         logo, updated = request.gkadm_controller.get_logo(apigkid)
-        if logo is None:
-            with open('data/default-apigk.png', 'rb') as fh:
-                logo = fh.read()
+        return logo, updated, 'data/default-apigk.png'
     except KeyError:
         raise HTTPNotFound
-    updated = updated.replace(microsecond=0)
-    if request.if_modified_since and request.if_modified_since >= updated:
-        raise HTTPNotModified
-    response = Response(logo, charset=None)
-    response.content_type = 'image/png'
-    response.cache_control = 'public, max-age=3600'
-    response.last_modified = updated
-    return response
 
 
 @view_config(route_name='apigk_logo', request_method="POST", permission='scope_apigkadmin',

@@ -57,24 +57,14 @@ def get_group(request):
         raise HTTPNotFound
 
 
-@view_config(route_name='group_logo')
+@view_config(route_name='group_logo', renderer='logo')
 def group_logo(request):
     groupid = request.matchdict['groupid']
     try:
         logo, updated = request.groups_controller.get_logo(groupid)
-        if logo is None:
-            with open('data/default-client.png', 'rb') as fh:
-                logo = fh.read()
+        return logo, updated, 'data/default-client.png'
     except KeyError:
         raise HTTPNotFound
-    updated = updated.replace(microsecond=0)
-    if request.if_modified_since and request.if_modified_since >= updated:
-        raise HTTPNotModified
-    response = Response(logo, charset=None)
-    response.content_type = 'image/png'
-    response.cache_control = 'public, max-age=3600'
-    response.last_modified = updated
-    return response
 
 
 @view_config(route_name='group_members', request_method="GET", permission='scope_groups',

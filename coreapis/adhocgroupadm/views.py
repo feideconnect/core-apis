@@ -118,24 +118,14 @@ def update_group(request):
     return group
 
 
-@view_config(route_name='ahgroup_logo')
+@view_config(route_name='ahgroup_logo', renderer='logo')
 def group_logo(request):
     groupid = get_groupid(request)
     try:
         logo, updated = request.ahgroupadm_controller.get_logo(groupid)
-        if logo is None:
-            with open('data/default-client.png', 'rb') as fh:
-                logo = fh.read()
+        return logo, updated, 'data/default-client.png'
     except KeyError:
         raise HTTPNotFound
-    updated = updated.replace(microsecond=0)
-    if request.if_modified_since and request.if_modified_since >= updated:
-        raise HTTPNotModified
-    response = Response(logo, charset=None)
-    response.content_type = 'image/png'
-    response.cache_control = 'public, max-age=3600'
-    response.last_modified = updated
-    return response
 
 
 @view_config(route_name='ahgroup_logo', request_method="POST", permission='scope_adhocgroupadmin',

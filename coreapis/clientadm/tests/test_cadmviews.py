@@ -577,7 +577,7 @@ class ClientAdmTests(unittest.TestCase):
 
     def test_get_client_logo_default_logo_file_not_found(self):
         m = mock.mock_open()
-        with mock.patch('coreapis.clientadm.views.open', m, create=True):
+        with mock.patch('coreapis.utils.open', m, create=True):
             updated = parse_datetime(date_created)
             headers = {'Authorization': 'Bearer user_token'}
             m.side_effect = FileNotFoundError()

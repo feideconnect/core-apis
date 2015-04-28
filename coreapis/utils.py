@@ -12,7 +12,8 @@ import threading
 from aniso8601 import parse_datetime
 from queue import Queue, Empty
 from threading import Lock
-from pyramid.httpexceptions import HTTPBadRequest
+from pyramid.httpexceptions import HTTPBadRequest, HTTPNotModified
+from pyramid.response import Response
 
 __local = threading.local()
 
@@ -369,3 +370,24 @@ def failsafe(func):
             logging.warn('suppressed error')
             return None
     return functools.partial(wrapped, func)
+
+
+class LogoRenderer(object):
+    def __init__(self, info):
+        self.info = info
+
+    def __call__(self, value, system):
+        request = system['request']
+        logo, updated, fallback_file = value
+        if logo is None:
+            with open(fallback_file, 'rb') as fh:
+                logo = fh.read()
+        updated = updated.replace(microsecond=0)
+        if request.if_modified_since and request.if_modified_since >= updated:
+            raise HTTPNotModified
+        response = request.response
+        response.charset = None
+        response.content_type = 'image/png'
+        response.cache_control = 'public, max-age=3600'
+        response.last_modified = updated
+        return logo

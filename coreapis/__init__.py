@@ -29,6 +29,7 @@ def main(global_config, **settings):
 
     timer = Timer(global_config['statsd_server'], int(global_config['statsd_port']),
                   global_config['statsd_prefix'], log_timings, pool)
+    config.add_renderer('logo', 'coreapis.utils.LogoRenderer')
     config.add_settings(cassandra_contact_points=global_config['cassandra_contact_points'].split(', '))
     config.add_settings(cassandra_keyspace=global_config['cassandra_keyspace'])
     config.add_settings(timer=timer)
