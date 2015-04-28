@@ -49,7 +49,7 @@ def list_org(request):
     return request.org_controller.list_orgs(peoplesearch)
 
 
-@view_config(route_name='org_logo')
+@view_config(route_name='org_logo', renderer='logo')
 def org_logo(request):
     orgid = request.matchdict['id']
     try:
