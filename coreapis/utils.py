@@ -7,6 +7,7 @@ import statsd
 import time
 import pytz
 import functools
+from functools import wraps
 from collections import defaultdict, deque
 import threading
 from aniso8601 import parse_datetime
@@ -357,12 +358,14 @@ def pick_lang(request, data):
 
 
 def translation(func):
+    @wraps(func)
     def wrapper(request):
         return pick_lang(request, func(request))
     return wrapper
 
 
 def failsafe(func):
+    @wraps(func)
     def wrapped(func, *args, **kwargs):
         try:
             return func(*args, **kwargs)
