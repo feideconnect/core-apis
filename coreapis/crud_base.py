@@ -14,20 +14,6 @@ class CrudControllerBase(object):
         self.maxrows = maxrows
         self.log = LogWrapper('crud_base')
 
-    def list(self, params):
-        self.log.debug('list', num_params=len(params))
-        selectors, values = [], []
-        for k, v in self.FILTER_KEYS.items():
-            if k in params:
-                self.log.debug('Filter key found', k=k)
-                if params[k] == '':
-                    self.log.debug('Missing filter value')
-                    raise ValidationError('missing filter value')
-                selectors.append(v['sel'])
-                values.append(v['cast'](params[k]))
-        self.log.debug('list', selectors=selectors, values=values, maxrows=self.maxrows)
-        return self._list(selectors, values, self.maxrows)
-
     def validate(self, item):
         validator = V.parse(self.schema, additional_properties=False)
         try:

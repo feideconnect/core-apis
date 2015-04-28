@@ -64,41 +64,41 @@ class ClientAdmTests(unittest.TestCase):
 
     def test_list_clients(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_clients.return_value = [{'foo': 'bar'}]
+        self.session.get_clients.return_value = [retrieved_client]
         res = self.testapp.get('/clientadm/clients/', status=200, headers=headers)
         out = res.json
-        assert 'foo' in out[0]
+        assert out[0]['name'] == 'per'
 
     def test_list_clients_by_scope(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_clients.return_value = [{'foo': 'bar'}]
+        self.session.get_clients.return_value = [retrieved_client]
         res = self.testapp.get('/clientadm/clients/?scope=userlist', status=200, headers=headers)
         out = res.json
-        assert 'foo' in out[0]
+        assert out[0]['name'] == 'per'
 
     def test_list_clients_by_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_clients.return_value = [{'foo': 'bar'}]
+        self.session.get_clients.return_value = [retrieved_client]
         res = self.testapp.get('/clientadm/clients/?owner={}'.format(uuid.UUID(userid_own)),
                                status=200, headers=headers)
         out = res.json
-        assert 'foo' in out[0]
+        assert out[0]['name'] == 'per'
 
     def test_list_clients_by_other_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_clients.return_value = [{'foo': 'bar'}]
+        self.session.get_clients.return_value = [retrieved_client]
         self.testapp.get('/clientadm/clients/?owner={}'.format(uuid.UUID(userid_other)), status=200,
                          headers=headers)
         assert self.session.get_clients.call_args[0][1][0] == uuid.UUID(userid_own)
 
     def test_list_clients_by_org(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_clients.return_value = [{'foo': 'bar'}]
+        self.session.get_clients.return_value = [retrieved_client]
         self.session.is_org_admin.return_value = True
         res = self.testapp.get('/clientadm/clients/?organization={}'.format('fc:org:example.com'),
                                status=200, headers=headers)
         out = res.json
-        assert 'foo' in out[0]
+        assert out[0]['name'] == 'per'
 
     def test_list_clients_by_org_not_admin(self):
         headers = {'Authorization': 'Bearer user_token'}

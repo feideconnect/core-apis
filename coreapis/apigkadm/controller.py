@@ -22,12 +22,6 @@ def valid_endpoint(value):
 
 
 class APIGKAdmController(CrudControllerBase):
-    FILTER_KEYS = {
-        'owner': {'sel':  'owner = ?',
-                  'cast': uuid.UUID},
-        'organization': {'sel': 'organization = ?',
-                         'cast': lambda u: u},
-    }
     schema = {
         '+name': 'string',
         'owner': V.AdaptTo(uuid.UUID),
@@ -82,8 +76,16 @@ class APIGKAdmController(CrudControllerBase):
         self.log.debug('Delete apigk', id=id)
         self.session.delete_apigk(id)
 
-    def _list(self, selectors, values, maxrows):
-        return self.session.get_apigks(selectors, values, maxrows)
+    def list_by_owner(self, owner):
+        selectors = ['owner = ?']
+        values = [owner]
+        owned = self.session.get_apigks(selectors, values, self.maxrows)
+        return [gk for gk in owned if not gk['organization']]
+
+    def list_by_organization(self, organization):
+        selectors = ['organizxation = ?']
+        values = [organization]
+        return self.session.get_apigks(selectors, values, self.maxrows)
 
     def _insert(self, apigk):
         return self.session.insert_apigk(apigk)
@@ -106,9 +108,9 @@ class APIGKAdmController(CrudControllerBase):
         } for r in res]
 
     def get_gkowner_clients(self, ownerid):
-        gkscopes = ['gk_{}'.format(r['id']) for r in self.list({'owner': ownerid})]
+        gkscopes = ['gk_{}'.format(r['id']) for r in self.list_by_owner(ownerid)]
         return self.cadm_controller.get_gkscope_clients(gkscopes)
 
     def get_gkorg_clients(self, orgid):
-        gkscopes = ['gk_{}'.format(r['id']) for r in self.list({'organization': orgid})]
+        gkscopes = ['gk_{}'.format(r['id']) for r in self.list_by_organization(orgid)]
         return self.cadm_controller.get_gkscope_clients(gkscopes)

@@ -26,14 +26,6 @@ def has_gkscope_match(scope, gkscopes):
 
 
 class ClientAdmController(CrudControllerBase):
-    FILTER_KEYS = {
-        'owner': {'sel':  'owner = ?',
-                  'cast': uuid.UUID},
-        'scope': {'sel':  'scopes contains ?',
-                  'cast': lambda u: u},
-        'organization': {'sel': 'organization = ?',
-                         'cast': lambda u: u},
-    }
     schema = {
         # Required
         '+name': 'string',
@@ -61,8 +53,22 @@ class ClientAdmController(CrudControllerBase):
         self.log = LogWrapper('clientadm.ClientAdmController')
         self.scopedefs = get_scopedefs(scopedef_file)
 
-    def _list(self, selectors, values, maxrows):
-        return self.session.get_clients(selectors, values, maxrows)
+    def _list(self, selectors, values, scope):
+        if scope:
+            selectors.append('scopes contains ?')
+            values.append(scope)
+        return self.session.get_clients(selectors, values, self.maxrows)
+
+    def list_by_owner(self, owner, scope=None):
+        selectors = ['owner = ?']
+        values = [owner]
+        clients = self._list(selectors, values, scope)
+        return [c for c in clients if c['organization'] is None]
+
+    def list_by_organization(self, organization, scope=None):
+        selectors = ['organization = ?']
+        values = [organization]
+        return self._list(selectors, values, scope)
 
     def has_permission(self, client, user):
         if user is None:

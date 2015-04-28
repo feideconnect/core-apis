@@ -41,38 +41,31 @@ class APIGKAdmTests(unittest.TestCase):
 
     def test_list_apigks(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session().get_apigks.return_value = [{'foo': 'bar'}]
+        self.session().get_apigks.return_value = [pre_update]
         res = self.testapp.get('/apigkadm/apigks/', status=200, headers=headers)
         out = res.json
-        assert 'foo' in out[0]
-
-    def test_list_apigks_by_scope(self):
-        headers = {'Authorization': 'Bearer user_token'}
-        self.session().get_apigks.return_value = [{'foo': 'bar'}]
-        res = self.testapp.get('/apigkadm/apigks/?scope=userlist', status=200, headers=headers)
-        out = res.json
-        assert 'foo' in out[0]
+        assert out[0]['id'] == 'updateable'
 
     def test_list_apigks_by_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session().get_apigks.return_value = [{'foo': 'bar'}]
+        self.session().get_apigks.return_value = [pre_update]
         res = self.testapp.get('/apigkadm/apigks/?owner={}'.format('00000000-0000-0000-0000-000000000001'),
                                status=200, headers=headers)
         out = res.json
-        assert 'foo' in out[0]
+        assert out[0]['id'] == 'updateable'
 
     def test_list_apigks_by_org(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session().get_apigks.return_value = [{'foo': 'bar'}]
+        self.session().get_apigks.return_value = [pre_update]
         self.session().is_org_admin.return_value = True
         res = self.testapp.get('/apigkadm/apigks/?organization={}'.format('fc:org:example.com'),
                                status=200, headers=headers)
         out = res.json
-        assert 'foo' in out[0]
+        assert out[0]['id'] == 'updateable'
 
     def test_list_apigks_by_org_not_admin(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session().get_apigks.return_value = [{'foo': 'bar'}]
+        self.session().get_apigks.return_value = [pre_update]
         self.session().is_org_admin.return_value = False
         self.testapp.get('/apigkadm/apigks/?organization={}'.format('fc:org:example.com'),
                          status=403, headers=headers)
@@ -241,7 +234,8 @@ class APIGKAdmTests(unittest.TestCase):
 
     def test_apigk_get_owner_clients(self):
         headers = {'Authorization': 'Bearer user_token'}
-        apigks = [{ 'id': 'fooapi'}, { 'id': 'barapi'}]
+        apigks = [{'id': 'fooapi', 'organization': None},
+                  {'id': 'barapi', 'organization': 'someorg'}]
         for count in [0, 1, 2]:
             self.session().get_apigks.return_value = apigks[:count]
             with mock.patch('coreapis.clientadm.controller.ClientAdmController.get_gkscope_clients',
@@ -263,7 +257,8 @@ class APIGKAdmTests(unittest.TestCase):
     def test_apigk_get_org_clients(self):
         headers = {'Authorization': 'Bearer user_token'}
         org = 'fc:org:example.com'
-        apigks = [{ 'id': 'fooapi', 'organization': org}, { 'id': 'barapi', 'organization': org}]
+        apigks = [{'id': 'fooapi', 'organization': org},
+                  {'id': 'barapi', 'organization': org}]
         self.session().is_org_admin.return_value = True
         for count in [0, 1, 2]:
             self.session().get_apigks.return_value = apigks[:count]
@@ -275,7 +270,8 @@ class APIGKAdmTests(unittest.TestCase):
     def test_apigk_get_org_clients_not_admin(self):
         headers = {'Authorization': 'Bearer user_token'}
         org = 'fc:org:example.com'
-        apigks = [{ 'id': 'fooapi', 'organization': org}, { 'id': 'barapi', 'organization': org}]
+        apigks = [{'id': 'fooapi', 'organization': org},
+                  {'id': 'barapi', 'organization': org}]
         self.session().is_org_admin.return_value = False
         for count in [0, 1, 2]:
             self.session().get_apigks.return_value = apigks[:count]

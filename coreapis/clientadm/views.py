@@ -50,19 +50,15 @@ def check(request):
 @view_config(route_name='list_clients', renderer='json', permission='scope_clientadmin')
 def list_clients(request):
     user = get_user(request)
-    params = {}
     organization = request.params.get('organization', None)
+    scope = request.params.get('scope', None)
     if organization:
         if request.cadm_controller.is_org_admin(user, organization):
-            params['organization'] = organization
+            return request.cadm_controller.list_by_organization(organization, scope)
         else:
             raise HTTPForbidden('user is not admin for given organization')
     else:
-        params['owner'] = str(user['userid'])
-    scope = request.params.get('scope', None)
-    if scope:
-        params['scope'] = scope
-    return request.cadm_controller.list(params)
+        return request.cadm_controller.list_by_owner(user['userid'], scope)
 
 
 @view_config(route_name='get_client', renderer='json')
