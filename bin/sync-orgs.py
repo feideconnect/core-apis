@@ -120,9 +120,10 @@ def adapt_orgno(organization_number):
 
 
 class Syncer(object):
-    def __init__(self, log, client):
+    def __init__(self, log, client, sync_exclude=[]):
         self.log = log
         self.client = client
+        self.sync_exclude = sync_exclude
         ko_schema = {
             '+id': V.AdaptTo(int),
             'realm': V.Nullable('string'),
@@ -208,8 +209,11 @@ class Syncer(object):
             orgs = self.client.get_orgs_by_kindid(kindid)
             if len(orgs) > 0:
                 orgid = orgs[0][0]
-                self.log.info("Dropping org", orgid=orgid)
-                self.drop_org(orgid)
+                if orgid in self.sync_exclude:
+                    self.log.info("Not dropping org on exclude list", orgid=orgid)
+                else:
+                    self.log.info("Dropping org", orgid=orgid)
+                    self.drop_org(orgid)
 
     def load_orgs(self, kindorgs):
         for kindorg in kindorgs:
@@ -223,6 +227,9 @@ class Syncer(object):
                     oldroles = list(self.roles_from_db(rows))
                 else:
                     orgid = make_orgid(ko_cooked)
+                if orgid in self.sync_exclude:
+                    self.log.info("Skipping org on exclude list", orgid=orgid)
+                    continue
                 org = make_org(ko_cooked, orgid)
             except V.ValidationError:
                 self.log.warning("Failed org validation", id=kindorg['id'],
@@ -273,6 +280,7 @@ def parse_config(filename):
         'contact_points': parser['DEFAULT']['cassandra_contact_points'].split(', '),
         'keyspace': parser['DEFAULT']['cassandra_keyspace'],
         'token': parser['DEFAULT']['feideapi_token_secret'],
+        'sync_exclude': parser['DEFAULT'].get('feideapi_sync_exclude', '').split(','),
     }
 
 
@@ -304,7 +312,7 @@ def main():
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
     session = CassandraClient(log, config['contact_points'], config['keyspace'])
-    syncer = Syncer(log, session)
+    syncer = Syncer(log, session, sync_exclude=config['sync_exclude'])
     if args.infile:
         kindorgs = json.load(args.infile)
     elif args.url:
