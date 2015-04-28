@@ -1,7 +1,7 @@
 from coreapis.utils import LogWrapper, get_feideid, failsafe, translatable
 from . import BaseBackend
 from coreapis import cassandra_client
-from eventlet.greenpool import GreenPile
+from eventlet.greenpool import GreenPool
 
 ORGADMIN_TYPE = 'fc:orgadmin'
 
@@ -99,15 +99,13 @@ class OrgAdminBackend(BaseBackend):
     def get_member_groups(self, user, show_all):
         result = []
         feideid = get_feideid(user)
-        pile = GreenPile()
+        pool = GreenPool()
         roles = self.session.get_roles(['feideid = ?'], [feideid],
                                        self.maxrows)
         if len(roles) == 0:
             return []
         orgnames = {role['orgid']: {} for role in roles}
-        for orgid in orgnames.keys():
-            pile.spawn(failsafe(self.session.get_org), orgid)
-        for org in pile:
+        for org in pool.imap(failsafe(self.session.get_org), orgnames.keys()):
             if org and 'name' in org and org['name']:
                 orgnames[org['id']] = org['name']
         for role in roles:
