@@ -2,7 +2,7 @@ from coreapis import cassandra_client
 from coreapis.utils import LogWrapper, public_userinfo, failsafe, translatable
 from . import BaseBackend
 import uuid
-from eventlet.greenpool import GreenPile
+from eventlet.greenpool import GreenPile, GreenPool
 
 adhoc_type = 'voot:ad-hoc'
 
@@ -109,20 +109,11 @@ class AdHocGroupBackend(BaseBackend):
 
     def get_member_groups(self, user, show_all):
         userid = user['userid']
-        result = []
-        pile = GreenPile()
-        memberships = {}
-        empty = True
-        for membership in self.session.get_group_memberships(userid, None, None, self.maxrows):
-            empty = False
-            memberships[membership['groupid']] = membership
-            pile.spawn(failsafe(self.session.get_group), membership['groupid'])
-        if empty:
-            return []
-        for group in pile:
-            if group:
-                result.append(self.format_group(group, memberships[group['id']]))
-        return result
+        pool = GreenPool()
+        membership_list = self.session.get_group_memberships(userid, None, None, self.maxrows)
+        memberships = {membership['groupid']: membership for membership in membership_list}
+        groups = pool.imap(failsafe(self.session.get_group), memberships.keys())
+        return [self.format_group(g, memberships[g['id']]) for g in groups if g]
 
     def get_groups(self, user, query):
         result = []
