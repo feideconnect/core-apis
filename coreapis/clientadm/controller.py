@@ -70,6 +70,9 @@ class ClientAdmController(CrudControllerBase):
         values = [organization]
         return self._list(selectors, values, scope)
 
+    def public_clients(self):
+        return [self.get_public_client(c) for c in self._list([], [], None) if c]
+
     def has_permission(self, client, user):
         if user is None:
             return False
@@ -170,8 +173,13 @@ class ClientAdmController(CrudControllerBase):
 
     def get_public_client(self, client):
         pubclient = {attr: client[attr] for attr in self.public_attrs}
-        pubclient['owner'] = public_userinfo(
-            self.session.get_user_by_id(client['owner']))
+        try:
+            pubclient['owner'] = public_userinfo(
+                self.session.get_user_by_id(client['owner']))
+        except KeyError:
+            self.log.warn('Client owner does not exist in users table',
+                          clientid=client['id'], userid=client['owner'])
+            return None
         return pubclient
 
     def get_gkscope_client(self, client, gkscopes):

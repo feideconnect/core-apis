@@ -26,6 +26,7 @@ def configure(config):
                               reify=True)
     config.add_route('get_client', '/clients/{id}', request_method='GET')
     config.add_route('list_clients', '/clients/', request_method='GET')
+    config.add_route('public_clients', '/public', request_method='GET')
     config.add_route('add_client', '/clients/', request_method='POST')
     config.add_route('delete_client', '/clients/{id}', request_method='DELETE')
     config.add_route('update_client', '/clients/{id}', request_method='PATCH')
@@ -59,6 +60,11 @@ def list_clients(request):
             raise HTTPForbidden('user is not admin for given organization')
     else:
         return request.cadm_controller.list_by_owner(user['userid'], scope)
+
+
+@view_config(route_name='public_clients', renderer='json')
+def public_clients(request):
+    return request.cadm_controller.public_clients()
 
 
 @view_config(route_name='get_client', renderer='json')

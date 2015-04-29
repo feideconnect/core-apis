@@ -106,6 +106,16 @@ class ClientAdmTests(unittest.TestCase):
         self.testapp.get('/clientadm/clients/?organization={}'.format('fc:org:example.com'),
                          status=403, headers=headers)
 
+    def test_list_public_clients(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_clients.return_value = [retrieved_client]
+        self.session.get_user_by_id.return_value = retrieved_user
+        res = self.testapp.get('/clientadm/public',
+                               status=200, headers=headers)
+        out = res.json
+        assert out[0]['name'] == 'per'
+        assert 'scopes' not in out[0]
+
     def test_post_client_minimal(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.side_effect = KeyError
