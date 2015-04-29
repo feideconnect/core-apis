@@ -144,7 +144,7 @@ def apigk_owner_clients(request):
     userid = get_userid(request)
     ownerid = request.matchdict['ownerid']
     if ownerid == 'me':
-        ownerid = userid
+        ownerid = str(userid)
     if ownerid != str(userid):
         raise HTTPForbidden('wrong owner')
     return request.gkadm_controller.get_gkowner_clients(ownerid)
