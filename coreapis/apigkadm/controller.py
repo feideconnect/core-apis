@@ -83,7 +83,7 @@ class APIGKAdmController(CrudControllerBase):
         return [gk for gk in owned if not gk['organization']]
 
     def list_by_organization(self, organization):
-        selectors = ['organizxation = ?']
+        selectors = ['organization = ?']
         values = [organization]
         return self.session.get_apigks(selectors, values, self.maxrows)
 
