@@ -79,6 +79,14 @@
 			"auto": false
 		}
 	},
+	"orgadmin": {
+		"title": "Org Admin",
+		"descr": "Manage mandatory clients for an organization",
+		"public": false,
+		"policy": {
+			"auto": false
+		}
+	},
 	"adhocgroupadmin": {
 		"title": "Håndtering av ad-hoc groupper",
 		"descr": "Legge til, endre ad-hoc grupper, og kunne legge til og fjerne medlemmer.",
