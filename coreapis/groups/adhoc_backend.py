@@ -1,3 +1,4 @@
+from functools import partial
 from coreapis import cassandra_client
 from coreapis.utils import LogWrapper, public_userinfo, failsafe, translatable
 from . import BaseBackend
@@ -85,27 +86,25 @@ class AdHocGroupBackend(BaseBackend):
         group, membership = self._get(userid, groupid)
         return self.format_group(group, None)
 
+    def _handle_member(self, group, member):
+        if member['status'] not in ('normal', 'unconfirmed'):
+            self.log.debug('skipping group with unhandled membership status {}'.format(member['status']))
+            return None
+        user = self.session.get_user_by_id(member['userid'])
+        return {
+            'membership': format_membership(group, member),
+            'name': public_userinfo(user)['name']
+        }
+
     def get_members(self, user, groupid, show_all):
         userid = user['userid']
         group, membership = self._get(userid, groupid)
         if membership is None:
             raise KeyError("Not member of group")
-        members = self.session.get_group_members(group['id'])
-        result = []
-        for member in members:
-            try:
-                if member['status'] not in ('normal', 'unconfirmed'):
-                    self.log.debug('skipping group with unhandled membership status {}'.format(member['status']))
-                    continue
-                user = self.session.get_user_by_id(member['userid'])
-                entry = {
-                    'membership': format_membership(group, member),
-                    'name': public_userinfo(user)['name']
-                }
-                result.append(entry)
-            except KeyError:
-                pass
-        return result
+        member_ids = self.session.get_group_members(group['id'])
+        pool = GreenPool()
+        members = pool.imap(failsafe(partial(self._handle_member, group)), member_ids)
+        return [member for member in members if member]
 
     def get_member_groups(self, user, show_all):
         userid = user['userid']
