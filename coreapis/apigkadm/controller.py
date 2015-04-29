@@ -97,7 +97,7 @@ class APIGKAdmController(CrudControllerBase):
         self.session.save_logo('apigk', gkid, data, updated)
 
     def public_list(self):
-        res = self._list([], [], self.maxrows)
+        res = self.session.get_apigks([], [], self.maxrows)
         return [{
             'id': r['id'],
             'name': r['name'],
