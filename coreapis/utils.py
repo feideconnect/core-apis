@@ -103,10 +103,12 @@ class Timer(object):
     def __init__(self, server, port, prefix, log_results, pool):
         self.pool = pool(create=lambda: statsd.StatsClient(server, port, prefix=prefix))
         self.log_results = log_results
+        if self.log_results:
+            self.log = LogWrapper('coreapis.timers')
 
     class Context(object):
-        def __init__(self, pool, name, log_results):
-            self.pool = pool
+        def __init__(self, parent, name, log_results):
+            self.parent = parent
             self.name = name
             self.log_results = log_results
 
@@ -115,13 +117,17 @@ class Timer(object):
 
         def __exit__(self, type, value, traceback):
             duration = (time.time() - self.t0) * 1000
-            if self.log_results:
-                logging.debug('Timed {} to {} ms'.format(self.name, duration))
-            with self.pool.item() as client:
-                client.timing(self.name, duration)
+            self.parent.register(self.name, duration)
 
     def time(self, name):
-        return self.Context(self.pool, name, self.log_results)
+        return self.Context(self, name, self.log_results)
+
+    def register(self, name, duration):
+        if self.log_results:
+            self.log.debug('Timed {} to {} ms'.format(name, duration),
+                           counter=name, timing_ms=duration)
+        with self.pool.item() as client:
+            client.timing(name, duration)
 
 
 class RateLimiter(object):
@@ -181,6 +187,7 @@ class RequestTimingTween(object):
         self.handler = handler
         self.registry = registry
         self.timer = registry.settings.timer
+        self.log = LogWrapper('coreapis.timers')
 
     def __call__(self, request):
         t0 = time.time()
@@ -193,10 +200,7 @@ class RequestTimingTween(object):
             routename = '__unknown__'
         timername = 'request.{}.{}'.format(routename, request.method)
         duration = (t1 - t0) * 1000
-        if self.registry.settings.log_timings:
-            logging.debug("Timed %s to %f ms", timername, duration)
-        with self.timer.pool.item() as client:
-            client.timing(timername, duration)
+        self.timer.register(timername, duration)
         return response
 
 
