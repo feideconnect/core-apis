@@ -25,6 +25,14 @@ def has_gkscope_match(scope, gkscopes):
                for gkscope in gkscopes)
 
 
+def cache(data, key, fetch):
+    if key in data:
+        return data[key]
+    value = fetch(key)
+    data[key] = value
+    return value
+
+
 class ClientAdmController(CrudControllerBase):
     schema = {
         # Required
@@ -72,7 +80,9 @@ class ClientAdmController(CrudControllerBase):
 
     def public_clients(self):
         clients = self._list([], [], None)
-        return [self.get_public_client(c) for c in clients if c]
+        users = {}
+        orgs = {}
+        return [self.get_public_client(c, users, orgs) for c in clients if c]
 
     def has_permission(self, client, user):
         if user is None:
@@ -172,15 +182,22 @@ class ClientAdmController(CrudControllerBase):
     def _save_logo(self, clientid, data, updated):
         self.session.save_logo('clients', clientid, data, updated)
 
-    def get_public_client(self, client):
+    def get_public_client(self, client, users=None, orgs=None):
+        if users is None:
+            users = {}
+        if orgs is None:
+            orgs = {}
         pubclient = {attr: client[attr] for attr in self.public_attrs}
         try:
-            pubclient['owner'] = public_userinfo(
-                self.session.get_user_by_id(client['owner']))
+            def get_user(userid):
+                return public_userinfo(self.session.get_user_by_id(userid))
+
+            def get_org(orgid):
+                return public_orginfo(self.session.get_org(orgid))
+            pubclient['owner'] = cache(users, client['owner'], get_user)
             org = client.get('organization', None)
             if org:
-                pubclient['organization'] = public_orginfo(
-                    self.session.get_org(org))
+                pubclient['organization'] = cache(orgs, org, get_org)
         except KeyError:
             self.log.warn('Client owner does not exist in users table',
                           clientid=client['id'], userid=client['owner'])
