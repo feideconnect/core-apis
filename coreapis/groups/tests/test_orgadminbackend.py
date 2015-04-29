@@ -35,6 +35,7 @@ def make_org(orgtag, name):
     }
     if name:
         res['name'] = translatable(name)
+        res['type'] = set('foo')
     return res
 
 ROLES = [

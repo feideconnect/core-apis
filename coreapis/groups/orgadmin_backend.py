@@ -61,6 +61,7 @@ def format_orgadmin_group(role):
         'parent': '{}'.format(orgid),
         'displayName': displayname,
         'orgName': orgname,
+        'orgType': role['orgtype'],
         'membership': format_membership(role['role'])
     }
 
@@ -105,15 +106,20 @@ class OrgAdminBackend(BaseBackend):
         if len(roles) == 0:
             return []
         orgnames = {role['orgid']: {} for role in roles}
+        orgtypes = {role['orgid']: [] for role in roles}
         for org in pool.imap(failsafe(self.session.get_org), orgnames.keys()):
-            if org and 'name' in org and org['name']:
-                orgnames[org['id']] = org['name']
+            if org:
+                if 'name' in org and org['name']:
+                    orgnames[org['id']] = org['name']
+                if 'type' in org and org['type']:
+                    orgtypes[org['id']] = org['type']
         for role in roles:
             try:
                 orgid = role['orgid']
                 role['orgname'] = translatable(orgnames[orgid])
                 fallback = get_orgtag(orgid)
                 role['orgname']['fallback'] = fallback
+                role['orgtype'] = orgtypes[orgid]
                 result.append(format_orgadmin_group(role))
             except RuntimeError as ex:
                 self.log.warn('Skipping role: {}'.format(ex))
