@@ -147,7 +147,7 @@ def apigk_owner_clients(request):
         ownerid = str(userid)
     if ownerid != str(userid):
         raise HTTPForbidden('wrong owner')
-    return request.gkadm_controller.get_gkowner_clients(ownerid)
+    return request.gkadm_controller.get_gkowner_clients(userid)
 
 
 @view_config(route_name='apigk_org_clients', renderer='json', permission='scope_apigkadmin')
