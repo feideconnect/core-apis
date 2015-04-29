@@ -141,11 +141,11 @@ def upload_logo(request):
 
 @view_config(route_name='apigk_owner_clients', renderer='json', permission='scope_apigkadmin')
 def apigk_owner_clients(request):
-    userid = str(get_userid(request))
+    userid = get_userid(request)
     ownerid = request.matchdict['ownerid']
     if ownerid == 'me':
         ownerid = userid
-    if ownerid != userid:
+    if ownerid != str(userid):
         raise HTTPForbidden('wrong owner')
     return request.gkadm_controller.get_gkowner_clients(ownerid)
 
