@@ -108,13 +108,16 @@ class ClientAdmTests(unittest.TestCase):
 
     def test_list_public_clients(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_clients.return_value = [retrieved_client]
+        org_client = deepcopy(retrieved_client)
+        org_client['organization'] = 'fc:org:example.com'
+        self.session.get_clients.return_value = [retrieved_client, org_client]
         self.session.get_user_by_id.return_value = retrieved_user
         res = self.testapp.get('/clientadm/public',
                                status=200, headers=headers)
         out = res.json
         assert out[0]['name'] == 'per'
         assert 'scopes' not in out[0]
+        assert out[1]['organization'] == 'fc:org:example.com'
 
     def test_post_client_minimal(self):
         headers = {'Authorization': 'Bearer user_token'}

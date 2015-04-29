@@ -44,7 +44,7 @@ class ClientAdmController(CrudControllerBase):
         'status': V.Nullable(['string'], lambda: list()),
         'type': V.Nullable('string', ''),
     }
-    public_attrs = ['id', 'name', 'descr', 'redirect_uri', 'owner']
+    public_attrs = ['id', 'name', 'descr', 'redirect_uri', 'owner', 'organization']
     scope_attrs = ['scopes', 'scopes_requested']
 
     def __init__(self, contact_points, keyspace, scopedef_file, maxrows):
