@@ -6,7 +6,8 @@ from coreapis.groups.adhoc_backend import query_match, format_membership, AdHocG
 from coreapis.adhocgroupadm.tests.data import \
     user1, user2, user3, \
     groupid1, group1, \
-    groupid2, group2
+    groupid2, group2, \
+    public_userinfo, public_userinfo_view
 
 
 group1_view = {
@@ -140,3 +141,51 @@ class TestAdHocBackendGetMembership(TestAdHocBackendBase):
             _get.return_value = group1, None
             with py.test.raises(KeyError):
                 self.backend.get_membership({'userid': user1}, 'fc:adhoc:{}'.format(groupid1))
+
+
+class TestAdHocBackendGetGroup(TestAdHocBackendBase):
+    def test_normal(self):
+        with mock.patch('coreapis.groups.adhoc_backend.AdHocGroupBackend._get') as _get:
+            _get.return_value = group1, None
+            res = self.backend.get_group({'userid': user1}, 'fc:adhoc:{}'.format(groupid1))
+            expected = deepcopy(group1_view)
+            del expected['membership']
+            assert res == expected
+
+
+class TestAdHocBackendGetMembers(TestAdHocBackendBase):
+    def test_normal(self):
+        members = [{'userid': user1, 'type': 'member', 'status': 'normal'}]
+        self.session.get_group_members.return_value = members
+        self.session.get_user_by_id.return_value = public_userinfo
+        with mock.patch('coreapis.groups.adhoc_backend.AdHocGroupBackend._get') as _get:
+            _get.return_value = group1, membership1
+            res = self.backend.get_members({'userid': user1}, 'fc:adhoc:{}'.format(groupid1), False)
+            assert res == [{'membership': {'basic': 'owner'}, 'name': 'foo'}]
+
+    def test_bad_member(self):
+        members = [{'userid': user1, 'type': 'member', 'status': 'normal'}]
+        self.session.get_group_members.return_value = members
+        self.session.get_user_by_id.side_effect = KeyError
+        with mock.patch('coreapis.groups.adhoc_backend.AdHocGroupBackend._get') as _get:
+            _get.return_value = group1, membership1
+            res = self.backend.get_members({'userid': user1}, 'fc:adhoc:{}'.format(groupid1), False)
+            assert res == []
+
+    def test_bad_status(self):
+        members = [{'userid': user1, 'type': 'member', 'status': 'hacked'}]
+        self.session.get_group_members.return_value = members
+        self.session.get_user_by_id.return_value = public_userinfo
+        with mock.patch('coreapis.groups.adhoc_backend.AdHocGroupBackend._get') as _get:
+            _get.return_value = group1, membership1
+            res = self.backend.get_members({'userid': user1}, 'fc:adhoc:{}'.format(groupid1), False)
+            assert res == []
+
+    def test_not_member(self):
+        members = []
+        self.session.get_group_members.return_value = members
+        self.session.get_user_by_id.return_value = public_userinfo
+        with mock.patch('coreapis.groups.adhoc_backend.AdHocGroupBackend._get') as _get:
+            _get.return_value = group1, None
+            with py.test.raises(KeyError):
+                self.backend.get_members({'userid': user1}, 'fc:adhoc:{}'.format(groupid1), False)
