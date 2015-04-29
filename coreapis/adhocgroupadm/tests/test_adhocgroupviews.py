@@ -6,7 +6,8 @@ from webtest import TestApp
 from pyramid import testing
 from coreapis import main, middleware
 from coreapis.utils import json_normalize
-from coreapis.adhocgroupadm.tests.data import public_userinfo, \
+from coreapis.adhocgroupadm.tests.data import \
+    public_userinfo, public_userinfo_view, \
     group1, group1_invitation, group1_view, groupid1, \
     group2, group2_invitation, group2_view, groupid2, \
     user1, user2, \
@@ -198,12 +199,24 @@ class AdHocGroupAdmTests(unittest.TestCase):
                                       status=403, headers=headers)
         assert res.www_authenticate is None
 
-    def test_get_group_members(self):
+    def test_get_group_members_empty(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_group.return_value = deepcopy(group1)
         self.session().get_group_members.return_value = []
         res = self.testapp.get('/adhocgroups/{}/members'.format(groupid1), status=200, headers=headers)
         assert res.json == []
+
+    def test_get_group_members(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().get_group.return_value = deepcopy(group1)
+        members = [{'userid': user1, 'type': 'member', 'status': 'normal'}]
+        self.session().get_group_members.return_value = members
+        self.session().get_user_by_id.return_value = public_userinfo
+        res = self.testapp.get('/adhocgroups/{}/members'.format(groupid1), status=200,
+                               headers=headers)
+        expected = {'type': 'member', 'status': 'normal'}
+        expected.update(public_userinfo_view)
+        assert res.json == [expected]
 
     def test_get_group_members_no_access(self):
         headers = {'Authorization': 'Bearer user_token'}
