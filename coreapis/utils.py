@@ -274,6 +274,13 @@ def public_userinfo(user):
     }
 
 
+def public_orginfo(org):
+    return {
+        'id': org['id'],
+        'name': org['name'],
+    }
+
+
 def json_normalize(data):
     return json.loads(json.dumps(data, cls=CustomEncoder))
 

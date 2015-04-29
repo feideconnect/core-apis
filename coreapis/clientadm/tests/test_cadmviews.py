@@ -8,6 +8,7 @@ from copy import deepcopy
 from webtest import TestApp
 from pyramid import testing
 from coreapis import main, middleware
+from coreapis.utils import translatable
 from coreapis.clientadm.tests.helper import (
     userid_own, userid_other, clientid, date_created, testscope, otherscope, testuri,
     post_body_minimal, post_body_other_owner, post_body_maximal, retrieved_client,
@@ -112,12 +113,15 @@ class ClientAdmTests(unittest.TestCase):
         org_client['organization'] = 'fc:org:example.com'
         self.session.get_clients.return_value = [retrieved_client, org_client]
         self.session.get_user_by_id.return_value = retrieved_user
+        self.session.get_org.return_value = {'id': 'fc:org:example.com',
+                                             'name': translatable({'en': 'testorg'})}
         res = self.testapp.get('/clientadm/public',
                                status=200, headers=headers)
         out = res.json
         assert out[0]['name'] == 'per'
         assert 'scopes' not in out[0]
-        assert out[1]['organization'] == 'fc:org:example.com'
+        assert out[1]['organization']['id'] == 'fc:org:example.com'
+        assert out[1]['organization']['name'] == 'testorg'
 
     def test_post_client_minimal(self):
         headers = {'Authorization': 'Bearer user_token'}

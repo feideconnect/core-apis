@@ -3,7 +3,7 @@ from pyramid.httpexceptions import (
     HTTPNotFound, HTTPConflict, HTTPForbidden, HTTPNotModified)
 from pyramid.response import Response
 from .controller import ClientAdmController
-from coreapis.utils import AlreadyExistsError, ForbiddenError, get_userid, get_payload, get_user
+from coreapis.utils import AlreadyExistsError, ForbiddenError, get_userid, get_payload, get_user, translation
 import uuid
 
 
@@ -63,6 +63,7 @@ def list_clients(request):
 
 
 @view_config(route_name='public_clients', renderer='json')
+@translation
 def public_clients(request):
     return request.cadm_controller.public_clients()
 

@@ -1,6 +1,6 @@
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
-from coreapis.utils import LogWrapper, ts, public_userinfo, ValidationError, ForbiddenError
+from coreapis.utils import LogWrapper, ts, public_userinfo, public_orginfo, ValidationError, ForbiddenError
 import blist
 import json
 import uuid
@@ -71,7 +71,8 @@ class ClientAdmController(CrudControllerBase):
         return self._list(selectors, values, scope)
 
     def public_clients(self):
-        return [self.get_public_client(c) for c in self._list([], [], None) if c]
+        clients = self._list([], [], None)
+        return [self.get_public_client(c) for c in clients if c]
 
     def has_permission(self, client, user):
         if user is None:
@@ -176,6 +177,10 @@ class ClientAdmController(CrudControllerBase):
         try:
             pubclient['owner'] = public_userinfo(
                 self.session.get_user_by_id(client['owner']))
+            org = client.get('organization', None)
+            if org:
+                pubclient['organization'] = public_orginfo(
+                    self.session.get_org(org))
         except KeyError:
             self.log.warn('Client owner does not exist in users table',
                           clientid=client['id'], userid=client['owner'])
