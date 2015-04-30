@@ -204,8 +204,8 @@ class ClientAdmController(CrudControllerBase):
             return None
         return pubclient
 
-    def get_gkscope_client(self, client, gkscopes):
-        gkclient = self.get_public_client(client)
+    def get_gkscope_client(self, client, gkscopes, users=None, orgs=None):
+        gkclient = self.get_public_client(client, users, orgs)
         gkclient.update({attr: [] for attr in self.scope_attrs})
         for attr in self.scope_attrs:
             clientscopes = client[attr]
@@ -215,12 +215,14 @@ class ClientAdmController(CrudControllerBase):
         return gkclient
 
     def get_gkscope_clients(self, gkscopes):
+        users = {}
+        orgs = {}
         clientdict = {}
         for gkscope in gkscopes:
             for client in (self.session.get_clients_by_scope(gkscope) +
                            self.session.get_clients_by_scope_requested(gkscope)):
                 if not client['id'] in clientdict:
-                    clientdict[client['id']] = self.get_gkscope_client(client, gkscopes)
+                    clientdict[client['id']] = self.get_gkscope_client(client, gkscopes, users, orgs)
         return list(clientdict.values())
 
     def list_public_scopes(self):
