@@ -104,15 +104,16 @@ class AuthMiddleware(object):
                 ]
                 start_response('401 Unauthorized', headers)
                 return [json.dumps({'message': ex.args[0]}).encode('utf-8')]
-        else:
-            self.log.debug('unhandled authorization scheme')
         return self._app(environ, start_response)
 
     def get_token(self, environ):
         authorization = environ.get('HTTP_AUTHORIZATION')
-        if authorization and authorization.startswith('Bearer '):
-            token = authorization.split(' ', 1)[1]
-            return token
+        if authorization:
+            if authorization.startswith('Bearer '):
+                token = authorization.split(' ', 1)[1]
+                return token
+            else:
+                self.log.debug('unhandled authorization scheme {}'.format(authorization.split()[0]))
         return None
 
     def lookup_token(self, token):
