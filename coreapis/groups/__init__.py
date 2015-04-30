@@ -1,15 +1,17 @@
 class IDHandler(object):
-    def __init__(self, get_group, get_membership, get_members, get_logo):
+    def __init__(self, get_group, get_membership, get_members, get_logo, permissions_ok):
         self.get_group = get_group
         self.get_membership = get_membership
         self.get_members = get_members
         self.get_logo = get_logo
+        self.permissions_ok = permissions_ok
 
 
 class BaseBackend(object):
     def __init__(self, prefix, maxrows, config):
         self.prefix = prefix
         self.maxrows = maxrows
+        self.scopes_needed = set()
 
     def _groupid(self, gid):
         return "{}:{}".format(self.prefix, gid)
@@ -23,8 +25,12 @@ class BaseBackend(object):
     def get_id_handlers(self):
         return {
             self.prefix: IDHandler(self.get_group, self.get_membership,
-                                   self.get_members, self.get_logo),
+                                   self.get_members, self.get_logo, self.permissions_ok),
         }
+
+    def permissions_ok(self, perm_checker):
+        objections = [scope for scope in self.scopes_needed if not perm_checker(scope)]
+        return len(objections) == 0
 
     def get_membership(self, user, groupid):
         pass

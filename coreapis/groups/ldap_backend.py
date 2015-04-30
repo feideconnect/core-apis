@@ -50,9 +50,9 @@ class LDAPBackend(BaseBackend):
     def get_id_handlers(self):
         return {
             self.prefix: IDHandler(self.get_group, self.get_membership,
-                                   self.get_members, self.get_logo),
+                                   self.get_members, self.get_logo, self.permissions_ok),
             GREP_ID_PREFIX: IDHandler(self.get_grep_group, self.get_membership,
-                                      self.get_members, self.get_logo),
+                                      self.get_members, self.get_logo, self.permissions_ok),
         }
 
     def _get_org(self, realm, dn):

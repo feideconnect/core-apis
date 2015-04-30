@@ -4,6 +4,7 @@ from coreapis import cassandra_client
 from eventlet.greenpool import GreenPool
 
 ORGADMIN_TYPE = 'fc:orgadmin'
+SCOPES_NEEDED = {'scope_groups-orgadmin'}
 
 ROLE_NB = {
     'admin': 'admin',
@@ -74,6 +75,7 @@ class OrgAdminBackend(BaseBackend):
         contact_points = config.get_settings().get('cassandra_contact_points')
         keyspace = config.get_settings().get('cassandra_keyspace')
         self.session = cassandra_client.Client(contact_points, keyspace, True)
+        self.scopes_needed = SCOPES_NEEDED
 
     def get_members(self, user, groupid, show_all):
         feideid = get_feideid(user)

@@ -27,7 +27,7 @@ class GroupsController(object):
         for backend in self.backends.values():
             self.id_handlers.update(backend.get_id_handlers())
 
-    def _backend(self, groupid):
+    def _backend(self, groupid, perm_checker):
         parts = groupid.split(':', 2)
         if parts[0] != ID_PREFIX:
             raise KeyError('This group does not belong to us')
@@ -37,7 +37,10 @@ class GroupsController(object):
         handler = '{}:{}'.format(prefix, grouptype)
         if not handler in self.id_handlers:
             raise KeyError('bad group id')
-        return self.id_handlers[handler]
+        res = self.id_handlers[handler]
+        if not res.permissions_ok(perm_checker):
+            raise KeyError('No access to backend')
+        return res
 
     def _backend_call(self, method, *args, **kwargs):
         backend = method.__self__.prefix
@@ -54,34 +57,37 @@ class GroupsController(object):
                     self.log.error('unhandled exception in group backend', exception=exception)
         return []
 
-    def _call_backends(self, func, *args, **kwargs):
+    def _call_backends(self, func, perm_checker, *args, **kwargs):
         pile = GreenPile(self.pool)
-        for backend in self.backends.values():
+        for backend in (backend for backend in self.backends.values()
+                        if backend.permissions_ok(perm_checker)):
             pile.spawn(self._backend_call, func(backend), *args, **kwargs)
         for result in pile:
             if result:
                 for value in result:
                     yield value
 
-    def get_member_groups(self, user, show_all):
+    def get_member_groups(self, user, show_all, perm_checker):
         with self.timer.time('groups.get_member_groups'):
-            return list(self._call_backends(lambda x: x.get_member_groups, user, show_all))
+            return list(self._call_backends(lambda x: x.get_member_groups,
+                                            perm_checker, user, show_all))
 
-    def get_membership(self, user, groupid):
-        return self._backend(groupid).get_membership(user, groupid)
+    def get_membership(self, user, groupid, perm_checker):
+        return self._backend(groupid, perm_checker).get_membership(user, groupid)
 
-    def get_group(self, user, groupid):
-        return self._backend(groupid).get_group(user, groupid)
+    def get_group(self, user, groupid, perm_checker):
+        return self._backend(groupid, perm_checker).get_group(user, groupid)
 
-    def get_logo(self, groupid):
-        return self._backend(groupid).get_logo(groupid)
+    def get_logo(self, groupid, perm_checker):
+        return self._backend(groupid, perm_checker).get_logo(groupid)
 
-    def get_members(self, user, groupid, show_all):
-        return self._backend(groupid).get_members(user, groupid, show_all)
+    def get_members(self, user, groupid, show_all, perm_checker):
+        return self._backend(groupid, perm_checker).get_members(user, groupid, show_all)
 
-    def get_groups(self, user, query):
+    def get_groups(self, user, query, perm_checker):
         with self.timer.time('groups.get_groups'):
-            return list(self._call_backends(lambda x: x.get_groups, user, query))
+            return list(self._call_backends(lambda x: x.get_groups, perm_checker,
+                                            user, query))
 
     def grouptypes(self):
         types = {}

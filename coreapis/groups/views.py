@@ -30,7 +30,8 @@ def my_groups(request):
         show_all = True
     else:
         show_all = False
-    return request.groups_controller.get_member_groups(user, show_all)
+    return request.groups_controller.get_member_groups(user, show_all,
+                                                       request.has_permission)
 
 
 @view_config(route_name='my_membership', renderer='json', permission='scope_groups')
@@ -41,7 +42,8 @@ def get_membership(request):
         raise HTTPForbidden('This resource requires a personal token')
     groupid = request.matchdict['groupid']
     try:
-        return request.groups_controller.get_membership(user, groupid)
+        return request.groups_controller.get_membership(user, groupid,
+                                                        request.has_permission)
     except KeyError:
         raise HTTPNotFound
 
@@ -52,7 +54,8 @@ def get_group(request):
     user = get_user(request)
     groupid = request.matchdict['groupid']
     try:
-        return request.groups_controller.get_group(user, groupid)
+        return request.groups_controller.get_group(user, groupid,
+                                                   request.has_permission)
     except KeyError:
         raise HTTPNotFound
 
@@ -61,7 +64,8 @@ def get_group(request):
 def group_logo(request):
     groupid = request.matchdict['groupid']
     try:
-        logo, updated = request.groups_controller.get_logo(groupid)
+        logo, updated = request.groups_controller.get_logo(groupid,
+                                                           request.has_permission)
         return logo, updated, 'data/default-client.png'
     except KeyError:
         raise HTTPNotFound
@@ -77,7 +81,8 @@ def group_members(request):
     else:
         show_all = False
     try:
-        return request.groups_controller.get_members(user, groupid, show_all)
+        return request.groups_controller.get_members(user, groupid, show_all,
+                                                     request.has_permission)
     except KeyError:
         raise HTTPNotFound
 
@@ -87,7 +92,8 @@ def group_members(request):
 def list_groups(request):
     user = get_user(request)
     query = request.params.get('query', None)
-    return request.groups_controller.get_groups(user, query)
+    return request.groups_controller.get_groups(user, query,
+                                                request.has_permission)
 
 
 @view_config(route_name='grouptypes', renderer='json', permission='scope_groups')
