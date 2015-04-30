@@ -1,7 +1,7 @@
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.clientadm.controller import ClientAdmController
-from coreapis.utils import LogWrapper, ts, public_userinfo
+from coreapis.utils import LogWrapper, ts, public_userinfo, public_orginfo
 import uuid
 import valideer as V
 import re
@@ -100,6 +100,8 @@ class APIGKAdmController(CrudControllerBase):
         res = self.session.get_apigks([], [], self.maxrows)
         owner_ids = set(r['owner'] for r in res)
         owners = {ownerid: self.session.get_user_by_id(ownerid) for ownerid in owner_ids}
+        organization_ids = set(r['organization'] for r in res if r['organization'])
+        organizations = {orgid: self.session.get_org(orgid) for orgid in organization_ids}
         return [{
             'id': r['id'],
             'name': r['name'],
@@ -107,6 +109,7 @@ class APIGKAdmController(CrudControllerBase):
             'scopedef': r['scopedef'],
             'expose': r['expose'],
             'owner': public_userinfo(owners[r['owner']]),
+            'organization': r['organization'] and public_orginfo(organizations[r['organization']]) or None,
         } for r in res]
 
     def get_gkowner_clients(self, ownerid):
