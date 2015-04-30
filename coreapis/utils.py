@@ -65,10 +65,13 @@ class LogMessage(object):
         if request:
             self.args['request'] = request
 
-    def __str__(self):
+    def rest(self):
         rest = json.dumps(self.args, cls=CustomEncoder)
         rest = rest[1:-1]
-        rest = rest.strip()
+        return rest.strip()
+
+    def __str__(self):
+        rest = self.rest()
         if rest:
             return '"message": "{}", {}'.format(self.message, rest)
         else:
@@ -94,9 +97,21 @@ class LogWrapper(object):
 
 class DebugLogFormatter(logging.Formatter):
     def format(self, record):
+        t = record.created
+        secs = int(t)
+        msecs = int((t - secs) * 1000)
+        ts = time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime(secs)) + '.%03dZ' % msecs
         if type(record.msg) != LogMessage:
             record.msg = LogMessage(record.msg)
-        return super(DebugLogFormatter, self).format(record)
+
+        obj = {
+            'time': ts,
+            'loglevel': record.levelname,
+            'logger': record.name,
+            'message': "{} {}".format(record.msg.message, record.msg.rest()),
+        }
+        obj.update(record.msg.args)
+        return json.dumps(obj, cls=CustomEncoder)
 
 
 class Timer(object):
