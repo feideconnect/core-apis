@@ -98,13 +98,15 @@ class APIGKAdmController(CrudControllerBase):
 
     def public_list(self):
         res = self.session.get_apigks([], [], self.maxrows)
+        owner_ids = set(r['owner'] for r in res)
+        owners = {ownerid: self.session.get_user_by_id(ownerid) for ownerid in owner_ids}
         return [{
             'id': r['id'],
             'name': r['name'],
             'descr': r['descr'],
             'scopedef': r['scopedef'],
             'expose': r['expose'],
-            'owner': public_userinfo(self.session.get_user_by_id(r['owner'])),
+            'owner': public_userinfo(owners[r['owner']]),
         } for r in res]
 
     def get_gkowner_clients(self, ownerid):
