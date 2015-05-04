@@ -18,6 +18,7 @@ requires = [
     'cherrypy',
     'cryptography',
     'eventlet',
+    'futures < 3.0',
     'mock',
     'pillow',
     'pyramid',
