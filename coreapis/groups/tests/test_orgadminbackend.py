@@ -2,7 +2,7 @@ import unittest
 import mock
 from pytest import raises
 from coreapis.utils import translatable
-from coreapis.groups.orgadmin_backend import *
+from coreapis.groups.orgadmin_backend import OrgAdminBackend
 
 FEIDEID_OWN = 'foo@bar'
 FEIDEID_OTHER = 'this@that'

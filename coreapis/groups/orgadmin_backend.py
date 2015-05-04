@@ -54,7 +54,9 @@ def format_orgadmin_group(role):
     orgid = role['orgid']
     orgtag = get_orgtag(orgid)
     orgname = role['orgname']
-    displayname = translatable({lang: ORGADMIN_DISPLAYNAMES[lang].format(orgname[lang]) for lang in orgname if lang in ORGADMIN_DISPLAYNAMES})
+    displayname = translatable({lang: ORGADMIN_DISPLAYNAMES[lang].format(orgname[lang])
+                                for lang in orgname
+                                if lang in ORGADMIN_DISPLAYNAMES})
     return {
         'id': '{}:{}'.format(ORGADMIN_TYPE, orgtag),
         'type': ORGADMIN_TYPE,
