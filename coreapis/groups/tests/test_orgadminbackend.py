@@ -54,15 +54,11 @@ def mock_get_roles(selectors, values, maxrows):
         keyname = 'orgid'
     else:
         raise RuntimeError('No mock handles this case')
-    res = [role for role in ROLES if role[keyname] == values[0]]
-    print('selectors={}, values={}, res={}'.format(selectors, values, res))
-    return res
+    return [role for role in ROLES if role[keyname] == values[0]]
 
 
 def mock_get_org(orgid):
-    res = [org for org in ORGS if org['id'] == orgid][0]
-    print('orgid={}, res={}'.format(orgid, res))
-    return res
+    return [org for org in ORGS if org['id'] == orgid][0]
 
 
 class TestOrgAdminBackend(unittest.TestCase):
@@ -91,19 +87,16 @@ class TestOrgAdminBackend(unittest.TestCase):
 
     def test_get_members(self):
         res = self._get_members(FEIDEID_OWN, 'fc:orgadmin:{}'.format(ORGTAG1))
-        print(res)
         assert len(res) == 1
 
     def test_get_members_not_member(self):
         with raises(KeyError) as ex:
-            res = self._get_members(FEIDEID_OTHER, 'fc:orgadmin:{}'.format(ORGTAG1))
-            print(res)
+            self._get_members(FEIDEID_OTHER, 'fc:orgadmin:{}'.format(ORGTAG1))
         assert 'Not member of group' in str(ex)
 
     def test_get_members_bad_orgtype(self):
         with raises(KeyError) as ex:
-            res = self._get_members(FEIDEID_OWN, 'fc:org:{}'.format(ORGTAG1))
-            print(res)
+            self._get_members(FEIDEID_OWN, 'fc:org:{}'.format(ORGTAG1))
         assert 'Not an orgadmin group' in str(ex)
 
     def test_grouptypes(self):
