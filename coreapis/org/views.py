@@ -1,9 +1,9 @@
 from pyramid.view import view_config
-from pyramid.httpexceptions import HTTPNotFound, HTTPNotModified, HTTPForbidden
+from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
 from pyramid.response import Response
 import uuid
 from .controller import OrgController
-from coreapis.utils import pick_lang, now, get_user, get_payload, ValidationError, translation
+from coreapis.utils import now, get_user, get_payload, ValidationError, translation
 
 
 def configure(config):

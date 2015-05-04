@@ -1,5 +1,5 @@
 from pyramid.view import view_config
-from pyramid.httpexceptions import HTTPNotFound, HTTPConflict, HTTPForbidden, HTTPNotModified
+from pyramid.httpexceptions import HTTPNotFound, HTTPConflict, HTTPForbidden
 from pyramid.response import Response
 from .controller import APIGKAdmController
 from coreapis.utils import AlreadyExistsError, get_userid, get_payload, get_user, translation

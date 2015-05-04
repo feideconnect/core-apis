@@ -1,13 +1,8 @@
 import unittest
 import mock
-import uuid
-from copy import deepcopy
 from webtest import TestApp
-from pyramid import testing
 from coreapis import main, middleware
-from coreapis.utils import parse_datetime, json_normalize
-import py.test
-from . import user1, user2, groupid1, groupid2
+from . import groupid1, groupid2
 
 
 class GroupsViewTests(unittest.TestCase):

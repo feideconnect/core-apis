@@ -1,5 +1,3 @@
-from pyramid.authentication import IAuthenticationPolicy
-from pyramid.authorization import IAuthorizationPolicy
 import pyramid.security
 
 

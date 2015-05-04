@@ -14,7 +14,6 @@ from aniso8601 import parse_datetime
 from queue import Queue, Empty
 from threading import Lock
 from pyramid.httpexceptions import HTTPBadRequest, HTTPNotModified
-from pyramid.response import Response
 
 __local = threading.local()
 

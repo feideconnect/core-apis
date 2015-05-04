@@ -7,7 +7,7 @@ from coreapis.adhocgroupadm.tests.data import \
     user1, user2, user3, \
     groupid1, group1, \
     groupid2, group2, \
-    public_userinfo, public_userinfo_view
+    public_userinfo
 
 
 group1_view = {

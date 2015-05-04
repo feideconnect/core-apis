@@ -1,11 +1,10 @@
 import unittest
 import mock
 import uuid
-from copy import deepcopy
 from webtest import TestApp
 from pyramid import testing
 from coreapis import main, middleware
-from coreapis.utils import json_normalize, now
+from coreapis.utils import now
 
 testorg_id = 'fc:org:realm1.example.com'
 testorg_realm = 'realm1.example.com'

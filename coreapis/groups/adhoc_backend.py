@@ -3,7 +3,7 @@ from coreapis import cassandra_client
 from coreapis.utils import LogWrapper, public_userinfo, failsafe, translatable
 from . import BaseBackend
 import uuid
-from eventlet.greenpool import GreenPile, GreenPool
+from eventlet.greenpool import GreenPool
 
 adhoc_type = 'voot:ad-hoc'
 
