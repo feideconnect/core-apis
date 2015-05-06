@@ -7,6 +7,9 @@ import uuid
 import valideer as V
 
 
+USER_SETTABLE_STATUS_FLAGS = {'Public'}
+
+
 # Raises exception if filename is given, but open fails
 def get_scopedefs(filename):
     if filename:
@@ -164,8 +167,25 @@ class ClientAdmController(CrudControllerBase):
         self.insert_client(client)
         return client
 
+    @staticmethod
+    def filter_client_status(attrs_new, attrs_old):
+        if attrs_old:
+            status_old = set(attrs_old.get('status', set()))
+            if status_old is None:
+                status_old = set()
+        else:
+            status_old = set()
+        status_requested = attrs_new.get('status', set())
+        status_allowed = {flag for flag in status_requested if flag in USER_SETTABLE_STATUS_FLAGS}
+        attrs_new['status'] = list(status_old.union(status_allowed))
+
+    def add(self, item, userid):
+        self.filter_client_status(item, {})
+        return super(ClientAdmController, self).add(item, userid)
+
     def update(self, itemid, attrs):
         client = self.get(itemid)
+        self.filter_client_status(attrs, client)
         client = self.validate_update(itemid, attrs)
         for scope in client['scopes_requested']:
             if not scope in client['scopes']:

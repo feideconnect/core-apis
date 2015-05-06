@@ -16,6 +16,8 @@ othergk = 'gk_test2'
 owngk = 'gk_test3'
 nullscopedefgk = 'gk_nullscopedef'
 testuri = 'http://example.org'
+userstatus = 'Public'
+reservedstatus = 'Mandatory'
 
 post_body_minimal = {
     'name': 'per', 'scopes_requested': [testscope], 'redirect_uri': [testuri]

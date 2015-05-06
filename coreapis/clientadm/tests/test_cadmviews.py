@@ -12,7 +12,8 @@ from coreapis.utils import translatable
 from coreapis.clientadm.tests.helper import (
     userid_own, userid_other, clientid, date_created, testscope, otherscope, testuri,
     post_body_minimal, post_body_other_owner, post_body_maximal, retrieved_client,
-    retrieved_user, testgk, othergk, owngk, nullscopedefgk, httptime, mock_get_apigk)
+    retrieved_user, testgk, othergk, owngk, nullscopedefgk, httptime, mock_get_apigk,
+    userstatus, reservedstatus)
 
 
 class ClientAdmTests(unittest.TestCase):
@@ -284,6 +285,28 @@ class ClientAdmTests(unittest.TestCase):
         self.session.insert_client = mock.MagicMock()
         self.session.is_org_admin.return_value = False
         self.testapp.post_json('/clientadm/clients/', body, status=403, headers=headers)
+
+    def test_post_client_status_permitted(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_by_id.side_effect = KeyError
+        body = deepcopy(post_body_minimal)
+        flag = userstatus
+        body['status'] = [flag]
+        self.session.insert_client = mock.MagicMock()
+        res = self.testapp.post_json('/clientadm/clients/', body, status=201, headers=headers)
+        out = res.json
+        assert flag in out['status']
+
+    def test_post_client_status_not_permitted(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_by_id.side_effect = KeyError
+        body = deepcopy(post_body_minimal)
+        flag = reservedstatus
+        body['status'] = [flag]
+        self.session.insert_client = mock.MagicMock()
+        res = self.testapp.post_json('/clientadm/clients/', body, status=201, headers=headers)
+        out = res.json
+        assert flag not in out['status']
 
     def test_delete_client(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -558,6 +581,30 @@ class ClientAdmTests(unittest.TestCase):
         attrs = {'scopes_add': [testgk]}
         self.testapp.patch_json('/clientadm/clients/{}/gkscopes'.format(clientid),
                                 attrs, status=403, headers=headers)
+
+    def test_update_client_change_userstatus(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        self.session.get_client_by_id.return_value = client
+        self.session.insert_client = mock.MagicMock()
+        flag = userstatus
+        attrs = {'status': [flag]}
+        res = self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
+                                      attrs, status=200, headers=headers)
+        out = res.json
+        assert flag in out['status']
+
+    def test_update_client_change_reservedstatus(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        self.session.get_client_by_id.return_value = client
+        self.session.insert_client = mock.MagicMock()
+        flag = reservedstatus
+        attrs = {'status': [flag]}
+        res = self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
+                                      attrs, status=200, headers=headers)
+        out = res.json
+        assert flag not in out['status']
 
     def test_get_client_logo(self):
         updated = parse_datetime(date_created)
