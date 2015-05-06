@@ -60,6 +60,11 @@ in the client only if at least one of the following applies:
   `<foo>` is the name of an API gatekeeper which has subscope
   `<bar>`. The  scopedef of `<bar>` should have policy `auto:true`.
 
+`status` is treated as follows: 
+
+- User may add or remove the 'Public' flag.
+- Attempts to add or remove other flags are silently ignored.
+ 
 Returns `200 OK`, and client as json in body. Returns `400 Bad
 Request` if request body violates the schema or is malformed in some
 way. Returns `403 Forbidden` if trying to update a client not
