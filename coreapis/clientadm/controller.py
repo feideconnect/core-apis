@@ -1,6 +1,7 @@
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.utils import LogWrapper, ts, public_userinfo, public_orginfo, ValidationError, ForbiddenError
+from urllib.parse import urlsplit
 import blist
 import json
 import uuid
@@ -8,6 +9,20 @@ import valideer as V
 
 
 USER_SETTABLE_STATUS_FLAGS = {'Public'}
+VALID_URISCHEMES = {'http', 'https', 'data', 'javascript', 'file', 'about'}
+
+
+def is_valid_uri(uri):
+    parsed = urlsplit(uri)
+    scheme = parsed.scheme
+    if not scheme in VALID_URISCHEMES:
+        return False
+    elif scheme.startswith('http'):
+        return len(parsed.netloc) > 0
+    elif scheme == 'file':
+        return len(parsed.path) > 0
+    else:
+        return True
 
 
 # Raises exception if filename is given, but open fails
@@ -40,7 +55,7 @@ class ClientAdmController(CrudControllerBase):
     schema = {
         # Required
         '+name': 'string',
-        '+redirect_uri': V.HomogeneousSequence(item_schema='string', min_length=1),
+        '+redirect_uri': V.HomogeneousSequence(item_schema=V.Condition(is_valid_uri), min_length=1),
         '+scopes_requested':  V.HomogeneousSequence(item_schema='string', min_length=1),
         # Maintained by clientadm API
         'created': V.AdaptBy(ts),

@@ -15,27 +15,43 @@ testgk = 'gk_test1'
 othergk = 'gk_test2'
 owngk = 'gk_test3'
 nullscopedefgk = 'gk_nullscopedef'
-testuri = 'http://example.org'
+testuris = [
+    'http://example.org',
+    'https://example.org',
+    'file://etc/motd',
+    'data:whatever',
+    'javascript:whoknows',
+    'about:connect',
+]
+baduris = [
+    'this:that',
+    'nocolon',
+    'http:noslash',
+    'http:/oneslash',
+    'httpp://uninett.no',
+    'file://www.host.org',
+]
+
 userstatus = 'Public'
 reservedstatus = 'Mandatory'
 
 post_body_minimal = {
-    'name': 'per', 'scopes_requested': [testscope], 'redirect_uri': [testuri]
+    'name': 'per', 'scopes_requested': [testscope], 'redirect_uri': testuris
 }
 
 post_body_other_owner = {
-    'name': 'per', 'scopes_requested': [testscope], 'redirect_uri': [testuri], 'owner': userid_other
+    'name': 'per', 'scopes_requested': [testscope], 'redirect_uri': testuris, 'owner': userid_other
 }
 
 post_body_maximal = {
-    'name': 'per', 'scopes': [], 'redirect_uri': [testuri],
+    'name': 'per', 'scopes': [], 'redirect_uri': testuris,
     'owner': userid_own, 'id': clientid,
     'client_secret': 'sekrit', 'descr': 'green',
     'scopes_requested': [testscope], 'status': ['lab'], 'type': 'client'
 }
 
 retrieved_client = {
-    'name': 'per', 'scopes': blist.sortedset(), 'redirect_uri': [testuri],
+    'name': 'per', 'scopes': blist.sortedset(), 'redirect_uri': testuris,
     'owner': uuid.UUID(userid_own),
     'organization': None,
     'id': uuid.UUID(clientid),

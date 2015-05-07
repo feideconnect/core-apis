@@ -10,7 +10,7 @@ from pyramid import testing
 from coreapis import main, middleware
 from coreapis.utils import translatable
 from coreapis.clientadm.tests.helper import (
-    userid_own, userid_other, clientid, date_created, testscope, otherscope, testuri,
+    userid_own, userid_other, clientid, date_created, testscope, otherscope, testuris, baduris,
     post_body_minimal, post_body_other_owner, post_body_maximal, retrieved_client,
     retrieved_user, testgk, othergk, owngk, nullscopedefgk, httptime, mock_get_apigk,
     userstatus, reservedstatus)
@@ -308,6 +308,14 @@ class ClientAdmTests(unittest.TestCase):
         out = res.json
         assert flag not in out['status']
 
+    def test_post_client_bad_uri_scheme(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_by_id.side_effect = KeyError
+        body = deepcopy(post_body_minimal)
+        body['redirect_uri'] = [baduris[0]]
+        self.session.insert_client = mock.MagicMock()
+        self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
+
     def test_delete_client(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
@@ -481,7 +489,7 @@ class ClientAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
         self.session.insert_client = mock.MagicMock()
-        attrs = {'redirect_uri': testuri}
+        attrs = {'redirect_uri': testuris[0]}
         self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
                                 attrs, status=400, headers=headers)
 

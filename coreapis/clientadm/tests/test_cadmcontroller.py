@@ -8,7 +8,7 @@ from coreapis.clientadm import controller
 from coreapis.clientadm.tests.helper import (
     userid_own, clientid, testgk, othergk, post_body_minimal, retrieved_gk_client, testscope,
     retrieved_user, date_created, mock_get_apigk, mock_get_clients_by_scope,
-    mock_get_clients_by_scope_requested)
+    mock_get_clients_by_scope_requested, baduris)
 
 # A few cases that aren't exercised from the clientadm view tests
 
@@ -20,6 +20,11 @@ class TestController(TestCase):
         self.session.get_apigk.side_effect = mock_get_apigk
         self.controller = controller.ClientAdmController([], 'keyspace',
                                                          'scopedefs.json.example', 100)
+
+    def test_is_valid_uri(self):
+        res = [controller.is_valid_uri(uri) for uri in baduris]
+        print(res)
+        assert True not in res
 
     def test_has_permission(self):
         assert self.controller.has_permission(retrieved_gk_client, None) is False
