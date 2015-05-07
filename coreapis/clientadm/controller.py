@@ -186,7 +186,10 @@ class ClientAdmController(CrudControllerBase):
             status_old = set(attrs_old['status'])
         except (KeyError, TypeError):
             status_old = set()
-        status_requested = attrs_new.get('status', set())
+        try:
+            status_requested = set(attrs_new['status'])
+        except (KeyError, TypeError):
+            status_requested = set()
         status_allowed = {flag for flag in status_requested if flag in USER_SETTABLE_STATUS_FLAGS}
         attrs_new['status'] = list(status_old.union(status_allowed))
 

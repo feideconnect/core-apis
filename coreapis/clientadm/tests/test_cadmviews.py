@@ -308,6 +308,14 @@ class ClientAdmTests(unittest.TestCase):
         out = res.json
         assert flag not in out['status']
 
+    def test_post_client_status_null(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_by_id.side_effect = KeyError
+        body = deepcopy(post_body_minimal)
+        body['status'] = None
+        self.session.insert_client = mock.MagicMock()
+        self.testapp.post_json('/clientadm/clients/', body, status=201, headers=headers)
+
     def test_post_client_bad_uri_scheme(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.side_effect = KeyError
