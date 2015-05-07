@@ -9,18 +9,16 @@ import valideer as V
 
 
 USER_SETTABLE_STATUS_FLAGS = {'Public'}
-VALID_URISCHEMES = {'http', 'https', 'data', 'javascript', 'file', 'about'}
+INVALID_URISCHEMES = {'data', 'javascript', 'file', 'about'}
 
 
 def is_valid_uri(uri):
     parsed = urlsplit(uri)
     scheme = parsed.scheme
-    if not scheme in VALID_URISCHEMES:
+    if len(scheme) == 0 or scheme in INVALID_URISCHEMES:
         return False
-    elif scheme.startswith('http'):
+    elif scheme in ['http', 'https']:
         return len(parsed.netloc) > 0
-    elif scheme == 'file':
-        return len(parsed.path) > 0
     else:
         return True
 

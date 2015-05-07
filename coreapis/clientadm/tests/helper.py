@@ -18,18 +18,16 @@ nullscopedefgk = 'gk_nullscopedef'
 testuris = [
     'http://example.org',
     'https://example.org',
+    'custom:whatever',
+]
+baduris = [
+    'nocolon',
+    'http:noslash',
+    'http:/oneslash',
     'file://etc/motd',
     'data:whatever',
     'javascript:whoknows',
     'about:connect',
-]
-baduris = [
-    'this:that',
-    'nocolon',
-    'http:noslash',
-    'http:/oneslash',
-    'httpp://uninett.no',
-    'file://www.host.org',
 ]
 
 userstatus = 'Public'
