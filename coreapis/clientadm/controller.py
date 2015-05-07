@@ -169,11 +169,9 @@ class ClientAdmController(CrudControllerBase):
 
     @staticmethod
     def filter_client_status(attrs_new, attrs_old):
-        if attrs_old:
-            status_old = set(attrs_old.get('status', set()))
-            if status_old is None:
-                status_old = set()
-        else:
+        try:
+            status_old = set(attrs_old['status'])
+        except (KeyError, TypeError):
             status_old = set()
         status_requested = attrs_new.get('status', set())
         status_allowed = {flag for flag in status_requested if flag in USER_SETTABLE_STATUS_FLAGS}
