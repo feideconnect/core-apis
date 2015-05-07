@@ -23,7 +23,6 @@ class TestController(TestCase):
 
     def test_is_valid_uri(self):
         res = [controller.is_valid_uri(uri) for uri in baduris]
-        print(res)
         assert True not in res
 
     def test_has_permission(self):
