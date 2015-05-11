@@ -1,6 +1,5 @@
 from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPForbidden
-from pyramid.security import has_permission
 from .controller import GkController
 import logging
 
@@ -17,7 +16,7 @@ def configure(config):
 
 
 @view_config(route_name='gk_info', renderer='json', request_param="method=OPTIONS")
-def options(self, request):
+def options(request):
     backend = request.matchdict['backend']
     headers = request.gk_controller.options(backend)
     for header, value in headers.items():
@@ -26,9 +25,9 @@ def options(self, request):
 
 
 @view_config(route_name='gk_info', renderer='json')
-def info(self, request):
+def info(request):
     backend = request.matchdict['backend']
-    if not has_permission('scope_gk_{}'.format(backend), self, request):
+    if not request.has_permission('scope_gk_{}'.format(backend)):
         logging.debug('not authorized')
         raise HTTPForbidden('Unauthorized: scope_gk_{} failed permission check'.format(backend))
     client = request.environ['FC_CLIENT']
