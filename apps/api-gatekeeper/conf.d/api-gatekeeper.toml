@@ -1,0 +1,15 @@
+[template]
+src = "api-gatekeeper.ini.tmpl"
+dest = "/etc/api-gatekeeper.ini"
+keys = [
+    "/fc/statsd/server",
+    "/fc/statsd/port",
+    "/fc/statsd/prefix",
+    "/fc/oauth/realm",
+    "/fc/cassandra/contactpoints",
+    "/fc/cassandra/keyspace",
+    "/fc/logtimings",
+    "/fc/ratelimit/maxshare",
+    "/fc/ratelimit/maxrate",
+    "/fc/ratelimit/maxburstsize",
+]

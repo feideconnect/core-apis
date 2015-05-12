@@ -1,0 +1,20 @@
+[template]
+src = "core-apis.ini.tmpl"
+dest = "/etc/core-apis.ini"
+keys = [
+    "/fc/statsd/server",
+    "/fc/statsd/port",
+    "/fc/statsd/prefix",
+    "/fc/oauth/realm",
+    "/fc/cassandra/contactpoints",
+    "/fc/cassandra/keyspace",
+    "/fc/logtimings",
+    "/fc/profiletokensecret",
+    "/fc/ps/cachekeyspace",
+    "/fc/apigkadm/maxrows",
+    "/fc/clientadm/maxrows",
+    "/fc/adhocgroupadm/maxaddmembers",
+    "/fc/ratelimit/maxshare",
+    "/fc/ratelimit/maxrate",
+    "/fc/ratelimit/maxburstsize",
+]
