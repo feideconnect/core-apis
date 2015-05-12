@@ -19,6 +19,7 @@ requires = [
     'cryptography',
     'eventlet',
     'futures < 3.0',
+    'gunicorn',
     'mock',
     'pillow',
     'pyramid',
