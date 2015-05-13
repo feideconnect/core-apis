@@ -1,8 +1,9 @@
 from pyramid.view import view_config
-from pyramid.httpexceptions import HTTPNotFound, HTTPNotModified, HTTPBadRequest
+from pyramid.httpexceptions import HTTPNotFound, HTTPNotModified, HTTPBadRequest, HTTPForbidden
 from pyramid.response import Response
 import base64
 from .controller import validate_query, LDAPController, PeopleSearchController
+from coreapis.utils import get_user
 
 
 def configure(config):
@@ -28,6 +29,9 @@ def configure(config):
 
 @view_config(route_name='person_search', renderer='json', permission='scope_peoplesearch')
 def person_search(request):
+    user = get_user(request)
+    if not user:
+        raise HTTPForbidden('This resource requires a personal token')
     org = request.matchdict['org']
     search = request.matchdict['name']
     max_replies = request.params.get('max_replies', None)
@@ -41,7 +45,7 @@ def person_search(request):
         raise HTTPNotFound('missing org or search term')
     if not request.ps_controller.valid_org(org):
         raise HTTPNotFound('Unknown org')
-    return request.ps_controller.search(org, search, max_replies)
+    return request.ps_controller.search(org, search, user, max_replies)
 
 
 @view_config(route_name='list_realms', renderer='json', permission='scope_peoplesearch')

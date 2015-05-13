@@ -33,6 +33,14 @@ def make_etag(data):
     return m.hexdigest()
 
 
+def in_org(user, org):
+    for uid in [uid for uid in user['userid_sec'] if uid.startswith('feide:')]:
+        _, uorg = uid.split('@')
+        if uorg == org:
+            return True
+    return False
+
+
 class LDAPController(object):
     def __init__(self, timer, ldap_config, pool=ResourcePool):
         self.t = timer
@@ -163,7 +171,30 @@ class PeopleSearchController(object):
             new_person['name'] = person['cn']
         return new_person
 
-    def search(self, org, query, max_replies=None):
+    def org_authorization_policy(self, org):
+        res = {
+            "employees": "none",
+            "others": "none"
+        }
+        orgconf = self.ldap.get_ldap_config().get(org, {})
+        psconf = orgconf.get('peoplesearch', {})
+        for k, v in psconf.items():
+            if k in {"employees", "others"}:
+                res[k] = v
+        return res
+
+    def authorized_search_access(self, user, org):
+        res = set()
+        for k, v in self.org_authorization_policy(org).items():
+            if v == 'all' or v == 'sameOrg' and in_org(user, org):
+                res.add(k)
+        return res
+
+    def search(self, org, query, user, max_replies=None):
+        access = self.authorized_search_access(user, org)
+        print("access: {}".format(access))
+        if not ('employees' in access or 'others' in access):
+            return []
         if max_replies is None or max_replies > self.search_max_replies:
             max_replies = self.search_max_replies
         validate_query(query)
@@ -174,6 +205,10 @@ class PeopleSearchController(object):
         else:
             search_filter = '(cn=*{}*)'.format(query)
         search_filter = '(&{}(objectClass=person))'.format(search_filter)
+        if 'others' in access and 'employees' not in access:
+            search_filter = '(&{}(!(eduPersonAffiliation=employee)))'.format(search_filter)
+        elif 'employees' in access and 'others' not in access:
+            search_filter = '(&{}(eduPersonAffiliation=employee))'.format(search_filter)
         res = self.ldap.ldap_search(org, search_filter, ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
                                     attributes=USER_INFO_ATTRIBUTES, size_limit=max_replies)
         with self.t.time('ps.process_results'):
