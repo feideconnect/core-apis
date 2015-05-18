@@ -1,0 +1,100 @@
+###
+# app configuration
+# http://docs.pylonsproject.org/projects/pyramid/en/1.5-branch/narr/environment.html
+###
+[DEFAULT]
+statsd_server = {{getv "/fc/statsd/server"}}
+statsd_port = {{getv "/fc/statsd/port"}}
+statsd_prefix = {{getv "/fc/statsd/prefix"}}
+oauth_realm = {{getv "/fc/oauth/realm"}}
+cassandra_contact_points = {{getv "/fc/cassandra/contactpoints"}}
+cassandra_keyspace = {{getv "/fc/cassandra/keyspace"}}
+log_timings = {{getv "/fc/logtimings"}}
+
+[app:coreapis]
+use = egg:core-apis
+pyramid.reload_templates = false
+pyramid.debug_authorization = false
+pyramid.debug_notfound = false
+pyramid.debug_routematch = false
+pyramid.default_locale_name = en
+pyramid.includes =
+#enabled_components = peoplesearch
+profile_token_secret = {{getv "/fc/profiletokensecret"}}
+peoplesearch.cache_keyspace = {{getv "/fc/ps/cachekeyspace"}}
+apigkadm_maxrows = {{getv "/fc/apigkadm/maxrows"}}
+clientadm_maxrows = {{getv "/fc/clientadm/maxrows"}}
+adhocgroupadm_max_add_members = {{getv "/fc/adhocgroupadm/maxaddmembers"}}
+clientadm_scopedefs_file = /conf/scopedefs.json
+ldap_config_file = /conf/ldap-config.json
+
+[pipeline:main]
+pipeline =
+         logmiddleware
+         corsmiddleware
+         cassandramiddleware
+         coreapis
+# By default, the toolbar only appears for clients from IP addresses
+# '127.0.0.1' and '::1'.
+# debugtoolbar.hosts = 127.0.0.1 ::1
+
+###
+# wsgi server configuration
+###
+
+[server:main]
+use = egg:pyramid#cherrypy
+host = 0.0.0.0
+port = 6543
+
+###
+# logging configuration
+# http://docs.pylonsproject.org/projects/pyramid/en/1.5-branch/narr/logging.html
+###
+
+[loggers]
+keys = root, coreapis, cassandra
+
+[handlers]
+keys = docker
+
+[formatters]
+keys = json
+
+[logger_root]
+level = DEBUG
+handlers = docker
+
+[logger_coreapis]
+level = DEBUG
+handlers =
+qualname = coreapis
+
+[logger_cassandra]
+level = INFO
+handlers =
+qualname = cassandra
+
+[handler_docker]
+class = StreamHandler
+args = (sys.stderr,)
+level = NOTSET
+formatter = json
+
+[formatter_json]
+class = coreapis.utils.DebugLogFormatter
+
+[filter:mockauthmiddleware]
+use = egg:core-apis#mockauthmiddleware
+
+[filter:cassandramiddleware]
+use = egg:core-apis#cassandramiddleware
+client_max_share = {{getv "/fc/ratelimit/maxshare"}}
+client_max_rate = {{getv "/fc/ratelimit/maxrate"}}
+client_max_burst_size= {{getv "/fc/ratelimit/maxburstsize"}}
+
+[filter:logmiddleware]
+use = egg:core-apis#logmiddleware
+
+[filter:corsmiddleware]
+use = egg:core-apis#corsmiddleware
