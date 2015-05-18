@@ -1,9 +1,10 @@
-from coreapis.utils import LogWrapper, get_feideid, translatable
+from coreapis.utils import LogWrapper, get_feideids, translatable, failsafe
 from . import BaseBackend, IDHandler
 import eventlet
 ldap3 = eventlet.import_patched('ldap3')
 from coreapis.peoplesearch.controller import LDAPController
 from eventlet.pools import Pool
+from eventlet.greenpool import GreenPool
 from coreapis import cassandra_client
 
 org_attribute_names = {
@@ -130,11 +131,14 @@ class LDAPBackend(BaseBackend):
                     pass
         return res
 
-    def get_member_groups(self, user, show_all):
+    def _get_member_groups(self, feideid):
+        self.log.debug('looking up groups', feideid=feideid)
         result = []
-        feideid = get_feideid(user)
         realm = feideid.split('@', 1)[1]
-        base_dn = self.ldap.get_base_dn(realm)
+        try:
+            base_dn = self.ldap.get_base_dn(realm)
+        except KeyError:
+            raise KeyError('could not find ldap config for realm {}'.format(realm))
         res = self.ldap.search(realm, base_dn, '(eduPersonPrincipalName={})'.format(feideid),
                                ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
                                ('eduPersonOrgDN', 'eduPersonOrgUnitDN', 'eduPersonEntitlement'), 1)
@@ -150,6 +154,14 @@ class LDAPBackend(BaseBackend):
                 result.append(self._get_orgunit(realm, orgUnitDN))
         if 'eduPersonEntitlement' in attributes:
             result.extend(self._handle_grepcodes(attributes['eduPersonEntitlement']))
+        return result
+
+    def get_member_groups(self, user, show_all):
+        result = []
+        pool = GreenPool()
+        for res in pool.imap(failsafe(self._get_member_groups), get_feideids(user)):
+            if res:
+                result.extend(res)
         return result
 
     def get_membership(self, user, groupid):
