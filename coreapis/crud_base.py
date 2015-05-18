@@ -1,4 +1,4 @@
-from coreapis.utils import now, ValidationError, AlreadyExistsError, LogWrapper, get_feideid
+from coreapis.utils import now, ValidationError, AlreadyExistsError, LogWrapper, get_feideids
 import uuid
 import valideer as V
 import io
@@ -95,5 +95,7 @@ class CrudControllerBase(object):
         self._save_logo(itemid, fake_output.getbuffer(), updated)
 
     def is_org_admin(self, user, org):
-        feideid = get_feideid(user)
-        return self.session.is_org_admin(feideid, org)
+        for feideid in get_feideids(user):
+            if self.session.is_org_admin(feideid, org):
+                return True
+        return False
