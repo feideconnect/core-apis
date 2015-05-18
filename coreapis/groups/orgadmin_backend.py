@@ -1,4 +1,5 @@
-from coreapis.utils import LogWrapper, get_feideid, failsafe, translatable
+import functools
+from coreapis.utils import LogWrapper, get_feideids, failsafe, translatable
 from . import BaseBackend
 from coreapis import cassandra_client
 from eventlet.greenpool import GreenPool
@@ -80,7 +81,7 @@ class OrgAdminBackend(BaseBackend):
         self.scopes_needed = SCOPES_NEEDED
 
     def get_members(self, user, groupid, show_all):
-        feideid = get_feideid(user)
+        feideids = get_feideids(user)
         orgtag = get_orgtag(groupid)
         if not groupid.startswith("{}:".format(ORGADMIN_TYPE)):
             raise KeyError("Not an orgadmin group")
@@ -91,7 +92,7 @@ class OrgAdminBackend(BaseBackend):
         roles = self.session.get_roles(['orgid = ?'], [orgid],
                                        self.maxrows)
         for role in roles:
-            if role['feideid'] == feideid:
+            if role['feideid'] in feideids:
                 found = True
             result.append({
                 'userid': 'feide:{}'.format(role['feideid']),
@@ -101,10 +102,8 @@ class OrgAdminBackend(BaseBackend):
             raise KeyError("Not member of group")
         return result
 
-    def get_member_groups(self, user, show_all):
+    def _get_member_groups(self, pool,  feideid):
         result = []
-        feideid = get_feideid(user)
-        pool = GreenPool()
         roles = self.session.get_roles(['feideid = ?'], [feideid],
                                        self.maxrows)
         if len(roles) == 0:
@@ -128,6 +127,13 @@ class OrgAdminBackend(BaseBackend):
             except RuntimeError as ex:
                 self.log.warn('Skipping role: {}'.format(ex))
                 continue
+        return result
+
+    def get_member_groups(self, user, show_all):
+        result = []
+        pool = GreenPool()
+        for res in pool.imap(functools.partial(self._get_member_groups, pool), get_feideids(user)):
+            result.extend(res)
         return result
 
     def grouptypes(self):
