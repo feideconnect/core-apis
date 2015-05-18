@@ -261,15 +261,15 @@ def get_user(request):
     return request.environ.get('FC_USER', None)
 
 
+def get_feideids(user):
+    return set((id.split(':', 1)[1] for id in user['userid_sec'] if id.startswith('feide:') and '@' in id))
+
+
 def get_feideid(user):
-    feideid = None
-    for sec in user['userid_sec']:
-        if sec.startswith('feide:'):
-            feideid = sec.split(':', 1)[1]
-    if not feideid:
+    feideids = get_feideids(user)
+    if not feideids:
         raise RuntimeError('could not find feide id')
-    if not '@' in feideid:
-        raise RuntimeError('invalid feide id')
+    feideid = feideids.pop()
     return feideid
 
 

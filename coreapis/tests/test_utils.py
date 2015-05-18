@@ -26,6 +26,29 @@ class TestMisc(TestCase):
         assert utils.public_userinfo(input) == output
 
 
+class TestGetFeideids(TestCase):
+    def test_ok(self):
+        user = {
+            'userid_sec': ['feide:test@example.org', 'test:1234', 'feide:test@example.com'],
+            'userid': uuid.uuid4(),
+        }
+        assert utils.get_feideids(user) == set(('test@example.org', 'test@example.com'))
+
+    def test_no_feideid(self):
+        user = {
+            'userid_sec': ['test:1234', 'mail:test@example.com'],
+            'userid': uuid.uuid4(),
+        }
+        assert utils.get_feideids(user) == set()
+
+    def test_malformed_feideid(self):
+        user = {
+            'userid_sec': ['test:1234', 'feide:foo'],
+            'userid': uuid.uuid4(),
+        }
+        assert utils.get_feideids(user) == set()
+
+
 class TestGetFeideid(TestCase):
     def test_ok(self):
         user = {
