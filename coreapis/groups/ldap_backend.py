@@ -138,7 +138,8 @@ class LDAPBackend(BaseBackend):
         try:
             base_dn = self.ldap.get_base_dn(realm)
         except KeyError:
-            raise KeyError('could not find ldap config for realm {}'.format(realm))
+            self.log.debug('ldap not configured for realm', realm=realm)
+            return []
         res = self.ldap.search(realm, base_dn, '(eduPersonPrincipalName={})'.format(feideid),
                                ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
                                ('eduPersonOrgDN', 'eduPersonOrgUnitDN', 'eduPersonEntitlement'), 1)
