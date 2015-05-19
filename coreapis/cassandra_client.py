@@ -340,6 +340,16 @@ class Client(object):
             raise KeyError('no such organization')
         return res[0]['logo'], res[0]['logo_updated']
 
+    def org_use_fs_groups(self, realm):
+        prep = self._prepare('SELECT fs_groups FROM organizations WHERE realm = ?')
+        res = self.session.execute(prep.bind([realm]))
+        if len(res) == 0:
+            return False
+        row = res[0]
+        if row.get('fs_groups', False):
+            return True
+        return False
+
     def is_org_admin(self, feideid, orgid):
         prep = self._prepare('SELECT role from roles where feideid = ? AND orgid = ?')
         res = self.session.execute(prep.bind([feideid, orgid]))
