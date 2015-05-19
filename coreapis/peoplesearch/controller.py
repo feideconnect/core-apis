@@ -192,7 +192,6 @@ class PeopleSearchController(object):
 
     def search(self, org, query, user, max_replies=None):
         access = self.authorized_search_access(user, org)
-        print("access: {}".format(access))
         if not ('employees' in access or 'others' in access):
             return []
         if max_replies is None or max_replies > self.search_max_replies:
