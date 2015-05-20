@@ -91,7 +91,6 @@ class Client(object):
             stmt = 'SELECT {} from {} LIMIT {}'.format(cols, table, maxrows)
         else:
             stmt = 'SELECT {} from {} WHERE {} LIMIT {} ALLOW FILTERING'.format(cols, table, ' and '.join(selectors), maxrows)
-        print("cql: {}".format(stmt))
         with self.timer.time('cassandra.get_generic.{}'.format(table)):
             prep = self._prepare(stmt)
             res = self.session.execute(prep.bind(values))
