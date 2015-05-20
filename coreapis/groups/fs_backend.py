@@ -81,4 +81,32 @@ class FsBackend(BaseBackend):
 
     def grouptypes(self):
         return [
+            {
+                'id': 'fc:emne',
+                'displayName': translatable({
+                    'nb': 'Emne',
+                    'en': 'Subject',
+                }),
+            },
+            {
+                'id': 'fc:klasse',
+                'displayName': translatable({
+                    'nb': 'Klasse',
+                    'en': 'Class',
+                }),
+            },
+            {
+                'id': 'fc:kull',
+                'displayName': translatable({
+                    'nb': 'Kull',
+                    'en': 'Year',
+                }),
+            },
+            {
+                'id': 'fc:prg',
+                'displayName': translatable({
+                    'nb': 'Program',
+                    'en': 'Program',
+                }),
+            },
         ]
