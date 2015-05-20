@@ -19,24 +19,26 @@ API to retrieve information about current user. To test the API, obtain an authe
     }
 
 
-Attributes are defined in https://www.feide.no/sites/feide.no/files/documents/norEdu_spec.pdf
+Attributes are defined in
+https://www.feide.no/sites/feide.no/files/documents/norEdu_spec.pdf. They
+are multiple valued unless stated otherwise below.
 
 The returned information depends on the scopes held by the caller:
 
 - scope `userinfo`
 
-  - `displayName`
+  - `displayName`, single value
   - `sn`
   - `givenName`
 
 - scope `userinfo-feide`
 
-  - `eduPersonPrincipalName`
+  - `eduPersonPrincipalName`, single value
   - `uid`
 
 - scope `userinfo-nin`
 
-  - `norEduPersonNIN`
+  - `norEduPersonNIN`, single value
 
 - scope `userinfo-mail`
 
@@ -44,13 +46,13 @@ The returned information depends on the scopes held by the caller:
 
 - scope `groups`
 
-  - `schacHomeOrganization`
+  - `schacHomeOrganization`, single value
   - `title`
-  - `o`
+  - `o`, single value
   - `ou`
   - `manager`
   - `eduPersonAffiliation`
-  - `eduPersonPrimaryAffiliation`
+  - `eduPersonPrimaryAffiliation`, single value
   - `eduPersonScopedAffiliation`
 
 - scope `userinfo-entitlement`
@@ -76,8 +78,8 @@ The returned information depends on the scopes held by the caller:
   - `eduPersonNickname`
   - `labeledURI`
   - `cn`
-  - `norEduPersonBirthDate`
+  - `norEduPersonBirthDate`, single value
   - `norEduPersonLIN`
-  - `norEduPersonLegalName`
-  - `preferredLanguage`
+  - `norEduPersonLegalName`, single value
+  - `preferredLanguage`, single value
 
