@@ -149,7 +149,7 @@ class MockAuthMiddleware(AuthMiddleware):
             },
 
             'scopes': ['api_ecampusrelay', 'clientadmin', 'apigkadmin',
-                       'adhocgroupadmin', 'groups', 'orgadmin'],
+                       'adhocgroupadmin', 'groups', 'orgadmin', 'peoplesearch'],
         },
         'client_token': {
             'client': {
@@ -167,7 +167,8 @@ class MockAuthMiddleware(AuthMiddleware):
                 "id": uuid.UUID("00000000-0000-0000-0000-000000000002")
             },
 
-            'scopes': ['userinfo', 'longterm', 'test', 'clientadmin', 'apigkadmin', 'groups'],
+            'scopes': ['userinfo', 'longterm', 'test', 'clientadmin', 'apigkadmin', 'groups',
+                       'peoplesearch'],
         },
     }
 

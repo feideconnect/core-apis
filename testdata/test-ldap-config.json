@@ -3,7 +3,12 @@
         "display": "Test realm 1",
         "servers": [ "server1.realm1.example.com", "server2.realm1.example.com:63636", "server3.realm1.example.com" ],
         "base_dn": "cn=people,dc=example,dc=com",
-        "exclude": "(hiddenUser=TRUE)"
+        "exclude": "(hiddenUser=TRUE)",
+        "peoplesearch": {
+            "employees": "all",
+            "others": "sameOrg",
+	    "garbage": "nonsense"
+        }
     },
     "realm2.example.org": {
         "display": "Test realm 2",
@@ -12,6 +17,10 @@
         "bind_user": {
             "dn": "cn=search_user,ou=auth,dc=example,dc=org",
             "password": "verysecret"
+        },
+        "peoplesearch": {
+            "employees": "sameOrg",
+            "others": "none"
         }
     }
 }

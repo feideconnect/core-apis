@@ -134,6 +134,62 @@ class TestLookupFeideid(TestCase):
             self.ldap.lookup_feideid('test\\', ['cn'])
 
 
+class TestPeopleSearch(TestCase):
+    def setUp(self):
+        with mock.patch('coreapis.peoplesearch.controller.CassandraCache'):
+            self.controller = controller.PeopleSearchController('key', mock.MagicMock(),
+                                                                mock.MagicMock(), [],
+                                                                'keyspace', 0)
+            self.controller.ldap = controller.LDAPController(mock.MagicMock(),
+                                                             'testdata/test-ldap-config.json')
+
+    def test_org_authorization_policy(self):
+        policy = self.controller.org_authorization_policy('realm1.example.com')
+        assert policy['employees'] == 'all'
+        assert policy['others'] == 'sameOrg'
+        assert 'garbage' not in policy.keys()
+
+    def test_org_authorization_policy_unknown_realm(self):
+        policy = self.controller.org_authorization_policy('unknown.example.com')
+        assert policy['employees'] == 'none'
+        assert policy['others'] == 'none'
+
+    def test_authorized_search_access_all(self):
+        user = {'userid_sec': ['feide:jk@realm1.example.com']}
+        authz = self.controller.authorized_search_access(user, 'realm1.example.com')
+        assert 'employees' in authz
+        assert 'others' in authz
+
+    def test_authorized_search_access_some(self):
+        user = {'userid_sec': ['feide:jk@vg.no']}
+        authz = self.controller.authorized_search_access(user, 'realm1.example.com')
+        assert 'employees' in authz
+        assert 'others' not in authz
+
+    def test_authorized_search_access_none(self):
+        user = {'userid_sec': ['feide:jk@vg.no']}
+        authz = self.controller.authorized_search_access(user, 'realm2.example.org')
+        assert len(authz) == 0
+
+    def test_search_access_some(self):
+        user = {'userid_sec': ['feide:jk@vg.no']}
+        self.controller.ldap.ldap_search = mock.MagicMock(return_value=[
+            {'attributes': {'cn': ['Test User']}},
+            {'attributes': {}}
+        ])
+        res = self.controller.search('realm1.example.com', 'Test', user)
+        assert len(res) != 0
+
+    def test_search_access_none(self):
+        user = {'userid_sec': ['feide:jk@vg.no']}
+        self.controller.ldap.ldap_search = mock.MagicMock(return_value=[
+            {'attributes': {'cn': ['Test User']}},
+            {'attributes': {}}
+        ])
+        res = self.controller.search('realm2.example.org', 'Test', user)
+        assert len(res) == 0
+
+
 class TestFetchProfileImage(TestCase):
     def setUp(self):
         with mock.patch('coreapis.peoplesearch.controller.CassandraCache'):
