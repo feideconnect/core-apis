@@ -60,6 +60,8 @@ def main(global_config, **settings):
         config.include('coreapis.groups.views.configure', route_prefix='groups')
     if all_enabled or 'org' in enabled_components:
         config.include('coreapis.org.views.configure', route_prefix='orgs')
+    if all_enabled or 'userinfo' in enabled_components:
+        config.include('coreapis.userinfo.views.configure', route_prefix='userinfo')
     config.scan('coreapis.error_views')
     config.add_settings(realm=global_config['oauth_realm'])
     config.add_tween('coreapis.utils.RequestTimingTween')
