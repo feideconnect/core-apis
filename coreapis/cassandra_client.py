@@ -5,6 +5,7 @@ import time
 import json
 import datetime
 import pytz
+import contextlib
 from coreapis.utils import LogWrapper, now, translatable
 
 
@@ -23,6 +24,12 @@ def datetime_hack_dict_factory(colnames, rows):
             if isinstance(val, datetime.datetime):
                 el[key] = val.replace(tzinfo=pytz.UTC)
     return res
+
+
+class DummyTimer(object):
+    @contextlib.contextmanager
+    def time(self, counter):
+        yield
 
 
 class Client(object):
@@ -49,6 +56,7 @@ class Client(object):
         }
         self.session = cluster.connect(keyspace)
         self.session.row_factory = datetime_hack_dict_factory
+        self.timer = DummyTimer()
 
     def _prepare(self, query):
         if query in self.prepared:
@@ -84,10 +92,9 @@ class Client(object):
         else:
             stmt = 'SELECT {} from {} WHERE {} LIMIT {} ALLOW FILTERING'.format(cols, table, ' and '.join(selectors), maxrows)
         print("cql: {}".format(stmt))
-        t0 = time.time()
-        prep = self._prepare(stmt)
-        res = self.session.execute(prep.bind(values))
-        print("Executed in %s ms" % ((time.time()-t0)*1000))
+        with self.timer.time('cassandra.get_generic.{}'.format(table)):
+            prep = self._prepare(stmt)
+            res = self.session.execute(prep.bind(values))
         return res
 
     def get_clients(self, selectors, values, maxrows):
@@ -95,9 +102,8 @@ class Client(object):
 
     def get_clients_by_owner(self, owner):
         prep = self._prepare('SELECT * from clients WHERE owner = ?')
-        t0 = time.time()
-        res = self.session.execute(prep.bind([owner]))
-        print("Executed in %s ms" % ((time.time()-t0)*1000))
+        with self.timer.time('cassandra.get_clients_by_owner'):
+            res = self.session.execute(prep.bind([owner]))
         return res
 
     def get_clients_by_scope(self, scope):
@@ -112,10 +118,8 @@ class Client(object):
 
     def delete_client(self, clientid):
         prep = self._prepare('DELETE FROM clients WHERE id = ?')
-        t0 = time.time()
-        self.session.execute(prep.bind([clientid]))
-        t0 = time.time()
-        print("Executed in %s ms" % ((time.time()-t0)*1000))
+        with self.timer.time('cassandra.delete_client'):
+            self.session.execute(prep.bind([clientid]))
 
     def get_token(self, tokenid):
         prep = self._prepare('SELECT * FROM oauth_tokens WHERE access_token = ?')

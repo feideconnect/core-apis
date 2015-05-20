@@ -185,6 +185,7 @@ class CassandraMiddleware(AuthMiddleware):
         self.timer = timer
         self.ratelimiter = ratelimiter
         self.session = cassandra_client.Client(contact_points, keyspace, use_eventlet)
+        self.session.timer = timer
 
     def __call__(self, environ, start_response):
         if self.ratelimiter and self.ratelimiter.check_rate(environ['REMOTE_ADDR']) == False:

@@ -38,7 +38,9 @@ class AdHocGroupBackend(BaseBackend):
         super(AdHocGroupBackend, self).__init__(prefix, maxrows, config)
         contact_points = config.get_settings().get('cassandra_contact_points')
         keyspace = config.get_settings().get('cassandra_keyspace')
+        self.timer = config.get_settings().get('timer')
         self.session = cassandra_client.Client(contact_points, keyspace, True)
+        self.session.timer = self.timer
         self.log = LogWrapper('groups.adhocgroupbackend')
 
     def _intid(self, groupid):
