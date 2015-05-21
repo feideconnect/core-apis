@@ -1,4 +1,8 @@
-from coreapis.utils import LogWrapper, get_feideids, translatable, failsafe
+from urllib.parse import unquote as urlunquote, quote as urlquote
+import functools
+import datetime
+import pytz
+from coreapis.utils import LogWrapper, get_feideids, translatable, failsafe, now
 from . import BaseBackend, IDHandler
 import eventlet
 ldap3 = eventlet.import_patched('ldap3')
@@ -26,7 +30,23 @@ org_attribute_names = {
     'street',
 }
 GREP_PREFIX = 'urn:mace:feide.no:go:grep:'
+GOGROUP_PREFIX = 'urn:mace:feide.no:go:group:'
+GOGROUPID_PREFIX = 'urn:mace:feide.no:go:groupid:'
 GREP_ID_PREFIX = 'fc:grep'
+GOGROUP_ID_PREFIX = 'fc:gogroup'
+
+go_types = {
+    'u': translatable({
+        'nb': 'undervisningsgruppe',
+    }),
+    'b': translatable({
+        'nb': 'basisgruppe',
+    }),
+    'a': translatable({
+        'nb': 'andre grupper',
+        'en': 'other groups',
+    }),
+}
 
 lang_map = {
     'nno': 'nn',
@@ -54,6 +74,11 @@ def unquote(x):
     return x.replace('_', '/')
 
 
+def parse_go_date(date):
+    res = datetime.datetime.strptime(date, '%Y-%m-%d')
+    return res.replace(tzinfo=pytz.UTC)
+
+
 class LDAPBackend(BaseBackend):
     def __init__(self, prefix, maxrows, config):
         super(LDAPBackend, self).__init__(prefix, maxrows, config)
@@ -71,6 +96,8 @@ class LDAPBackend(BaseBackend):
                                    self.get_members, self.get_logo, self.permissions_ok),
             GREP_ID_PREFIX: IDHandler(self.get_grep_group, self.get_membership,
                                       self.get_members, self.get_logo, self.permissions_ok),
+            GOGROUP_ID_PREFIX: IDHandler(self.get_group, self.get_membership,
+                                        self.get_go_members, self.get_logo, self.permissions_ok),
         }
 
     def _get_org(self, realm, dn):
@@ -138,6 +165,43 @@ class LDAPBackend(BaseBackend):
             result['code'] = code
         return result
 
+    def _handle_gogroup(self, realm, group_info, show_all):
+        parts = group_info.split(':')
+        if len(parts) != 8:
+            self.log.warn("Found malformed group info: {}".format(group_info))
+            raise KeyError('invalid group info')
+        group_type, grep_code, organization, _group_id, valid_from, valid_to, role, name = (urlunquote(part) for part in parts)
+        group_id = ':'.join((urlquote(part) for part in (realm, group_type, organization, _group_id, valid_from, valid_to)))
+        valid_from = parse_go_date(valid_from)
+        valid_to = parse_go_date(valid_to)
+        ts = now()
+        if not show_all and (ts < valid_from or ts > valid_to):
+            raise KeyError('Group not valid now and show_all off')
+        result = {
+            'id': '{}:{}'.format(GOGROUP_ID_PREFIX, group_id),
+            'displayName': name,
+            'type': 'fc:gogroup',
+            'notBefore': valid_from,
+            'notAfter': valid_to,
+            'go_type': group_type,
+            'parent': self._groupid('{}:unit:{}'.format(realm, organization)),
+            'membership': {
+                'basic': 'admin' if role == 'faculty' else 'member',
+                'role': role,
+            },
+        }
+        if grep_code:
+            grep_data = self.session.get_grep_code_by_code(grep_code, 'fagkoder')
+            result['grep'] = {
+                'displayName': grep_translatable(grep_data['title']),
+                'code': grep_code,
+            }
+        if group_type in go_types:
+            result['go_type_displayName'] = go_types[group_type]
+        else:
+            self.log.warn('Found invalid go group type', go_type=group_type)
+        return result
+
     def _handle_grepcodes(self, entitlements):
         res = []
         for val in entitlements:
@@ -148,7 +212,17 @@ class LDAPBackend(BaseBackend):
                     pass
         return res
 
-    def _get_member_groups(self, feideid):
+    def _handle_go_groups(self, realm, entitlements, show_all):
+        res = []
+        for val in entitlements:
+            if val.startswith(GOGROUP_PREFIX):
+                try:
+                    res.append(self._handle_gogroup(realm, val[len(GOGROUP_PREFIX):], True))
+                except KeyError:
+                    pass
+        return res
+
+    def _get_member_groups(self, show_all, feideid):
         self.log.debug('looking up groups', feideid=feideid)
         result = []
         realm = feideid.split('@', 1)[1]
@@ -172,12 +246,15 @@ class LDAPBackend(BaseBackend):
                 result.append(self._get_orgunit(realm, orgUnitDN))
         if 'eduPersonEntitlement' in attributes:
             result.extend(self._handle_grepcodes(attributes['eduPersonEntitlement']))
+            result.extend(self._handle_go_groups(realm, attributes['eduPersonEntitlement'],
+                                                 show_all))
         return result
 
     def get_member_groups(self, user, show_all):
         result = []
         pool = GreenPool()
-        for res in pool.imap(failsafe(self._get_member_groups), get_feideids(user)):
+        get_member_groups = failsafe(functools.partial(self._get_member_groups, show_all))
+        for res in pool.imap(get_member_groups, get_feideids(user)):
             if res:
                 result.extend(res)
         return result
@@ -207,6 +284,20 @@ class LDAPBackend(BaseBackend):
 
     def get_members(self, user, groupid, show_all):
         return []
+
+    def get_go_members(self, user, groupid, show_all):
+        intid = self._intid(groupid)
+        realm, gogroupid = intid.split(':', 1)
+        entitlement_value = "{}{}".format(GOGROUPID_PREFIX, gogroupid)
+        try:
+            base_dn = self.ldap.get_base_dn(realm)
+        except KeyError:
+            self.log.debug('ldap not configured for realm', realm=realm)
+            return []
+        res = self.ldap.search(realm, base_dn, '(eduPersonEntitlement={})'.format(entitlement_value),
+                               ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
+                               ('displayName',), 1000)
+        return [{'name': hit['attributes']['displayName'][0]} for hit in res]
 
     def get_groups(self, user, query):
         my_groups = self.get_member_groups(user, True)

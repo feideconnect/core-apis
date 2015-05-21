@@ -318,6 +318,13 @@ class Client(object):
             raise KeyError('No such grep code')
         return data[0]
 
+    def get_grep_code_by_code(self, code, greptype):
+        prep = self._prepare('SELECT * from grep_codes WHERE code = ? and type = ? ALLOW FILTERING')
+        data = self.session.execute(prep.bind([code, greptype]))
+        if len(data) == 0:
+            raise KeyError('No such grep code')
+        return data[0]
+
     def get_org(self, orgid):
         prep = self._default_get('organizations')
         data = self.session.execute(prep.bind([orgid]))
