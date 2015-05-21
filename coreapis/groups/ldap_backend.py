@@ -28,6 +28,23 @@ org_attribute_names = {
 GREP_PREFIX = 'urn:mace:feide.no:go:grep:'
 GREP_ID_PREFIX = 'fc:grep'
 
+lang_map = {
+    'nno': 'nn',
+    'nob': 'nb',
+    'eng': 'en',
+    'sme': 'se',
+}
+
+
+def grep_translatable(input):
+    res = {}
+    if len(input) == 1 and 'default' in input:
+        return input['default']
+    for lang, val in input.items():
+        if lang in lang_map:
+            res[lang_map[lang]] = val
+    return translatable(res)
+
 
 def quote(x, safe=''):
     return x.replace('/', '_')
@@ -105,7 +122,7 @@ class LDAPBackend(BaseBackend):
             grep_data = self.session.get_grep_code(grep_id)
         result = {
             'id': '{}:{}'.format(GREP_ID_PREFIX, quote(grep_id, safe='')),
-            'displayName': grep_data['title']['default'],
+            'displayName': grep_translatable(grep_data['title']),
             'type': 'fc:grep',
             'active': True,
             'public': True,
