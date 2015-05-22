@@ -51,7 +51,7 @@ class FsBackend(BaseBackend):
     def get_members(self, user, groupid, show_all):
         return []
 
-    def _get_member_groups(self, feideid):
+    def _get_member_groups(self, show_all, feideid):
         realm = feideid.split('@', 1)[1]
         if not self.is_org_enabled(realm):
             self.log.debug('fs groups disabled for organization', realm=realm)
@@ -63,18 +63,22 @@ class FsBackend(BaseBackend):
             self.log.debug('got response from fs', status_code=response.status_code,
                            content_type=response.headers['content-type'])
         response.raise_for_status()
-        result = response.json()
-        for group in result:
+        result = []
+        for group in response.json():
+            if not show_all and not group['membership'].get('active'):
+                continue
             if 'displayName' in group:
                 group['displayName'] = translatable(group['displayName'])
             if 'membership' in group and 'displayName' in group['membership']:
                 group['membership']['displayName'] = translatable(group['membership']['displayName'])
+            result.append(group)
         return result
 
     def get_member_groups(self, user, show_all):
         result = []
         pool = GreenPool()
-        for res in pool.imap(failsafe(self._get_member_groups), get_feideids(user)):
+        func = failsafe(functools.partial(self._get_member_groups, show_all))
+        for res in pool.imap(func, get_feideids(user)):
             if res:
                 result.extend(res)
         return result
