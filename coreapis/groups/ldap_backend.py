@@ -112,7 +112,7 @@ class LDAPBackend(BaseBackend):
             GREP_ID_PREFIX: IDHandler(self.get_grep_group, self.get_membership,
                                       self.get_members, self.get_logo, self.permissions_ok),
             GOGROUP_ID_PREFIX: IDHandler(self.get_group, self.get_membership,
-                                        self.get_go_members, self.get_logo, self.permissions_ok),
+                                         self.get_go_members, self.get_logo, self.permissions_ok),
         }
 
     def _get_org(self, realm, dn):
