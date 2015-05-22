@@ -74,9 +74,24 @@ def unquote(x):
     return x.replace('_', '/')
 
 
+def go_split(string):
+    return [urlunquote(part) for part in string.split(':')]
+
+
+def go_join(parts):
+    return ":".join((urlquote(part) for part in parts))
+
+
 def parse_go_date(date):
     res = datetime.datetime.strptime(date, '%Y-%m-%d')
     return res.replace(tzinfo=pytz.UTC)
+
+
+def go_membership(role):
+    return {
+        'basic': 'admin' if role == 'faculty' else 'member',
+        'role': role,
+    }
 
 
 class LDAPBackend(BaseBackend):
@@ -165,13 +180,19 @@ class LDAPBackend(BaseBackend):
             result['code'] = code
         return result
 
-    def _handle_gogroup(self, realm, group_info, show_all):
-        parts = group_info.split(':')
-        if len(parts) != 8:
+    def _parse_gogroup(self, group_info):
+        if not group_info.startswith(GOGROUP_PREFIX):
             self.log.warn("Found malformed group info: {}".format(group_info))
             raise KeyError('invalid group info')
-        group_type, grep_code, organization, _group_id, valid_from, valid_to, role, name = (urlunquote(part) for part in parts)
-        group_id = ':'.join((urlquote(part) for part in (realm, group_type, organization, _group_id, valid_from, valid_to)))
+        parts = go_split(group_info)
+        if len(parts) != 13:
+            self.log.warn("Found malformed group info: {}".format(group_info))
+            raise KeyError('invalid group info')
+        return parts[5:]
+
+    def _handle_gogroup(self, realm, group_info, show_all):
+        group_type, grep_code, organization, _group_id, valid_from, valid_to, role, name = self._parse_gogroup(group_info)
+        group_id = go_join((realm, group_type, organization, _group_id, valid_from, valid_to))
         valid_from = parse_go_date(valid_from)
         valid_to = parse_go_date(valid_to)
         ts = now()
@@ -185,10 +206,7 @@ class LDAPBackend(BaseBackend):
             'notAfter': valid_to,
             'go_type': group_type,
             'parent': self._groupid('{}:unit:{}'.format(realm, organization)),
-            'membership': {
-                'basic': 'admin' if role == 'faculty' else 'member',
-                'role': role,
-            },
+            'membership': go_membership(role),
         }
         if grep_code:
             grep_data = self.session.get_grep_code_by_code(grep_code, 'fagkoder')
@@ -217,7 +235,7 @@ class LDAPBackend(BaseBackend):
         for val in entitlements:
             if val.startswith(GOGROUP_PREFIX):
                 try:
-                    res.append(self._handle_gogroup(realm, val[len(GOGROUP_PREFIX):], True))
+                    res.append(self._handle_gogroup(realm, val, True))
                 except KeyError:
                     pass
         return res
@@ -285,6 +303,27 @@ class LDAPBackend(BaseBackend):
     def get_members(self, user, groupid, show_all):
         return []
 
+    def _find_group_for_groupid(self, gogroupid, entitlements):
+        groupid_data = go_split(gogroupid)
+        group_type, organization, group_id, valid_from, valid_to = groupid_data
+        for a in entitlements:
+            if not a.startswith(GOGROUP_PREFIX):
+                continue
+            try:
+                group_data = self._parse_gogroup(a)
+                _group_type, _grep_code, _organization, _group_id, _valid_from, _valid_to, _role, _name = group_data
+                print(groupid_data)
+                print(group_data)
+                if _group_type == group_type and \
+                   organization == _organization and \
+                   group_id == _group_id and \
+                   valid_to == _valid_to and \
+                   valid_from == _valid_from:
+                    return group_data
+            except KeyError:
+                continue
+        raise KeyError("Did not find group for group id")
+
     def get_go_members(self, user, groupid, show_all):
         intid = self._intid(groupid)
         realm, gogroupid = intid.split(':', 1)
@@ -294,10 +333,22 @@ class LDAPBackend(BaseBackend):
         except KeyError:
             self.log.debug('ldap not configured for realm', realm=realm)
             return []
-        res = self.ldap.search(realm, base_dn, '(eduPersonEntitlement={})'.format(entitlement_value),
-                               ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
-                               ('displayName',), 1000)
-        return [{'name': hit['attributes']['displayName'][0]} for hit in res]
+        ldap_res = self.ldap.search(realm, base_dn,
+                                    '(eduPersonEntitlement={})'.format(entitlement_value),
+                                    ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
+                                    ('displayName', 'eduPersonEntitlement'), 1000)
+        res = []
+        for hit in ldap_res:
+            entry = {'name': hit['attributes']['displayName'][0]}
+            try:
+                data = self._find_group_for_groupid(gogroupid, hit['attributes']['eduPersonEntitlement'])
+                entry['membership'] = go_membership(data[6])
+            except KeyError:
+                import logging
+                logging.execption('hmm')
+                pass
+            res.append(entry)
+        return res
 
     def get_groups(self, user, query):
         my_groups = self.get_member_groups(user, True)
