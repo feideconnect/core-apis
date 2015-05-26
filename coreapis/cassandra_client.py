@@ -128,7 +128,7 @@ class Client(object):
         return res[0]
 
     def get_user_by_id(self, userid):
-        prep = self._prepare('SELECT * FROM users WHERE userid = ?')
+        prep = self._prepare('SELECT userid, aboveagelimit, created, email, name, selectedsource, updated, usageterms, userid_sec, userid_sec_seen FROM users WHERE userid = ?')
         res = self.session.execute(prep.bind([userid]))
         if len(res) == 0:
             raise KeyError('No such user')
