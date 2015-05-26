@@ -134,6 +134,17 @@ class Client(object):
             raise KeyError('No such user')
         return res[0]
 
+    def get_user_profilephoto(self, userid):
+        prep = self._prepare('SELECT selectedsource, profilephoto, updated from users where userid = ?')
+        res = self.session.execute(prep.bind([userid]))
+        if len(res) == 0:
+            raise KeyError('No such user')
+        userinfo = res[0]
+        selectedsource = userinfo['selectedsource']
+        profilephoto = userinfo['profilephoto']
+        updated = userinfo['updated']
+        return profilephoto.get(selectedsource, None), updated
+
     def insert_user(self, userid, email, name, profilephoto,
                     profilephotohash, selectedsource, userid_sec):
         ts = now()

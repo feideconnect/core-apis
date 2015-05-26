@@ -415,7 +415,8 @@ class LogoRenderer(object):
             raise HTTPNotModified
         response = request.response
         response.charset = None
-        response.content_type = 'image/png'
+        if not response.content_type:
+            response.content_type = 'image/png'
         response.cache_control = 'public, max-age=3600'
         response.last_modified = updated
         return logo

@@ -103,3 +103,11 @@ class UserInfoController(object):
         person = self.ldap.lookup_feideid(feideid, attributes)
         normalize(person, SINGLE_VALUED_ATTRIBUTES_FEIDE)
         return dict(person)
+
+    def get_profilephoto(self, userid_sec):
+        if not userid_sec.startswith('p:'):
+            self.log.warn("Attempt to get profilephoto by id that isn't p:", userid_sec=userid_sec)
+            raise KeyError('incorrect ID used')
+        userid = self.session.get_userid_by_userid_sec(userid_sec)
+        profilephoto, updated = self.session.get_user_profilephoto(userid)
+        return profilephoto[4:], updated
