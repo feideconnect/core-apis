@@ -30,6 +30,31 @@ org_attribute_names = {
     'postOfficeBox',
     'street',
 }
+PERSON_ATTRIBUTES = (
+    'eduPersonOrgDN',
+    'eduPersonOrgUnitDN',
+    'eduPersonEntitlement',
+    'eduPersonAffiliation',
+    'eduPersonPrimaryAffiliation',
+    'title',
+)
+
+PERSON_ATTRIBUTE_MAPPING = {
+    'eduPersonAffiliation': 'affiliation',
+    'eduPersonPrimaryAffiliation': 'primaryAffiliation',
+    'title': 'title',
+}
+AFFILIATION_PRIORITY = (
+    'faculty',
+    'staff',
+    'employee',
+    'student',
+    'alum',
+    'affiliate',
+    'library-walk-in',
+    'member'
+)
+
 GREP_PREFIX = 'urn:mace:feide.no:go:grep:'
 GOGROUP_PREFIX = 'urn:mace:feide.no:go:group:'
 GOGROUPID_PREFIX = 'urn:mace:feide.no:go:groupid:'
@@ -54,6 +79,58 @@ lang_map = {
     'nob': 'nb',
     'eng': 'en',
     'sme': 'se',
+}
+
+affiliation_names = {
+    'go': {
+        'faculty': translatable({
+            'nb': 'Lærer',
+        }),
+        'staff': translatable({
+            'nb': 'Stab',
+        }),
+        'employee': translatable({
+            'nb': 'Ansatt',
+        }),
+        'student': translatable({
+            'nb': 'Elev',
+        }),
+#        'alum': translatable({
+#        }),
+        'affiliate': translatable({
+            'nb': 'Ekstern',
+        }),
+#        'library-walk-in': translatable({
+#        }),
+        'member': translatable({
+            'nb': 'Annet',
+        })
+    },
+    'he': {
+        'faculty': translatable({
+            'nb': 'Akademisk ansatt',
+        }),
+        'staff': translatable({
+            'nb': 'Stab',
+        }),
+        'employee': translatable({
+            'nb': 'Ansatt',
+        }),
+        'student': translatable({
+            'nb': 'Student',
+        }),
+        'alum': translatable({
+            'nb': 'Alumni',
+        }),
+        'affiliate': translatable({
+            'nb': 'Tilknyttet',
+        }),
+#        'library-walk-in': translatable({
+#        }),
+        'member': translatable({
+            'nb': 'Annet'
+        })
+    }
 }
 
 
@@ -89,10 +166,40 @@ def parse_go_date(date):
 
 
 def go_membership(role):
-    return {
+    membership = {
         'basic': 'admin' if role == 'faculty' else 'member',
-        'role': role,
+        'affiliation': role,
     }
+    if role in affiliation_names['go']:
+        membership['displayName'] = affiliation_names['go'][role]
+    else:
+        membership['displayName'] = role
+    return membership
+
+
+def org_membership_name(affiliation, org_type):
+    if 'higher_education' in org_type:
+        names = affiliation_names['he']
+    else:
+        names = affiliation_names['go']
+    for candidate in AFFILIATION_PRIORITY:
+        if candidate in affiliation and candidate in names:
+            return names[candidate]
+    return affiliation[0]
+
+
+def org_membership(person, org_type):
+    membership = {
+        'basic': 'member',
+    }
+    for key, value in person.items():
+        if key in PERSON_ATTRIBUTE_MAPPING:
+            membership[PERSON_ATTRIBUTE_MAPPING[key]] = value
+    affiliation = membership.get('affiliation', [])
+    if 'employee' in affiliation:
+        membership['basic'] = 'admin'
+        membership['displayName'] = org_membership_name(affiliation, org_type)
+    return membership
 
 
 class LDAPBackend(BaseBackend):
@@ -124,7 +231,7 @@ class LDAPBackend(BaseBackend):
                                          self.get_go_members, self.get_logo, self.permissions_ok),
         }
 
-    def _get_org(self, realm, dn):
+    def _get_org(self, realm, dn, person):
         org = self.ldap.search(realm, dn, '(objectClass=*)',
                                ldap3.SEARCH_SCOPE_BASE_OBJECT,
                                ldap3.ALL_ATTRIBUTES, 1)
@@ -132,16 +239,14 @@ class LDAPBackend(BaseBackend):
             raise KeyError('orgDN not found in catalog')
         org = org[0]
         orgAttributes = org['attributes']
+        orgType = self._get_org_type(realm)
         res = {
             'id': self._groupid(realm),
             'displayName': orgAttributes['eduOrgLegalName'][0],
             'type': 'fc:org',
-            'active': True,
             'public': True,
-            'membership': {
-                'basic': 'member',
-            },
-            'orgType': self._get_org_type(realm),
+            'membership': org_membership(person, orgType),
+            'orgType': orgType,
         }
         for attribute in org_attribute_names:
             if attribute in orgAttributes:
@@ -259,14 +364,14 @@ class LDAPBackend(BaseBackend):
             return []
         res = self.ldap.search(realm, base_dn, '(eduPersonPrincipalName={})'.format(feideid),
                                ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
-                               ('eduPersonOrgDN', 'eduPersonOrgUnitDN', 'eduPersonEntitlement'), 1)
+                               PERSON_ATTRIBUTES, 1)
         if len(res) == 0:
             raise KeyError('could not find user in catalog')
         res = res[0]
         attributes = res['attributes']
         if 'eduPersonOrgDN' in attributes:
             orgDN = attributes['eduPersonOrgDN'][0]
-            result.append(self._get_org(realm, orgDN))
+            result.append(self._get_org(realm, orgDN, attributes))
         if 'eduPersonOrgUnitDN' in attributes:
             for orgUnitDN in attributes['eduPersonOrgUnitDN']:
                 result.append(self._get_orgunit(realm, orgUnitDN))
