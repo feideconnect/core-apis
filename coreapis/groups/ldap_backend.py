@@ -152,7 +152,6 @@ class LDAPBackend(BaseBackend):
             'parent': self._groupid(realm),
             'displayName': ouAttributes['ou'][0],
             'type': 'fc:org',
-            'active': True,
             'public': True,
             'membership': {
                 'basic': 'member',
@@ -166,7 +165,6 @@ class LDAPBackend(BaseBackend):
             'id': '{}:{}'.format(GREP_ID_PREFIX, quote(grep_id, safe='')),
             'displayName': grep_translatable(grep_data['title']),
             'type': 'fc:grep',
-            'active': True,
             'public': True,
             'grep_type': grep_data['type'],
         }
