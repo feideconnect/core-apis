@@ -3,6 +3,7 @@ import functools
 import datetime
 import pytz
 from coreapis.utils import LogWrapper, get_feideids, translatable, failsafe, now
+from coreapis.cache import Cache
 from . import BaseBackend, IDHandler
 import eventlet
 ldap3 = eventlet.import_patched('ldap3')
@@ -104,6 +105,14 @@ class LDAPBackend(BaseBackend):
         contact_points = config.get_settings().get('cassandra_contact_points')
         keyspace = config.get_settings().get('cassandra_keyspace')
         self.session = cassandra_client.Client(contact_points, keyspace, True)
+        self.org_types = Cache(3600)
+
+    def _get_org_type_real(self, realm):
+        org = self.session.get_org_by_realm(realm)
+        return org['type']
+
+    def _get_org_type(self, realm):
+        return self.org_types.get(realm, functools.partial(self._get_org_type_real, realm))
 
     def get_id_handlers(self):
         return {
@@ -132,6 +141,7 @@ class LDAPBackend(BaseBackend):
             'membership': {
                 'basic': 'member',
             },
+            'orgType': self._get_org_type(realm),
         }
         for attribute in org_attribute_names:
             if attribute in orgAttributes:

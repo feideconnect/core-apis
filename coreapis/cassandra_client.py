@@ -346,6 +346,15 @@ class Client(object):
             data['name'] = translatable(data['name'])
         return data
 
+    def get_org_by_realm(self, realm):
+        data = self.get_generic('organizations', ['realm = ?'], [realm], 1)
+        if len(data) == 0:
+            raise KeyError('no such organization')
+        data = data[0]
+        if 'name' in data and data['name'] is not None:
+            data['name'] = translatable(data['name'])
+        return data
+
     def list_orgs(self):
         prep = self._prepare('SELECT organization_number,type,realm,id,name from organizations')
         data = self.session.execute(prep)
