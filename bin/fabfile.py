@@ -1,8 +1,8 @@
 from fabric.api import local, run, settings, task
 from os import path
 
-BACKUP_ROOT = "/var/lib/fcbackup"
-BACKUP_DIR_TMPL = "fc-backup-{}"
+BACKUP_ROOT = "/var/backups"
+BACKUP_DIR = "fcbackup"
 
 CASSANDRA_NODES = ['158.38.213.74', '158.38.213.91', '158.38.213.87']
 KEYSPACE = 'feideconnect'
@@ -26,7 +26,10 @@ TABLES = [
 
 
 def backupdir(backup_root, tag):
-    return path.join(backup_root, BACKUP_DIR_TMPL.format(tag))
+    bdir = path.join(backup_root, BACKUP_DIR)
+    if tag != '':
+        bdir = '{}-{}'.format(bdir, tag)
+    return bdir
 
 
 def mkbdir(backup_root, tag):
@@ -58,7 +61,7 @@ def get_table(tablename=TABLES[0]):
 
 
 @task
-def backup_schema(tag='foo', backup_root=BACKUP_ROOT):
+def backup_schema(backup_root=BACKUP_ROOT, tag=''):
     bdir = mkbdir(backup_root, tag)
     fname = 'schema.sql'
     with open(path.join(bdir, fname), 'w') as f:
@@ -66,7 +69,7 @@ def backup_schema(tag='foo', backup_root=BACKUP_ROOT):
 
 
 @task
-def backup_table(tag='foo', backup_root=BACKUP_ROOT, table=TABLES[0]):
+def backup_table(backup_root=BACKUP_ROOT, table=TABLES[0], tag=''):
     bdir = mkbdir(backup_root, tag)
     fname = '{}.csv'.format(table)
     with open(path.join(bdir, fname), 'w') as f:
@@ -74,6 +77,6 @@ def backup_table(tag='foo', backup_root=BACKUP_ROOT, table=TABLES[0]):
 
 
 @task
-def backup_tables(tag='foo', backup_root=BACKUP_ROOT):
+def backup_tables(backup_root=BACKUP_ROOT, tag=''):
     for table in TABLES:
-        backup_table(tag, backup_root, table)
+        backup_table(backup_root, table, tag)
