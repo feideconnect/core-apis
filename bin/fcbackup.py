@@ -1,5 +1,5 @@
-from fabric.api import local, run, settings, task
-from os import path
+from os import (path, makedirs)
+import subprocess
 
 BACKUP_ROOT = "/var/backups"
 BACKUP_DIR = "fcbackup"
@@ -34,20 +34,20 @@ def backupdir(backup_root, tag):
 
 def mkbdir(backup_root, tag):
     bdir = backupdir(backup_root, tag)
-    local('mkdir -p {}'.format(bdir))
+    if not path.exists(bdir):
+        makedirs(bdir)
     return bdir
 
 
 def run_cqlsh(command):
     node = CASSANDRA_NODES[0]
-    with settings(host_string=node):
-        outercmd = "cqlsh -k {} -e '{}' {}".format(KEYSPACE, command, node)
-        res = run(outercmd, pty=False, quiet=True)
-        ret = []
-        for line in res.splitlines():
-            if line.find('rows exported in') == -1:
-                ret.append(line)
-        return ('\n').join(ret)
+    outercmd = "cqlsh -k {} -e '{}' {}".format(KEYSPACE, command, node)
+    res = subprocess.Popen(outercmd, shell=True, stdout=subprocess.PIPE).stdout.read()
+    ret = []
+    for line in res.splitlines():
+        if line.find('rows exported in') == -1:
+            ret.append(line)
+    return ('\n').join(ret)
 
 
 def get_schema():
@@ -60,7 +60,6 @@ def get_table(tablename=TABLES[0]):
     return run_cqlsh(command)
 
 
-@task
 def backup_schema(backup_root=BACKUP_ROOT, tag=''):
     bdir = mkbdir(backup_root, tag)
     fname = 'schema.sql'
@@ -68,7 +67,6 @@ def backup_schema(backup_root=BACKUP_ROOT, tag=''):
         f.write(get_schema())
 
 
-@task
 def backup_table(backup_root=BACKUP_ROOT, table=TABLES[0], tag=''):
     bdir = mkbdir(backup_root, tag)
     fname = '{}.csv'.format(table)
@@ -76,7 +74,11 @@ def backup_table(backup_root=BACKUP_ROOT, table=TABLES[0], tag=''):
         f.write(get_table(table))
 
 
-@task
 def backup_tables(backup_root=BACKUP_ROOT, tag=''):
     for table in TABLES:
         backup_table(backup_root, table, tag)
+
+
+if __name__ == '__main__':
+    backup_schema()
+    backup_tables()
