@@ -1,5 +1,5 @@
 import functools
-from coreapis.utils import LogWrapper, get_feideids, failsafe, translatable
+from coreapis.utils import LogWrapper, get_feideids, failsafe, translatable, parse_datetime
 from coreapis.cache import Cache
 from coreapis import cassandra_client
 from . import BaseBackend
@@ -40,12 +40,19 @@ class FsBackend(BaseBackend):
         response.raise_for_status()
         result = []
         for group in response.json():
-            if not show_all and not group['membership'].get('active'):
+            if not 'membership' in group:
+                continue
+            membership = group['membership']
+            if not show_all and not membership.get('active'):
                 continue
             if 'displayName' in group:
                 group['displayName'] = translatable(group['displayName'])
-            if 'membership' in group and 'displayName' in group['membership']:
-                group['membership']['displayName'] = translatable(group['membership']['displayName'])
+            if 'displayName' in membership:
+                membership['displayName'] = translatable(membership['displayName'])
+            if 'notAfter' in membership:
+                membership['notAfter'] = parse_datetime(membership['notAfter'])
+            if 'notBefore' in membership:
+                membership['notBefore'] = parse_datetime(membership['notBefore'])
             result.append(group)
         return result
 
