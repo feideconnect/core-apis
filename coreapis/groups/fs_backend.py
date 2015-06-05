@@ -42,6 +42,16 @@ class FsBackend(BaseBackend):
         for group in response.json():
             if not 'membership' in group:
                 continue
+            if not group.get('id', '').startswith('fc:'):
+                self.log.debug('Received invalid id from fs', id=group.get('id', '<field missing>'))
+                continue
+            group['id'] = self._groupid(group['id'].split(':', 1)[1])
+            if 'parent' in group:
+                if not group['parent'].startswith('fc:'):
+                    self.log.debug('Received unexpected parent in group from fs',
+                                   id=group['id'], parent=group['parent'])
+                elif not group['parent'].startswith('fc:org'):
+                    group['parent'] = self._groupid(group['parent'].split(':', 1)[1])
             membership = group['membership']
             if not show_all and not membership.get('active'):
                 continue
