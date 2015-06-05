@@ -31,7 +31,7 @@ class FsBackend(BaseBackend):
         if not self.is_org_enabled(realm):
             self.log.debug('fs groups disabled for organization', realm=realm)
             return []
-        url = '{}/feide:{}/groups'.format(self.base_url, feideid)
+        url = '{}/user/feide:{}/groups'.format(self.base_url, feideid)
         self.log.debug('requesting fs resource', url=url)
         with self.timer.time('fs.get_member_groups'):
             response = requests.get(url, auth=(self.fs_user, self.fs_pass))
