@@ -24,7 +24,35 @@ class FsBackend(BaseBackend):
         return self.org_enabled.get(realm, functools.partial(self.session.org_use_fs_groups, realm))
 
     def get_members(self, user, groupid, show_all):
-        return []
+        gid_parts = groupid.split(':')
+        if len(gid_parts) < 4:
+            raise KeyError('invalid group id')
+        realm = gid_parts[3]
+        if not self.is_org_enabled(realm):
+            self.log.debug('fs groups disabled for organization', realm=realm)
+            raise KeyError('not enabled')
+        url = '{}/group/{}/members'.format(self.base_url, 'fc:' + self._intid(groupid))
+        response = requests.get(url, auth=(self.fs_user, self.fs_pass))
+        response.raise_for_status()
+        response_data = response.json()
+        found = False
+        for entry in response_data:
+            if entry.get('userid', None) in user['userid_sec']:
+                found = True
+                break
+        if not found:
+            self.log.debug('user is not member of group, refusing member list',
+                           group=groupid, userid=user['userid'])
+            raise KeyError('not member')
+        retval = []
+        for entry in response_data:
+            output = {}
+            for key in ('name', 'membership'):
+                if key in entry:
+                    output[key] = entry[key]
+            if output:
+                retval.append(output)
+        return retval
 
     def _get_member_groups(self, show_all, feideid):
         realm = feideid.split('@', 1)[1]
