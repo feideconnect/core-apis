@@ -119,6 +119,11 @@ class Client(object):
         prep = self._prepare('DELETE FROM clients WHERE id = ?')
         with self.timer.time('cassandra.delete_client'):
             self.session.execute(prep.bind([clientid]))
+            authzq = self._prepare('SELECT userid FROM oauth_authorizations WHERE clientid = ?')
+            userids = self.session.execute(authzq.bind([clientid]))
+            for row in userids:
+                userid = row['userid']
+                self.delete_authorization(userid, clientid)
 
     def get_token(self, tokenid):
         prep = self._prepare('SELECT * FROM oauth_tokens WHERE access_token = ?')
