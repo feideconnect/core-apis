@@ -168,7 +168,7 @@ class MockAuthMiddleware(AuthMiddleware):
             },
 
             'scopes': ['userinfo', 'longterm', 'test', 'clientadmin', 'apigkadmin', 'groups',
-                       'peoplesearch'],
+                       'peoplesearch', 'gk_unittest'],
         },
     }
 
