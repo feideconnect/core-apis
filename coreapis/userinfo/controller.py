@@ -110,4 +110,4 @@ class UserInfoController(object):
             raise KeyError('incorrect ID used')
         userid = self.session.get_userid_by_userid_sec(userid_sec)
         profilephoto, updated = self.session.get_user_profilephoto(userid)
-        return profilephoto[4:], updated
+        return profilephoto, updated
