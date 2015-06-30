@@ -14,7 +14,7 @@ os.environ['MAX_CONCURRENCY'] = '1'
 requires = [
     'aniso8601',
     'blist',
-    'cassandra-driver < 2.6.0',
+    'cassandra-driver = 2.5.1',
     'cherrypy',
     'cryptography',
     'eventlet',
