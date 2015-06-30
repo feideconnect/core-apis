@@ -13,4 +13,7 @@ keys = [
     "/fc/ratelimit/maxrate",
     "/fc/ratelimit/maxburstsize",
     "/fc/groups/timeout",
+    "/fc/fs/baseurl",
+    "/fc/fs/username",
+    "/fc/fs/password",
 ]
