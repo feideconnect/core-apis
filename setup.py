@@ -20,7 +20,7 @@ requires = [
     'eventlet',
     'futures < 3.0',
     'gunicorn',
-    'mock',
+    'mock == 1.0.1',
     'pillow',
     'pyramid',
     'pytest',
