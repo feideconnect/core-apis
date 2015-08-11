@@ -148,6 +148,8 @@ class Client(object):
         selectedsource = userinfo['selectedsource']
         profilephoto = userinfo['profilephoto']
         updated = userinfo['updated']
+        if profilephoto is None:
+            return None, updated
         return profilephoto.get(selectedsource, None), updated
 
     def insert_user(self, userid, email, name, profilephoto,
