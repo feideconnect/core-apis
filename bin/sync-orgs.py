@@ -16,7 +16,9 @@ Input can be from a file or a URL. One of these must be given.
 cassandra_contact_points, cassandra_keyspace and feideapi_token_secret are
 taken from config file.
 """
-URL = 'https://api.feide.no/2/org/all/full'
+URL = 'https://api.feide.no/2/'
+ORGPATH = 'org/all/full'
+SUBSPATH = 'sp/2021732/full'
 
 
 class CassandraClient(object):
@@ -258,7 +260,7 @@ class ApiError(requests.exceptions.RequestException):
         self.message = message
 
 
-def get_orgs_from_url(url, token):
+def get_json_from_url(url, token):
     headers = {
         'Authorization': 'Bearer {}'.format(token),
         'Accept-Encoding': 'gzip, deflate',
@@ -293,6 +295,8 @@ def parse_args():
                         help='Feide API URL')
     parser.add_argument('-i', '--infile', type=argparse.FileType('r'),
                         help='Input file with organization data')
+    parser.add_argument('-s', '--subsfile', type=argparse.FileType('r'),
+                        help='Input file with subscription data')
     parser.add_argument('-d', '--delete-missing', action='store_true',
                         help='Delete organizations from Connect when missing from Feide API')
     parser.add_argument("-v", "--verbose", help="increase output verbosity",
@@ -315,9 +319,13 @@ def main():
     syncer = Syncer(log, session, sync_exclude=config['sync_exclude'])
     if args.infile:
         feideorgs = json.load(args.infile)
+        feidesubs = json.load(args.subsfile)
     elif args.url:
         if config['token']:
-            feideorgs = get_orgs_from_url(args.url, config['token'])
+            orgurl = args.url + ORGPATH
+            subsurl = args.url + SUBSPATH
+            feideorgs = get_json_from_url(orgurl, config['token'])
+            feidesubs = get_json_from_url(subsurl, config['token'])
         else:
             fail('Feide API token must be given in config file')
     else:
