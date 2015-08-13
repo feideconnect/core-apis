@@ -77,26 +77,26 @@ class CassandraClient(object):
         self.session.execute(self.s_delete_role.bind([feideid, orgid]))
 
 
-def make_orgid(kindorg):
-    suffix = 'kind-{}'.format(kindorg['id'])
-    realm = kindorg.get('realm')
+def make_orgid(feideorg):
+    suffix = 'kind-{}'.format(feideorg['id'])
+    realm = feideorg.get('realm')
     if realm:
         suffix = realm
     else:
-        orgno = kindorg.get('organization_number')
+        orgno = feideorg.get('organization_number')
         if orgno:
             suffix = 'org-{}'.format(orgno)
     return 'fc:org:{}'.format(suffix)
 
 
-def make_org(kindorg, orgid):
+def make_org(feideorg, orgid):
     return {
         'id': orgid,
-        'kindid': int(kindorg['id']),
-        'realm': kindorg['realm'],
-        'type': set(kindorg['type']),
-        'organization_number': kindorg['organization_number'],
-        'name': kindorg['name']
+        'kindid': int(feideorg['id']),
+        'realm': feideorg['realm'],
+        'type': set(feideorg['type']),
+        'organization_number': feideorg['organization_number'],
+        'name': feideorg['name']
     }
 
 
@@ -149,7 +149,7 @@ class Syncer(object):
             self.ko_validator = V.parse(ko_schema)
             self.kor_validator = V.parse(kor_schema)
 
-    def roles_from_api(self, kindorg, orgid):
+    def roles_from_api(self, feideorg, orgid):
         rolenames = {
             'contacts_admin': 'admin',
             'contacts_technical': 'technical',
@@ -157,7 +157,7 @@ class Syncer(object):
         }
         contacts = {}
         for kindrole, apirole in rolenames.items():
-            members = kindorg.get(kindrole, [])
+            members = feideorg.get(kindrole, [])
             for member in members:
                 try:
                     self.kor_validator.validate(member)
@@ -215,11 +215,11 @@ class Syncer(object):
                     self.log.info("Dropping org", orgid=orgid)
                     self.drop_org(orgid)
 
-    def load_orgs(self, kindorgs):
-        for kindorg in kindorgs:
+    def load_orgs(self, feideorgs):
+        for feideorg in feideorgs:
             try:
-                ko_cooked = self.ko_validator.validate(kindorg)
-                oldorgs = self.client.get_orgs_by_kindid(int(kindorg['id']))
+                ko_cooked = self.ko_validator.validate(feideorg)
+                oldorgs = self.client.get_orgs_by_kindid(int(feideorg['id']))
                 oldroles = []
                 if len(oldorgs) > 0:
                     orgid = oldorgs[0][0]
@@ -232,9 +232,9 @@ class Syncer(object):
                     continue
                 org = make_org(ko_cooked, orgid)
             except V.ValidationError:
-                self.log.warning("Failed org validation", id=kindorg['id'],
-                                 organization_number=kindorg['organization_number'],
-                                 realm=kindorg['realm'], name=kindorg['name'])
+                self.log.warning("Failed org validation", id=feideorg['id'],
+                                 organization_number=feideorg['organization_number'],
+                                 realm=feideorg['realm'], name=feideorg['name'])
                 continue
             roles = list(self.roles_from_api(ko_cooked, org['id']))
             try:
@@ -244,11 +244,11 @@ class Syncer(object):
                 continue
             self.sync_roles(roles, oldroles)
 
-    def sync_orgs(self, kindorgs):
+    def sync_orgs(self, feideorgs):
         known_kindids = {org[1] for org in self.client.get_orgs()}
-        kindids = {int(kindorg['id']) for kindorg in kindorgs}
+        kindids = {int(feideorg['id']) for feideorg in feideorgs}
         dropped_kindids = known_kindids.difference(kindids)
-        self.load_orgs(kindorgs)
+        self.load_orgs(feideorgs)
         self.drop_orgs(dropped_kindids)
 
 
@@ -314,18 +314,18 @@ def main():
     session = CassandraClient(log, config['contact_points'], config['keyspace'])
     syncer = Syncer(log, session, sync_exclude=config['sync_exclude'])
     if args.infile:
-        kindorgs = json.load(args.infile)
+        feideorgs = json.load(args.infile)
     elif args.url:
         if config['token']:
-            kindorgs = get_orgs_from_url(args.url, config['token'])
+            feideorgs = get_orgs_from_url(args.url, config['token'])
         else:
             fail('Feide API token must be given in config file')
     else:
         fail("One of INFILE or URL/TOKEN must be given")
     if args.delete_missing:
-        syncer.sync_orgs(kindorgs)
+        syncer.sync_orgs(feideorgs)
     else:
-        syncer.load_orgs(kindorgs)
+        syncer.load_orgs(feideorgs)
 
 if __name__ == "__main__":
     main()
