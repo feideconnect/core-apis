@@ -53,6 +53,8 @@ class CassandraClient(object):
         self.s_delete_organization = self.session.prepare(stmt)
         stmt = 'DELETE FROM "roles" WHERE feideid = ? AND orgid = ?'
         self.s_delete_role = self.session.prepare(stmt)
+        stmt = 'UPDATE organizations set service[?] = ? where id = ?'
+        self.s_update_service = self.session.prepare(stmt)
 
     def insert_org(self, org):
         self.session.execute(self.s_insert_org.bind([
@@ -77,6 +79,9 @@ class CassandraClient(object):
 
     def delete_role(self, feideid, orgid):
         self.session.execute(self.s_delete_role.bind([feideid, orgid]))
+
+    def update_service(self, orgid, key, value):
+        self.session.execute(self.s_update_service.bind([key, value, orgid]))
 
 
 def make_orgid(feideorg):
@@ -119,6 +124,14 @@ def adapt_orgno(organization_number):
             raise V.ValidationError('Wrong format: {}'.format(organization_number))
     else:
         return None
+
+
+def is_connect_subscriber(feideorg, feidesubs):
+    kindid = feideorg['id']
+    for subscriber in feidesubs['subscribers']:
+        if subscriber['id'] == kindid:
+            return True
+    return False
 
 
 class Syncer(object):
@@ -217,7 +230,7 @@ class Syncer(object):
                     self.log.info("Dropping org", orgid=orgid)
                     self.drop_org(orgid)
 
-    def load_orgs(self, feideorgs):
+    def load_orgs(self, feideorgs, feidesubs):
         for feideorg in feideorgs:
             try:
                 ko_cooked = self.ko_validator.validate(feideorg)
@@ -245,12 +258,14 @@ class Syncer(object):
                 self.log.error("Exception inserting org", exception=ex, org=org)
                 continue
             self.sync_roles(roles, oldroles)
+            self.client.update_service(org['id'], 'auth',
+                                       is_connect_subscriber(feideorg, feidesubs))
 
-    def sync_orgs(self, feideorgs):
+    def sync_orgs(self, feideorgs, feidesubs):
         known_kindids = {org[1] for org in self.client.get_orgs()}
         kindids = {int(feideorg['id']) for feideorg in feideorgs}
         dropped_kindids = known_kindids.difference(kindids)
-        self.load_orgs(feideorgs)
+        self.load_orgs(feideorgs, feidesubs)
         self.drop_orgs(dropped_kindids)
 
 
@@ -331,9 +346,9 @@ def main():
     else:
         fail("One of INFILE or URL/TOKEN must be given")
     if args.delete_missing:
-        syncer.sync_orgs(feideorgs)
+        syncer.sync_orgs(feideorgs, feidesubs)
     else:
-        syncer.load_orgs(feideorgs)
+        syncer.load_orgs(feideorgs, feidesubs)
 
 if __name__ == "__main__":
     main()
