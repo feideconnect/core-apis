@@ -409,3 +409,8 @@ class Client(object):
 
     def get_roles(self, selectors, values, maxrows):
         return self.get_generic('roles', selectors, values, maxrows)
+
+    def apigk_allowed_dn(self, dn):
+        prep = self._prepare('SELECT dn from remote_apigatekeepers WHERE dn = ?')
+        res = self.session.execute(prep.bind([dn]))
+        return len(res) > 0

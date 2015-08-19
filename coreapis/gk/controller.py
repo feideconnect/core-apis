@@ -1,5 +1,6 @@
 from coreapis import cassandra_client
 from coreapis.utils import LogWrapper
+from coreapis.cache import Cache
 import random
 import base64
 
@@ -26,6 +27,10 @@ class GkController(object):
     def __init__(self, contact_points, keyspace):
         self.session = cassandra_client.Client(contact_points, keyspace)
         self.log = LogWrapper('gk.GkController')
+        self._allowed_dn = Cache(1800)
+
+    def allowed_dn(self, dn):
+        return self._allowed_dn.get(dn, lambda: self.session.apigk_allowed_dn(dn))
 
     def options(self, backend_id):
         backend = self.session.get_apigk(backend_id)

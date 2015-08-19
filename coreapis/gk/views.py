@@ -17,6 +17,8 @@ def configure(config):
 
 @view_config(route_name='gk_info', renderer='json', request_param="method=OPTIONS")
 def options(request):
+    if not request.gk_controller.allowed_dn(request.headers['Gate-Keeper-Dn']):
+        raise HTTPForbidden('client certificate not authorized')
     backend = request.matchdict['backend']
     try:
         headers = request.gk_controller.options(backend)
@@ -29,6 +31,8 @@ def options(request):
 
 @view_config(route_name='gk_info', renderer='json')
 def info(request):
+    if not request.gk_controller.allowed_dn(request.headers['Gate-Keeper-Dn']):
+        raise HTTPForbidden('client certificate not authorized')
     backend = request.matchdict['backend']
     if not request.has_permission('scope_gk_{}'.format(backend)):
         logging.debug('not authorized')
