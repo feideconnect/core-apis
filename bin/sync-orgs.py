@@ -53,8 +53,8 @@ class CassandraClient(object):
         self.s_delete_organization = self.session.prepare(stmt)
         stmt = 'DELETE FROM "roles" WHERE feideid = ? AND orgid = ?'
         self.s_delete_role = self.session.prepare(stmt)
-        stmt = 'UPDATE organizations set service[?] = ? where id = ?'
-        self.s_update_service = self.session.prepare(stmt)
+        stmt = "UPDATE organizations set services = services {} {{'{}'}} where id = '{}'"
+        self.s_update_service = stmt
 
     def insert_org(self, org):
         self.session.execute(self.s_insert_org.bind([
@@ -80,8 +80,10 @@ class CassandraClient(object):
     def delete_role(self, feideid, orgid):
         self.session.execute(self.s_delete_role.bind([feideid, orgid]))
 
-    def update_service(self, orgid, key, value):
-        self.session.execute(self.s_update_service.bind([key, value, orgid]))
+    def update_service(self, orgid, service, add):
+        oper = '+' if add else '-'
+        stmt = self.s_update_service.format(oper, service, orgid)
+        self.session.execute(stmt)
 
 
 def make_orgid(feideorg):
