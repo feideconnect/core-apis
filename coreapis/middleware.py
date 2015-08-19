@@ -149,7 +149,7 @@ class MockAuthMiddleware(AuthMiddleware):
             },
 
             'scopes': ['api_ecampusrelay', 'clientadmin', 'apigkadmin',
-                       'adhocgroupadmin', 'groups', 'orgadmin', 'peoplesearch'],
+                       'adhocgroupadmin', 'groups', 'orgadmin', 'peoplesearch', 'gk_nicegk'],
         },
         'client_token': {
             'client': {

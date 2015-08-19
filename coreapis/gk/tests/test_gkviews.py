@@ -25,16 +25,57 @@ class GkViewTests(unittest.TestCase):
 
     def test_options_notfound(self):
         self.session.get_apigk.side_effect = KeyError
-        self.testapp.get('/gk/info/no_tfound', params={'method': 'OPTIONS'}, status=404)
+        self.session.apigk_allowed_dn.return_value = True
+        headers = {'Gate-Keeper-DN': '/C=NO/CN=foo.example.com'}
+        self.testapp.get('/gk/info/no_tfound', params={'method': 'OPTIONS'},
+                         headers=headers, status=404)
 
     def test_get_no_token(self):
-        self.testapp.get('/gk/info/no_access', status=401)
+        self.session.apigk_allowed_dn.return_value = True
+        headers = {'Gate-Keeper-DN': '/C=NO/CN=foo.example.com'}
+        self.testapp.get('/gk/info/no_access', status=401, headers=headers)
 
     def test_get_no_access(self):
-        headers = {'Authorization': 'Bearer user_token'}
+        headers = {
+            'Authorization': 'Bearer user_token',
+            'Gate-Keeper-DN': '/C=NO/CN=foo.example.com',
+        }
+        self.session.apigk_allowed_dn.return_value = True
         self.testapp.get('/gk/info/no_access', headers=headers, status=403)
+
+    def test_get_ok(self):
+        headers = {
+            'Authorization': 'Bearer user_token',
+            'Gate-Keeper-DN': '/C=NO/CN=foo.example.com',
+        }
+        self.session.apigk_allowed_dn.return_value = True
+        self.session.get_apigk.return_value = {
+            'endpoints': ['ep.example.com'],
+            'requireuser': False,
+            'expose': {},
+            'trust': {
+                'type': 'bearer',
+                'token': 'foo',
+            },
+        }
+        self.testapp.get('/gk/info/nicegk', headers=headers, status=200)
 
     def test_get_not_found(self):
         self.session.get_apigk.side_effect = KeyError
-        headers = {'Authorization': 'Bearer client_token'}
+        self.session.apigk_allowed_dn.return_value = True
+        headers = {
+            'Authorization': 'Bearer client_token',
+            'Gate-Keeper-DN': '/C=NO/CN=foo.example.com',
+        }
         self.testapp.get('/gk/info/unittest', headers=headers, status=404)
+
+    def test_options_bad_dn(self):
+        self.session.apigk_allowed_dn.return_value = False
+        headers = {'Gate-Keeper-DN': '/C=NO/CN=foo.example.com'}
+        self.testapp.get('/gk/info/no_tfound', params={'method': 'OPTIONS'},
+                         headers=headers, status=401)
+
+    def test_get_bad_dn(self):
+        self.session.apigk_allowed_dn.return_value = False
+        headers = {'Gate-Keeper-DN': '/C=NO/CN=foo.example.com'}
+        self.testapp.get('/gk/info/nicegk', headers=headers, status=401)
