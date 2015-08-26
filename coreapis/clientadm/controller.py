@@ -65,6 +65,7 @@ class ClientAdmController(CrudControllerBase):
         'client_secret': V.Nullable('string', ''),
         'descr': V.Nullable('string', ''),
         'scopes': V.Nullable(['string'], lambda: list()),
+        'orgauthorizations': V.Nullable({}),
         'status': V.Nullable(['string'], lambda: list()),
         'type': V.Nullable('string', ''),
     }
@@ -77,11 +78,24 @@ class ClientAdmController(CrudControllerBase):
         self.log = LogWrapper('clientadm.ClientAdmController')
         self.scopedefs = get_scopedefs(scopedef_file)
 
+    @staticmethod
+    def adapt_client(client):
+        for k, v in client.items():
+            if k == 'orgauthorization':
+                if v:
+                    client[k] = {k2: json.loads(v2) for k2, v2 in v.items()}
+                else:
+                    client[k] = {}
+            elif isinstance(v, blist.sortedset):
+                client[k] = list(v)
+        return client
+
     def _list(self, selectors, values, scope):
         if scope:
             selectors.append('scopes contains ?')
             values.append(scope)
-        return self.session.get_clients(selectors, values, self.maxrows)
+        res = self.session.get_clients(selectors, values, self.maxrows)
+        return [self.adapt_client(client) for client in res]
 
     def list_by_owner(self, owner, scope=None):
         selectors = ['owner = ?']
@@ -113,11 +127,7 @@ class ClientAdmController(CrudControllerBase):
 
     def get(self, clientid):
         self.log.debug('Get client', clientid=clientid)
-        client = self.session.get_client_by_id(clientid)
-        for k, v in client.items():
-            if isinstance(v, blist.sortedset):
-                client[k] = list(v)
-        return client
+        return self.adapt_client(self.session.get_client_by_id(clientid))
 
     def add_scope_if_approved(self, client, scopedef, scope):
         try:

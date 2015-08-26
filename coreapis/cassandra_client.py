@@ -46,7 +46,7 @@ class Client(object):
         )
         self.prepared = {}
         self.default_columns = {
-            'clients': 'owner,name,type,status,scopes_requested,client_secret,created,redirect_uri,descr,id,scopes,updated,organization',
+            'clients': 'owner,name,type,status,scopes_requested,client_secret,created,redirect_uri,descr,id,scopes,updated,organization,orgauthorization',
             'apigk': 'id,requireuser,created,name,scopedef,httpscertpinned,status,descr,expose,updated,trust,endpoints,owner,organization',
             'groups': 'id,created,descr,name,owner,public,updated,invitation_token',
             'group_members': 'userid,groupid,status,type',
