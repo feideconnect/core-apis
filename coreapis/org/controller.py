@@ -20,7 +20,7 @@ class OrgController(CrudControllerBase):
         if org['realm'] in self.ldap_config:
             has_peoplesearch = True
         org['has_peoplesearch'] = has_peoplesearch
-        if org['uiinfo']:
+        if 'uiinfo' in org and org['uiinfo']:
             org['uiinfo'] = json.loads(org['uiinfo'])
         return org
 
