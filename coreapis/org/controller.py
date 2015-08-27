@@ -18,6 +18,7 @@ class OrgController(CrudControllerBase):
     def format_org(self, org):
         has_ldapgroups = False
         has_peoplesearch = False
+        psconf = None
         realm = org['realm']
         if realm in self.ldap_config:
             has_ldapgroups = True
@@ -30,6 +31,7 @@ class OrgController(CrudControllerBase):
                         break
         org['has_ldapgroups'] = has_ldapgroups
         org['has_peoplesearch'] = has_peoplesearch
+        org['peoplesearch'] = psconf
         if 'uiinfo' in org and org['uiinfo']:
             org['uiinfo'] = json.loads(org['uiinfo'])
         return org
