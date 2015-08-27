@@ -50,7 +50,7 @@ class Client(object):
             'apigk': 'id,requireuser,created,name,scopedef,httpscertpinned,status,descr,expose,updated,trust,endpoints,owner,organization',
             'groups': 'id,created,descr,name,owner,public,updated,invitation_token',
             'group_members': 'userid,groupid,status,type',
-            'organizations': 'organization_number,type,realm,id,name,fs_groups,services',
+            'organizations': 'organization_number,type,realm,id,name,fs_groups,services,uiinfo',
             'roles': 'feideid,orgid,role',
 
         }
@@ -363,7 +363,8 @@ class Client(object):
         return data
 
     def list_orgs(self):
-        prep = self._prepare('SELECT organization_number,type,realm,id,name,fs_groups,services from organizations')
+        tbl = 'organizations'
+        prep = self._prepare('SELECT {} from {}'.format(self.default_columns[tbl], tbl))
         data = self.session.execute(prep)
         for a in data:
             if 'name' in a and a['name'] is not None:
