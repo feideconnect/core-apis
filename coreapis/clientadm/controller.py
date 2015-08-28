@@ -108,11 +108,14 @@ class ClientAdmController(CrudControllerBase):
         values = [organization]
         return self._list(selectors, values, scope)
 
-    def public_clients(self):
-        clients = self._list([], [], None)
-        users = {}
-        orgs = {}
-        return [self.get_public_client(c, users, orgs) for c in clients if c]
+    def public_clients(self, orgauthorization):
+        selectors = []
+        values = []
+        if orgauthorization:
+            selectors = ['orgauthorization contains key ?']
+            values = [orgauthorization]
+        clients = self._list(selectors, values, None)
+        return [self.get_public_client(c) for c in clients if c]
 
     def has_permission(self, client, user):
         if user is None:
