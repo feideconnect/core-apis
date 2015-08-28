@@ -168,7 +168,7 @@ are not one of scope and owner, or if a parmeter value is missing or malformed.
 ## Listing public information about all clients
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
-    'https://api.feideconnect.no/clientadm/public'
+    'https://api.feideconnect.no/clientadm/public/'
 
     [{"name": "Test client", "owner": {
     "name": "Test Developer", "id": "p:00000000-0000-0000-0000-000000000001"},
@@ -180,7 +180,7 @@ Lists the publicly available information about all registered clients
 ## Listing all clients authorized by an organization
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
-    'https://api.feideconnect.no/clientadm/public?orgauthorization=<realm>'
+    'https://api.feideconnect.no/clientadm/public/?orgauthorization=<realm>'
 
     [{"name": "Test client", "owner": {
     "name": "Test Developer", "id": "p:00000000-0000-0000-0000-000000000001"},

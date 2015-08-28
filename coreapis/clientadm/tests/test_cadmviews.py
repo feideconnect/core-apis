@@ -116,7 +116,7 @@ class ClientAdmTests(unittest.TestCase):
         self.session.get_user_by_id.return_value = retrieved_user
         self.session.get_org.return_value = {'id': 'fc:org:example.com',
                                              'name': translatable({'en': 'testorg'})}
-        res = self.testapp.get('/clientadm/public',
+        res = self.testapp.get('/clientadm/public/',
                                status=200, headers=headers)
         out = res.json
         assert out[0]['name'] == 'per'
