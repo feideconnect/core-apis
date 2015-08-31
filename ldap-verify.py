@@ -12,6 +12,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description=DESCRIPTION)
     parser.add_argument('--config', default="/conf/ldap-config.json",
                         help="Config file to use")
+    parser.add_argument('orgs', help="organizations to query. (default all)",
+                        nargs='*')
     return parser.parse_args()
 
 
@@ -79,9 +81,15 @@ def main():
     config, servers = ldapcontroller.parse_ldap_config(args.config)
     sanity_check_config(config)
     print("config file looks good")
+    for org, conf in config.items():
+        print("{}: base_dn: {} servers: {}".format(org, conf['base_dn'], ", ".join(conf['servers'])))
     timer = Timer('localhost', 1234, 'ldap-verify', True, ResourcePool)
     ldap = ldapcontroller.LDAPController(timer, args.config)
-    for org in config:
+    if args.orgs:
+        orgs = args.orgs
+    else:
+        orgs = config.keys()
+    for org in orgs:
         print("trying connection to {}".format(org))
         search_filter = '(eduPersonPrincipalName=notfound@example.com)'
         ldap.ldap_search(org, search_filter,
