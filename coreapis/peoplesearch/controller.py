@@ -41,26 +41,30 @@ def in_org(user, org):
     return False
 
 
+def parse_ldap_config(filename):
+    config = json.load(open(filename))
+    servers = {}
+    for org in config:
+        orgconf = config[org]
+        server_pool = ldap3.ServerPool(None, ldap3.POOLING_STRATEGY_ROUND_ROBIN, active=True)
+        for server in orgconf['servers']:
+            if ':' in server:
+                host, port = server.split(':', 1)
+                port = int(port)
+            else:
+                host, port = server, None
+            server = ldap3.Server(host, port=port, use_ssl=True)
+            server_pool.add(server)
+        servers[org] = server_pool
+    return config, servers
+
+
 class LDAPController(object):
     def __init__(self, timer, ldap_config, pool=ResourcePool):
         self.t = timer
-        self.config = json.load(open(ldap_config))
         self.log = LogWrapper('peoplesearch.LDAPController')
-        self.servers = {}
-        self.conpools = {}
-        for org in self.config:
-            orgconf = self.config[org]
-            server_pool = ldap3.ServerPool(None, ldap3.POOLING_STRATEGY_ROUND_ROBIN, active=True)
-            for server in orgconf['servers']:
-                if ':' in server:
-                    host, port = server.split(':', 1)
-                    port = int(port)
-                else:
-                    host, port = server, None
-                server = ldap3.Server(host, port=port, use_ssl=True)
-                server_pool.add(server)
-            self.servers[org] = server_pool
-            self.conpools[org] = pool(create=partial(self.get_connection, org))
+        self.config, self.servers = parse_ldap_config(ldap_config)
+        self.conpools = {org: pool(create=partial(self.get_connection, org)) for org in self.config}
 
     def get_ldap_config(self):
         return self.config
