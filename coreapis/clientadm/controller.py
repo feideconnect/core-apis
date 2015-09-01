@@ -65,7 +65,7 @@ class ClientAdmController(CrudControllerBase):
         'client_secret': V.Nullable('string', ''),
         'descr': V.Nullable('string', ''),
         'scopes': V.Nullable(['string'], lambda: list()),
-        'orgauthorizations': V.Nullable({}),
+        'orgauthorization': V.Nullable({}),
         'status': V.Nullable(['string'], lambda: list()),
         'type': V.Nullable('string', ''),
     }
