@@ -56,6 +56,7 @@ retrieved_client = {
     'client_secret': 'sekrit', 'created': parse_datetime(date_created),
     'descr': 'green',
     'scopes_requested': blist.sortedset([testscope]), 'status': ['lab'], 'type': 'client',
+    'authproviders': [],
     'updated': parse_datetime(date_created)
 }
 

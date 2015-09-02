@@ -66,10 +66,11 @@ class ClientAdmController(CrudControllerBase):
         'descr': V.Nullable('string', ''),
         'scopes': V.Nullable(['string'], lambda: list()),
         'orgauthorization': V.Nullable({}),
+        'authproviders': V.Nullable(['string'], lambda: list()),
         'status': V.Nullable(['string'], lambda: list()),
         'type': V.Nullable('string', ''),
     }
-    public_attrs = ['id', 'name', 'descr', 'redirect_uri', 'owner', 'organization']
+    public_attrs = ['id', 'name', 'descr', 'redirect_uri', 'owner', 'organization', 'authproviders']
     scope_attrs = ['scopes', 'scopes_requested']
 
     def __init__(self, contact_points, keyspace, scopedef_file, maxrows):
@@ -182,7 +183,7 @@ class ClientAdmController(CrudControllerBase):
                                    client['scopes'], client['scopes_requested'],
                                    client['status'], client['type'], client['created'],
                                    client['updated'], client['owner'],
-                                   client['organization'])
+                                   client['organization'], client['authproviders'])
 
     # Used both for add and update.
     # By default CQL does not distinguish between INSERT and UPDATE

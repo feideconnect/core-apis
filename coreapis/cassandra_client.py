@@ -46,7 +46,7 @@ class Client(object):
         )
         self.prepared = {}
         self.default_columns = {
-            'clients': 'owner,name,type,status,scopes_requested,client_secret,created,redirect_uri,descr,id,scopes,updated,organization,orgauthorization',
+            'clients': 'owner,name,type,status,scopes_requested,client_secret,created,redirect_uri,descr,id,scopes,updated,organization,orgauthorization,authproviders',
             'apigk': 'id,requireuser,created,name,scopedef,httpscertpinned,status,descr,expose,updated,trust,endpoints,owner,organization',
             'groups': 'id,created,descr,name,owner,public,updated,invitation_token',
             'group_members': 'userid,groupid,status,type',
@@ -70,11 +70,12 @@ class Client(object):
 
     def insert_client(self, id, client_secret, name, descr,
                       redirect_uri, scopes, scopes_requested, status,
-                      type, create_ts, update_ts, owner, organization):
-        prep = self._prepare('INSERT INTO clients (id, client_secret, name, descr, redirect_uri, scopes, scopes_requested, status, type, created, updated, owner, organization) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+                      type, create_ts, update_ts, owner, organization, authproviders):
+        prep = self._prepare('INSERT INTO clients (id, client_secret, name, descr, redirect_uri, scopes, scopes_requested, status, type, created, updated, owner, organization, authproviders) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
         self.session.execute(prep.bind([id, client_secret, name, descr,
                                         redirect_uri, scopes, scopes_requested,
-                                        status, type, create_ts, update_ts, owner, organization]))
+                                        status, type, create_ts, update_ts, owner, organization,
+                                        authproviders]))
 
     def get_client_by_id(self, clientid):
         prep = self._default_get('clients')
