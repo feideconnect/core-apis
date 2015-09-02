@@ -46,14 +46,14 @@ def parse_ldap_config(filename):
     servers = {}
     for org in config:
         orgconf = config[org]
-        server_pool = ldap3.ServerPool(None, ldap3.POOLING_STRATEGY_ROUND_ROBIN, active=True)
+        server_pool = ldap3.ServerPool(None, ldap3.POOLING_STRATEGY_ROUND_ROBIN, active=True, exhaust=True)
         for server in orgconf['servers']:
             if ':' in server:
                 host, port = server.split(':', 1)
                 port = int(port)
             else:
                 host, port = server, None
-            server = ldap3.Server(host, port=port, use_ssl=True)
+            server = ldap3.Server(host, port=port, use_ssl=True, connect_timeout=1)
             server_pool.add(server)
         servers[org] = server_pool
     return config, servers
