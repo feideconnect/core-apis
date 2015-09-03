@@ -84,7 +84,7 @@ def get_client(request):
 
 
 def allowed_attrs(attrs, operation):
-    protected_keys = ['created', 'owner', 'scopes', 'updated']
+    protected_keys = ['created', 'owner', 'scopes', 'updated', 'orgauthorization']
     if operation != 'add':
         protected_keys.append('id')
         protected_keys.append('organization')

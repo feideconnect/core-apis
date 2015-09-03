@@ -44,7 +44,7 @@ but user is not admin of that organizatoin
      "scopes_requested": ["clientadmin"], "descr": "test",
      "created": "2015-01-22T10:59:03.585000"}
 
-`id`, `organization`, `created`, `owner`, `scopes` and `updated` may be given, but are
+`id`, `organization`, `orgauthorization`, `created`, `owner`, `scopes` and `updated` may be given, but are
 silently ignored.
 
 `scopes_requested` is treated as follows: `scopes` in the updated client will only contain scopes

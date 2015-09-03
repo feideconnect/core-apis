@@ -75,11 +75,11 @@ class ClientAdmController(CrudControllerBase):
         'owner': V.AdaptTo(uuid.UUID),
         'organization': V.Nullable('string', None),
         'updated': V.AdaptBy(ts),
+        'orgauthorization': V.Nullable({}),
         # Other attributes
         'client_secret': V.Nullable('string', ''),
         'descr': V.Nullable('string', ''),
         'scopes': V.Nullable(['string'], lambda: list()),
-        'orgauthorization': V.Nullable({}),
         'authproviders': V.Nullable(['string'], lambda: list()),
         'status': V.Nullable(['string'], lambda: list()),
         'type': V.Nullable('string', ''),
