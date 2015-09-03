@@ -1,5 +1,6 @@
 import blist
 import uuid
+import json
 from copy import deepcopy
 from aniso8601 import parse_datetime
 
@@ -29,6 +30,7 @@ baduris = [
     'javascript:whoknows',
     'about:connect',
 ]
+testrealm = 'example.org'
 
 userstatus = 'Public'
 reservedstatus = 'Mandatory'
@@ -57,6 +59,7 @@ retrieved_client = {
     'descr': 'green',
     'scopes_requested': blist.sortedset([testscope]), 'status': ['lab'], 'type': 'client',
     'authproviders': [],
+    'orgauthorization': {},
     'updated': parse_datetime(date_created)
 }
 
@@ -65,6 +68,16 @@ retrieved_user = {
     'selectedsource': 'us',
     'name': {'us': 'foo'},
     'userid': uuid.UUID(userid_own),
+}
+
+orgadmin_policy = {
+    'target': [testrealm],
+    'moderate': True
+}
+
+subscope_policy = {
+    'auto': True,
+    'orgadmin': orgadmin_policy
 }
 
 retrieved_gk_clients = [deepcopy(retrieved_client) for i in range(4)]
@@ -84,16 +97,18 @@ retrieved_gk_clients[2].update({
     'scopes_requested': [othergk]
 })
 
+testgk_foo = testgk + '_foo'
 retrieved_gk_clients[3].update({
     'id': '00000000-0000-0000-0000-000000000006',
-    'scopes': [testgk],
-    'scopes_requested': [testgk, othergk],
+    'scopes': [testgk, testgk_foo],
+    'scopes_requested': [testgk, testgk_foo, othergk],
+    'orgauthorization': {testrealm: json.dumps([testgk, testgk_foo])}
 })
 
 retrieved_gk_client = retrieved_gk_clients[0]
 
 apigks = {testgk.split('_')[1]: {'owner': uuid.UUID(userid_other),
-                                 'scopedef': {'subscopes': {'foo': {}}}},
+                                 'scopedef': {'subscopes': {'foo': {'policy': subscope_policy}}}},
           othergk.split('_')[1]: {'owner': uuid.UUID(userid_third),
                                   'scopedef': {}},
           owngk.split('_')[1]: {'owner': uuid.UUID(userid_own),
@@ -109,6 +124,9 @@ def mock_get_apigk(gkid):
     ret = deepcopy(apigks[gkid])
     ret.update({'id': gkid})
     return ret
+
+
+retrieved_apigks = [mock_get_apigk(id) for id in apigks]
 
 
 def mock_get_clients_by_scope(scope):

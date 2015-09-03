@@ -97,10 +97,9 @@ class ClientAdmController(CrudControllerBase):
     def adapt_client(client):
         for k, v in client.items():
             if k == 'orgauthorization':
+                client[k] = {}
                 if v:
                     client[k] = {k2: json.loads(v2) for k2, v2 in v.items()}
-                else:
-                    client[k] = {}
             elif isinstance(v, blist.sortedset):
                 client[k] = list(v)
         return client
@@ -266,6 +265,68 @@ class ClientAdmController(CrudControllerBase):
                           clientid=client['id'], userid=client['owner'])
             return None
         return pubclient
+
+    # Return clients for each scope as dict { <scope>: set(clientids)}
+    def get_scope_clients(self):
+        res = {}
+        for client in self._list([], [], None):
+            clientscopes = client.get('scopes', None)
+            if clientscopes:
+                for scope in [scope for scope in clientscopes if is_gkscopename(scope)]:
+                    clientids = set(res.get(scope, []))
+                    clientids.add(str(client['id']))
+                    res[scope] = clientids
+        return res
+
+    # Return targets for a scope with subscopes as dict { <scope>: set(realms)}
+    def get_scope_targets(self, name, scopedef):
+        res = {}
+        if scopedef:
+            try:
+                res[name] = set(scopedef['policy']['orgadmin']['target'])
+            except KeyError:
+                pass  # scopedef does not have orgadmin targets
+            subscopes = scopedef.get('subscopes', None)
+            if subscopes:
+                for subname, scopedef in subscopes.items():
+                    res.update(self.get_scope_targets('{}_{}'.format(name, subname), scopedef))
+        return res
+
+    # Return dict { <scope>: set(realms)} including all scopes, subscopes and their realms
+    def get_scope_targets_all(self):
+        res = {}
+        for apigk in self.session.get_apigks([], [], 999999):
+            res.update(self.get_scope_targets('gk_' + apigk['id'], apigk['scopedef']))
+        return res
+
+    # Return all clients which have been assigned a scope targeting this realm
+    # as dict { <client id>: [<scope>, ..]}
+    def get_realmclient_scopes(self, realm):
+        # Get dict { <scope>: set(clientids)} including all scopes, subscopes and their clients
+        clientids = self.get_scope_clients()
+        # Get dict { <scope>: set(realms)} including all scopes, subscopes and their realms
+        scope_targets = self.get_scope_targets_all()
+        # For scopes which target the realm, add list of clients to result dict
+        res = {}
+        for scopename, realms in scope_targets.items():
+            if realm in realms and scopename in clientids.keys():
+                for clientid in clientids[scopename]:
+                    scopenames = set(res.get(clientid, []))
+                    scopenames.add(scopename)
+                    res[clientid] = list(scopenames)
+        return res
+
+    def get_realmclient(self, realm, clientid, scopes):
+        client = self.get(uuid.UUID(clientid))
+        orgauthz = client.get('orgauthorization', {})
+        scopeauthz = {scope: scope in orgauthz.get(realm, '[]') for scope in list(scopes)}
+        pubclient = self.get_public_client(client)
+        pubclient['scopeauthorizations'] = scopeauthz
+        return pubclient
+
+    def get_realmclients(self, realm):
+        return [self.get_realmclient(realm, k, v)
+                for k, v in self.get_realmclient_scopes(realm).items()]
 
     def get_gkscope_client(self, client, gkscopes, users=None, orgs=None):
         gkclient = self.get_public_client(client, users, orgs)

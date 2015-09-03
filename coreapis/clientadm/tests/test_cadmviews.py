@@ -12,8 +12,8 @@ from coreapis.utils import translatable
 from coreapis.clientadm.tests.helper import (
     userid_own, userid_other, clientid, date_created, testscope, otherscope, testuris, baduris,
     post_body_minimal, post_body_other_owner, post_body_maximal, retrieved_client,
-    retrieved_user, testgk, othergk, owngk, nullscopedefgk, httptime, mock_get_apigk,
-    userstatus, reservedstatus)
+    retrieved_user, retrieved_gk_clients, testgk, testgk_foo, othergk, owngk, nullscopedefgk,
+    httptime, mock_get_apigk, retrieved_apigks, userstatus, reservedstatus, testrealm)
 
 
 class ClientAdmTests(unittest.TestCase):
@@ -66,21 +66,21 @@ class ClientAdmTests(unittest.TestCase):
 
     def test_list_clients(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_clients.return_value = [retrieved_client]
+        self.session.get_clients.return_value = [deepcopy(retrieved_client)]
         res = self.testapp.get('/clientadm/clients/', status=200, headers=headers)
         out = res.json
         assert out[0]['name'] == 'per'
 
     def test_list_clients_by_scope(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_clients.return_value = [retrieved_client]
+        self.session.get_clients.return_value = [deepcopy(retrieved_client)]
         res = self.testapp.get('/clientadm/clients/?scope=userlist', status=200, headers=headers)
         out = res.json
         assert out[0]['name'] == 'per'
 
     def test_list_clients_by_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_clients.return_value = [retrieved_client]
+        self.session.get_clients.return_value = [deepcopy(retrieved_client)]
         res = self.testapp.get('/clientadm/clients/?owner={}'.format(uuid.UUID(userid_own)),
                                status=200, headers=headers)
         out = res.json
@@ -88,14 +88,14 @@ class ClientAdmTests(unittest.TestCase):
 
     def test_list_clients_by_other_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_clients.return_value = [retrieved_client]
+        self.session.get_clients.return_value = [deepcopy(retrieved_client)]
         self.testapp.get('/clientadm/clients/?owner={}'.format(uuid.UUID(userid_other)), status=200,
                          headers=headers)
         assert self.session.get_clients.call_args[0][1][0] == uuid.UUID(userid_own)
 
     def test_list_clients_by_org(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_clients.return_value = [retrieved_client]
+        self.session.get_clients.return_value = [deepcopy(retrieved_client)]
         self.session.is_org_admin.return_value = True
         res = self.testapp.get('/clientadm/clients/?organization={}'.format('fc:org:example.com'),
                                status=200, headers=headers)
@@ -112,7 +112,7 @@ class ClientAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         org_client = deepcopy(retrieved_client)
         org_client['organization'] = 'fc:org:example.com'
-        self.session.get_clients.return_value = [retrieved_client, org_client]
+        self.session.get_clients.return_value = deepcopy([retrieved_client, org_client])
         self.session.get_user_by_id.return_value = retrieved_user
         self.session.get_org.return_value = {'id': 'fc:org:example.com',
                                              'name': translatable({'en': 'testorg'})}
@@ -123,6 +123,22 @@ class ClientAdmTests(unittest.TestCase):
         assert 'scopes' not in out[0]
         assert out[1]['organization']['id'] == 'fc:org:example.com'
         assert out[1]['organization']['name'] == 'testorg'
+
+    def test_list_public_clients_orgauth(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        org_client = deepcopy(retrieved_gk_clients[3])
+        org_client['organization'] = 'fc:org:example.com'
+        self.session.get_clients.return_value = [org_client]
+        self.session.get_user_by_id.return_value = retrieved_user
+        self.session.get_org.return_value = {'id': 'fc:org:example.com',
+                                             'name': translatable({'en': 'testorg'})}
+        res = self.testapp.get('/clientadm/public/?orgauthorization={}'.format(testrealm),
+                               status=200, headers=headers)
+        out = res.json
+        assert out[0]['name'] == 'per'
+        assert 'scopes' not in out[0]
+        assert out[0]['organization']['id'] == 'fc:org:example.com'
+        assert out[0]['organization']['name'] == 'testorg'
 
     def test_post_client_minimal(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -709,3 +725,13 @@ class ClientAdmTests(unittest.TestCase):
         res = self.testapp.get('/clientadm/scopes/', status=200)
         assert 'userinfo' in res.json
         assert 'apigkadm' not in res.json
+
+    def test_list_targetrealm(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_clients.return_value = deepcopy(retrieved_gk_clients)
+        self.session.get_apigks.return_value = deepcopy(retrieved_apigks)
+        self.session.get_client_by_id.return_value = deepcopy(retrieved_gk_clients[3])
+        self.session.get_user_by_id.return_value = retrieved_user
+        res = self.testapp.get('/clientadm/realmclients/targetrealm/{}/'.format(testrealm),
+                               status=200, headers=headers)
+        assert res.json[0]['scopeauthorizations'][testgk_foo] is True

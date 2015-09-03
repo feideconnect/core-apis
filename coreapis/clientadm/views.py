@@ -34,6 +34,7 @@ def configure(config):
     config.add_route('client_logo', '/clients/{id}/logo')
     config.add_route('list_scopes', '/scopes/')
     config.add_route('orgauthorization', '/clients/{id}/orgauthorization/{realm}')
+    config.add_route('realmclients', '/realmclients/targetrealm/{realm}/', request_method='GET')
     config.scan(__name__)
 
 
@@ -212,3 +213,10 @@ def delete_orgauthorization(request):
     client, realm = check_orgauthz_params(request)
     request.cadm_controller.delete_orgauthorization(client, realm)
     return 'OK'
+
+
+@view_config(route_name='realmclients', request_method="GET", permission='scope_clientadmin',
+             renderer="json")
+def get_realmclients(request):
+    realm = request.matchdict['realm']
+    return request.cadm_controller.get_realmclients(realm)
