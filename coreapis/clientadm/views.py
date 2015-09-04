@@ -1,6 +1,6 @@
 from pyramid.view import view_config
 from pyramid.httpexceptions import (
-    HTTPNotFound, HTTPConflict, HTTPForbidden)
+    HTTPNotFound, HTTPConflict, HTTPForbidden, HTTPBadRequest)
 from pyramid.response import Response
 from .controller import ClientAdmController
 from coreapis.utils import AlreadyExistsError, ForbiddenError, get_userid, get_payload, get_user, translation
@@ -33,6 +33,7 @@ def configure(config):
     config.add_route('update_gkscopes', '/clients/{id}/gkscopes', request_method='PATCH')
     config.add_route('client_logo', '/clients/{id}/logo')
     config.add_route('list_scopes', '/scopes/')
+    config.add_route('orgauthorization', '/clients/{id}/orgauthorization/{realm}')
     config.scan(__name__)
 
 
@@ -167,3 +168,36 @@ def upload_logo(request):
 @view_config(route_name='list_scopes', renderer="json")
 def list_scopes(request):
     return request.cadm_controller.list_public_scopes()
+
+
+def check_orgauthz_params(request):
+    user = get_user(request)
+    clientid = get_clientid(request)
+    realm = request.matchdict['realm']
+    try:
+        if not request.cadm_controller.has_realm_permission(realm, user):
+            raise HTTPForbidden('Insufficient permissions')
+        client = request.cadm_controller.get(clientid)
+        return client, realm
+    except KeyError:
+        raise HTTPNotFound()
+
+
+@view_config(route_name='orgauthorization', request_method="PATCH", permission='scope_clientadmin',
+             renderer="json")
+def update_orgauthorization(request):
+    client, realm = check_orgauthz_params(request)
+    scopes = get_payload(request)
+    if not isinstance(scopes, list):
+        raise HTTPBadRequest('Scopes must be a list')
+    scopes = list(set(scopes))
+    request.cadm_controller.update_orgauthorization(client, realm, scopes)
+    return scopes
+
+
+@view_config(route_name='orgauthorization', request_method="DELETE", permission='scope_clientadmin',
+             renderer="json")
+def delete_orgauthorization(request):
+    client, realm = check_orgauthz_params(request)
+    request.cadm_controller.delete_orgauthorization(client, realm)
+    return 'OK'

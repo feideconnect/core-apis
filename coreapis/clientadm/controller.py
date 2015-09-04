@@ -329,3 +329,13 @@ class ClientAdmController(CrudControllerBase):
         client = self.add_gkscopes(client, user, scopes_add)
         client = self.remove_gkscopes(client, user, scopes_remove)
         self.insert_client(client)
+
+    def has_realm_permission(self, realm, user):
+        org = self.session.get_org_by_realm(realm)
+        return self.is_org_admin(user, org['id'])
+
+    def update_orgauthorization(self, client, realm, scopes):
+        self.session.insert_orgauthorization(client['id'], realm, json.dumps(scopes))
+
+    def delete_orgauthorization(self, client, realm):
+        self.session.delete_orgauthorization(client['id'], realm)

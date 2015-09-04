@@ -126,6 +126,14 @@ class Client(object):
                 userid = row['userid']
                 self.delete_authorization(userid, clientid)
 
+    def insert_orgauthorization(self, clientid, realm, scopes):
+        prep = self._prepare('UPDATE clients SET orgauthorization[?] = ? WHERE id = ?')
+        self.session.execute(prep.bind([realm, scopes, clientid]))
+
+    def delete_orgauthorization(self, clientid, realm):
+        prep = self._prepare('DELETE orgauthorization[?] FROM clients WHERE id = ?')
+        self.session.execute(prep.bind([realm, clientid]))
+
     def get_token(self, tokenid):
         prep = self._prepare('SELECT * FROM oauth_tokens WHERE access_token = ?')
         res = self.session.execute(prep.bind([tokenid]))
