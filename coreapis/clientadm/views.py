@@ -170,14 +170,15 @@ def list_scopes(request):
     return request.cadm_controller.list_public_scopes()
 
 
-def check_orgauthz_params(request):
+def check_orgauthz_params(request, owner_ok=True):
     user = get_user(request)
     clientid = get_clientid(request)
     realm = request.matchdict['realm']
     try:
-        if not request.cadm_controller.has_realm_permission(realm, user):
-            raise HTTPForbidden('Insufficient permissions')
         client = request.cadm_controller.get(clientid)
+        if not request.cadm_controller.has_realm_permission(realm, user):
+            if not owner_ok or not request.cadm_controller.has_permission(client, user):
+                raise HTTPForbidden('Insufficient permissions')
         return client, realm
     except KeyError:
         raise HTTPNotFound
@@ -196,7 +197,7 @@ def get_orgauthorization(request):
 @view_config(route_name='orgauthorization', request_method="PATCH", permission='scope_clientadmin',
              renderer="json")
 def update_orgauthorization(request):
-    client, realm = check_orgauthz_params(request)
+    client, realm = check_orgauthz_params(request, owner_ok=False)
     scopes = get_payload(request)
     if not isinstance(scopes, list):
         raise HTTPBadRequest('Scopes must be a list')
