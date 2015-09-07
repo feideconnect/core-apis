@@ -334,6 +334,9 @@ class ClientAdmController(CrudControllerBase):
         org = self.session.get_org_by_realm(realm)
         return self.is_org_admin(user, org['id'])
 
+    def get_orgauthorization(self, client, realm):
+        return client['orgauthorization'].get(realm, '[]')
+
     def update_orgauthorization(self, client, realm, scopes):
         self.session.insert_orgauthorization(client['id'], realm, json.dumps(scopes))
 

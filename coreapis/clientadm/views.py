@@ -180,7 +180,17 @@ def check_orgauthz_params(request):
         client = request.cadm_controller.get(clientid)
         return client, realm
     except KeyError:
-        raise HTTPNotFound()
+        raise HTTPNotFound
+
+
+@view_config(route_name='orgauthorization', request_method="GET", permission='scope_clientadmin',
+             renderer="json")
+def get_orgauthorization(request):
+    client, realm = check_orgauthz_params(request)
+    try:
+        return request.cadm_controller.get_orgauthorization(client, realm)
+    except KeyError:
+        raise HTTPNotFound
 
 
 @view_config(route_name='orgauthorization', request_method="PATCH", permission='scope_clientadmin',
