@@ -406,7 +406,10 @@ class LogoRenderer(object):
 
     def __call__(self, value, system):
         request = system['request']
-        logo, updated, fallback_file = value
+        logo, updated, fallback_file = value[:3]
+        content_type = 'image/png'
+        if len(value) > 3:
+            content_type = value[3]
         if logo is None:
             with open(fallback_file, 'rb') as fh:
                 logo = fh.read()
@@ -415,8 +418,7 @@ class LogoRenderer(object):
             raise HTTPNotModified
         response = request.response
         response.charset = None
-        if not response.content_type:
-            response.content_type = 'image/png'
+        response.content_type = content_type
         response.cache_control = 'public, max-age=3600'
         response.last_modified = updated
         return logo

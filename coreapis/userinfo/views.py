@@ -29,7 +29,6 @@ def get_userinfo(request):
 def get_profilephoto(request):
     try:
         profilephoto, updated = request.userinfo_controller.get_profilephoto(request.matchdict['userid_sec'])
-        request.response.content_type = 'image/jpeg'
-        return profilephoto, updated, 'data/default-profile.jpg'
+        return profilephoto, updated, 'data/default-profile.jpg', 'image/jpeg'
     except KeyError:
         raise HTTPNotFound

@@ -629,6 +629,7 @@ class ClientAdmTests(unittest.TestCase):
         self.session.get_client_logo.return_value = b'mylittlelogo', updated
         res = self.testapp.get('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), status=200,
                                headers=headers)
+        assert res.content_type == 'image/png'
         out = res.body
         assert b'mylittlelogo' in out
 
