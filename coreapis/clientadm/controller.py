@@ -36,6 +36,20 @@ def is_gkscopename(name):
     return name.startswith('gk_')
 
 
+def filter_missing_mainscope(scopes):
+    return [scope for scope in scopes if gk_mainscope(scope) in scopes]
+
+
+def gk_mainscope(name):
+    if not is_gkscopename(name):
+        return name
+    nameparts = name.split('_')
+    if len(nameparts) == 2:
+        return name
+    else:
+        return "_".join(nameparts[:2])
+
+
 def has_gkscope_match(scope, gkscopes):
     return any(scope == gkscope or scope.startswith(gkscope + '_')
                for gkscope in gkscopes)
@@ -188,6 +202,7 @@ class ClientAdmController(CrudControllerBase):
     # Used both for add and update.
     # By default CQL does not distinguish between INSERT and UPDATE
     def _insert(self, client):
+        client['scopes_requested'] = filter_missing_mainscope(client['scopes_requested'])
         client['scopes'] = list(set(client['scopes']).intersection(set(client['scopes_requested'])))
         for scope in set(client['scopes_requested']).difference(set(client['scopes'])):
             self.handle_scope_request(client, scope)
