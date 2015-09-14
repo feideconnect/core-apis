@@ -102,7 +102,8 @@ def add_apigk(request):
 @view_config(route_name='delete_apigk', renderer='json', permission='scope_apigkadmin')
 def delete_apigk(request):
     gk = check(request)
-    request.gkadm_controller.delete(gk['id'])
+    user = get_user(request)
+    request.gkadm_controller.delete(gk, user)
     return Response(status=204, content_type=False)
 
 

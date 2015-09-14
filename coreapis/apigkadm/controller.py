@@ -1,7 +1,7 @@
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.clientadm.controller import ClientAdmController
-from coreapis.utils import LogWrapper, ts, public_userinfo, public_orginfo
+from coreapis.utils import LogWrapper, ts, public_userinfo, public_orginfo, log_token
 import uuid
 import valideer as V
 import re
@@ -72,8 +72,40 @@ class APIGKAdmController(CrudControllerBase):
         apigk = self.session.get_apigk(id)
         return apigk
 
-    def delete(self, id):
-        self.log.debug('Delete apigk', id=id)
+    def delete(self, gk, user):
+        id = gk['id']
+        mainscope = 'gk_' + id
+        subscopes = ['{}_{}'.format(mainscope, s) for s in gk.get('scopedef', {}).get('subscopes', {}).keys()]
+        gk_scopes = [mainscope] + subscopes
+        self.log.debug('Delete apigk', id=id, scopes=gk_scopes)
+        # Delete scopes from all clients
+        clients = self.cadm_controller.get_gkscope_clients(['gk_' + id])
+        for client in clients:
+            scopes = set(client['scopes_requested']) | set(client['scopes'])
+            self.log.debug('removing scopes from client', client=client['id'],
+                           scopes_removed=list(scopes))
+            self.cadm_controller.update_gkscopes(client['id'], user, [], scopes)
+        # Delete scopes from all oauth_authorizations
+        authorizations = {}
+        for scope in gk_scopes:
+            authorizations.update({(a['userid'], a['clientid']): a for a in self.session.get_oauth_authorizations_by_scope(scope)})
+        for auth in authorizations.values():
+            scopes = auth['scopes']
+            auth['scopes'] = [scope for scope in scopes if scope not in gk_scopes]
+            self.log.debug('removing scopes from oauth_authorization', userid=auth['userid'],
+                           clientid=auth['clientid'],
+                           scopes_removed=list(set(scopes).difference(auth['scopes'])))
+            self.session.update_oauth_authorization_scopes(auth)
+        # Delete scopes from all tokens
+        tokens = {}
+        for scope in gk_scopes:
+            tokens.update({t['access_token']: t for t in self.session.get_tokens_by_scope(scope)})
+        for tokenid, token in tokens.items():
+            scopes = token['scope']
+            token['scope'] = [scope for scope in scopes if scope not in gk_scopes]
+            self.log.debug('removing scopes from oauth_token', token=log_token(tokenid),
+                           scopes_removed=list(set(scopes).difference(token['scope'])))
+            self.session.update_token_scopes(tokenid, token['scope'])
         self.session.delete_apigk(id)
 
     def list_by_owner(self, owner):

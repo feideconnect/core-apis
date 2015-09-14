@@ -133,6 +133,14 @@ class Client(object):
             raise KeyError('No such token')
         return res[0]
 
+    def get_tokens_by_scope(self, scope):
+        prep = self._prepare('SELECT * FROM oauth_tokens WHERE scope contains ?')
+        return self.session.execute(prep.bind([scope]))
+
+    def update_token_scopes(self, access_token, scopes):
+        prep = self._prepare('UPDATE oauth_tokens SET scope = ? WHERE access_token = ?')
+        return self.session.execute(prep.bind([scopes, access_token]))
+
     def get_user_by_id(self, userid):
         prep = self._prepare('SELECT userid, aboveagelimit, created, email, name, selectedsource, updated, usageterms, userid_sec, userid_sec_seen FROM users WHERE userid = ?')
         res = self.session.execute(prep.bind([userid]))
@@ -252,6 +260,14 @@ class Client(object):
             tokenid = token['access_token']
             self.log.debug('deleting token', token=tokenid)
             self.delete_token(tokenid)
+
+    def get_oauth_authorizations_by_scope(self, scope):
+        prep = self._prepare('SELECT * FROM oauth_authorizations WHERE scopes CONTAINS ?')
+        return self.session.execute(prep.bind([scope]))
+
+    def update_oauth_authorization_scopes(self, auth):
+        prep = self._prepare('INSERT INTO oauth_authorizations (userid, clientid, scopes) VALUES (?, ?, ?)')
+        return self.session.execute(prep.bind([auth['userid'], auth['clientid'], auth['scopes']]))
 
     def get_group(self, groupid):
         prep = self._default_get('groups')
