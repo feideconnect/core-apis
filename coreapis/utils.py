@@ -14,6 +14,7 @@ from aniso8601 import parse_datetime
 from queue import Queue, Empty
 from threading import Lock
 from pyramid.httpexceptions import HTTPBadRequest, HTTPNotModified
+import hashlib
 
 __local = threading.local()
 
@@ -422,3 +423,7 @@ class LogoRenderer(object):
         response.cache_control = 'public, max-age=3600'
         response.last_modified = updated
         return logo
+
+
+def log_token(token):
+    return hashlib.md5(token.bytes).hexdigest()
