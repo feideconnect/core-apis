@@ -178,7 +178,7 @@ class APIGKAdmTests(unittest.TestCase):
 
     def test_delete_apigk(self):
         headers = {'Authorization': 'Bearer user_token'}
-        id = uuid.uuid4()
+        id = 'testapi'
         self.session().get_apigk.return_value = {'owner': uuid.UUID('00000000-0000-0000-0000-000000000001'), 'id': id}
         self.testapp.delete('/apigkadm/apigks/{}'.format(id), status=204, headers=headers)
 
