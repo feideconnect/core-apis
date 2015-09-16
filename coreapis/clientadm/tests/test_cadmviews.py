@@ -726,6 +726,13 @@ class ClientAdmTests(unittest.TestCase):
         assert 'userinfo' in res.json
         assert 'apigkadm' not in res.json
 
+    def test_update_orgauthorization(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        res = self.testapp.patch_json('/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm),
+                                      [testgk],
+                                      status=200, headers=headers)
+        assert res.json == [testgk]
+
     def test_list_targetrealm(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_clients.return_value = deepcopy(retrieved_gk_clients)
