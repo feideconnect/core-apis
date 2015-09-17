@@ -212,7 +212,7 @@ def update_orgauthorization(request):
 def delete_orgauthorization(request):
     client, realm = check_orgauthz_params(request)
     request.cadm_controller.delete_orgauthorization(client, realm)
-    return 'OK'
+    return Response(status='204 No Content', content_type=False)
 
 
 @view_config(route_name='realmclients', request_method="GET", permission='scope_clientadmin',

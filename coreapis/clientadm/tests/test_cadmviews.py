@@ -726,12 +726,73 @@ class ClientAdmTests(unittest.TestCase):
         assert 'userinfo' in res.json
         assert 'apigkadm' not in res.json
 
+    def test_get_orgauthorization(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_by_id.return_value = deepcopy(retrieved_gk_clients[3])
+        res = self.testapp.get('/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm),
+                               status=200, headers=headers)
+        assert res.json[0] == testgk
+
+    def test_get_orgauth_missing_client(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_by_id.side_effect = KeyError()
+        self.testapp.get('/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm),
+                               status=404, headers=headers)
+
+    def test_get_orgauth_not_owner(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_gk_clients[3])
+        client['owner'] = uuid.UUID(userid_other)
+        self.session.get_client_by_id.return_value = client
+        self.session.is_org_admin.return_value = False
+        self.testapp.get('/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm),
+                         status=403, headers=headers)
+
+    def test_get_orgauth_not_realm_admin(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_by_id.return_value = deepcopy(retrieved_gk_clients[3])
+        self.session.is_org_admin.return_value = False
+        res = self.testapp.get('/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm),
+                               status=200, headers=headers)
+        assert res.json[0] == testgk
+
+    def test_get_orgauth_empty_orgauthorization(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
+        res = self.testapp.get('/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm),
+                               status=200, headers=headers)
+        assert res.json == []
+
+    def test_get_orgauth_no_orgauthorization(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        del client['orgauthorization']
+        self.session.get_client_by_id.return_value = client
+        res = self.testapp.get('/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm),
+                         status=404, headers=headers)
+
     def test_update_orgauthorization(self):
         headers = {'Authorization': 'Bearer user_token'}
         res = self.testapp.patch_json('/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm),
-                                      [testgk],
-                                      status=200, headers=headers)
+                                      [testgk], status=200, headers=headers)
         assert res.json == [testgk]
+
+    def test_update_orgauth_not_realm_admin(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.is_org_admin.return_value = False
+        self.testapp.patch_json('/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm),
+                                testgk, status=403, headers=headers)
+
+    def test_update_orgauth_bad_scopes(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.testapp.patch_json('/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm),
+                                testgk, status=400, headers=headers)
+
+    def test_delete_orgauthorization(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
+        self.testapp.delete('/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm), status=204,
+                            headers=headers)
 
     def test_list_targetrealm(self):
         headers = {'Authorization': 'Bearer user_token'}

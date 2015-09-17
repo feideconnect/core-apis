@@ -100,6 +100,7 @@ retrieved_gk_clients[2].update({
 testgk_foo = testgk + '_foo'
 retrieved_gk_clients[3].update({
     'id': '00000000-0000-0000-0000-000000000006',
+    'owner': uuid.UUID(userid_own),
     'scopes': [testgk, testgk_foo],
     'scopes_requested': [testgk, testgk_foo, othergk],
     'orgauthorization': {testrealm: json.dumps([testgk, testgk_foo])}
