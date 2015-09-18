@@ -394,7 +394,14 @@ class ClientAdmController(CrudControllerBase):
         self.insert_client(client)
 
     def has_realm_permission(self, realm, user):
-        org = self.session.get_org_by_realm(realm)
+        parts = realm.split('|')
+        if len(parts) != 3:
+            return False
+        if parts[0] != 'feide':
+            return False
+        if parts[1] != 'realm':
+            return False
+        org = self.session.get_org_by_realm(parts[2])
         return self.is_org_admin(user, org['id'])
 
     @staticmethod

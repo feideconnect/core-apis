@@ -31,6 +31,7 @@ baduris = [
     'about:connect',
 ]
 testrealm = 'example.org'
+prefixed_realm = 'feide|realm|' + testrealm
 
 userstatus = 'Public'
 reservedstatus = 'Mandatory'
@@ -71,7 +72,7 @@ retrieved_user = {
 }
 
 orgadmin_policy = {
-    'target': [testrealm],
+    'target': [prefixed_realm],
     'moderate': True
 }
 
@@ -103,7 +104,7 @@ retrieved_gk_clients[3].update({
     'owner': uuid.UUID(userid_own),
     'scopes': [testgk, testgk_foo],
     'scopes_requested': [testgk, testgk_foo, othergk],
-    'orgauthorization': {testrealm: json.dumps([testgk, testgk_foo])}
+    'orgauthorization': {prefixed_realm: json.dumps([testgk, testgk_foo])}
 })
 
 retrieved_gk_client = retrieved_gk_clients[0]

@@ -13,7 +13,8 @@ from coreapis.clientadm.tests.helper import (
     userid_own, userid_other, clientid, date_created, testscope, otherscope, testuris, baduris,
     post_body_minimal, post_body_other_owner, post_body_maximal, retrieved_client,
     retrieved_user, retrieved_gk_clients, testgk, testgk_foo, othergk, owngk, nullscopedefgk,
-    httptime, mock_get_apigk, retrieved_apigks, userstatus, reservedstatus, testrealm)
+    httptime, mock_get_apigk, retrieved_apigks, userstatus, reservedstatus, testrealm,
+    prefixed_realm)
 
 
 class ClientAdmTests(unittest.TestCase):
@@ -131,7 +132,7 @@ class ClientAdmTests(unittest.TestCase):
         self.session.get_user_by_id.return_value = retrieved_user
         self.session.get_org.return_value = {'id': 'fc:org:example.com',
                                              'name': translatable({'en': 'testorg'})}
-        path = '/clientadm/public/?orgauthorization={}'.format(testrealm)
+        path = '/clientadm/public/?orgauthorization={}'.format(prefixed_realm)
         res = self.testapp.get(path, status=200, headers=headers)
         out = res.json
         assert out[0]['name'] == 'per'
@@ -734,14 +735,14 @@ class ClientAdmTests(unittest.TestCase):
     def test_get_orgauthorization(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.return_value = deepcopy(retrieved_gk_clients[3])
-        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
+        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, prefixed_realm)
         res = self.testapp.get(path, status=200, headers=headers)
         assert res.json[0] == testgk
 
     def test_get_orgauth_missing_client(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.side_effect = KeyError()
-        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
+        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, prefixed_realm)
         self.testapp.get(path, status=404, headers=headers)
 
     def test_get_orgauth_not_owner(self):
@@ -750,21 +751,21 @@ class ClientAdmTests(unittest.TestCase):
         client['owner'] = uuid.UUID(userid_other)
         self.session.get_client_by_id.return_value = client
         self.session.is_org_admin.return_value = False
-        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
+        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, prefixed_realm)
         self.testapp.get(path, status=403, headers=headers)
 
     def test_get_orgauth_not_realm_admin(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.return_value = deepcopy(retrieved_gk_clients[3])
         self.session.is_org_admin.return_value = False
-        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
+        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, prefixed_realm)
         res = self.testapp.get(path, status=200, headers=headers)
         assert res.json[0] == testgk
 
     def test_get_orgauth_empty_orgauthorization(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
-        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
+        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, prefixed_realm)
         res = self.testapp.get(path, status=200, headers=headers)
         assert res.json == []
 
@@ -773,30 +774,37 @@ class ClientAdmTests(unittest.TestCase):
         client = deepcopy(retrieved_client)
         del client['orgauthorization']
         self.session.get_client_by_id.return_value = client
-        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
+        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, prefixed_realm)
         self.testapp.get(path, status=404, headers=headers)
 
     def test_update_orgauthorization(self):
         headers = {'Authorization': 'Bearer user_token'}
-        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
+        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, prefixed_realm)
         res = self.testapp.patch_json(path, [testgk], status=200, headers=headers)
         assert res.json == [testgk]
 
     def test_update_orgauth_not_realm_admin(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.is_org_admin.return_value = False
-        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
+        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, prefixed_realm)
         self.testapp.patch_json(path, testgk, status=403, headers=headers)
+
+    def test_update_orgauth_bad_realm(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.is_org_admin.return_value = False
+        for realm in [testrealm, 'big|bad|wolf.com', 'feide|vgs|' + testrealm]:
+            path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, realm)
+            self.testapp.patch_json(path, testgk, status=403, headers=headers)
 
     def test_update_orgauth_bad_scopes(self):
         headers = {'Authorization': 'Bearer user_token'}
-        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
+        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, prefixed_realm)
         self.testapp.patch_json(path, testgk, status=400, headers=headers)
 
     def test_delete_orgauthorization(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
-        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
+        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, prefixed_realm)
         self.testapp.delete(path, status=204, headers=headers)
 
     def test_list_targetrealm(self):
@@ -805,6 +813,6 @@ class ClientAdmTests(unittest.TestCase):
         self.session.get_apigks.return_value = deepcopy(retrieved_apigks)
         self.session.get_client_by_id.return_value = deepcopy(retrieved_gk_clients[3])
         self.session.get_user_by_id.return_value = retrieved_user
-        path = '/clientadm/realmclients/targetrealm/{}/'.format(testrealm)
+        path = '/clientadm/realmclients/targetrealm/{}/'.format(prefixed_realm)
         res = self.testapp.get(path, status=200, headers=headers)
         assert res.json[0]['scopeauthorizations'][testgk_foo] is True
