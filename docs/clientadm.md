@@ -60,11 +60,11 @@ in the client only if at least one of the following applies:
   `<foo>` is the name of an API gatekeeper which has subscope
   `<bar>`. The  scopedef of `<bar>` should have policy `auto:true`.
 
-`status` is treated as follows: 
+`status` is treated as follows:
 
 - User may add or remove the 'Public' flag.
 - Attempts to add or remove other flags are silently ignored.
- 
+
 Returns `200 OK`, and client as json in body. Returns `400 Bad
 Request` if request body violates the schema or is malformed in some
 way. Returns `403 Forbidden` if trying to update a client not
@@ -228,3 +228,96 @@ Returns `403 Forbidden` if trying to change logo of a client not owned by user. 
 
 Returns `200 OK` with a json object body with entries for each public
 scope.
+
+## Listing orgauthorizations
+
+    $ curl -X GET -H "Authorization: Bearer $TOKEN" \
+	'https://api.feideconnect.no/clientadm/clients/<id>/orgauthorization/<realm>'
+
+    [
+        "gk_foo",
+        "gk_jktest"
+    ]
+
+Returns a list of scopes available to the client and authorized for
+the realm.
+
+Feide realms are given as follows: `feide|realm|<realm>`,
+e.g. `feide|realm|uninett.no`.
+
+The caller has to be one of
+
+- the owner of the client
+- an administrator of the owner organization of the realm
+
+## Adding or updating an orgauthorization
+
+    $ curl -X PATCH -H "Authorization: Bearer $TOKEN" \
+	-d '["gk_jktest_rw"]'
+	'https://api.feideconnect.no/clientadm/clients/<id>/orgauthorization/<realm>'
+
+    [
+        "gk_jktest_rw"
+    ]
+
+Input is the new list of scopes available to the client and authorized
+for the realm. The same list is returned. It does not matter if there
+already was a list, but note that the old list is overwritten
+
+Feide realms are given as follows: `feide|realm|<realm>`,
+e.g. `feide|realm|uninett.no`.
+
+The caller has to be an administrator of the owner organization of the realm.
+
+## Deleting an orgauthorization
+
+    $ curl -X DELETE -H "Authorization: Bearer $TOKEN" \
+	'https://api.feideconnect.no/clientadm/clients/<id>/orgauthorization/<realm>'
+
+The list of scopes available to the client and authorized for the
+realm is deleted.
+
+Feide realms are given as follows: `feide|realm|<realm>`,
+e.g. `feide|realm|uninett.no`.
+
+The caller has to be one of
+
+- the owner of the client
+- an administrator of the owner organization of the realm
+
+## Listing clients targeting a realm
+
+    $ curl -X GET -H "Authorization: Bearer $TOKEN" \
+	'https://api.feideconnect.no/clientadm/realmclients/targetrealm/<realm>/'
+
+    [
+        {
+            "name": "jktest1",
+            "id": "1c90410e-2ce1-42c4-8236-6e44977a4d40"
+			..
+            "scopeauthorizations": {
+                "gk_jktest_rw": true
+            },
+        },
+        {
+            "name": "test_clientadm",
+            "authproviders": null,
+            "id": "f3f043db-9fd6-4c5a-b0bc-61992bea9eca"
+			..
+            "scopeauthorizations": {
+                "gk_jktest_rw": true
+            },
+        }
+    ]
+
+The call returns a list of clients which have been assigned a scope
+which targets this realm.  The information is the public view of the
+client, with the additional property
+`scopeauthorizations`. `scopeathorizations` lists scopes available to
+the client, with a boolean telling whether the client has authorized
+the scope.
+
+Feide realms are given as follows: `feide|realm|<realm>`,
+e.g. `feide|realm|uninett.no`.
+
+The caller has to be an administrator of the owner organization of the realm.
