@@ -61,8 +61,8 @@ class ClientAdmTests(unittest.TestCase):
     def test_get_client_missing_user(self):
         headers = {'Authorization': 'Bearer client_token'}
         self.session.get_client_by_id.return_value = {'foo': 'bar', 'owner': uuid.UUID(userid_own)}
-        self.testapp.get('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=404,
-                         headers=headers)
+        path = '/clientadm/clients/{}'.format(uuid.UUID(clientid))
+        self.testapp.get(path, status=404, headers=headers)
 
     def test_list_clients(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -81,32 +81,32 @@ class ClientAdmTests(unittest.TestCase):
     def test_list_clients_by_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_clients.return_value = [deepcopy(retrieved_client)]
-        res = self.testapp.get('/clientadm/clients/?owner={}'.format(uuid.UUID(userid_own)),
-                               status=200, headers=headers)
+        path = '/clientadm/clients/?owner={}'.format(uuid.UUID(userid_own))
+        res = self.testapp.get(path, status=200, headers=headers)
         out = res.json
         assert out[0]['name'] == 'per'
 
     def test_list_clients_by_other_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_clients.return_value = [deepcopy(retrieved_client)]
-        self.testapp.get('/clientadm/clients/?owner={}'.format(uuid.UUID(userid_other)), status=200,
-                         headers=headers)
+        path = '/clientadm/clients/?owner={}'.format(uuid.UUID(userid_other))
+        self.testapp.get(path, status=200, headers=headers)
         assert self.session.get_clients.call_args[0][1][0] == uuid.UUID(userid_own)
 
     def test_list_clients_by_org(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_clients.return_value = [deepcopy(retrieved_client)]
         self.session.is_org_admin.return_value = True
-        res = self.testapp.get('/clientadm/clients/?organization={}'.format('fc:org:example.com'),
-                               status=200, headers=headers)
+        path = '/clientadm/clients/?organization={}'.format('fc:org:example.com')
+        res = self.testapp.get(path, status=200, headers=headers)
         out = res.json
         assert out[0]['name'] == 'per'
 
     def test_list_clients_by_org_not_admin(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.is_org_admin.return_value = False
-        self.testapp.get('/clientadm/clients/?organization={}'.format('fc:org:example.com'),
-                         status=403, headers=headers)
+        path = '/clientadm/clients/?organization={}'.format('fc:org:example.com')
+        self.testapp.get(path, status=403, headers=headers)
 
     def test_list_public_clients(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -116,8 +116,7 @@ class ClientAdmTests(unittest.TestCase):
         self.session.get_user_by_id.return_value = retrieved_user
         self.session.get_org.return_value = {'id': 'fc:org:example.com',
                                              'name': translatable({'en': 'testorg'})}
-        res = self.testapp.get('/clientadm/public/',
-                               status=200, headers=headers)
+        res = self.testapp.get('/clientadm/public/', status=200, headers=headers)
         out = res.json
         assert out[0]['name'] == 'per'
         assert 'scopes' not in out[0]
@@ -132,8 +131,8 @@ class ClientAdmTests(unittest.TestCase):
         self.session.get_user_by_id.return_value = retrieved_user
         self.session.get_org.return_value = {'id': 'fc:org:example.com',
                                              'name': translatable({'en': 'testorg'})}
-        res = self.testapp.get('/clientadm/public/?orgauthorization={}'.format(testrealm),
-                               status=200, headers=headers)
+        path = '/clientadm/public/?orgauthorization={}'.format(testrealm)
+        res = self.testapp.get(path, status=200, headers=headers)
         out = res.json
         assert out[0]['name'] == 'per'
         assert 'scopes' not in out[0]
@@ -144,8 +143,8 @@ class ClientAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.side_effect = KeyError
         self.session.insert_client = mock.MagicMock()
-        res = self.testapp.post_json('/clientadm/clients/', post_body_minimal, status=201,
-                                     headers=headers)
+        path = '/clientadm/clients/'
+        res = self.testapp.post_json(path, post_body_minimal, status=201, headers=headers)
         out = res.json
         assert out['name'] == 'per'
         assert out['organization'] is None
@@ -154,8 +153,8 @@ class ClientAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.insert_client = mock.MagicMock()
         self.session.get_client_by_id.side_effect = KeyError()
-        res = self.testapp.post_json('/clientadm/clients/', post_body_maximal, status=201,
-                                     headers=headers)
+        path = '/clientadm/clients/'
+        res = self.testapp.post_json(path, post_body_maximal, status=201, headers=headers)
         out = res.json
         assert out['owner'] == userid_own
         assert out['organization'] is None
@@ -164,8 +163,8 @@ class ClientAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.side_effect = KeyError
         self.session.insert_client = mock.MagicMock()
-        res = self.testapp.post_json('/clientadm/clients/', post_body_other_owner, status=201,
-                                     headers=headers)
+        path = '/clientadm/clients/'
+        res = self.testapp.post_json(path, post_body_other_owner, status=201, headers=headers)
         out = res.json
         assert out['owner'] == userid_own
 
@@ -173,8 +172,8 @@ class ClientAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.insert_client = mock.MagicMock()
         self.session.get_client_by_id.return_value = {'foo': 'bar'}
-        self.testapp.post_json('/clientadm/clients/', post_body_maximal, status=409,
-                               headers=headers)
+        path = '/clientadm/clients/'
+        self.testapp.post_json(path, post_body_maximal, status=409, headers=headers)
 
     def test_post_client_scope_given(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -343,8 +342,8 @@ class ClientAdmTests(unittest.TestCase):
     def test_delete_client(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
-        self.testapp.delete('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=204,
-                            headers=headers)
+        path = '/clientadm/clients/{}'.format(uuid.UUID(clientid))
+        self.testapp.delete(path, status=204, headers=headers)
 
     def test_delete_client_no_id(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -352,41 +351,46 @@ class ClientAdmTests(unittest.TestCase):
 
     def test_delete_client_malformed_id(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.testapp.delete('/clientadm/clients/{}'.format('foo'), status=404, headers=headers)
+        path = '/clientadm/clients/{}'.format('foo')
+        self.testapp.delete(path, status=404, headers=headers)
 
     def test_delete_client_not_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_client_by_id.return_value = {'foo': 'bar',
-                                                      'owner': uuid.UUID(userid_other)}
-        self.testapp.delete('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=403,
-                            headers=headers)
+        ret = {'foo': 'bar', 'owner': uuid.UUID(userid_other)}
+        self.session.get_client_by_id.return_value = ret
+        path = '/clientadm/clients/{}'.format(uuid.UUID(clientid))
+        self.testapp.delete(path, status=403, headers=headers)
 
     def test_update_client(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
         self.session.insert_client = mock.MagicMock()
-        res = self.testapp.patch_json('/clientadm/clients/{}'.format(clientid), {'descr': 'blue'},
-                                      status=200, headers=headers)
+        path = '/clientadm/clients/{}'.format(clientid)
+        attrs = {'descr': 'blue'}
+        res = self.testapp.patch_json(path, attrs, status=200, headers=headers)
         out = res.json
         assert out['descr'] == 'blue'
 
     def test_update_client_no_id(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.testapp.patch_json('/clientadm/clients/', {'descr': 'blue'}, status=404,
-                                headers=headers)
+        path = '/clientadm/clients/'
+        attrs = {'descr': 'blue'}
+        self.testapp.patch_json(path, attrs, status=404, headers=headers)
 
     def test_update_client_invalid_json(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
-        self.testapp.patch('/clientadm/clients/{}'.format(clientid), 'bar', status=400,
-                           headers=headers)
+        path = '/clientadm/clients/{}'.format(clientid)
+        attrs = 'bar'
+        self.testapp.patch(path, attrs, status=400, headers=headers)
 
     def test_update_missing_client(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.side_effect = KeyError()
         self.session.insert_client = mock.MagicMock()
-        self.testapp.patch_json('/clientadm/clients/{}'.format(clientid), {'descr': 'blue'},
-                                status=404, headers=headers)
+        path = '/clientadm/clients/{}'.format(clientid)
+        attrs = {'descr': 'blue'}
+        self.testapp.patch_json(path, attrs, status=404, headers=headers)
 
     def test_update_client_not_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -394,16 +398,17 @@ class ClientAdmTests(unittest.TestCase):
         client['owner'] = uuid.UUID(userid_other)
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
-        self.testapp.patch_json('/clientadm/clients/{}'.format(clientid), {'descr': 'blue'},
-                                status=403, headers=headers)
+        path = '/clientadm/clients/{}'.format(clientid)
+        attrs = {'descr': 'blue'}
+        self.testapp.patch_json(path, attrs, status=403, headers=headers)
 
     def test_update_client_change_timestamp(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
         self.session.insert_client = mock.MagicMock()
+        path = '/clientadm/clients/{}'.format(clientid)
         attrs = {'created': '2000-01-01T00:00:00+01:00'}
-        res = self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
-                                      attrs, status=200, headers=headers)
+        res = self.testapp.patch_json(path, attrs, status=200, headers=headers)
         out = res.json
         assert out['created'] == date_created
 
@@ -411,9 +416,9 @@ class ClientAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
         self.session.insert_client = mock.MagicMock()
+        path = '/clientadm/clients/{}'.format(clientid)
         attrs = {'owner': userid_other, 'organization': 'fc:org:example.com'}
-        res = self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
-                                      attrs, status=200, headers=headers)
+        res = self.testapp.patch_json(path, attrs, status=200, headers=headers)
         out = res.json
         assert out['owner'] == userid_own
         assert out['organization'] is None
@@ -424,9 +429,9 @@ class ClientAdmTests(unittest.TestCase):
         client['scopes'] = [testscope]
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
+        path = '/clientadm/clients/{}'.format(clientid)
         attrs = {'scopes': [otherscope]}
-        res = self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
-                                      attrs, status=200, headers=headers)
+        res = self.testapp.patch_json(path, attrs, status=200, headers=headers)
         out = res.json
         assert out['scopes'] == [testscope]
 
@@ -436,9 +441,9 @@ class ClientAdmTests(unittest.TestCase):
         client['scopes_requested'] = [owngk]
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
+        path = '/clientadm/clients/{}'.format(clientid)
         attrs = {'scopes': [owngk]}
-        res = self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
-                                      attrs, status=200, headers=headers)
+        res = self.testapp.patch_json(path, attrs, status=200, headers=headers)
         out = res.json
         assert out['scopes'] == [owngk]
 
@@ -447,9 +452,9 @@ class ClientAdmTests(unittest.TestCase):
         client = deepcopy(retrieved_client)
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
+        path = '/clientadm/clients/{}'.format(clientid)
         attrs = {'scopes_requested': [nullscopedefgk]}
-        res = self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
-                                      attrs, status=200, headers=headers)
+        res = self.testapp.patch_json(path, attrs, status=200, headers=headers)
         out = res.json
         assert out['scopes_requested'] == [nullscopedefgk]
 
@@ -460,9 +465,9 @@ class ClientAdmTests(unittest.TestCase):
         client['owner'] = userid_other
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
+        path = '/clientadm/clients/{}'.format(clientid)
         attrs = {'scopes': [othergk]}
-        self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
-                                attrs, status=403, headers=headers)
+        self.testapp.patch_json(path, attrs, status=403, headers=headers)
 
     def test_update_client_stranger_removes_scope(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -471,9 +476,9 @@ class ClientAdmTests(unittest.TestCase):
         client['owner'] = userid_other
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
+        path = '/clientadm/clients/{}'.format(clientid)
         attrs = {'scopes': []}
-        self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
-                                attrs, status=403, headers=headers)
+        self.testapp.patch_json(path, attrs, status=403, headers=headers)
 
     def test_update_client_stranger_removes_gkscope(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -482,9 +487,9 @@ class ClientAdmTests(unittest.TestCase):
         client['owner'] = userid_other
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
+        path = '/clientadm/clients/{}'.format(clientid)
         attrs = {'scopes': []}
-        self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
-                                attrs, status=403, headers=headers)
+        self.testapp.patch_json(path, attrs, status=403, headers=headers)
 
     def test_update_client_stranger_removes_bad_gkscope(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -493,9 +498,9 @@ class ClientAdmTests(unittest.TestCase):
         client['owner'] = userid_other
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
+        path = '/clientadm/clients/{}'.format(clientid)
         attrs = {'scopes': []}
-        self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
-                                attrs, status=403, headers=headers)
+        self.testapp.patch_json(path, attrs, status=403, headers=headers)
 
     def test_update_client_remove_requested_scope(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -503,9 +508,9 @@ class ClientAdmTests(unittest.TestCase):
         client['scopes'] = blist.sortedset([otherscope])
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
+        path = '/clientadm/clients/{}'.format(clientid)
         attrs = {'scopes_requested': [testscope]}
-        res = self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
-                                      attrs, status=200, headers=headers)
+        res = self.testapp.patch_json(path, attrs, status=200, headers=headers)
         out = res.json
         assert out['scopes'] == []
 
@@ -513,9 +518,9 @@ class ClientAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
         self.session.insert_client = mock.MagicMock()
+        path = '/clientadm/clients/{}'.format(clientid)
         attrs = {'redirect_uri': testuris[0]}
-        self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
-                                attrs, status=400, headers=headers)
+        self.testapp.patch_json(path, attrs, status=400, headers=headers)
 
     def test_update_client_gkowner_adds_gkscope(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -524,9 +529,9 @@ class ClientAdmTests(unittest.TestCase):
         client['owner'] = userid_other
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
+        path = '/clientadm/clients/{}/gkscopes'.format(clientid)
         attrs = {'scopes_add': [owngk]}
-        res = self.testapp.patch_json('/clientadm/clients/{}/gkscopes'.format(clientid),
-                                      attrs, status=200, headers=headers)
+        res = self.testapp.patch_json(path, attrs, status=200, headers=headers)
         out = res.json
         assert out == "OK"
 
@@ -538,9 +543,9 @@ class ClientAdmTests(unittest.TestCase):
         client['owner'] = userid_other
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
+        path = '/clientadm/clients/{}/gkscopes'.format(clientid)
         attrs = {'scopes_remove': [owngk]}
-        res = self.testapp.patch_json('/clientadm/clients/{}/gkscopes'.format(clientid),
-                                      attrs, status=200, headers=headers)
+        res = self.testapp.patch_json(path, attrs, status=200, headers=headers)
         out = res.json
         assert out == "OK"
 
@@ -551,9 +556,9 @@ class ClientAdmTests(unittest.TestCase):
         client['owner'] = userid_other
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
+        path = '/clientadm/clients/{}/gkscopes'.format(clientid)
         attrs = {'scopes_add': [owngk]}
-        self.testapp.patch_json('/clientadm/clients/{}/gkscopes'.format(clientid),
-                                attrs, status=403, headers=headers)
+        self.testapp.patch_json(path, attrs, status=403, headers=headers)
 
     def test_update_client_gkowner_removes_unwanted_gkscope(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -562,9 +567,9 @@ class ClientAdmTests(unittest.TestCase):
         client['owner'] = userid_other
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
+        path = '/clientadm/clients/{}/gkscopes'.format(clientid)
         attrs = {'scopes_remove': [owngk]}
-        res = self.testapp.patch_json('/clientadm/clients/{}/gkscopes'.format(clientid),
-                                      attrs, status=200, headers=headers)
+        res = self.testapp.patch_json(path, attrs, status=200, headers=headers)
         out = res.json
         assert out == "OK"
 
@@ -575,9 +580,9 @@ class ClientAdmTests(unittest.TestCase):
         client['owner'] = userid_other
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
+        path = '/clientadm/clients/{}/gkscopes'.format(clientid)
         attrs = {'scopes_remove': [owngk]}
-        res = self.testapp.patch_json('/clientadm/clients/{}/gkscopes'.format(clientid),
-                                      attrs, status=200, headers=headers)
+        res = self.testapp.patch_json(path, attrs, status=200, headers=headers)
         out = res.json
         assert out == "OK"
 
@@ -588,9 +593,9 @@ class ClientAdmTests(unittest.TestCase):
         client['owner'] = userid_other
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
+        path = '/clientadm/clients/{}/gkscopes'.format(clientid)
         attrs = {'scopes_add': ['gk_nosuchthing']}
-        self.testapp.patch_json('/clientadm/clients/{}/gkscopes'.format(clientid),
-                                attrs, status=403, headers=headers)
+        self.testapp.patch_json(path, attrs, status=403, headers=headers)
 
     def test_update_client_gkowner_adds_normal_scope(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -599,9 +604,9 @@ class ClientAdmTests(unittest.TestCase):
         client['owner'] = userid_other
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
+        path = '/clientadm/clients/{}/gkscopes'.format(clientid)
         attrs = {'scopes_add': [testscope]}
-        self.testapp.patch_json('/clientadm/clients/{}/gkscopes'.format(clientid),
-                                attrs, status=403, headers=headers)
+        self.testapp.patch_json(path, attrs, status=403, headers=headers)
 
     def test_update_client_stranger_adds_gkscope(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -610,9 +615,9 @@ class ClientAdmTests(unittest.TestCase):
         client['owner'] = userid_other
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
+        path = '/clientadm/clients/{}/gkscopes'.format(clientid)
         attrs = {'scopes_add': [testgk]}
-        self.testapp.patch_json('/clientadm/clients/{}/gkscopes'.format(clientid),
-                                attrs, status=403, headers=headers)
+        self.testapp.patch_json(path, attrs, status=403, headers=headers)
 
     def test_update_client_change_userstatus(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -620,9 +625,9 @@ class ClientAdmTests(unittest.TestCase):
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
         flag = userstatus
+        path = '/clientadm/clients/{}'.format(clientid)
         attrs = {'status': [flag]}
-        res = self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
-                                      attrs, status=200, headers=headers)
+        res = self.testapp.patch_json(path, attrs, status=200, headers=headers)
         out = res.json
         assert flag in out['status']
 
@@ -632,9 +637,9 @@ class ClientAdmTests(unittest.TestCase):
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
         flag = reservedstatus
+        path = '/clientadm/clients/{}'.format(clientid)
         attrs = {'status': [flag]}
-        res = self.testapp.patch_json('/clientadm/clients/{}'.format(clientid),
-                                      attrs, status=200, headers=headers)
+        res = self.testapp.patch_json(path, attrs, status=200, headers=headers)
         out = res.json
         assert flag not in out['status']
 
@@ -643,8 +648,8 @@ class ClientAdmTests(unittest.TestCase):
         date_older = updated - timedelta(minutes=1)
         headers = {'Authorization': 'Bearer user_token', 'If-Modified-Since': httptime(date_older)}
         self.session.get_client_logo.return_value = b'mylittlelogo', updated
-        res = self.testapp.get('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), status=200,
-                               headers=headers)
+        path = '/clientadm/clients/{}/logo'.format(uuid.UUID(clientid))
+        res = self.testapp.get(path, status=200, headers=headers)
         assert res.content_type == 'image/png'
         out = res.body
         assert b'mylittlelogo' in out
@@ -653,8 +658,8 @@ class ClientAdmTests(unittest.TestCase):
         updated = parse_datetime(date_created)
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_logo.return_value = None, updated
-        res = self.testapp.get('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), status=200,
-                               headers=headers)
+        path = '/clientadm/clients/{}/logo'.format(uuid.UUID(clientid))
+        res = self.testapp.get(path, status=200, headers=headers)
         out = res.body
         assert b'PNG' == out[1:4]
 
@@ -663,14 +668,14 @@ class ClientAdmTests(unittest.TestCase):
         date_newer = updated + timedelta(minutes=1)
         headers = {'Authorization': 'Bearer user_token', 'If-Modified-Since': httptime(date_newer)}
         self.session.get_client_logo.return_value = b'mylittlelogo', updated
-        self.testapp.get('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), status=304,
-                         headers=headers)
+        path = '/clientadm/clients/{}/logo'.format(uuid.UUID(clientid))
+        self.testapp.get(path, status=304, headers=headers)
 
     def test_get_client_logo_missing_client(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_logo.side_effect = KeyError()
-        self.testapp.get('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), status=404,
-                         headers=headers)
+        path = '/clientadm/clients/{}/logo'.format(uuid.UUID(clientid))
+        self.testapp.get(path, status=404, headers=headers)
 
     def test_get_client_logo_default_logo_file_not_found(self):
         m = mock.mock_open()
@@ -679,18 +684,18 @@ class ClientAdmTests(unittest.TestCase):
             headers = {'Authorization': 'Bearer user_token'}
             m.side_effect = FileNotFoundError()
             self.session.get_client_logo.return_value = None, updated
-            self.testapp.get('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), status=500,
-                             headers=headers)
+            path = '/clientadm/clients/{}/logo'.format(uuid.UUID(clientid))
+            self.testapp.get(path, status=500, headers=headers)
 
     def test_post_client_logo_multipart(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
         self.session.save_logo = mock.MagicMock()
         with open('data/default-client.png', 'rb') as fh:
+            path = '/clientadm/clients/{}/logo'.format(uuid.UUID(clientid))
             logo = fh.read()
-            res = self.testapp.post('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), '',
-                                    status=200, headers=headers,
-                                    upload_files=[('logo', 'logo.png', logo)])
+            files = [('logo', 'logo.png', logo)]
+            res = self.testapp.post(path, status=200, headers=headers, upload_files=files)
             out = res.json
             assert out == 'OK'
 
@@ -699,27 +704,27 @@ class ClientAdmTests(unittest.TestCase):
         self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
         self.session.save_logo = mock.MagicMock()
         with open('data/default-client.png', 'rb') as fh:
+            path = '/clientadm/clients/{}/logo'.format(uuid.UUID(clientid))
             logo = fh.read()
-            res = self.testapp.post('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), logo,
-                                    status=200, headers=headers)
+            res = self.testapp.post(path, logo, status=200, headers=headers)
             out = res.json
             assert out == 'OK'
 
     def test_post_client_logo_bad_data(self):
         headers = {'Authorization': 'Bearer user_token', 'Content-Type': 'image/png'}
         self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
+        path = '/clientadm/clients/{}/logo'.format(uuid.UUID(clientid))
         logo = b'mylittlelogo'
-        self.testapp.post('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), logo,
-                          status=400, headers=headers)
+        self.testapp.post(path, logo, status=400, headers=headers)
 
     def test_post_client_logo_not_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
         client = deepcopy(retrieved_client)
         client['owner'] = uuid.UUID(userid_other)
         self.session.get_client_by_id.return_value = client
+        path = '/clientadm/clients/{}/logo'.format(uuid.UUID(clientid))
         logo = b'mylittlelogo'
-        self.testapp.post('/clientadm/clients/{}/logo'.format(uuid.UUID(clientid)), logo,
-                          status=403, headers=headers)
+        self.testapp.post(path, logo, status=403, headers=headers)
 
     def test_list_public_scopes(self):
         res = self.testapp.get('/clientadm/scopes/', status=200)
@@ -729,15 +734,15 @@ class ClientAdmTests(unittest.TestCase):
     def test_get_orgauthorization(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.return_value = deepcopy(retrieved_gk_clients[3])
-        res = self.testapp.get('/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm),
-                               status=200, headers=headers)
+        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
+        res = self.testapp.get(path, status=200, headers=headers)
         assert res.json[0] == testgk
 
     def test_get_orgauth_missing_client(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.side_effect = KeyError()
-        self.testapp.get('/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm),
-                               status=404, headers=headers)
+        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
+        self.testapp.get(path, status=404, headers=headers)
 
     def test_get_orgauth_not_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -745,22 +750,22 @@ class ClientAdmTests(unittest.TestCase):
         client['owner'] = uuid.UUID(userid_other)
         self.session.get_client_by_id.return_value = client
         self.session.is_org_admin.return_value = False
-        self.testapp.get('/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm),
-                         status=403, headers=headers)
+        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
+        self.testapp.get(path, status=403, headers=headers)
 
     def test_get_orgauth_not_realm_admin(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.return_value = deepcopy(retrieved_gk_clients[3])
         self.session.is_org_admin.return_value = False
-        res = self.testapp.get('/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm),
-                               status=200, headers=headers)
+        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
+        res = self.testapp.get(path, status=200, headers=headers)
         assert res.json[0] == testgk
 
     def test_get_orgauth_empty_orgauthorization(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
-        res = self.testapp.get('/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm),
-                               status=200, headers=headers)
+        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
+        res = self.testapp.get(path, status=200, headers=headers)
         assert res.json == []
 
     def test_get_orgauth_no_orgauthorization(self):
@@ -768,31 +773,31 @@ class ClientAdmTests(unittest.TestCase):
         client = deepcopy(retrieved_client)
         del client['orgauthorization']
         self.session.get_client_by_id.return_value = client
-        res = self.testapp.get('/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm),
-                         status=404, headers=headers)
+        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
+        self.testapp.get(path, status=404, headers=headers)
 
     def test_update_orgauthorization(self):
         headers = {'Authorization': 'Bearer user_token'}
-        res = self.testapp.patch_json('/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm),
-                                      [testgk], status=200, headers=headers)
+        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
+        res = self.testapp.patch_json(path, [testgk], status=200, headers=headers)
         assert res.json == [testgk]
 
     def test_update_orgauth_not_realm_admin(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.is_org_admin.return_value = False
-        self.testapp.patch_json('/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm),
-                                testgk, status=403, headers=headers)
+        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
+        self.testapp.patch_json(path, testgk, status=403, headers=headers)
 
     def test_update_orgauth_bad_scopes(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.testapp.patch_json('/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm),
-                                testgk, status=400, headers=headers)
+        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
+        self.testapp.patch_json(path, testgk, status=400, headers=headers)
 
     def test_delete_orgauthorization(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
-        self.testapp.delete('/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm), status=204,
-                            headers=headers)
+        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
+        self.testapp.delete(path, status=204, headers=headers)
 
     def test_list_targetrealm(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -800,6 +805,6 @@ class ClientAdmTests(unittest.TestCase):
         self.session.get_apigks.return_value = deepcopy(retrieved_apigks)
         self.session.get_client_by_id.return_value = deepcopy(retrieved_gk_clients[3])
         self.session.get_user_by_id.return_value = retrieved_user
-        res = self.testapp.get('/clientadm/realmclients/targetrealm/{}/'.format(testrealm),
-                               status=200, headers=headers)
+        path = '/clientadm/realmclients/targetrealm/{}/'.format(testrealm)
+        res = self.testapp.get(path, status=200, headers=headers)
         assert res.json[0]['scopeauthorizations'][testgk_foo] is True

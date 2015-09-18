@@ -24,7 +24,8 @@ class TestFilterMissingMainscope(TestCase):
         assert controller.filter_missing_mainscope(['gk_foo']) == ['gk_foo']
 
     def test_gk_main_and_subscope(self):
-        assert controller.filter_missing_mainscope(['gk_foo', 'gk_foo_bar']) == ['gk_foo', 'gk_foo_bar']
+        filter = ['gk_foo', 'gk_foo_bar']
+        assert controller.filter_missing_mainscope(filter) == filter
 
     def test_gk_missing_mainscope(self):
         assert controller.filter_missing_mainscope(['gk_foo_bar']) == []

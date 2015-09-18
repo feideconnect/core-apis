@@ -3,7 +3,8 @@ from pyramid.httpexceptions import (
     HTTPNotFound, HTTPConflict, HTTPForbidden, HTTPBadRequest)
 from pyramid.response import Response
 from .controller import ClientAdmController
-from coreapis.utils import AlreadyExistsError, ForbiddenError, get_userid, get_payload, get_user, translation
+from coreapis.utils import (
+    AlreadyExistsError, ForbiddenError, get_userid, get_payload, get_user, translation)
 import uuid
 
 

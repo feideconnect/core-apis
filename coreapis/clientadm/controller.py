@@ -1,6 +1,7 @@
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
-from coreapis.utils import LogWrapper, ts, public_userinfo, public_orginfo, ValidationError, ForbiddenError
+from coreapis.utils import (
+    LogWrapper, ts, public_userinfo, public_orginfo, ValidationError, ForbiddenError)
 from urllib.parse import urlsplit
 import blist
 import json
@@ -346,7 +347,8 @@ class ClientAdmController(CrudControllerBase):
             for client in (self.session.get_clients_by_scope(gkscope) +
                            self.session.get_clients_by_scope_requested(gkscope)):
                 if not client['id'] in clientdict:
-                    clientdict[client['id']] = self.get_gkscope_client(client, gkscopes, users, orgs)
+                    clientdict[client['id']] = self.get_gkscope_client(client, gkscopes,
+                                                                       users, orgs)
         return list(clientdict.values())
 
     def list_public_scopes(self):
