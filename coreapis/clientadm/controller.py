@@ -363,7 +363,7 @@ class ClientAdmController(CrudControllerBase):
         except KeyError:
             return None
 
-    def validate_gkscope(self, client, user, scope):
+    def validate_gkscope(self, user, scope):
         if not is_gkscopename(scope):
             raise ForbiddenError('{} is not an API Gatekeeper'.format(scope))
         gk = self.scope_to_gk(scope)
@@ -374,13 +374,13 @@ class ClientAdmController(CrudControllerBase):
         for scope in [scope for scope in scopes_add if scope not in client['scopes']]:
             if not scope in client['scopes_requested']:
                 raise ForbiddenError('Client owner has not requested scope {}'.format(scope))
-            self.validate_gkscope(client, user, scope)
+            self.validate_gkscope(user, scope)
             client['scopes'].append(scope)
         return client
 
     def remove_gkscopes(self, client, user, scopes_remove):
         for scope in scopes_remove:
-            self.validate_gkscope(client, user, scope)
+            self.validate_gkscope(user, scope)
             if scope in client['scopes']:
                 client['scopes'].remove(scope)
             if scope in client['scopes_requested']:
@@ -397,7 +397,8 @@ class ClientAdmController(CrudControllerBase):
         org = self.session.get_org_by_realm(realm)
         return self.is_org_admin(user, org['id'])
 
-    def get_orgauthorization(self, client, realm):
+    @staticmethod
+    def get_orgauthorization(client, realm):
         return client['orgauthorization'].get(realm, [])
 
     def update_orgauthorization(self, client, realm, scopes):
