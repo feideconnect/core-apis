@@ -11,6 +11,7 @@ import valideer as V
 
 USER_SETTABLE_STATUS_FLAGS = {'Public'}
 INVALID_URISCHEMES = {'data', 'javascript', 'file', 'about'}
+FEIDE_REALM_PREFIX = 'feide|realm|'
 
 
 def is_valid_uri(uri):
@@ -310,7 +311,7 @@ class ClientAdmController(CrudControllerBase):
         # For scopes which target the realm, add list of clients to result dict
         res = {}
         for scopename, realms in scope_targets.items():
-            if realm in realms and scopename in clientids.keys():
+            if FEIDE_REALM_PREFIX + realm in realms and scopename in clientids.keys():
                 for clientid in clientids[scopename]:
                     scopenames = set(res.get(clientid, []))
                     scopenames.add(scopename)
@@ -394,14 +395,7 @@ class ClientAdmController(CrudControllerBase):
         self.insert_client(client)
 
     def has_realm_permission(self, realm, user):
-        parts = realm.split('|')
-        if len(parts) != 3:
-            return False
-        if parts[0] != 'feide':
-            return False
-        if parts[1] != 'realm':
-            return False
-        org = self.session.get_org_by_realm(parts[2])
+        org = self.session.get_org_by_realm(realm)
         return self.is_org_admin(user, org['id'])
 
     @staticmethod

@@ -104,7 +104,7 @@ retrieved_gk_clients[3].update({
     'owner': uuid.UUID(userid_own),
     'scopes': [testgk, testgk_foo],
     'scopes_requested': [testgk, testgk_foo, othergk],
-    'orgauthorization': {prefixed_realm: json.dumps([testgk, testgk_foo])}
+    'orgauthorization': {testrealm: json.dumps([testgk, testgk_foo])}
 })
 
 retrieved_gk_client = retrieved_gk_clients[0]
