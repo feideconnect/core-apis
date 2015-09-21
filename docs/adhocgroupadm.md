@@ -119,7 +119,7 @@ Returns all information about a group, including invitation_token
 
 ### Input
 
-Input is a list of objects. Each object has a `type` field which can be either `member` or `admin`. Each object must also contain either a `token` field which you can get from the peoplesearch api, if you want ot add a member to the group. Or an `id` field if you want to change a members type.
+Input is a list of objects. Each object has a `type` field which can be either `member` or `admin`. Each object must also contain either a `token` field which you can get from the peoplesearch api, if you want to add a member to the group. Or an `id` field if you want to change a members type.
 
 ## Remove group members
 
@@ -170,7 +170,7 @@ Remove current user from member lists if the groups indicated.
 
 When a member is added to a group by a group owner or admin the status
 of the membership is set to `unconfirmed`. The user can then use this
-call to confirm his membeships, and get status to `normal`. Any number
+call to confirm his memberships, and get status to `normal`. Any number
 of groups can be confirmed in one call.
 
 ## Join group using invitation token
@@ -178,7 +178,7 @@ of groups can be confirmed in one call.
     $ curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{
     "invitation_token": <invitation_token>
     }' \
-    'https://api.feideconnect.no/adhocgroups/<group id>/invitaiton'
+    'https://api.feideconnect.no/adhocgroups/<group id>/invitation'
 
 ### Description
 

@@ -23,13 +23,13 @@ user. `created`, `scopes` and `updated` may be given, but are silently
 ignored - values are set by system.
 
 Set `organization` to an organization id to register a client owned by
-an orangization. You must be admin for that organization to do this.
+an organization. You must be admin for that organization to do this.
 
 Returns `201 Created` with url in `Location` header, and client as json in
 body. Returns `409 Conflict` if `id` is given and is already in
 use. Returns `400 Bad Request` if request body violates the schema or is
 malformed in some way. Returns `403 Forbidden` if `organization` is set
-but user is not admin of that organizatoin
+but user is not admin of that organization
 
 ## Updating a client
 
@@ -163,7 +163,7 @@ of the requested organization
 
 Returns `200 OK`, and list of clients as json in body. Status is `200 OK`
 even if resulting list is empty. Returns `400 Bad Request` if parameters
-are not one of scope and owner, or if a parmeter value is missing or malformed.
+are not one of scope and owner, or if a parameter value is missing or malformed.
 
 ## Listing public information about all clients
 
@@ -262,7 +262,7 @@ The caller has to be one of
 
 Input is the new list of scopes available to the client and authorized
 for the realm. The same list is returned. It does not matter if there
-already was a list, but note that the old list is overwritten
+already was a list, but note that the old list is overwritten.
 
 Feide realms are given as follows: `feide|realm|<realm>`,
 e.g. `feide|realm|uninett.no`.

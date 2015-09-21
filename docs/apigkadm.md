@@ -196,7 +196,7 @@ or:
       "name": "testgk", "owner": {"id": "p:6fc96878-fdc5-4fc3-abfc-6fcc018ff0fc",
       "name": "Sigmund Augdal"}, "scopedef": null, "descr": "sigmund tester"}]
 
-Lists some public infomation about the registered api gatekeepers for clients to use when requesting permission.
+Lists some public information about the registered api gatekeepers for clients to use when requesting permission.
 
 ## Checking whether a gatekeeper id is already in use
 
@@ -221,7 +221,7 @@ Returns `200 OK` on success with a single boolean in the json body indicating wh
 
 On success, the json body consists of a list of clients matching the
 request. If the owner owns an apigk with id `foo`, clients having
-`gk_foo` in scopes or scoes_requested are considered
+`gk_foo` in scopes or scopes_requested are considered
 matching. Example:
 
     [{"descr": "Example", "id": "a7f407fd-ace2-4fbe-a07a-db123821ff59",
@@ -242,7 +242,7 @@ matching. Example:
 
 On success, the json body consists of a list of clients matching the
 request. If the owner owns an apigk with id `foo`, clients having
-`gk_foo` in scopes or scoes_requested are considered
+`gk_foo` in scopes or scopes_requested are considered
 matching. Example:
 
     [{"descr": "Example", "id": "a7f407fd-ace2-4fbe-a07a-db123821ff59",
