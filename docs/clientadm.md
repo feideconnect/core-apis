@@ -242,9 +242,6 @@ scope.
 Returns a list of scopes available to the client and authorized for
 the realm.
 
-Feide realms are given as follows: `feide|realm|<realm>`,
-e.g. `feide|realm|uninett.no`.
-
 The caller has to be one of
 
 - the owner of the client
@@ -264,9 +261,6 @@ Input is the new list of scopes available to the client and authorized
 for the realm. The same list is returned. It does not matter if there
 already was a list, but note that the old list is overwritten.
 
-Feide realms are given as follows: `feide|realm|<realm>`,
-e.g. `feide|realm|uninett.no`.
-
 The caller has to be an administrator of the owner organization of the realm.
 
 ## Deleting an orgauthorization
@@ -276,9 +270,6 @@ The caller has to be an administrator of the owner organization of the realm.
 
 The list of scopes available to the client and authorized for the
 realm is deleted.
-
-Feide realms are given as follows: `feide|realm|<realm>`,
-e.g. `feide|realm|uninett.no`.
 
 The caller has to be one of
 
@@ -316,8 +307,5 @@ client, with the additional property
 `scopeauthorizations`. `scopeathorizations` lists scopes available to
 the client, with a boolean telling whether the client has authorized
 the scope.
-
-Feide realms are given as follows: `feide|realm|<realm>`,
-e.g. `feide|realm|uninett.no`.
 
 The caller has to be an administrator of the owner organization of the realm.
