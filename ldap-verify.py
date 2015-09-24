@@ -3,6 +3,7 @@ from coreapis.utils import Timer, ResourcePool
 import argparse
 import sys
 import ldap3
+import ldap3.core.exceptions
 import json
 
 DESCRIPTION = "Verify ldap-configs for connect"
@@ -90,11 +91,15 @@ def main():
     else:
         orgs = config.keys()
     for org in orgs:
-        print("trying connection to {}".format(org))
+        print("trying connection to {}: ".format(org), end='')
         search_filter = '(eduPersonPrincipalName=notfound@example.com)'
-        ldap.ldap_search(org, search_filter,
-                    ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
-                    attributes=['cn'], size_limit=1)
+        try:
+            ldap.ldap_search(org, search_filter,
+                             ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
+                             attributes=['cn'], size_limit=1)
+            print("OK")
+        except ldap3.core.exceptions.LDAPServerPoolExhaustedError:
+            print("Failed")
 
 if __name__ == '__main__':
     main()
