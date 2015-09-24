@@ -6,6 +6,8 @@ from aniso8601 import parse_datetime
 import urllib.parse
 from eventlet.pools import Pool as EventletPool
 
+NULL_USER = uuid.UUID('00000000-0000-0000-0000-000000000000')
+
 
 def mock_main(app, config):
     return MockAuthMiddleware(app, config['oauth_realm'])
@@ -216,7 +218,7 @@ class CassandraMiddleware(AuthMiddleware):
                 raise KeyError("Token is invalid")
 
             client = self.session.get_client_by_id(token['clientid'])
-            if 'userid' in token and token['userid'] is not None:
+            if 'userid' in token and token['userid'] is not None and token['userid'] != NULL_USER:
                 user = self.session.get_user_by_id(token['userid'])
             else:
                 user = None
