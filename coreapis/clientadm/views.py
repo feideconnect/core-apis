@@ -218,6 +218,7 @@ def delete_orgauthorization(request):
 
 @view_config(route_name='realmclients', request_method="GET", permission='scope_clientadmin',
              renderer="json")
+@translation
 def get_realmclients(request):
     realm = request.matchdict['realm']
     return request.cadm_controller.get_realmclients(realm)
