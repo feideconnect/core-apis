@@ -85,8 +85,15 @@ class ClientAdmController(CrudControllerBase):
         'authproviders': V.Nullable(['string'], lambda: list()),
         'status': V.Nullable(['string'], lambda: list()),
         'type': V.Nullable('string', ''),
+        'systemdescr': V.Nullable('string', ''),
+        'privacypolicyurl': V.Nullable('string', ''),
+        'homepageurl': V.Nullable('string', ''),
+        'loginurl': V.Nullable('string', ''),
+        'supporturl': V.Nullable('string', ''),
+        'authoptions': V.Nullable({}),
     }
-    public_attrs = ['id', 'name', 'descr', 'redirect_uri', 'owner', 'organization', 'authproviders']
+    public_attrs = ['id', 'name', 'descr', 'redirect_uri', 'owner', 'organization', 'authproviders',
+                    'systemdescr', 'privacypolicyurl', 'homepageurl', 'loginurl', 'supporturl']
     scope_attrs = ['scopes', 'scopes_requested']
 
     def __init__(self, contact_points, keyspace, scopedef_file, maxrows):
@@ -102,6 +109,10 @@ class ClientAdmController(CrudControllerBase):
                 client[k] = {}
                 if v:
                     client[k] = {k2: json.loads(v2) for k2, v2 in v.items()}
+            elif k == 'authoptions':
+                client[k] = {}
+                if v:
+                    client[k] = json.loads(v)
             elif isinstance(v, blist.sortedset):
                 client[k] = list(v)
         return client

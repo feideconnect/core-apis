@@ -49,7 +49,9 @@ class Client(object):
             'clients': [
                 'owner', 'name', 'type', 'status', 'scopes_requested',
                 'client_secret', 'created', 'redirect_uri', 'descr', 'id', 'scopes',
-                'updated', 'organization', 'orgauthorization', 'authproviders'],
+                'updated', 'organization', 'orgauthorization', 'authproviders',
+                'systemdescr', 'privacypolicyurl', 'homepageurl', 'loginurl', 'supporturl',
+                'authoptions'],
             'apigk': [
                 'id', 'requireuser', 'created', 'name', 'scopedef', 'httpscertpinned',
                 'status', 'descr', 'expose', 'updated', 'trust', 'endpoints', 'owner',
@@ -64,7 +66,7 @@ class Client(object):
             'roles': ['feideid', 'orgid', 'role'],
         }
         self.json_columns = {
-            'clients': [],
+            'clients': ['authoptions'],
             'apigk': ['expose', 'scopedef', 'trust']
         }
         self.session = cluster.connect(keyspace)

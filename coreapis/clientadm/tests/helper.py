@@ -61,6 +61,12 @@ retrieved_client = {
     'scopes_requested': blist.sortedset([testscope]), 'status': ['lab'], 'type': 'client',
     'authproviders': [],
     'orgauthorization': {},
+    'systemdescr': None,
+    'privacypolicyurl': None,
+    'homepageurl': None,
+    'loginurl': None,
+    'supporturl': None,
+    'authoptions': None,
     'updated': parse_datetime(date_created)
 }
 
