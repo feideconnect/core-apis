@@ -74,29 +74,18 @@ class Client(object):
         self.prepared[query] = prep
         return prep
 
-
     def _default_get(self, table):
         stmt = 'SELECT {} FROM {} WHERE id = ?'.format(','.join(self.default_columns[table]), table)
         return self._prepare(stmt)
 
     def insert_client(self, client):
-        prep = self._prepare('INSERT INTO clients (id, client_secret, name, descr, redirect_uri, scopes, scopes_requested, status, type, created, updated, owner, organization, authproviders) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-        self.session.execute(prep.bind([
-            client['id'],
-            client['client_secret'],
-            client['name'],
-            client['descr'],
-            client['redirect_uri'],
-            client['scopes'],
-            client['scopes_requested'],
-            client['status'],
-            client['type'],
-            client['create_ts'],
-            client['update_ts'],
-            client['owner'],
-            client['organization'],
-            client['authproviders'],
-        ]))
+        client_columns = self.default_columns['clients']
+        colnames = ','.join(client_columns)
+        placeholders = ('?,'*len(client_columns))[:-1]  # '?,?,..,?'
+        stmt = 'INSERT INTO clients ({}) VALUES ({})'.format(colnames, placeholders)
+        prep = self._prepare(stmt)
+        bindvals = [client[colname] for colname in client_columns]
+        self.session.execute(prep.bind(bindvals))
 
     def get_client_by_id(self, clientid):
         prep = self._default_get('clients')
