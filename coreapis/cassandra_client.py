@@ -46,13 +46,22 @@ class Client(object):
         )
         self.prepared = {}
         self.default_columns = {
-            'clients': 'owner,name,type,status,scopes_requested,client_secret,created,redirect_uri,descr,id,scopes,updated,organization,orgauthorization,authproviders',
-            'apigk': 'id,requireuser,created,name,scopedef,httpscertpinned,status,descr,expose,updated,trust,endpoints,owner,organization',
-            'groups': 'id,created,descr,name,owner,public,updated,invitation_token',
-            'group_members': 'userid,groupid,status,type',
-            'organizations': 'organization_number,type,realm,id,name,fs_groups,services,uiinfo',
-            'roles': 'feideid,orgid,role',
-
+            'clients': [
+                'owner', 'name', 'type', 'status', 'scopes_requested',
+                'client_secret', 'created', 'redirect_uri', 'descr', 'id', 'scopes',
+                'updated', 'organization', 'orgauthorization', 'authproviders'],
+            'apigk': [
+                'id', 'requireuser', 'created', 'name', 'scopedef', 'httpscertpinned',
+                'status', 'descr', 'expose', 'updated', 'trust', 'endpoints', 'owner',
+                'organization'],
+            'groups': [
+                'id', 'created', 'descr', 'name', 'owner', 'public', 'updated',
+                'invitation_token'],
+            'group_members': ['userid', 'groupid', 'status', 'type'],
+            'organizations': [
+                'organization_number', 'type', 'realm', 'id', 'name', 'fs_groups', 'services',
+                'uiinfo'],
+            'roles': ['feideid', 'orgid', 'role'],
         }
         self.session = cluster.connect(keyspace)
         self.session.row_factory = datetime_hack_dict_factory
@@ -65,8 +74,10 @@ class Client(object):
         self.prepared[query] = prep
         return prep
 
+
     def _default_get(self, table):
-        return self._prepare('SELECT {} FROM {} WHERE id = ?'.format(self.default_columns[table], table))
+        stmt = 'SELECT {} FROM {} WHERE id = ?'.format(','.join(self.default_columns[table]), table)
+        return self._prepare(stmt)
 
     def insert_client(self, client):
         prep = self._prepare('INSERT INTO clients (id, client_secret, name, descr, redirect_uri, scopes, scopes_requested, status, type, created, updated, owner, organization, authproviders) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
@@ -97,7 +108,7 @@ class Client(object):
     def get_generic(self, table, selectors, values, maxrows):
         if len(selectors) != len(values):
             raise KeyError('Selectors and values not same length')
-        cols = self.default_columns[table]
+        cols = ','.join(self.default_columns[table])
         if len(selectors) == 0:
             stmt = 'SELECT {} from {} LIMIT {}'.format(cols, table, maxrows)
         else:
@@ -399,7 +410,8 @@ class Client(object):
 
     def list_orgs(self):
         tbl = 'organizations'
-        prep = self._prepare('SELECT {} from {}'.format(self.default_columns[tbl], tbl))
+        stmt = 'SELECT {} from {}'.format(','.join(self.default_columns[tbl]), tbl)
+        prep = self._prepare(stmt)
         data = self.session.execute(prep)
         for a in data:
             if 'name' in a and a['name'] is not None:
