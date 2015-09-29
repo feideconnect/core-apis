@@ -193,12 +193,7 @@ class ClientAdmController(CrudControllerBase):
             self.add_scope_if_approved(client, self.scopedefs[scope], scope)
 
     def insert_client(self, client):
-        self.session.insert_client(client['id'], client['client_secret'], client['name'],
-                                   client['descr'], client['redirect_uri'],
-                                   client['scopes'], client['scopes_requested'],
-                                   client['status'], client['type'], client['created'],
-                                   client['updated'], client['owner'],
-                                   client['organization'], client['authproviders'])
+        self.session.insert_client(client)
 
     # Used both for add and update.
     # By default CQL does not distinguish between INSERT and UPDATE
