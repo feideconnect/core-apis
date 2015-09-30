@@ -123,6 +123,13 @@ class ClientAdmTests(unittest.TestCase):
         assert out[1]['organization']['id'] == 'fc:org:example.com'
         assert out[1]['organization']['name'] == 'testorg'
 
+    def test_list_public_clients_bogus_user(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_clients.return_value = deepcopy([retrieved_client])
+        self.session.get_user_by_id.side_effect = KeyError
+        res = self.testapp.get('/clientadm/public/', status=200, headers=headers)
+        assert res.json[0] is None
+
     def test_list_public_clients_orgauth(self):
         headers = {'Authorization': 'Bearer user_token'}
         org_client = deepcopy(retrieved_gk_clients[3])
@@ -642,6 +649,29 @@ class ClientAdmTests(unittest.TestCase):
         res = self.testapp.patch_json(path, attrs, status=200, headers=headers)
         out = res.json
         assert flag not in out['status']
+
+    def test_update_client_change_authoptions(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        client['authoptions'] = '{}'
+        self.session.get_client_by_id.return_value = client
+        self.session.insert_client = mock.MagicMock()
+        path = '/clientadm/clients/{}'.format(clientid)
+        attrs = {'authoptions': {'foo': 'bar'}}
+        res = self.testapp.patch_json(path, attrs, status=200, headers=headers)
+        out = res.json
+        assert out['authoptions'] == {'foo': 'bar'}
+
+    def test_update_client_change_authoptions_from_none(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        self.session.get_client_by_id.return_value = client
+        self.session.insert_client = mock.MagicMock()
+        path = '/clientadm/clients/{}'.format(clientid)
+        attrs = {'authoptions': {'foo': 'bar'}}
+        res = self.testapp.patch_json(path, attrs, status=200, headers=headers)
+        out = res.json
+        assert out['authoptions'] == {'foo': 'bar'}
 
     def test_get_client_logo(self):
         updated = parse_datetime(date_created)
