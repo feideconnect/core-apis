@@ -63,6 +63,10 @@ class Client(object):
                 'uiinfo'],
             'roles': ['feideid', 'orgid', 'role'],
         }
+        self.json_columns = {
+            'clients': [],
+            'apigk': []
+        }
         self.session = cluster.connect(keyspace)
         self.session.row_factory = datetime_hack_dict_factory
         self.timer = DummyTimer()
@@ -78,13 +82,21 @@ class Client(object):
         stmt = 'SELECT {} FROM {} WHERE id = ?'.format(','.join(self.default_columns[table]), table)
         return self._prepare(stmt)
 
+    @staticmethod
+    def val_to_store(client, colname, jsoncols):
+        ret = client[colname]
+        if colname in jsoncols:
+            ret = json.dumps(ret)
+        return ret
+
     def insert_client(self, client):
         client_columns = self.default_columns['clients']
         colnames = ','.join(client_columns)
         placeholders = ('?,'*len(client_columns))[:-1]  # '?,?,..,?'
         stmt = 'INSERT INTO clients ({}) VALUES ({})'.format(colnames, placeholders)
         prep = self._prepare(stmt)
-        bindvals = [client[colname] for colname in client_columns]
+        jsoncols = set(self.json_columns['clients'])
+        bindvals = [self.val_to_store(client, colname, jsoncols) for colname in client_columns]
         self.session.execute(prep.bind(bindvals))
 
     def get_client_by_id(self, clientid):
