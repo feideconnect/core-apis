@@ -47,7 +47,10 @@ class APIGKAdmController(CrudControllerBase):
             'token': 'string',
             'username': 'string',
             'password': 'string',
-        }
+        },
+        'systemdescr': V.Nullable('string'),
+        'privacypolicyurl': V.Nullable('string'),
+        'docurl': V.Nullable('string'),
     }
 
     def __init__(self, contact_points, keyspace, maxrows):

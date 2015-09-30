@@ -55,7 +55,7 @@ class Client(object):
             'apigk': [
                 'id', 'requireuser', 'created', 'name', 'scopedef', 'httpscertpinned',
                 'status', 'descr', 'expose', 'updated', 'trust', 'endpoints', 'owner',
-                'organization'],
+                'organization', 'systemdescr', 'privacypolicyurl', 'docurl'],
             'groups': [
                 'id', 'created', 'descr', 'name', 'owner', 'public', 'updated',
                 'invitation_token'],

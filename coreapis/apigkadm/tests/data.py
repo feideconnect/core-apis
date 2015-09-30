@@ -62,4 +62,7 @@ pre_update = {
     "name": "pre update",
     "requireuser": False,
     "organization": None,
+    "systemdescr": None,
+    "privacypolicyurl": None,
+    "docurl": None,
 }
