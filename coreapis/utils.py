@@ -427,7 +427,13 @@ class LogoRenderer(object):
 
 
 def log_token(token):
-    return hashlib.md5(token.bytes).hexdigest()
+    if isinstance(token, uuid.UUID):
+        data = token.bytes
+    elif isinstance(token, str):
+        data = token.encode('UTF-8')
+    else:
+        data = token
+    return hashlib.md5(data).hexdigest()
 
 
 def valid_url(value):
