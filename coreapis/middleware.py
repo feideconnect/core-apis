@@ -1,7 +1,7 @@
 import uuid
 import json
 from . import cassandra_client
-from .utils import LogWrapper, Timer, RateLimiter, now, www_authenticate, init_request_id, ResourcePool
+from .utils import LogWrapper, Timer, RateLimiter, now, www_authenticate, init_request_id, ResourcePool, log_token
 from aniso8601 import parse_datetime
 import urllib.parse
 from eventlet.pools import Pool as EventletPool
@@ -93,7 +93,7 @@ class AuthMiddleware(object):
             try:
                 user, client, scopes = self.lookup_token(token)
                 self.log.debug('successfully looked up token', user=user['userid'] if user else None, client=client['id'],
-                               scopes=scopes)
+                               scopes=scopes, accesstoken=log_token(token))
                 environ["FC_USER"] = user
                 environ["FC_CLIENT"] = client
                 environ["FC_SCOPES"] = scopes
