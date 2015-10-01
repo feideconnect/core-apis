@@ -176,6 +176,20 @@ class APIGKAdmTests(unittest.TestCase):
         self.session().insert_apigk = mock.MagicMock()
         self.testapp.post_json('/apigkadm/apigks/', body, status=400, headers=headers)
 
+    def test_post_apigk_invalid_privacypolicyurl(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        body = deepcopy(post_body_minimal)
+        body['privacypolicyurl'] = 'htpp://www.vg.no'
+        self.session().insert_apigk = mock.MagicMock()
+        self.testapp.post_json('/apigkadm/apigks/', body, status=400, headers=headers)
+
+    def test_post_apigk_invalid_docurl(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        body = deepcopy(post_body_minimal)
+        body['docurl'] = ''
+        self.session().insert_apigk = mock.MagicMock()
+        self.testapp.post_json('/apigkadm/apigks/', body, status=400, headers=headers)
+
     def test_delete_apigk(self):
         headers = {'Authorization': 'Bearer user_token'}
         id = 'testapi'

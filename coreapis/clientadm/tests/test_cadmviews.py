@@ -346,6 +346,41 @@ class ClientAdmTests(unittest.TestCase):
         self.session.insert_client = mock.MagicMock()
         self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
 
+    def test_post_client_bad_privacypolicyurl(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        body = deepcopy(post_body_minimal)
+        body['privacypolicyurl'] = 'foo'
+        self.session.insert_client = mock.MagicMock()
+        self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
+
+    def test_post_client_bad_homepageurl(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        body = deepcopy(post_body_minimal)
+        body['homepageurl'] = ''
+        self.session.insert_client = mock.MagicMock()
+        self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
+
+    def test_post_client_bad_loginurl(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        body = deepcopy(post_body_minimal)
+        body['loginurl'] = 'http://'
+        self.session.insert_client = mock.MagicMock()
+        self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
+
+    def test_post_client_bad_supporturl(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        body = deepcopy(post_body_minimal)
+        body['supporturl'] = 'www.vg.no'
+        self.session.insert_client = mock.MagicMock()
+        self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
+
+    def test_post_client_bad_authoptions(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        body = deepcopy(post_body_minimal)
+        body['authoptions'] = '{"this":'
+        self.session.insert_client = mock.MagicMock()
+        self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
+
     def test_delete_client(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.return_value = deepcopy(retrieved_client)

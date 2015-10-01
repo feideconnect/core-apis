@@ -48,7 +48,13 @@ post_body_maximal = {
     'name': 'per', 'scopes': [], 'redirect_uri': testuris,
     'owner': userid_own, 'id': clientid,
     'client_secret': 'sekrit', 'descr': 'green',
-    'scopes_requested': [testscope], 'status': ['lab'], 'type': 'client'
+    'scopes_requested': [testscope], 'status': ['lab'], 'type': 'client',
+    'systemdescr': 'Awesome!',
+    'privacypolicyurl': 'http://www.seoghor.no',
+    'homepageurl': 'http://www.altavista.com',
+    'loginurl': 'http://altinn.no',
+    'supporturl': 'http://www.google.com',
+    'authoptions': {'this': 'that'},
 }
 
 retrieved_client = {

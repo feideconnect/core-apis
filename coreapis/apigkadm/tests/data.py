@@ -38,6 +38,9 @@ post_body_maximal = {
         'username': 'username',
         'password': 'secrit',
     },
+    'systemdescr': 'Awesome!',
+    'privacypolicyurl': 'http://www.seoghor.no',
+    'docurl': 'http://la.wikipedia.org'
 }
 
 
