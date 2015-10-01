@@ -1,7 +1,7 @@
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.utils import (
-    LogWrapper, ts, public_userinfo, public_orginfo, ValidationError, ForbiddenError)
+    LogWrapper, ts, public_userinfo, public_orginfo, ValidationError, ForbiddenError, valid_url)
 from urllib.parse import urlsplit
 import blist
 import json
@@ -86,10 +86,10 @@ class ClientAdmController(CrudControllerBase):
         'status': V.Nullable(['string'], lambda: list()),
         'type': V.Nullable('string', ''),
         'systemdescr': V.Nullable('string', ''),
-        'privacypolicyurl': V.Nullable('string', ''),
-        'homepageurl': V.Nullable('string', ''),
-        'loginurl': V.Nullable('string', ''),
-        'supporturl': V.Nullable('string', ''),
+        'privacypolicyurl': V.Nullable(valid_url),
+        'homepageurl': V.Nullable(valid_url),
+        'loginurl': V.Nullable(valid_url),
+        'supporturl': V.Nullable(valid_url),
         'authoptions': V.Nullable({}),
     }
     public_attrs = ['id', 'name', 'descr', 'redirect_uri', 'owner', 'organization', 'authproviders',

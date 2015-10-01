@@ -35,8 +35,8 @@ class APIGKAdmController(CrudControllerBase):
             'password': 'string',
         },
         'systemdescr': V.Nullable('string'),
-        'privacypolicyurl': V.Nullable('string'),
-        'docurl': V.Nullable('string'),
+        'privacypolicyurl': V.Nullable(valid_url),
+        'docurl': V.Nullable(valid_url),
     }
 
     def __init__(self, contact_points, keyspace, maxrows):
