@@ -92,7 +92,7 @@ class APIGKAdmController(CrudControllerBase):
         for tokenid, token in tokens.items():
             scopes = token['scope']
             token['scope'] = [scope for scope in scopes if scope not in gk_scopes]
-            self.log.debug('removing scopes from oauth_token', token=log_token(tokenid),
+            self.log.debug('removing scopes from oauth_token', accesstoken=log_token(tokenid),
                            scopes_removed=list(set(scopes).difference(token['scope'])))
             self.session.update_token_scopes(tokenid, token['scope'])
         self.session.delete_apigk(id)
