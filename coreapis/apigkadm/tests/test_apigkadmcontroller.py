@@ -59,16 +59,3 @@ class TestAPIGKAdmController(unittest.TestCase):
         assert self.controller.has_permission(apigk, retrieved_user) is False
         is_org_admin.return_value = True
         assert self.controller.has_permission(apigk, retrieved_user) is True
-
-
-class TestValidEndPoint(unittest.TestCase):
-    def test_valid_endpoints(self):
-        assert apigkadm.controller.valid_endpoint('https://example.com')
-        assert apigkadm.controller.valid_endpoint('http://example.com')
-        assert apigkadm.controller.valid_endpoint('https://example.com:123')
-
-    def test_invalid_endpoints(self):
-        assert not apigkadm.controller.valid_endpoint('ftp://example.com')
-        assert not apigkadm.controller.valid_endpoint('https://example.com/file')
-        assert not apigkadm.controller.valid_endpoint('https://foo:baR@example.com')
-        assert not apigkadm.controller.valid_endpoint('https:///FOO')

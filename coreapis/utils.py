@@ -14,6 +14,7 @@ from aniso8601 import parse_datetime
 from queue import Queue, Empty
 from threading import Lock
 from pyramid.httpexceptions import HTTPBadRequest, HTTPNotModified
+from urllib.parse import urlparse
 import hashlib
 
 __local = threading.local()
@@ -427,3 +428,16 @@ class LogoRenderer(object):
 
 def log_token(token):
     return hashlib.md5(token.bytes).hexdigest()
+
+
+def valid_url(value):
+    url = urlparse(value)
+    if url.scheme not in ('http', 'https'):
+        return False
+    if url.netloc == '':
+        return False
+    if ''.join(url[2:]) != '':
+        return False
+    if url.username or url.password:
+        return False
+    return True

@@ -1,24 +1,10 @@
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.clientadm.controller import ClientAdmController
-from coreapis.utils import LogWrapper, ts, public_userinfo, public_orginfo, log_token
+from coreapis.utils import LogWrapper, ts, public_userinfo, public_orginfo, log_token, valid_url
 import uuid
 import valideer as V
 import re
-from urllib.parse import urlparse
-
-
-def valid_endpoint(value):
-    url = urlparse(value)
-    if url.scheme not in ('http', 'https'):
-        return False
-    if url.netloc == '':
-        return False
-    if ''.join(url[2:]) != '':
-        return False
-    if url.username or url.password:
-        return False
-    return True
 
 
 class APIGKAdmController(CrudControllerBase):
@@ -31,7 +17,7 @@ class APIGKAdmController(CrudControllerBase):
         'descr': V.Nullable('string'),
         'status': V.Nullable(['string']),
         'updated': V.AdaptBy(ts),
-        '+endpoints': V.HomogeneousSequence(valid_endpoint, min_length=1),
+        '+endpoints': V.HomogeneousSequence(valid_url, min_length=1),
         '+requireuser': 'boolean',
         'httpscertpinned': V.Nullable('string'),
         'expose': {
