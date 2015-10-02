@@ -442,8 +442,6 @@ def valid_url(value):
         return False
     if url.netloc == '':
         return False
-    if ''.join(url[2:]) != '':
-        return False
     if url.username or url.password:
         return False
     return True

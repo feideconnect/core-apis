@@ -136,10 +136,10 @@ class TestValidUrl(TestCase):
     def test_valid_urls(self):
         assert utils.valid_url('https://example.com')
         assert utils.valid_url('http://example.com')
+        assert utils.valid_url('https://example.com/file')
         assert utils.valid_url('https://example.com:123')
 
     def test_invalid_urls(self):
         assert not utils.valid_url('ftp://example.com')
-        assert not utils.valid_url('https://example.com/file')
         assert not utils.valid_url('https://foo:baR@example.com')
         assert not utils.valid_url('https:///FOO')

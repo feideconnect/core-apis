@@ -87,6 +87,14 @@ class APIGKAdmTests(unittest.TestCase):
         assert out['owner'] == '00000000-0000-0000-0000-000000000001'
         assert out['organization'] is None
 
+    def test_post_apigk_path(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().insert_apigk = mock.MagicMock()
+        self.session().get_apigk.side_effect = KeyError()
+        data = deepcopy(post_body_maximal)
+        data['endpoints'] = ['https://ugle.com/bar']
+        self.testapp.post_json('/apigkadm/apigks/', data, status=201, headers=headers)
+
     def test_post_apigk_org(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().insert_apigk = mock.MagicMock()
@@ -166,9 +174,6 @@ class APIGKAdmTests(unittest.TestCase):
     def test_post_invalid_endpoint(self):
         headers = {'Authorization': 'Bearer user_token'}
         body = deepcopy(post_body_minimal)
-        body['endpoints'] = ['https://ugle.com/bar']
-        self.session().insert_apigk = mock.MagicMock()
-        self.testapp.post_json('/apigkadm/apigks/', body, status=400, headers=headers)
         body['endpoints'] = ['ugle.com']
         self.session().insert_apigk = mock.MagicMock()
         self.testapp.post_json('/apigkadm/apigks/', body, status=400, headers=headers)
