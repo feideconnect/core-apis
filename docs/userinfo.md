@@ -92,7 +92,7 @@ e.g
 
     $ curl https://api.feideconnect.no/userinfo/v1/user/media/p:497ff70b-4b73-47a9-b9f4-8a87d844a410
 
-userid_sec must be of the form `p:<uuid>`.
+userid_sec must be of the form `p:<uuid>`. Authentication is not required.
 
 ### Return values
 
