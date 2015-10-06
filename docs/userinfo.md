@@ -6,7 +6,7 @@ API to retrieve information about current user. To test the API, obtain an authe
 
 ## Retrieving information about current user
 
-    $ curl -H "Authorization: Bearer $token" https://api.feideconnect.no/userinfo/userinfo/
+    $ curl -H "Authorization: Bearer $TOKEN" https://api.feideconnect.no/userinfo/v1/userinfo
 
     {
        "displayName": "Per Spellmann",
@@ -83,3 +83,20 @@ The returned information depends on the scopes held by the caller:
   - `norEduPersonLegalName`, single value
   - `preferredLanguage`, single value
 
+
+## Retrieving profile photo of a user
+
+    $ curl https://api.feideconnect.no/userinfo/v1/user/media/<userid_sec>
+
+e.g
+
+    $ curl https://api.feideconnect.no/userinfo/v1/user/media/p:497ff70b-4b73-47a9-b9f4-8a87d844a410
+
+userid_sec must be of the form `p:<uuid>`
+
+### Return values
+
+- `200 OK`: On success. The image is returned as the response body. If no photo
+  has been uploaded a default image  is provided
+- `404 Not Found`: The requested userid_sec was not found
+- `304 Not Modified`: if request has the `If-Modified-Since` header set to a timestamp equal or higher than the updated column for this group
