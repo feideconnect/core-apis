@@ -92,11 +92,11 @@ e.g
 
     $ curl https://api.feideconnect.no/userinfo/v1/user/media/p:497ff70b-4b73-47a9-b9f4-8a87d844a410
 
-userid_sec must be of the form `p:<uuid>`
+userid_sec must be of the form `p:<uuid>`.
 
 ### Return values
 
 - `200 OK`: On success. The image is returned as the response body. If no photo
-  has been uploaded a default image  is provided
-- `404 Not Found`: The requested userid_sec was not found
-- `304 Not Modified`: if request has the `If-Modified-Since` header set to a timestamp equal or higher than the updated column for this group
+  has been uploaded a default image  is provided.
+- `404 Not Found`: The requested userid_sec was not found.
+- `304 Not Modified`: If request has the `If-Modified-Since` header set to a timestamp equal or higher than the updated column for this group.
