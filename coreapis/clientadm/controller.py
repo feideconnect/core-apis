@@ -7,6 +7,7 @@ import blist
 import json
 import uuid
 import valideer as V
+from copy import deepcopy
 
 
 USER_SETTABLE_STATUS_FLAGS = {'Public'}
@@ -104,18 +105,19 @@ class ClientAdmController(CrudControllerBase):
 
     @staticmethod
     def adapt_client(client):
-        for k, v in client.items():
+        adapted = deepcopy(client)
+        for k, v in adapted.items():
             if k == 'orgauthorization':
-                client[k] = {}
+                adapted[k] = {}
                 if v:
-                    client[k] = {k2: json.loads(v2) for k2, v2 in v.items()}
+                    adapted[k] = {k2: json.loads(v2) for k2, v2 in v.items()}
             elif k == 'authoptions':
-                client[k] = {}
+                adapted[k] = {}
                 if v:
-                    client[k] = json.loads(v)
+                    adapted[k] = json.loads(v)
             elif isinstance(v, blist.sortedset):
-                client[k] = list(v)
-        return client
+                adapted[k] = list(v)
+        return adapted
 
     def _list(self, selectors, values, scope):
         if scope:
@@ -204,7 +206,12 @@ class ClientAdmController(CrudControllerBase):
             self.add_scope_if_approved(client, self.scopedefs[scope], scope)
 
     def insert_client(self, client):
-        self.session.insert_client(client)
+        sessclient = deepcopy(client)
+        orgauthz = sessclient.get('orgauthorization', None)
+        if orgauthz:
+            for k, v in orgauthz.items():
+                orgauthz[k] = json.dumps(v)
+        self.session.insert_client(sessclient)
 
     # Used both for add and update.
     # By default CQL does not distinguish between INSERT and UPDATE

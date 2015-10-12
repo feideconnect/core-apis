@@ -1,6 +1,7 @@
 import unittest
 import mock
 import blist
+import json
 import uuid
 from aniso8601 import parse_datetime
 from datetime import timedelta
@@ -165,6 +166,7 @@ class ClientAdmTests(unittest.TestCase):
         out = res.json
         assert out['owner'] == userid_own
         assert out['organization'] is None
+        assert out['orgauthorization'] is None
 
     def test_post_client_other_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -405,7 +407,9 @@ class ClientAdmTests(unittest.TestCase):
 
     def test_update_client(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
+        ret = deepcopy(retrieved_client)
+        ret['orgauthorization'] = {testrealm: json.dumps([testgk])}
+        self.session.get_client_by_id.return_value = ret
         self.session.insert_client = mock.MagicMock()
         path = '/clientadm/clients/{}'.format(clientid)
         attrs = {'descr': 'blue'}

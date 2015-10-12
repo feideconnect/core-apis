@@ -13,6 +13,7 @@ date_created = '2015-01-12T13:05:16Z'
 testscope = 'clientadmin'
 otherscope = 'userinfo-feide'
 testgk = 'gk_test1'
+testgk_foo = testgk + '_foo'
 othergk = 'gk_test2'
 owngk = 'gk_test3'
 nullscopedefgk = 'gk_nullscopedef'
@@ -55,6 +56,7 @@ post_body_maximal = {
     'loginurl': 'http://altinn.no',
     'supporturl': 'http://www.google.com',
     'authoptions': {'this': 'that'},
+    'orgauthorization': {testrealm: [testgk, testgk_foo]}
 }
 
 retrieved_client = {
@@ -110,7 +112,6 @@ retrieved_gk_clients[2].update({
     'scopes_requested': [othergk]
 })
 
-testgk_foo = testgk + '_foo'
 retrieved_gk_clients[3].update({
     'id': '00000000-0000-0000-0000-000000000006',
     'owner': uuid.UUID(userid_own),
