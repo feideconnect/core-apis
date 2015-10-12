@@ -7,6 +7,12 @@ import valideer as V
 import re
 
 
+def valid_gk_url(url):
+    if valid_url(url) and not url.endswith('/') and url.startswith('https://'):
+        return True
+    return False
+
+
 class APIGKAdmController(CrudControllerBase):
     schema = {
         '+name': 'string',
@@ -17,7 +23,7 @@ class APIGKAdmController(CrudControllerBase):
         'descr': V.Nullable('string'),
         'status': V.Nullable(['string']),
         'updated': V.AdaptBy(ts),
-        '+endpoints': V.HomogeneousSequence(valid_url, min_length=1),
+        '+endpoints': V.HomogeneousSequence(valid_gk_url, min_length=1),
         '+requireuser': 'boolean',
         'httpscertpinned': V.Nullable('string'),
         'expose': {

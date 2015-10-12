@@ -3,10 +3,21 @@ import mock
 import uuid
 from copy import deepcopy
 from coreapis import apigkadm
+from coreapis.apigkadm import controller
 from coreapis.utils import ValidationError
 import py.test
 from coreapis.apigkadm.tests.data import post_body_minimal, post_body_maximal, pre_update
 from coreapis.clientadm.tests.helper import retrieved_user
+
+
+class TestValidURL(unittest.TestCase):
+    def test_validation(self):
+        assert apigkadm.controller.valid_gk_url('https://example.org/abc') is True
+        assert apigkadm.controller.valid_gk_url('https://example.org/abc/bar') is True
+        assert apigkadm.controller.valid_gk_url('https://example.org/') is False
+        assert apigkadm.controller.valid_gk_url('https://example.org') is True
+        assert apigkadm.controller.valid_gk_url('https://example.org:8000') is True
+        assert apigkadm.controller.valid_gk_url('http://example.org:8000') is False
 
 
 class TestAPIGKAdmController(unittest.TestCase):
@@ -43,6 +54,9 @@ class TestAPIGKAdmController(unittest.TestCase):
         with py.test.raises(ValidationError):
             testdata['id'] = 'ab1'
             testdata['created'] = 42
+            self.controller.validate(testdata)
+        with py.test.raises(ValidationError):
+            testdata['endpoints'] = ['https://ugle.uninett.no/']
             self.controller.validate(testdata)
 
     def test_has_permission(self):
