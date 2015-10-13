@@ -137,6 +137,9 @@ class APIGKAdmController(CrudControllerBase):
             'expose': r['expose'],
             'owner': public_userinfo(owners[r['owner']]),
             'organization': r['organization'] and public_orginfo(organizations[r['organization']]) or None,
+            'systemdescr': r['systemdescr'],
+            'privacypolicyurl': r['privacypolicyurl'],
+            'docurl': r['docurl'],
         } for r in res]
 
     def get_gkowner_clients(self, ownerid):

@@ -70,6 +70,23 @@ class APIGKAdmTests(unittest.TestCase):
         self.testapp.get('/apigkadm/apigks/?organization={}'.format('fc:org:example.com'),
                          status=403, headers=headers)
 
+    def test_list_public_apigks(self):
+        self.session().get_apigks.return_value = [pre_update]
+        retrieved_user = {
+            'userid_sec': ['p:foo'],
+            'selectedsource': 'us',
+            'name': {'us': 'foo'},
+            'userid': uuid.UUID('00000000-0000-0000-0000-000000000001'),
+        }
+        self.session().get_user_by_id.return_value = retrieved_user
+        res = self.testapp.get('/apigkadm/public', status=200)
+        print(res)
+        assert 'owner' in res.json[0]
+        assert 'systemdescr' in res.json[0]
+        assert 'privacypolicyurl' in res.json[0]
+        assert 'docurl' in res.json[0]
+        assert 'endpoints' not in res.json[0]
+
     def test_post_apigk_minimal(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().insert_apigk = mock.MagicMock()
