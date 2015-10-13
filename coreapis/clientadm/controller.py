@@ -1,7 +1,9 @@
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.utils import (
-    LogWrapper, ts, public_userinfo, public_orginfo, ValidationError, ForbiddenError, valid_url)
+    LogWrapper, ts, public_userinfo, public_orginfo, ValidationError, ForbiddenError, valid_url,
+    EmailNotifier)
+from .scope_request_notification import ScopeRequestNotification
 from urllib.parse import urlsplit
 import blist
 import json
@@ -13,6 +15,7 @@ from copy import deepcopy
 USER_SETTABLE_STATUS_FLAGS = {'Public'}
 INVALID_URISCHEMES = {'data', 'javascript', 'file', 'about'}
 FEIDE_REALM_PREFIX = 'feide|realm|'
+EMAIL_NOTIFICATIONS_CONFIG_KEY = 'notifications.email.'
 
 
 def is_valid_uri(uri):
@@ -102,10 +105,18 @@ class ClientAdmController(CrudControllerBase):
         keyspace = settings.get('cassandra_keyspace')
         scopedefs_file = settings.get('clientadm_scopedefs_file')
         maxrows = settings.get('clientadm_maxrows')
+        system_moderator = settings.get('clientadm_system_moderator', '')
         super(ClientAdmController, self).__init__(maxrows)
         self.session = cassandra_client.Client(contact_points, keyspace)
         self.log = LogWrapper('clientadm.ClientAdmController')
         self.scopedefs = get_scopedefs(scopedefs_file)
+        self.system_moderator = system_moderator
+        self.email_notification_settings = {'enabled': False}
+        self.email_notification_settings.update({
+            '.'.join(k.split('.')[2:]): v
+            for k, v in settings.items()
+            if k.startswith(EMAIL_NOTIFICATIONS_CONFIG_KEY)
+        })
 
     @staticmethod
     def adapt_client(client):
@@ -217,6 +228,56 @@ class ClientAdmController(CrudControllerBase):
                 orgauthz[k] = json.dumps(v)
         self.session.insert_client(sessclient)
 
+    def get_gk_moderator(self, scope):
+        apigk = self.scope_to_gk(scope)
+        owner = self.session.get_user_by_id(apigk['owner'])
+        try:
+            return list(owner['email'].values())[0]
+        except (AttributeError, IndexError):
+            return None
+
+    def get_moderator(self, scope):
+        if is_gkscopename(scope):
+            return self.get_gk_moderator(scope)
+        else:
+            return self.system_moderator
+
+    # Group scopes by apigk, with a separate bucket for built-in scopes
+    # Example:
+    # {'system': {systemscopes},
+    #  'gk_foo': {'gk_foo', gk_foo_bar'},
+    #  'gk_baz': {'gk_baz1}}
+    def get_scopes_by_base(self, modscopes):
+        ret = {}
+        for scope in modscopes:
+            if is_gkscopename(scope):
+                base = gk_mainscope(scope)
+            else:
+                base = 'system'
+            ret[base] = ret.get(base, set())
+            ret[base].add(scope)
+        return ret
+
+    def notify_moderator(self, moderator, client, scopes):
+        apigk = None
+        first_scope = list(scopes)[0]
+        if is_gkscopename(first_scope):
+            apigk = self.scope_to_gk(first_scope)
+        notification = ScopeRequestNotification(self.get_public_client(client), scopes, apigk)
+        subject = notification.get_subject()
+        body = notification.get_body()
+        self.log.debug('notify_moderator', moderator=moderator, subject=subject)
+        EmailNotifier(self.email_notification_settings).notify(moderator, subject, body)
+
+    def notify_moderators(self, client):
+        modscopes = set(client['scopes_requested']).difference(set(client['scopes']))
+        for base, scopes in self.get_scopes_by_base(modscopes).items():
+            mod = self.get_moderator(base)
+            if mod and len(mod) > 0:
+                self.notify_moderator(mod, client, scopes)
+            else:
+                self.log.debug('No moderator address', base=base, mod=mod)
+
     # Used both for add and update.
     # By default CQL does not distinguish between INSERT and UPDATE
     def _insert(self, client):
@@ -225,6 +286,7 @@ class ClientAdmController(CrudControllerBase):
         for scope in set(client['scopes_requested']).difference(set(client['scopes'])):
             self.handle_scope_request(client, scope)
         self.insert_client(client)
+        self.notify_moderators(client)
         return client
 
     @staticmethod
