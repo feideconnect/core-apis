@@ -348,16 +348,14 @@ class ResourcePool(object):
 
 
 class translatable(dict):
-    def pick_lang(self, request):
+    def pick_lang(self, chooser):
         """Returns a translated string from a dict of lang -> string mappings
         based on the accept_language headers of the request. If there is
         no accept-language header or there is no overlap between accepted
         and available language returns an arbitary language
 
         """
-        lang = None
-        if request.accept_language:
-            lang = request.accept_language.best_match(self.keys())
+        lang = chooser(self.keys())
         if not lang:
             for a in ('nb', 'nn', 'en', 'se'):
                 if a in self:
@@ -368,26 +366,35 @@ class translatable(dict):
         return self[lang]
 
 
-def pick_lang(request, data):
-    if request.params.get('translate', 'true') == 'false':
-        return data
+def pick_lang(chooser, data):
     if isinstance(data, translatable):
-        return data.pick_lang(request)
+        return data.pick_lang(chooser)
     elif isinstance(data, dict):
         res = {}
         for key, value in data.items():
-            res[key] = pick_lang(request, value)
+            res[key] = pick_lang(chooser, value)
         return res
     elif isinstance(data, list):
-        return [pick_lang(request, v) for v in data]
+        return [pick_lang(chooser, v) for v in data]
     else:
         return data
+
+
+def accept_language_matcher(request, data):
+    lang = None
+    if request.accept_language:
+        lang = request.accept_language.best_match(data)
+    return lang
 
 
 def translation(func):
     @wraps(func)
     def wrapper(request):
-        return pick_lang(request, func(request))
+        data = func(request)
+        if request.params.get('translate', 'true') == 'false':
+            return data
+        chooser = lambda data: accept_language_matcher(request, data)
+        return pick_lang(chooser, data)
     return wrapper
 
 
