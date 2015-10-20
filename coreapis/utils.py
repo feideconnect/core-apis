@@ -54,6 +54,8 @@ class CustomEncoder(json.JSONEncoder):
             return str(obj)
         if isinstance(obj, blist.sortedset):
             return list(obj)
+        if isinstance(obj, set):
+            return list(obj)
         # Let the base class default method raise the TypeError
         return json.JSONEncoder.default(self, obj)
 
