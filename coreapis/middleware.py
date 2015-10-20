@@ -99,7 +99,7 @@ class AuthMiddleware(object):
                 environ["FC_SCOPES"] = scopes
             except KeyError as ex:
                 # Invalid token passed. Perhaps return 402?
-                self.log.debug('failed to find token', token=token)
+                self.log.debug('failed to find token', accesstoken=log_token(token))
                 headers = [
                     ('WWW-Authenticate', www_authenticate(self.realm, 'invalid_token', ex.args[0])),
                     ('Content-Type', 'application/json; charset=UTF-8'),
@@ -202,11 +202,11 @@ class CassandraMiddleware(AuthMiddleware):
         for column in ('clientid', 'scope', 'validuntil'):
             if column not in token or token[column] is None:
                 self.log.warn('token misses required column "{}"'.format(column),
-                              token=token_string)
+                              accesstoken=log_token(token_string))
                 return False
 
         if token['validuntil'] < now():
-            self.log.debug('Expired token used', token=token_string)
+            self.log.debug('Expired token used', accesstoken=log_token(token_string))
             return False
         return True
 

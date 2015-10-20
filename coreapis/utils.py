@@ -437,8 +437,8 @@ class LogoRenderer(object):
 
 def log_token(token):
     if isinstance(token, uuid.UUID):
-        data = token.bytes
-    elif isinstance(token, str):
+        token = str(token)
+    if isinstance(token, str):
         data = token.encode('UTF-8')
     else:
         data = token

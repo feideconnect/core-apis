@@ -123,3 +123,11 @@ class TestValidUrl(TestCase):
         assert not utils.valid_url('ftp://example.com')
         assert not utils.valid_url('https://foo:baR@example.com')
         assert not utils.valid_url('https:///FOO')
+
+
+class TestLogToken(TestCase):
+    def test_string(self):
+        assert utils.log_token('7d4a4d65-8670-4b75-994b-894872fe1d46') == '739384b61d0cd34c2da0687e7aab162e'
+
+    def test_uuid(self):
+        assert utils.log_token(uuid.UUID('7d4a4d65-8670-4b75-994b-894872fe1d46')) == '739384b61d0cd34c2da0687e7aab162e'
