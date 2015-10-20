@@ -16,6 +16,9 @@ from threading import Lock
 from pyramid.httpexceptions import HTTPBadRequest, HTTPNotModified
 from urllib.parse import urlparse
 import hashlib
+import smtplib
+from email.mime.text import MIMEText
+import email.utils
 
 __local = threading.local()
 
@@ -433,6 +436,36 @@ class LogoRenderer(object):
         response.cache_control = 'public, max-age=3600'
         response.last_modified = updated
         return logo
+
+
+class EmailNotifier(object):
+    def __init__(self, settings):
+        self.sender = settings.get('sender', None)
+        self.mta = settings.get('mta', None)
+        self.enabled = False
+        self.log = LogWrapper('coreapis.emailnotifier')
+        if settings.get('enabled', '') == 'true':
+            if (self.sender and (len(self.sender) > 0) and self.mta and (len(self.mta) > 0)):
+                self.enabled = True
+            else:
+                self.log.debug('Insufficient email settings', sender=self.sender, mta=self.mta)
+
+    def notify(self, recipient, subject, text):
+        if not self.enabled:
+            self.log.debug('Email settings not enabled',
+                           recipient=recipient, subject=subject, text=text)
+            return
+        msg = MIMEText(text)
+        msg['Subject'] = subject
+        msg['From'] = self.sender
+        msg['To'] = recipient
+        msg['Date'] = email.utils.formatdate(localtime=True)
+        msg['Message-ID'] = email.utils.make_msgid()
+        smtp = smtplib.SMTP(self.mta)
+        smtp.sendmail(self.sender, [recipient], msg.as_string())
+        smtp.quit()
+        self.log.debug('Email notification sent',
+                       recipient=recipient, subject=subject, text=text)
 
 
 def log_token(token):
