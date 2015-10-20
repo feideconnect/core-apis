@@ -6,6 +6,7 @@ import datetime
 import pytest
 import io
 from PIL import Image
+import base64
 
 
 class TestProfileImageCacheLogic(TestCase):
@@ -14,9 +15,14 @@ class TestProfileImageCacheLogic(TestCase):
 
     def setUp(self):
         with mock.patch('coreapis.peoplesearch.controller.CassandraCache') as cache:
-            self.controller = controller.PeopleSearchController('key', mock.MagicMock(),
-                                                                mock.MagicMock(), [],
-                                                                'keyspace', self.age)
+            settings = {
+                'profile_token_secret': base64.b64encode(b'key'),
+                'timer': mock.MagicMock(),
+                'cassandra_contact_points': [],
+                'peoplesearch.cache_keyspace': 'keyspace',
+                'peoplesearch.cache_update_seconds': self.age
+            }
+            self.controller = controller.PeopleSearchController(mock.MagicMock(), settings)
             self.cache = cache
 
     def test_cache_miss(self):
@@ -80,9 +86,14 @@ class TestProfileImageFetch(TestCase):
     def setUp(self):
         self.ldap = mock.MagicMock()
         with mock.patch('coreapis.peoplesearch.controller.CassandraCache'):
-            self.controller = controller.PeopleSearchController('key', mock.MagicMock(),
-                                                                mock.MagicMock(), [],
-                                                                'keyspace', 0)
+            settings = {
+                'profile_token_secret': base64.b64encode(b'key'),
+                'timer': mock.MagicMock(),
+                'cassandra_contact_points': [],
+                'peoplesearch.cache_keyspace': 'keyspace',
+                'peoplesearch.cache_update_seconds': 0
+            }
+            self.controller = controller.PeopleSearchController(mock.MagicMock(), settings)
             self.controller.ldap = self.ldap
 
     def test_feide_no_user(self):
@@ -111,7 +122,11 @@ class TestProfileImageFetch(TestCase):
 class TestLookupFeideid(TestCase):
     def setUp(self):
         m = mock.mock_open(read_data='{}')
-        self.ldap = controller.LDAPController(mock.MagicMock(), 'testdata/test-ldap-config.json')
+        settings = {
+            'timer': mock.MagicMock(),
+            'ldap_config_file': 'testdata/test-ldap-config.json'
+        }
+        self.ldap = controller.LDAPController(settings)
 
     def test_feide_multiple_users(self):
         self.ldap.ldap_search = mock.MagicMock(return_value=[{'attributes': {'cn': ['Test User']}},
@@ -137,11 +152,16 @@ class TestLookupFeideid(TestCase):
 class TestPeopleSearch(TestCase):
     def setUp(self):
         with mock.patch('coreapis.peoplesearch.controller.CassandraCache'):
-            self.controller = controller.PeopleSearchController('key', mock.MagicMock(),
-                                                                mock.MagicMock(), [],
-                                                                'keyspace', 0)
-            self.controller.ldap = controller.LDAPController(mock.MagicMock(),
-                                                             'testdata/test-ldap-config.json')
+            settings = {
+                'profile_token_secret': base64.b64encode(b'key'),
+                'timer': mock.MagicMock(),
+                'cassandra_contact_points': [],
+                'peoplesearch.cache_keyspace': 'keyspace',
+                'peoplesearch.cache_update_seconds': 0,
+                'ldap_config_file': 'testdata/test-ldap-config.json'
+            }
+            self.controller = controller.PeopleSearchController(mock.MagicMock(), settings)
+            self.controller.ldap = controller.LDAPController(settings)
 
     def test_org_authorization_policy(self):
         policy = self.controller.org_authorization_policy('realm1.example.com')
@@ -193,9 +213,14 @@ class TestPeopleSearch(TestCase):
 class TestFetchProfileImage(TestCase):
     def setUp(self):
         with mock.patch('coreapis.peoplesearch.controller.CassandraCache'):
-            self.controller = controller.PeopleSearchController('key', mock.MagicMock(),
-                                                                mock.MagicMock(), [],
-                                                                'keyspace', 0)
+            settings = {
+                'profile_token_secret': base64.b64encode(b'key'),
+                'timer': mock.MagicMock(),
+                'cassandra_contact_points': [],
+                'peoplesearch.cache_keyspace': 'keyspace',
+                'peoplesearch.cache_update_seconds': 0
+            }
+            self.controller = controller.PeopleSearchController(mock.MagicMock(), settings)
 
     def test_malformed_user(self):
         with pytest.raises(ValidationError):

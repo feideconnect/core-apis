@@ -23,7 +23,12 @@ class TestValidURL(unittest.TestCase):
 class TestAPIGKAdmController(unittest.TestCase):
     @mock.patch('coreapis.apigkadm.controller.cassandra_client.Client')
     def setUp(self, Client):
-        self.controller = apigkadm.controller.APIGKAdmController([], '', 20)
+        settings = {
+            'cassandra_contact_points': [],
+            'cassandra_keyspace': 'keyspace',
+            'clientadm_maxrows': 100
+        }
+        self.controller = apigkadm.controller.APIGKAdmController(settings)
 
     def test_validation(self):
         self.controller.validate(post_body_maximal)

@@ -45,11 +45,14 @@ class APIGKAdmController(CrudControllerBase):
         'docurl': V.Nullable(valid_url),
     }
 
-    def __init__(self, contact_points, keyspace, maxrows):
+    def __init__(self, settings):
+        contact_points = settings.get('cassandra_contact_points')
+        keyspace = settings.get('cassandra_keyspace')
+        maxrows = settings.get('apigkadm_maxrows')
         super(APIGKAdmController, self).__init__(maxrows)
         self.session = cassandra_client.Client(contact_points, keyspace)
         self.log = LogWrapper('apigkadm.APIGKAdmController')
-        self.cadm_controller = ClientAdmController(contact_points, keyspace, None, maxrows)
+        self.cadm_controller = ClientAdmController(settings)
 
     def has_permission(self, apigk, user):
         if user is None:

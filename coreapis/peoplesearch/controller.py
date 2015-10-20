@@ -9,6 +9,7 @@ import io
 from cassandra.cluster import Cluster
 from coreapis.cassandra_client import datetime_hack_dict_factory
 from functools import partial
+import base64
 
 THUMB_SIZE = 128, 128
 USER_INFO_ATTRIBUTES = ['cn', 'displayName', 'eduPersonPrincipalName']
@@ -60,7 +61,9 @@ def parse_ldap_config(filename):
 
 
 class LDAPController(object):
-    def __init__(self, timer, ldap_config, pool=ResourcePool):
+    def __init__(self, settings, pool=ResourcePool):
+        timer = settings.get('timer')
+        ldap_config = settings.get('ldap_config_file', 'ldap-config.json')
         self.t = timer
         self.log = LogWrapper('peoplesearch.LDAPController')
         self.config, self.servers = parse_ldap_config(ldap_config)
@@ -144,8 +147,13 @@ class CassandraCache(object):
 
 class PeopleSearchController(object):
 
-    def __init__(self, key, timer, ldap_controller, contact_points, cache_keyspace,
-                 cache_update_seconds):
+    def __init__(self, ldap_controller, settings):
+        key = base64.b64decode(settings.get('profile_token_secret'))
+        contact_points = settings.get('cassandra_contact_points')
+        cache_keyspace = settings.get('peoplesearch.cache_keyspace')
+        cache_update_seconds = int(settings.get('peoplesearch.cache_update_seconds', 3600))
+        timer = settings.get('timer')
+
         self.key = key
         self.t = timer
         self.ldap = ldap_controller

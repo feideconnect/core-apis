@@ -92,7 +92,10 @@ def allowed_attributes(attributes, perm_checker):
 
 class UserInfoController(object):
 
-    def __init__(self, contact_points, keyspace, ldap_controller):
+    def __init__(self, settings):
+        contact_points = settings.get('cassandra_contact_points')
+        keyspace = settings.get('cassandra_keyspace')
+        ldap_controller = settings.get('ldap_controller')
         self.session = cassandra_client.Client(contact_points, keyspace)
         self.log = LogWrapper('userinfo.UserInfoController')
         self.ldap = ldap_controller

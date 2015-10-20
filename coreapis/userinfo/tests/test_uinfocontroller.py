@@ -6,7 +6,12 @@ from coreapis.userinfo import controller
 class TestUserInfo(TestCase):
     @mock.patch('coreapis.middleware.cassandra_client.Client')
     def setUp(self, Client):
-        self.controller = controller.UserInfoController([], 'keyspace', mock.MagicMock)
+        settings = {
+            'cassandra_contact_points': [],
+            'cassandra_keyspace': 'keyspace',
+            'ldap_controller': mock.MagicMock
+        }
+        self.controller = controller.UserInfoController(settings)
 
     def test_userinfo(self):
         user = {'userid_sec': ['feide:dd@vg.no']}

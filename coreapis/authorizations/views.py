@@ -7,9 +7,7 @@ import uuid
 
 
 def configure(config):
-    contact_points = config.get_settings().get('cassandra_contact_points')
-    keyspace = config.get_settings().get('cassandra_keyspace')
-    authz_controller = AuthorizationController(contact_points, keyspace)
+    authz_controller = AuthorizationController(config.get_settings())
     config.add_settings(authz_controller=authz_controller)
     config.add_request_method(lambda r: r.registry.settings.authz_controller, 'authz_controller',
                               reify=True)

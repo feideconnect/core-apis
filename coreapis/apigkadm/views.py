@@ -6,10 +6,7 @@ from coreapis.utils import AlreadyExistsError, get_userid, get_payload, get_user
 
 
 def configure(config):
-    contact_points = config.get_settings().get('cassandra_contact_points')
-    keyspace = config.get_settings().get('cassandra_keyspace')
-    maxrows = config.get_settings().get('apigkadm_maxrows')
-    gkadm_controller = APIGKAdmController(contact_points, keyspace, maxrows)
+    gkadm_controller = APIGKAdmController(config.get_settings())
     config.add_settings(gkadm_controller=gkadm_controller)
     config.add_request_method(lambda r: r.registry.settings.gkadm_controller, 'gkadm_controller',
                               reify=True)

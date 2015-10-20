@@ -7,12 +7,7 @@ from coreapis.utils import now, get_user, get_payload, ValidationError, translat
 
 
 def configure(config):
-    contact_points = config.get_settings().get('cassandra_contact_points')
-    keyspace = config.get_settings().get('cassandra_keyspace')
-    timer = config.get_settings().get('timer')
-    maxrows = config.get_settings().get('clientadm_maxrows')
-    ldap_config = config.get_settings().get('ldap_config_file', 'ldap-config.json')
-    org_controller = OrgController(contact_points, keyspace, timer, maxrows, ldap_config)
+    org_controller = OrgController(config.get_settings())
     config.add_settings(org_controller=org_controller)
     config.add_request_method(lambda r: r.registry.settings.org_controller, 'org_controller',
                               reify=True)

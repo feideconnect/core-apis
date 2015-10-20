@@ -1,21 +1,14 @@
 from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPNotFound, HTTPNotModified, HTTPBadRequest, HTTPForbidden
 from pyramid.response import Response
-import base64
 from .controller import validate_query, LDAPController, PeopleSearchController
 from coreapis.utils import get_user
 
 
 def configure(config):
-    key = base64.b64decode(config.get_settings().get('profile_token_secret'))
-    contact_points = config.get_settings().get('cassandra_contact_points')
-    keyspace = config.get_settings().get('peoplesearch.cache_keyspace')
-    cache_update_seconds = int(config.get_settings().get('peoplesearch.cache_update_seconds', 3600))
-    timer = config.get_settings().get('timer')
-    ldap_config = config.get_settings().get('ldap_config_file', 'ldap-config.json')
-    ldap_controller = LDAPController(timer, ldap_config)
-    ps_controller = PeopleSearchController(key, timer, ldap_controller, contact_points, keyspace,
-                                           cache_update_seconds)
+    settings = config.get_settings()
+    ldap_controller = LDAPController(settings)
+    ps_controller = PeopleSearchController(ldap_controller, settings)
     config.add_settings(ldap_controller=ldap_controller, ps_controller=ps_controller)
     config.add_request_method(lambda r: r.registry.settings.ldap_controller, 'ldap_controller',
                               reify=True)

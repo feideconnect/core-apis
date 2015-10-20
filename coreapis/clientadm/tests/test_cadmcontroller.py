@@ -36,8 +36,13 @@ class TestController(TestCase):
     def setUp(self, Client):
         self.session = Client()
         self.session.get_apigk.side_effect = mock_get_apigk
-        self.controller = controller.ClientAdmController([], 'keyspace',
-                                                         'scopedefs.json.example', 100)
+        settings = {
+            'cassandra_contact_points': [],
+            'cassandra_keyspace': 'keyspace',
+            'clientadm_scopedefs_file': 'scopedefs.json.example',
+            'clientadm_maxrows': 100
+        }
+        self.controller = controller.ClientAdmController(settings)
 
     def test_is_valid_uri(self):
         res = [controller.is_valid_uri(uri) for uri in baduris]

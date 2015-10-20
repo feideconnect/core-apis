@@ -4,6 +4,7 @@ from coreapis.utils import LogWrapper, ts, ValidationError, public_userinfo, Res
 from coreapis.peoplesearch.tokens import decrypt_token
 import uuid
 import valideer as V
+import base64
 
 
 def valid_member_type(mtype):
@@ -38,7 +39,13 @@ class AdHocGroupAdmController(CrudControllerBase):
     }]
     del_member_schema = [valid_member_id]
 
-    def __init__(self, contact_points, keyspace, maxrows, key, ps_controller, max_add_members):
+    def __init__(self, settings):
+        contact_points = settings.get('cassandra_contact_points')
+        keyspace = settings.get('cassandra_keyspace')
+        maxrows = settings.get('adhocgroupadm_maxrows', 100)
+        key = base64.b64decode(settings.get('profile_token_secret'))
+        ps_controller = settings.get('ps_controller')
+        max_add_members = int(settings.get('adhocgroupadm_max_add_members', '50'))
         super(AdHocGroupAdmController, self).__init__(maxrows)
         self.session = cassandra_client.Client(contact_points, keyspace)
         self.log = LogWrapper('adhocgroupadm.AdHocGroupAdmController')

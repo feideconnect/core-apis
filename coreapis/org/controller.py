@@ -6,13 +6,18 @@ from coreapis.clientadm.controller import ClientAdmController
 
 
 class OrgController(CrudControllerBase):
-    def __init__(self, contact_points, keyspace, timer, maxrows, ldap_config):
+    def __init__(self, settings):
+        contact_points = settings.get('cassandra_contact_points')
+        keyspace = settings.get('cassandra_keyspace')
+        timer = settings.get('timer')
+        maxrows = settings.get('clientadm_maxrows')
+        ldap_config = settings.get('ldap_config_file', 'ldap-config.json')
         super(OrgController, self).__init__(maxrows)
         self.t = timer
         self.log = LogWrapper('org.OrgController')
         self.session = cassandra_client.Client(contact_points, keyspace)
         self.log.debug('org controller init', keyspace=keyspace)
-        self.cadm_controller = ClientAdmController(contact_points, keyspace, None, maxrows)
+        self.cadm_controller = ClientAdmController(settings)
         self.ldap_config = json.load(open(ldap_config))
 
     def format_org(self, org):

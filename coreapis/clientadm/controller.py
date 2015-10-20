@@ -97,11 +97,15 @@ class ClientAdmController(CrudControllerBase):
                     'systemdescr', 'privacypolicyurl', 'homepageurl', 'loginurl', 'supporturl']
     scope_attrs = ['scopes', 'scopes_requested']
 
-    def __init__(self, contact_points, keyspace, scopedef_file, maxrows):
+    def __init__(self, settings):
+        contact_points = settings.get('cassandra_contact_points')
+        keyspace = settings.get('cassandra_keyspace')
+        scopedefs_file = settings.get('clientadm_scopedefs_file')
+        maxrows = settings.get('clientadm_maxrows')
         super(ClientAdmController, self).__init__(maxrows)
         self.session = cassandra_client.Client(contact_points, keyspace)
         self.log = LogWrapper('clientadm.ClientAdmController')
-        self.scopedefs = get_scopedefs(scopedef_file)
+        self.scopedefs = get_scopedefs(scopedefs_file)
 
     @staticmethod
     def adapt_client(client):

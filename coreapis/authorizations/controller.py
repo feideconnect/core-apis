@@ -4,7 +4,9 @@ from coreapis.utils import LogWrapper
 
 class AuthorizationController(object):
 
-    def __init__(self, contact_points, keyspace):
+    def __init__(self, settings):
+        contact_points = settings.get('cassandra_contact_points')
+        keyspace = settings.get('cassandra_keyspace')
         self.session = cassandra_client.Client(contact_points, keyspace)
         self.log = LogWrapper('authorizations.AuthorizationController')
 

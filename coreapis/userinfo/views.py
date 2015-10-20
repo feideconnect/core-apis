@@ -5,10 +5,7 @@ from coreapis.utils import get_user
 
 
 def configure(config):
-    contact_points = config.get_settings().get('cassandra_contact_points')
-    keyspace = config.get_settings().get('cassandra_keyspace')
-    ldap_controller = config.get_settings().get('ldap_controller')
-    userinfo_controller = UserInfoController(contact_points, keyspace, ldap_controller)
+    userinfo_controller = UserInfoController(config.get_settings())
     config.add_settings(userinfo_controller=userinfo_controller)
     config.add_request_method(lambda r: r.registry.settings.userinfo_controller,
                               'userinfo_controller', reify=True)

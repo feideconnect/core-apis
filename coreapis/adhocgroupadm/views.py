@@ -4,18 +4,10 @@ from pyramid.response import Response
 from .controller import AdHocGroupAdmController
 from coreapis.utils import get_userid, get_payload, ResourceError
 import uuid
-import base64
 
 
 def configure(config):
-    contact_points = config.get_settings().get('cassandra_contact_points')
-    keyspace = config.get_settings().get('cassandra_keyspace')
-    maxrows = config.get_settings().get('adhocgroupadm_maxrows', 100)
-    key = base64.b64decode(config.get_settings().get('profile_token_secret'))
-    ps_controller = config.get_settings().get('ps_controller')
-    max_add_members = int(config.get_settings().get('adhocgroupadm_max_add_members', '50'))
-    ahgroupadm_controller = AdHocGroupAdmController(contact_points, keyspace, maxrows, key,
-                                                    ps_controller, max_add_members)
+    ahgroupadm_controller = AdHocGroupAdmController(config.get_settings())
     config.add_settings(ahgroupadm_controller=ahgroupadm_controller)
     config.add_request_method(lambda r: r.registry.settings.ahgroupadm_controller,
                               'ahgroupadm_controller', reify=True)
