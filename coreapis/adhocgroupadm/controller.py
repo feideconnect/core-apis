@@ -145,6 +145,9 @@ class AdHocGroupAdmController(CrudControllerBase):
             user = public_userinfo(self.session.get_user_by_id(member['userid']))
             user['type'] = member['type']
             user['status'] = member['status']
+            added_by = member.get('added_by', None)
+            if added_by:
+                user['added_by'] = public_userinfo(self.session.get_user_by_id(added_by))
             res.append(user)
         return res
 
