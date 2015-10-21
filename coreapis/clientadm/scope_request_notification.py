@@ -74,14 +74,21 @@ description:  {}
         base = self.scopes[0].split('_')[1]
         return tmpl.format(orgid, base)
 
-    def get_dashboard_help(self):
-        msg = self.translate(translatable({
+    def get_fc_help(self):
+        dashboardmsg = self.translate(translatable({
             "nb": "Du kan behandle forespørselen i FeideConnect dashbord på URLen nedenfor",
             "en": "You may handle the request in the FeideConnect dashboard at the URL below",
         }))
+        connectmsg = self.translate(translatable({
+            "nb": "Les mer om FeideConnect på",
+            "en": "Read more about FeideConnect at",
+        }))
+        fcurl = 'http://feideconnect.no'
         if self.apigk:
-            return "{}:\n{}\n".format(msg, self.get_dashboard_url())
+            return "{}:\n{}\n{} {}".format(dashboardmsg, self.get_dashboard_url(),
+                                           connectmsg, fcurl)
         else:
+            return "{} {}".format(connectmsg, fcurl)
             return ''
 
     def get_body(self):
@@ -92,4 +99,4 @@ description:  {}
 '''
         return tmpl.format(self.get_subject(),
                            self.get_client_info(),
-                           self.get_dashboard_help())
+                           self.get_fc_help())
