@@ -63,6 +63,7 @@ def list_public_apigks(request):
 
 
 @view_config(route_name='get_apigk', renderer='json', permission='scope_apigkadmin')
+@translation
 def get_apigk(request):
     return check(request)
 
@@ -139,6 +140,7 @@ def upload_logo(request):
 
 
 @view_config(route_name='apigk_owner_clients', renderer='json', permission='scope_apigkadmin')
+@translation
 def apigk_owner_clients(request):
     userid = get_userid(request)
     ownerid = request.matchdict['ownerid']
@@ -150,6 +152,7 @@ def apigk_owner_clients(request):
 
 
 @view_config(route_name='apigk_org_clients', renderer='json', permission='scope_apigkadmin')
+@translation
 def apigk_org_clients(request):
     user = get_user(request)
     orgid = request.matchdict['orgid']

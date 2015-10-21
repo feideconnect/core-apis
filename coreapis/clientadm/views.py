@@ -48,6 +48,7 @@ def check(request):
 
 
 @view_config(route_name='list_clients', renderer='json', permission='scope_clientadmin')
+@translation
 def list_clients(request):
     user = get_user(request)
     organization = request.params.get('organization', None)
@@ -69,6 +70,7 @@ def public_clients(request):
 
 
 @view_config(route_name='get_client', renderer='json')
+@translation
 def get_client(request):
     user = get_user(request)
     clientid = get_clientid(request)
@@ -92,6 +94,7 @@ def allowed_attrs(attrs, operation):
 
 @view_config(route_name='add_client', renderer='json', request_method='POST',
              permission='scope_clientadmin')
+@translation
 def add_client(request):
     userid = get_userid(request)
     payload = get_payload(request)
@@ -117,6 +120,7 @@ def delete_client(request):
 
 
 @view_config(route_name='update_client', renderer='json', permission='scope_clientadmin')
+@translation
 def update_client(request):
     client = check(request)
     payload = get_payload(request)
