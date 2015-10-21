@@ -148,24 +148,24 @@ class AdHocGroupAdmController(CrudControllerBase):
             res.append(user)
         return res
 
-    def add_member(self, groupid, userid, mtype, status):
-        self.session.add_group_member(groupid, userid, mtype, status)
+    def add_member(self, groupid, memberid, mtype, status):
+        self.session.add_group_member(groupid, memberid, mtype, status)
 
     def add_member_from_token(self, groupid, token, mtype):
-        userid_sec = decrypt_token(token, self.key)
+        memberid_sec = decrypt_token(token, self.key)
         try:
-            userid = self.session.get_userid_by_userid_sec(userid_sec)
+            memberid = self.session.get_userid_by_userid_sec(memberid_sec)
         except KeyError:
-            userid = uuid.uuid4()
+            memberid = uuid.uuid4()
             p = 'p:{}'.format(uuid.uuid4())
-            feideid = userid_sec.split(':', 1)[1]
+            feideid = memberid_sec.split(':', 1)[1]
             realm = feideid.split('@', 1)[1]
             person = self.ps_controller.get_user(feideid)
             source = 'ps:{}'.format(realm)
             name = {source: person['name']}
-            userid_sec = set([userid_sec, p])
-            self.session.insert_user(userid, None, name, None, None, source, userid_sec)
-        self.add_member(groupid, userid, mtype, 'unconfirmed')
+            memberid_sec = set([memberid_sec, p])
+            self.session.insert_user(memberid, None, name, None, None, source, memberid_sec)
+        self.add_member(groupid, memberid, mtype, 'unconfirmed')
 
     def update_group_member(self, groupid, mid, mtype):
         try:
