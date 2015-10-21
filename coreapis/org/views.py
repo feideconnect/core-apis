@@ -16,6 +16,7 @@ def configure(config):
     config.add_route('org_logo', '/{id}/logo')
     config.add_route('org_mandatory_clients', '/{id}/mandatory_clients/')
     config.add_route('org_mandatory_client', '/{id}/mandatory_clients/{clientid}')
+    config.add_route('org_ldap_status', '/{id}/ldap_status')
     config.scan(__name__)
 
 
@@ -100,3 +101,11 @@ def del_mandatory_clients(request):
         raise HTTPNotFound('invalid client id')
     request.org_controller.del_mandatory_client(user, orgid, clientid)
     return Response(status='204 No Content', content_type=False)
+
+
+@view_config(route_name='org_ldap_status', permission='scope_orgadmin',
+             request_method='GET', renderer="json")
+def ldap_status(request):
+    user = get_user(request)
+    orgid = check(request)
+    return(request.org_controller.ldap_status(user, orgid))
