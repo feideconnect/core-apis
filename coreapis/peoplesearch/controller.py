@@ -2,6 +2,7 @@ import datetime
 import json
 import ldap3
 import hashlib
+import ssl
 from coreapis.utils import ValidationError, LogWrapper, now, ResourcePool
 from .tokens import crypt_token, decrypt_token
 from PIL import Image
@@ -42,19 +43,22 @@ def in_org(user, org):
     return False
 
 
-def parse_ldap_config(filename):
+def parse_ldap_config(filename, ca_certs):
     config = json.load(open(filename))
     servers = {}
+    tls = ldap3.Tls(validate=ssl.CERT_REQUIRED,
+                    ca_certs_file=ca_certs)
     for org in config:
         orgconf = config[org]
-        server_pool = ldap3.ServerPool(None, ldap3.POOLING_STRATEGY_ROUND_ROBIN, active=True, exhaust=True)
+        server_pool = ldap3.ServerPool(None, ldap3.POOLING_STRATEGY_ROUND_ROBIN,
+                                       active=True, exhaust=True)
         for server in orgconf['servers']:
             if ':' in server:
                 host, port = server.split(':', 1)
                 port = int(port)
             else:
                 host, port = server, None
-            server = ldap3.Server(host, port=port, use_ssl=True, connect_timeout=1)
+            server = ldap3.Server(host, port=port, use_ssl=True, connect_timeout=1, tls=tls)
             server_pool.add(server)
         servers[org] = server_pool
     return config, servers
@@ -64,9 +68,10 @@ class LDAPController(object):
     def __init__(self, settings, pool=ResourcePool):
         timer = settings.get('timer')
         ldap_config = settings.get('ldap_config_file', 'ldap-config.json')
+        ca_certs = settings.get('ldap_ca_certs', None)
         self.t = timer
         self.log = LogWrapper('peoplesearch.LDAPController')
-        self.config, self.servers = parse_ldap_config(ldap_config)
+        self.config, self.servers = parse_ldap_config(ldap_config, ca_certs)
         self.conpools = {org: pool(create=partial(self.get_connection, org)) for org in self.config}
 
     def get_ldap_config(self):
