@@ -84,7 +84,7 @@ class AdHocGroupAdmController(CrudControllerBase):
 
     def add(self, item, userid):
         res = super(AdHocGroupAdmController, self).add(item, userid)
-        self.add_member(res['id'], userid, 'admin', 'normal')
+        self.add_member(res['id'], userid, 'admin', 'normal', None)
         return res
 
     def _insert(self, group):
@@ -148,10 +148,10 @@ class AdHocGroupAdmController(CrudControllerBase):
             res.append(user)
         return res
 
-    def add_member(self, groupid, memberid, mtype, status):
-        self.session.add_group_member(groupid, memberid, mtype, status)
+    def add_member(self, groupid, memberid, mtype, status, added_by):
+        self.session.add_group_member(groupid, memberid, mtype, status, added_by)
 
-    def add_member_from_token(self, groupid, token, mtype):
+    def add_member_from_token(self, groupid, token, mtype, callerid):
         memberid_sec = decrypt_token(token, self.key)
         try:
             memberid = self.session.get_userid_by_userid_sec(memberid_sec)
@@ -165,7 +165,10 @@ class AdHocGroupAdmController(CrudControllerBase):
             name = {source: person['name']}
             memberid_sec = set([memberid_sec, p])
             self.session.insert_user(memberid, None, name, None, None, source, memberid_sec)
-        self.add_member(groupid, memberid, mtype, 'unconfirmed')
+        added_by = None
+        if callerid != memberid:
+            added_by = callerid
+        self.add_member(groupid, memberid, mtype, 'unconfirmed', added_by)
 
     def update_group_member(self, groupid, mid, mtype):
         try:
@@ -175,7 +178,7 @@ class AdHocGroupAdmController(CrudControllerBase):
             raise ValidationError(str(ex))
         self.session.set_group_member_type(groupid, userid, mtype)
 
-    def add_members(self, groupid, data):
+    def add_members(self, groupid, data, callerid):
         validator = V.parse(self.member_schema, additional_properties=False)
         try:
             adapted = validator.validate(data)
@@ -187,7 +190,7 @@ class AdHocGroupAdmController(CrudControllerBase):
             raise ResourceError("Can not add more than {} members".format(self.max_add_members))
         for member in adapted:
             if 'token' in member:
-                self.add_member_from_token(groupid, member['token'], member['type'])
+                self.add_member_from_token(groupid, member['token'], member['type'], callerid)
             elif 'id' in member:
                 self.update_group_member(groupid, member['id'], member['type'])
             else:
@@ -243,7 +246,7 @@ class AdHocGroupAdmController(CrudControllerBase):
         group = self.get(groupid)
         if group['invitation_token'] != token:
             return None
-        self.add_member(groupid, userid, "member", "normal")
+        self.add_member(groupid, userid, "member", "normal", None)
         return {
             'groupid': groupid,
             'type': 'member',

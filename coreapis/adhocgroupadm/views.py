@@ -148,7 +148,7 @@ def add_group_members(request):
     userid, group = check(request, "edit_members")
     payload = get_payload(request)
     try:
-        return request.ahgroupadm_controller.add_members(group['id'], payload)
+        return request.ahgroupadm_controller.add_members(group['id'], payload, userid)
     except ResourceError as ex:
         raise HTTPConflict(ex.message)
 

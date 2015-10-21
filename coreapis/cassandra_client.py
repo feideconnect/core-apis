@@ -59,7 +59,7 @@ class Client(object):
             'groups': [
                 'id', 'created', 'descr', 'name', 'owner', 'public', 'updated',
                 'invitation_token'],
-            'group_members': ['userid', 'groupid', 'status', 'type'],
+            'group_members': ['userid', 'groupid', 'status', 'type', 'added_by'],
             'organizations': [
                 'organization_number', 'type', 'realm', 'id', 'name', 'fs_groups', 'services',
                 'uiinfo'],
@@ -327,9 +327,9 @@ class Client(object):
         prep = self._prepare('SELECT * FROM group_members WHERE groupid=?')
         return self.session.execute(prep.bind([groupid]))
 
-    def add_group_member(self, groupid, userid, mtype, status):
-        prep = self._prepare('INSERT INTO group_members (groupid, userid, type, status) values (?,?,?,?)')
-        return self.session.execute(prep.bind([groupid, userid, mtype, status]))
+    def add_group_member(self, groupid, userid, mtype, status, added_by):
+        prep = self._prepare('INSERT INTO group_members (groupid, userid, type, status, added_by) values (?,?,?,?,?)')
+        return self.session.execute(prep.bind([groupid, userid, mtype, status, added_by]))
 
     def set_group_member_status(self, groupid, userid, status):
         prep = self._prepare('INSERT INTO group_members (groupid, userid, status) values (?,?,?)')
