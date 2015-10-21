@@ -452,7 +452,7 @@ class EmailNotifier(object):
 
     def notify(self, recipient, subject, text):
         if not self.enabled:
-            self.log.debug('Email settings not enabled',
+            self.log.debug('Email notifications not enabled',
                            recipient=recipient, subject=subject, text=text)
             return
         msg = MIMEText(text)
