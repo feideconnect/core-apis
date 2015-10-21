@@ -474,8 +474,8 @@ class LDAPBackend(BaseBackend):
             {
                 "id": "fc:org",
                 "displayName": translatable({
-                    "en": "Uninett connect organization",
-                    "nb": "Uninett connect organisasjon"
+                    "en": "Organization",
+                    "nb": "Organisasjon"
                 })
             },
         ]
