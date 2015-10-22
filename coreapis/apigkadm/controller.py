@@ -139,7 +139,8 @@ class APIGKAdmController(CrudControllerBase):
         maxrows = self.maxrows
         if query and len(query) > 0:
             maxrows = 9999
-        res = self.session.get_apigks(['status contains ?'], ['public'], maxrows)
+        res = [r for r in self.session.get_apigks(['status contains ?'], ['public'], maxrows)
+               if self.matches_query(r, query)][:max_replies]
         owner_ids = set(r['owner'] for r in res)
         owners = {ownerid: self.session.get_user_by_id(ownerid) for ownerid in owner_ids}
         organization_ids = set(r['organization'] for r in res if r['organization'])
@@ -155,7 +156,7 @@ class APIGKAdmController(CrudControllerBase):
             'systemdescr': r['systemdescr'],
             'privacypolicyurl': r['privacypolicyurl'],
             'docurl': r['docurl'],
-        } for r in res if self.matches_query(r, query)][:max_replies]
+        } for r in res]
 
     def get_gkowner_clients(self, ownerid):
         gkscopes = ['gk_{}'.format(r['id']) for r in self.list_by_owner(ownerid)]
