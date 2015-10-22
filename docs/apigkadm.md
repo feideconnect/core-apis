@@ -196,7 +196,16 @@ or:
       "name": "testgk", "owner": {"id": "p:6fc96878-fdc5-4fc3-abfc-6fcc018ff0fc",
       "name": "Sigmund Augdal"}, "scopedef": null, "descr": "sigmund tester"}]
 
-Lists some public information about the registered api gatekeepers for clients to use when requesting permission.
+Lists some public information about registered api gatekeepers for
+clients to use when requesting permission. Only gatekeepers whose status
+contains 'public' are included.
+
+### Optional parameters
+
+- `max_replies`: Maximum number of api gatekeepers to return. This
+  number is also limited by a system configured value.
+- `query`: A string to search for in the id and name fields of the
+  public gatekeepers. The search is a case insensitive substring search.
 
 ## Checking whether a gatekeeper id is already in use
 
