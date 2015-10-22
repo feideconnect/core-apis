@@ -136,7 +136,10 @@ class APIGKAdmController(CrudControllerBase):
     def public_list(self, query, max_replies):
         if max_replies is None or max_replies > self.maxrows:
             max_replies = self.maxrows
-        res = self.session.get_apigks(['status contains ?'], ['public'], self.maxrows)
+        maxrows = self.maxrows
+        if query and len(query) > 0:
+            maxrows = 9999
+        res = self.session.get_apigks(['status contains ?'], ['public'], maxrows)
         owner_ids = set(r['owner'] for r in res)
         owners = {ownerid: self.session.get_user_by_id(ownerid) for ownerid in owner_ids}
         organization_ids = set(r['organization'] for r in res if r['organization'])
