@@ -71,11 +71,9 @@ class APIGKAdmTests(unittest.TestCase):
                          status=403, headers=headers)
 
     def test_list_public_apigks(self):
-        privapi = pre_update
         pubapi = deepcopy(pre_update)
         pubapi['status'] = {'public'}
-        pubapi['id'] = 'pubapi'
-        self.session().get_apigks.return_value = [privapi, pubapi]
+        self.session().get_apigks.return_value = [pubapi]
         retrieved_user = {
             'userid_sec': ['p:foo'],
             'selectedsource': 'us',

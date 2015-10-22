@@ -127,11 +127,6 @@ class APIGKAdmController(CrudControllerBase):
         self.session.save_logo('apigk', gkid, data, updated)
 
     @staticmethod
-    def is_public(apigk):
-        status = apigk['status']
-        return status and 'public' in status
-
-    @staticmethod
     def matches_query(apigk, query):
         if query is None or len(query) == 0:
             return True
@@ -141,7 +136,7 @@ class APIGKAdmController(CrudControllerBase):
     def public_list(self, query, max_replies):
         if max_replies is None or max_replies > self.maxrows:
             max_replies = self.maxrows
-        res = self.session.get_apigks([], [], self.maxrows)
+        res = self.session.get_apigks(['status contains ?'], ['public'], self.maxrows)
         owner_ids = set(r['owner'] for r in res)
         owners = {ownerid: self.session.get_user_by_id(ownerid) for ownerid in owner_ids}
         organization_ids = set(r['organization'] for r in res if r['organization'])
@@ -157,7 +152,7 @@ class APIGKAdmController(CrudControllerBase):
             'systemdescr': r['systemdescr'],
             'privacypolicyurl': r['privacypolicyurl'],
             'docurl': r['docurl'],
-        } for r in res if self.is_public(r) and self.matches_query(r, query)][:max_replies]
+        } for r in res if self.matches_query(r, query)][:max_replies]
 
     def get_gkowner_clients(self, ownerid):
         gkscopes = ['gk_{}'.format(r['id']) for r in self.list_by_owner(ownerid)]
