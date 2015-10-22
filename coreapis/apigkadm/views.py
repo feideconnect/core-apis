@@ -1,5 +1,5 @@
 from pyramid.view import view_config
-from pyramid.httpexceptions import HTTPNotFound, HTTPConflict, HTTPForbidden
+from pyramid.httpexceptions import HTTPNotFound, HTTPConflict, HTTPBadRequest, HTTPForbidden
 from pyramid.response import Response
 from .controller import APIGKAdmController
 from coreapis.utils import AlreadyExistsError, get_userid, get_payload, get_user, translation
@@ -59,7 +59,14 @@ def list_apigks(request):
 @view_config(route_name='list_public_apigks', renderer='json')
 @translation
 def list_public_apigks(request):
-    return request.gkadm_controller.public_list()
+    query = request.params.get('query', None)
+    max_replies = request.params.get('max_replies', None)
+    if max_replies is not None:
+        try:
+            max_replies = int(max_replies)
+        except ValueError:
+            raise HTTPBadRequest()
+    return request.gkadm_controller.public_list(query, max_replies)
 
 
 @view_config(route_name='get_apigk', renderer='json', permission='scope_apigkadmin')

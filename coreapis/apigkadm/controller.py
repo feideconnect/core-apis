@@ -48,7 +48,7 @@ class APIGKAdmController(CrudControllerBase):
     def __init__(self, settings):
         contact_points = settings.get('cassandra_contact_points')
         keyspace = settings.get('cassandra_keyspace')
-        maxrows = settings.get('apigkadm_maxrows')
+        maxrows = int(settings.get('apigkadm_maxrows') or 300)
         super(APIGKAdmController, self).__init__(maxrows)
         self.session = cassandra_client.Client(contact_points, keyspace)
         self.log = LogWrapper('apigkadm.APIGKAdmController')
@@ -131,7 +131,16 @@ class APIGKAdmController(CrudControllerBase):
         status = apigk['status']
         return status and 'public' in status
 
-    def public_list(self):
+    @staticmethod
+    def matches_query(apigk, query):
+        if query is None or len(query) == 0:
+            return True
+        query = query.lower()
+        return query in apigk['id'].lower() or query in apigk['name'].lower()
+
+    def public_list(self, query, max_replies):
+        if max_replies is None or max_replies > self.maxrows:
+            max_replies = self.maxrows
         res = self.session.get_apigks([], [], self.maxrows)
         owner_ids = set(r['owner'] for r in res)
         owners = {ownerid: self.session.get_user_by_id(ownerid) for ownerid in owner_ids}
@@ -148,7 +157,7 @@ class APIGKAdmController(CrudControllerBase):
             'systemdescr': r['systemdescr'],
             'privacypolicyurl': r['privacypolicyurl'],
             'docurl': r['docurl'],
-        } for r in res if self.is_public(r)]
+        } for r in res if self.is_public(r) and self.matches_query(r, query)][:max_replies]
 
     def get_gkowner_clients(self, ownerid):
         gkscopes = ['gk_{}'.format(r['id']) for r in self.list_by_owner(ownerid)]
