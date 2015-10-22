@@ -71,7 +71,11 @@ class APIGKAdmTests(unittest.TestCase):
                          status=403, headers=headers)
 
     def test_list_public_apigks(self):
-        self.session().get_apigks.return_value = [pre_update]
+        privapi = pre_update
+        pubapi = deepcopy(pre_update)
+        pubapi['status'] = {'public'}
+        pubapi['id'] = 'pubapi'
+        self.session().get_apigks.return_value = [privapi, pubapi]
         retrieved_user = {
             'userid_sec': ['p:foo'],
             'selectedsource': 'us',
@@ -80,7 +84,6 @@ class APIGKAdmTests(unittest.TestCase):
         }
         self.session().get_user_by_id.return_value = retrieved_user
         res = self.testapp.get('/apigkadm/public', status=200)
-        print(res)
         assert 'owner' in res.json[0]
         assert 'systemdescr' in res.json[0]
         assert 'privacypolicyurl' in res.json[0]

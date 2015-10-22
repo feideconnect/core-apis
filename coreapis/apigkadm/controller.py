@@ -126,6 +126,11 @@ class APIGKAdmController(CrudControllerBase):
     def _save_logo(self, gkid, data, updated):
         self.session.save_logo('apigk', gkid, data, updated)
 
+    @staticmethod
+    def is_public(apigk):
+        status = apigk['status']
+        return status and 'public' in status
+
     def public_list(self):
         res = self.session.get_apigks([], [], self.maxrows)
         owner_ids = set(r['owner'] for r in res)
@@ -143,7 +148,7 @@ class APIGKAdmController(CrudControllerBase):
             'systemdescr': r['systemdescr'],
             'privacypolicyurl': r['privacypolicyurl'],
             'docurl': r['docurl'],
-        } for r in res]
+        } for r in res if self.is_public(r)]
 
     def get_gkowner_clients(self, ownerid):
         gkscopes = ['gk_{}'.format(r['id']) for r in self.list_by_owner(ownerid)]
