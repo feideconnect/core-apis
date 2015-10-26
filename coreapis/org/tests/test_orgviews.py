@@ -47,9 +47,10 @@ class OrgViewTests(unittest.TestCase):
 
     def test_get_org(self):
         self.session.get_org.return_value = testorg
-        res = self.testapp.get('/orgs/{}'.format(testorg), status=200)
-        out = res.json
-        assert out['realm'] == testorg_realm
+        for ver in ['', '/v1']:
+            res = self.testapp.get('/orgs{}/{}'.format(ver, testorg), status=200)
+            out = res.json
+            assert out['realm'] == testorg_realm
 
     def test_get_org_not_found(self):
         self.session.get_org.side_effect = KeyError
@@ -57,11 +58,12 @@ class OrgViewTests(unittest.TestCase):
 
     def test_list_orgs(self):
         self.session.list_orgs.return_value = [testorg, testorg2]
-        res = self.testapp.get('/orgs/', status=200)
-        out = res.json
-        assert len(out) == 2
-        assert out[0]['id'] == testorg_id
-        assert out[1]['id'] == testorg2_id
+        for ver in ['', '/v1']:
+            res = self.testapp.get('/orgs{}/'.format(ver), status=200)
+            out = res.json
+            assert len(out) == 2
+            assert out[0]['id'] == testorg_id
+            assert out[1]['id'] == testorg2_id
 
     def test_list_orgs_with_peoplesearch(self):
         self.session.list_orgs.return_value = [testorg, testorg2]
@@ -85,9 +87,11 @@ class OrgViewTests(unittest.TestCase):
 
     def test_get_org_logo_default(self):
         self.session.get_org_logo.return_value = (None, None)
-        res = self.testapp.get('/orgs/{}/logo'.format(testorg), status=200)
-        out = res.body
-        assert b'PNG' == out[1:4]
+        for ver in ['', '/v1']:
+            path = '/orgs{}/{}/logo'.format(ver, testorg)
+            res = self.testapp.get(path, status=200)
+            out = res.body
+            assert b'PNG' == out[1:4]
 
     def test_get_org_logo(self):
         self.session.get_org_logo.return_value = (b"A logo", now())

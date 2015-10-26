@@ -5,7 +5,7 @@ from copy import deepcopy
 from webtest import TestApp
 from pyramid import testing
 from coreapis import main, middleware
-from coreapis.utils import json_normalize
+from coreapis.utils import (json_normalize, now)
 from coreapis.apigkadm.tests.data import post_body_minimal, post_body_maximal, pre_update
 
 
@@ -81,12 +81,13 @@ class APIGKAdmTests(unittest.TestCase):
             'userid': uuid.UUID('00000000-0000-0000-0000-000000000001'),
         }
         self.session().get_user_by_id.return_value = retrieved_user
-        res = self.testapp.get('/apigkadm/public', status=200)
-        assert 'owner' in res.json[0]
-        assert 'systemdescr' in res.json[0]
-        assert 'privacypolicyurl' in res.json[0]
-        assert 'docurl' in res.json[0]
-        assert 'endpoints' not in res.json[0]
+        for ver in ['', '/v1']:
+            res = self.testapp.get('/apigkadm{}/public'.format(ver), status=200)
+            assert 'owner' in res.json[0]
+            assert 'systemdescr' in res.json[0]
+            assert 'privacypolicyurl' in res.json[0]
+            assert 'docurl' in res.json[0]
+            assert 'endpoints' not in res.json[0]
 
     def test_post_apigk_minimal(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -316,3 +317,25 @@ class APIGKAdmTests(unittest.TestCase):
                             return_value=[]):
                 self.testapp.get('/apigkadm/apigks/orgs/{}/clients/'.format(org),
                                  status=403, headers=headers)
+
+    def test_get_apigk_logo(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().get_apigk_logo.return_value = (b'mylittlelogo', now())
+        for ver in ['', '/v1']:
+            path = '/apigkadm{}/apigks/{}/logo'.format(ver, uuid.uuid4())
+            res = self.testapp.get(path, status=200, headers=headers)
+            assert res.content_type == 'image/png'
+            out = res.body
+            assert b'mylittlelogo' in out
+
+    def test_post_apigk_logo_body(self):
+        headers = {'Authorization': 'Bearer user_token', 'Content-Type': 'image/png'}
+        self.session().get_apigk.return_value = deepcopy(pre_update)
+        self.session().save_logo = mock.MagicMock()
+        for ver in ['', '/v1']:
+            with open('data/default-client.png', 'rb') as fh:
+                path = '/apigkadm{}/apigks/{}/logo'.format(ver, uuid.uuid4())
+                logo = fh.read()
+                res = self.testapp.post(path, logo, status=200, headers=headers)
+                out = res.json
+                assert out == 'OK'

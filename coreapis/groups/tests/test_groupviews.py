@@ -23,22 +23,25 @@ class GroupsViewTests(unittest.TestCase):
 
     def test_grouptypes(self):
         headers = {'Authorization': 'Bearer user_token'}
-        res = self.testapp.get('/groups/grouptypes', status=200, headers=headers)
-        out = res.json
-        assert len(out) == 1
-        gtype = out[0]
-        assert 'id' in gtype
-        assert 'displayName' in gtype
-        assert gtype['id'] == 'feideconnect:test'
+        for ver in ['', '/v1']:
+            path = '/groups{}/grouptypes'.format(ver)
+            res = self.testapp.get(path, status=200, headers=headers)
+            out = res.json
+            assert len(out) == 1
+            gtype = out[0]
+            assert 'id' in gtype
+            assert 'displayName' in gtype
+            assert gtype['id'] == 'feideconnect:test'
 
     def test_group_members(self):
         headers = {'Authorization': 'Bearer user_token'}
-        res = self.testapp.get('/groups/groups/{}/members'.format(groupid1),
-                               status=200, headers=headers)
-        members = res.json
-        assert len(members) == 1
-        assert members[0]['name'] == "test user 1"
-        assert members[0]['membership']['basic'] == 'member'
+        for ver in ['', '/v1']:
+            path = '/groups{}/groups/{}/members'.format(ver, groupid1)
+            res = self.testapp.get(path, status=200, headers=headers)
+            members = res.json
+            assert len(members) == 1
+            assert members[0]['name'] == "test user 1"
+            assert members[0]['membership']['basic'] == 'member'
 
     def test_group_members_showall(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -54,11 +57,12 @@ class GroupsViewTests(unittest.TestCase):
 
     def test_get_group(self):
         headers = {'Authorization': 'Bearer user_token'}
-        res = self.testapp.get('/groups/groups/{}'.format(groupid1),
-                               status=200, headers=headers)
-        group = res.json
-        assert group['id'] == groupid1
-        assert 'displayName' in group
+        for ver in ['', '/v1']:
+            path = '/groups{}/groups/{}'.format(ver, groupid1)
+            res = self.testapp.get(path, status=200, headers=headers)
+            group = res.json
+            assert group['id'] == groupid1
+            assert 'displayName' in group
 
     def test_get_group_no_access(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -67,10 +71,11 @@ class GroupsViewTests(unittest.TestCase):
 
     def test_get_membership(self):
         headers = {'Authorization': 'Bearer user_token'}
-        res = self.testapp.get('/groups/me/groups/{}'.format(groupid1),
-                               status=200, headers=headers)
-        membership = res.json
-        assert membership['basic'] == 'member'
+        for ver in ['', '/v1']:
+            path = '/groups{}/me/groups/{}'.format(ver, groupid1)
+            res = self.testapp.get(path, status=200, headers=headers)
+            membership = res.json
+            assert membership['basic'] == 'member'
 
     def test_get_membership_not_member(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -79,27 +84,31 @@ class GroupsViewTests(unittest.TestCase):
 
     def test_get_member_groups(self):
         headers = {'Authorization': 'Bearer user_token'}
-        res = self.testapp.get('/groups/me/groups',
-                               status=200, headers=headers)
-        groups = res.json
-        assert len(groups) == 1
-        assert groups[0]['id'] == groupid1
-        assert 'displayName' in groups[0]
+        for ver in ['', '/v1']:
+            path = '/groups{}/me/groups'.format(ver)
+            res = self.testapp.get(path, status=200, headers=headers)
+            groups = res.json
+            assert len(groups) == 1
+            assert groups[0]['id'] == groupid1
+            assert 'displayName' in groups[0]
 
     def test_get_groups(self):
         headers = {'Authorization': 'Bearer user_token'}
-        res = self.testapp.get('/groups/groups',
-                               status=200, headers=headers)
-        groups = res.json
-        assert len(groups) == 2
-        assert groups[0]['id'] == groupid1
-        assert 'displayName' in groups[0]
-        assert groups[1]['id'] == groupid2
-        assert 'displayName' in groups[1]
+        for ver in ['', '/v1']:
+            path = '/groups{}/groups'.format(ver)
+            res = self.testapp.get(path, status=200, headers=headers)
+            groups = res.json
+            assert len(groups) == 2
+            assert groups[0]['id'] == groupid1
+            assert 'displayName' in groups[0]
+            assert groups[1]['id'] == groupid2
+            assert 'displayName' in groups[1]
 
     def test_get_group_logo(self):
-        res = self.testapp.get('/groups/groups/{}/logo'.format(groupid1), status=200)
-        assert res.content_type == 'image/png'
+        for ver in ['', '/v1']:
+            path = '/groups{}/groups/{}/logo'.format(ver, groupid1)
+            res = self.testapp.get(path, status=200)
+            assert res.content_type == 'image/png'
 
 
 class GroupsViewErrorHandlingTests(unittest.TestCase):

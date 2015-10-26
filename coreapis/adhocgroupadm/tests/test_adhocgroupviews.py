@@ -5,7 +5,7 @@ from copy import deepcopy
 from webtest import TestApp
 from pyramid import testing
 from coreapis import main, middleware
-from coreapis.utils import json_normalize
+from coreapis.utils import (json_normalize, now)
 from coreapis.adhocgroupadm.tests.data import \
     public_userinfo, public_userinfo_view, \
     group1, group1_invitation, group1_view, groupid1, \
@@ -494,3 +494,25 @@ class AdHocGroupAdmTests(unittest.TestCase):
         self.testapp.post_json('/adhocgroups/{}/invitation'.format(groupid1),
                                {'invitation_token': 'foo'},
                                status=409, headers=headers)
+
+    def test_get_adhocgroup_logo(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().get_group_logo.return_value = (b'mylittlelogo', now())
+        for ver in ['', '/v1']:
+            path = '/adhocgroups{}/{}/logo'.format(ver, groupid1)
+            res = self.testapp.get(path, status=200, headers=headers)
+            assert res.content_type == 'image/png'
+            out = res.body
+            assert b'mylittlelogo' in out
+
+    def test_post_adhocgroup_logo_body(self):
+        headers = {'Authorization': 'Bearer user_token', 'Content-Type': 'image/png'}
+        self.session().get_group.return_value = deepcopy(group1)
+        self.session().save_logo = mock.MagicMock()
+        for ver in ['', '/v1']:
+            with open('data/default-client.png', 'rb') as fh:
+                path = '/adhocgroups/{}/logo'.format(groupid1)
+                logo = fh.read()
+                res = self.testapp.post(path, logo, status=200, headers=headers)
+                out = res.json
+                assert out == 'OK'

@@ -117,12 +117,13 @@ class ClientAdmTests(unittest.TestCase):
         self.session.get_user_by_id.return_value = retrieved_user
         self.session.get_org.return_value = {'id': 'fc:org:example.com',
                                              'name': translatable({'en': 'testorg'})}
-        res = self.testapp.get('/clientadm/public/', status=200, headers=headers)
-        out = res.json
-        assert out[0]['name'] == 'per'
-        assert 'scopes' not in out[0]
-        assert out[1]['organization']['id'] == 'fc:org:example.com'
-        assert out[1]['organization']['name'] == 'testorg'
+        for ver in ['', '/v1']:
+            res = self.testapp.get('/clientadm{}/public/'.format(ver), status=200, headers=headers)
+            out = res.json
+            assert out[0]['name'] == 'per'
+            assert 'scopes' not in out[0]
+            assert out[1]['organization']['id'] == 'fc:org:example.com'
+            assert out[1]['organization']['name'] == 'testorg'
 
     def test_list_public_clients_bogus_user(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -717,11 +718,12 @@ class ClientAdmTests(unittest.TestCase):
         date_older = updated - timedelta(minutes=1)
         headers = {'Authorization': 'Bearer user_token', 'If-Modified-Since': httptime(date_older)}
         self.session.get_client_logo.return_value = b'mylittlelogo', updated
-        path = '/clientadm/clients/{}/logo'.format(uuid.UUID(clientid))
-        res = self.testapp.get(path, status=200, headers=headers)
-        assert res.content_type == 'image/png'
-        out = res.body
-        assert b'mylittlelogo' in out
+        for ver in ['', '/v1']:
+            path = '/clientadm{}/clients/{}/logo'.format(ver, uuid.UUID(clientid))
+            res = self.testapp.get(path, status=200, headers=headers)
+            assert res.content_type == 'image/png'
+            out = res.body
+            assert b'mylittlelogo' in out
 
     def test_get_client_logo_null(self):
         updated = parse_datetime(date_created)
@@ -760,13 +762,14 @@ class ClientAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
         self.session.save_logo = mock.MagicMock()
-        with open('data/default-client.png', 'rb') as fh:
-            path = '/clientadm/clients/{}/logo'.format(uuid.UUID(clientid))
-            logo = fh.read()
-            files = [('logo', 'logo.png', logo)]
-            res = self.testapp.post(path, status=200, headers=headers, upload_files=files)
-            out = res.json
-            assert out == 'OK'
+        for ver in ['', '/v1']:
+            with open('data/default-client.png', 'rb') as fh:
+                path = '/clientadm{}/clients/{}/logo'.format(ver, uuid.UUID(clientid))
+                logo = fh.read()
+                files = [('logo', 'logo.png', logo)]
+                res = self.testapp.post(path, status=200, headers=headers, upload_files=files)
+                out = res.json
+                assert out == 'OK'
 
     def test_post_client_logo_body(self):
         headers = {'Authorization': 'Bearer user_token', 'Content-Type': 'image/png'}
@@ -796,9 +799,10 @@ class ClientAdmTests(unittest.TestCase):
         self.testapp.post(path, logo, status=403, headers=headers)
 
     def test_list_public_scopes(self):
-        res = self.testapp.get('/clientadm/scopes/', status=200)
-        assert 'userinfo' in res.json
-        assert 'apigkadm' not in res.json
+        for ver in ['', '/v1']:
+            res = self.testapp.get('/clientadm{}/scopes/'.format(ver), status=200)
+            assert 'userinfo' in res.json
+            assert 'apigkadm' not in res.json
 
     def test_get_orgauthorization(self):
         headers = {'Authorization': 'Bearer user_token'}
