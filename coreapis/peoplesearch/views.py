@@ -14,14 +14,17 @@ def configure(config):
                               reify=True)
     config.add_request_method(lambda r: r.registry.settings.ps_controller, 'ps_controller',
                               reify=True)
+    config.add_route('person_search_v1', '/v1/search/{org}/{name}')
     config.add_route('person_search', '/search/{org}/{name}')
+    config.add_route('list_realms_v1', '/v1/orgs')
     config.add_route('list_realms', '/orgs')
+    config.add_route('profile_photo_v1', '/v1/people/profilephoto/{token}')
     config.add_route('profile_photo', '/people/profilephoto/{token}')
     config.scan(__name__)
 
 
-@view_config(route_name='person_search', renderer='json', permission='scope_peoplesearch')
-def person_search(request):
+@view_config(route_name='person_search_v1', renderer='json', permission='scope_peoplesearch')
+def person_search_v1(request):
     user = get_user(request)
     if not user:
         raise HTTPForbidden('This resource requires a personal token')
@@ -41,9 +44,19 @@ def person_search(request):
     return request.ps_controller.search(org, search, user, max_replies)
 
 
+@view_config(route_name='person_search', renderer='json', permission='scope_peoplesearch')
+def person_search(request):
+    return person_search_v1(request)
+
+
+@view_config(route_name='list_realms_v1', renderer='json', permission='scope_peoplesearch')
+def list_realms_v1(request):
+    return request.ps_controller.orgs()
+
+
 @view_config(route_name='list_realms', renderer='json', permission='scope_peoplesearch')
 def list_realms(request):
-    return request.ps_controller.orgs()
+    return list_realms_v1(request)
 
 
 def cache_date_min(a, b):
@@ -54,8 +67,8 @@ def cache_date_min(a, b):
     return min(a, b)
 
 
-@view_config(route_name='profile_photo')
-def profilephoto(request):
+@view_config(route_name='profile_photo_v1')
+def profilephoto_v1(request):
     token = request.matchdict['token']
     user = request.ps_controller.decrypt_profile_image_token(token)
     image, etag, last_modified = \
@@ -70,3 +83,8 @@ def profilephoto(request):
     response.last_modified = last_modified
     response.etag = etag
     return response
+
+
+@view_config(route_name='profile_photo')
+def profilephoto(request):
+    return profilephoto_v1(request)

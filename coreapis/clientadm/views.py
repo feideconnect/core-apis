@@ -23,12 +23,15 @@ def configure(config):
                               reify=True)
     config.add_route('get_client', '/clients/{id}', request_method='GET')
     config.add_route('list_clients', '/clients/', request_method='GET')
+    config.add_route('public_clients_v1', '/v1/public/', request_method='GET')
     config.add_route('public_clients', '/public/', request_method='GET')
     config.add_route('add_client', '/clients/', request_method='POST')
     config.add_route('delete_client', '/clients/{id}', request_method='DELETE')
     config.add_route('update_client', '/clients/{id}', request_method='PATCH')
     config.add_route('update_gkscopes', '/clients/{id}/gkscopes', request_method='PATCH')
+    config.add_route('client_logo_v1', '/v1/clients/{id}/logo')
     config.add_route('client_logo', '/clients/{id}/logo')
+    config.add_route('list_scopes_v1', '/v1/scopes/')
     config.add_route('list_scopes', '/scopes/')
     config.add_route('orgauthorization', '/clients/{id}/orgauthorization/{realm}')
     config.add_route('realmclients', '/realmclients/targetrealm/{realm}/', request_method='GET')
@@ -62,11 +65,17 @@ def list_clients(request):
         return request.cadm_controller.list_by_owner(user['userid'], scope)
 
 
+@view_config(route_name='public_clients_v1', renderer='json')
+@translation
+def public_clients_v1(request):
+    orgauthorization = request.params.get('orgauthorization', None)
+    return request.cadm_controller.public_clients(orgauthorization)
+
+
 @view_config(route_name='public_clients', renderer='json')
 @translation
 def public_clients(request):
-    orgauthorization = request.params.get('orgauthorization', None)
-    return request.cadm_controller.public_clients(orgauthorization)
+    return public_clients_v1(request)
 
 
 @view_config(route_name='get_client', renderer='json')
@@ -143,8 +152,8 @@ def update_gkscopes(request):
         raise HTTPForbidden(err.message)
 
 
-@view_config(route_name='client_logo', renderer="logo")
-def client_logo(request):
+@view_config(route_name='client_logo_v1', renderer="logo")
+def client_logo_v1(request):
     clientid = get_clientid(request)
     try:
         logo, updated = request.cadm_controller.get_logo(clientid)
@@ -153,9 +162,14 @@ def client_logo(request):
         raise HTTPNotFound
 
 
-@view_config(route_name='client_logo', request_method="POST", permission='scope_clientadmin',
+@view_config(route_name='client_logo', renderer="logo")
+def client_logo(request):
+    return client_logo_v1(request)
+
+
+@view_config(route_name='client_logo_v1', request_method="POST", permission='scope_clientadmin',
              renderer="json")
-def upload_logo(request):
+def upload_logo_v1(request):
     client = check(request)
     if 'logo' in request.POST:
         input_file = request.POST['logo'].file
@@ -167,9 +181,20 @@ def upload_logo(request):
     return 'OK'
 
 
+@view_config(route_name='client_logo', request_method="POST", permission='scope_clientadmin',
+             renderer="json")
+def upload_logo(request):
+    return upload_logo_v1(request)
+
+
+@view_config(route_name='list_scopes_v1', renderer="json")
+def list_scopes_v1(request):
+    return request.cadm_controller.list_public_scopes()
+
+
 @view_config(route_name='list_scopes', renderer="json")
 def list_scopes(request):
-    return request.cadm_controller.list_public_scopes()
+    return list_scopes_v1(request)
 
 
 def check_orgauthz_params(request, owner_ok=True):

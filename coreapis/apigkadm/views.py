@@ -12,11 +12,13 @@ def configure(config):
                               reify=True)
     config.add_route('get_apigk', '/apigks/{id}', request_method='GET')
     config.add_route('list_apigks', '/apigks/', request_method='GET')
+    config.add_route('list_public_apigks_v1', '/v1/public', request_method='GET')
     config.add_route('list_public_apigks', '/public', request_method='GET')
     config.add_route('add_apigk', '/apigks/', request_method='POST')
     config.add_route('delete_apigk', '/apigks/{id}', request_method='DELETE')
     config.add_route('update_apigk', '/apigks/{id}', request_method='PATCH')
     config.add_route('apigk_exists', '/apigks/{id}/exists')
+    config.add_route('apigk_logo_v1', '/v1/apigks/{id}/logo')
     config.add_route('apigk_logo', '/apigks/{id}/logo')
     config.add_route('apigk_owner_clients', '/apigks/owners/{ownerid}/clients/')
     config.add_route('apigk_org_clients', '/apigks/orgs/{orgid}/clients/')
@@ -56,9 +58,9 @@ def list_apigks(request):
         return request.gkadm_controller.list_by_owner(user['userid'])
 
 
-@view_config(route_name='list_public_apigks', renderer='json')
+@view_config(route_name='list_public_apigks_v1', renderer='json')
 @translation
-def list_public_apigks(request):
+def list_public_apigks_v1(request):
     query = request.params.get('query', None)
     max_replies = request.params.get('max_replies', None)
     if max_replies is not None:
@@ -67,6 +69,12 @@ def list_public_apigks(request):
         except ValueError:
             raise HTTPBadRequest()
     return request.gkadm_controller.public_list(query, max_replies)
+
+
+@view_config(route_name='list_public_apigks', renderer='json')
+@translation
+def list_public_apigks(request):
+    return list_public_apigks_v1(request)
 
 
 @view_config(route_name='get_apigk', renderer='json', permission='scope_apigkadmin')
@@ -121,8 +129,8 @@ def update_apigk(request):
     return apigk
 
 
-@view_config(route_name='apigk_logo', renderer="logo")
-def apigk_logo(request):
+@view_config(route_name='apigk_logo_v1', renderer="logo")
+def apigk_logo_v1(request):
     apigkid = request.matchdict['id']
     try:
         logo, updated = request.gkadm_controller.get_logo(apigkid)
@@ -131,9 +139,14 @@ def apigk_logo(request):
         raise HTTPNotFound
 
 
-@view_config(route_name='apigk_logo', request_method="POST", permission='scope_apigkadmin',
+@view_config(route_name='apigk_logo', renderer="logo")
+def apigk_logo(request):
+    return apigk_logo_v1(request)
+
+
+@view_config(route_name='apigk_logo_v1', request_method="POST", permission='scope_apigkadmin',
              renderer="json")
-def upload_logo(request):
+def upload_logo_v1(request):
     gk = check(request)
 
     if 'logo' in request.POST:
@@ -144,6 +157,12 @@ def upload_logo(request):
     data = input_file.read()
     request.gkadm_controller.update_logo(gk['id'], data)
     return 'OK'
+
+
+@view_config(route_name='apigk_logo', request_method="POST", permission='scope_apigkadmin',
+             renderer="json")
+def upload_logo(request):
+    return upload_logo_v1(request)
 
 
 @view_config(route_name='apigk_owner_clients', renderer='json', permission='scope_apigkadmin')

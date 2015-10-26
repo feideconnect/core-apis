@@ -11,8 +11,11 @@ def configure(config):
     config.add_settings(org_controller=org_controller)
     config.add_request_method(lambda r: r.registry.settings.org_controller, 'org_controller',
                               reify=True)
+    config.add_route('org_v1', '/v1/{id}')
     config.add_route('org', '/{id}')
+    config.add_route('orgs_v1', '/v1/')
     config.add_route('orgs', '/')
+    config.add_route('org_logo_v1', '/v1/{id}/logo')
     config.add_route('org_logo', '/{id}/logo')
     config.add_route('org_mandatory_clients', '/{id}/mandatory_clients/')
     config.add_route('org_mandatory_client', '/{id}/mandatory_clients/{clientid}')
@@ -20,9 +23,9 @@ def configure(config):
     config.scan(__name__)
 
 
-@view_config(route_name='org', request_method='GET', renderer='json')
+@view_config(route_name='org_v1', request_method='GET', renderer='json')
 @translation
-def get_org(request):
+def get_org_v1(request):
     orgid = request.matchdict['id']
     try:
         return request.org_controller.show_org(orgid)
@@ -30,9 +33,15 @@ def get_org(request):
         raise HTTPNotFound('No org with id {} was found'.format(orgid))
 
 
-@view_config(route_name='orgs', request_method='GET', renderer='json')
+@view_config(route_name='org', request_method='GET', renderer='json')
 @translation
-def list_org(request):
+def get_org(request):
+    return get_org_v1(request)
+
+
+@view_config(route_name='orgs_v1', request_method='GET', renderer='json')
+@translation
+def list_org_v1(request):
     peoplesearch = None
     if 'peoplesearch' in request.params:
         peoplesearch = request.params['peoplesearch']
@@ -45,8 +54,14 @@ def list_org(request):
     return request.org_controller.list_orgs(peoplesearch)
 
 
-@view_config(route_name='org_logo', renderer='logo')
-def org_logo(request):
+@view_config(route_name='orgs', request_method='GET', renderer='json')
+@translation
+def list_org(request):
+    return list_org_v1(request)
+
+
+@view_config(route_name='org_logo_v1', renderer='logo')
+def org_logo_v1(request):
     orgid = request.matchdict['id']
     try:
         logo, updated = request.org_controller.get_logo(orgid)
@@ -55,6 +70,11 @@ def org_logo(request):
         return logo, updated, 'data/default-organization.png'
     except KeyError:
         raise HTTPNotFound
+
+
+@view_config(route_name='org_logo', renderer='logo')
+def org_logo(request):
+    return org_logo_v1(request)
 
 
 def check(request):

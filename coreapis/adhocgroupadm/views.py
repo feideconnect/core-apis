@@ -18,6 +18,7 @@ def configure(config):
     config.add_route('add_group', '/', request_method='POST')
     config.add_route('delete_group', '/{id}', request_method='DELETE')
     config.add_route('update_group', '/{id}', request_method='PATCH')
+    config.add_route('ahgroup_logo_v1', '/v1/{id}/logo')
     config.add_route('ahgroup_logo', '/{id}/logo')
     config.add_route('ahgroup_members', '/{id}/members')
     config.add_route('ahgroup_invitation', '/{id}/invitation')
@@ -110,8 +111,8 @@ def update_group(request):
     return group
 
 
-@view_config(route_name='ahgroup_logo', renderer='logo')
-def group_logo(request):
+@view_config(route_name='ahgroup_logo_v1', renderer='logo')
+def group_logo_v1(request):
     groupid = get_groupid(request)
     try:
         logo, updated = request.ahgroupadm_controller.get_logo(groupid)
@@ -120,9 +121,14 @@ def group_logo(request):
         raise HTTPNotFound
 
 
-@view_config(route_name='ahgroup_logo', request_method="POST", permission='scope_adhocgroupadmin',
+@view_config(route_name='ahgroup_logo', renderer='logo')
+def group_logo(request):
+    return group_logo_v1(request)
+
+
+@view_config(route_name='ahgroup_logo_v1', request_method="POST", permission='scope_adhocgroupadmin',
              renderer="json")
-def upload_logo(request):
+def upload_logo_v1(request):
     userid, group = check(request, "update")
 
     if 'logo' in request.POST:
@@ -133,6 +139,12 @@ def upload_logo(request):
     data = input_file.read()
     request.ahgroupadm_controller.update_logo(group['id'], data)
     return 'OK'
+
+
+@view_config(route_name='ahgroup_logo', request_method="POST", permission='scope_adhocgroupadmin',
+             renderer="json")
+def upload_logo(request):
+    return upload_logo_v1(request)
 
 
 @view_config(route_name='ahgroup_members', request_method="GET", permission='scope_adhocgroupadmin',
