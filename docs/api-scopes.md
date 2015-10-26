@@ -74,9 +74,9 @@ Prefix: /clientadm
 
 ###  Public
 
-/public/ GET
-/clients/{id}/logo GET
-/scopes/ GET
+- /public/ GET
+- /clients/{id}/logo GET
+- /scopes/ GET
 
 ### Private, scope clientadmin
 
