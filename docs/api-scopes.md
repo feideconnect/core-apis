@@ -1,6 +1,9 @@
 APIs and scopes
 ===============
 
+In external APIs, the version is optional, The unversioned route will
+point to the latest version.
+
 Public scopes
 -------------
 
@@ -21,11 +24,11 @@ Prefix: /adhocgroups
 
 ### Public
 
-- /{id}/logo GET
+- (/v1)/{id}/logo GET
 
 ### Private, scope adhocgroupadmin
 
-- /{id}/logo POST
+- (/v1)/{id}/logo POST
 
 - / GET, POST
 - /{id} GET, PATCH. DELETE
@@ -42,12 +45,12 @@ Prefix: /apigkadm
 
 ### Public
 
-- /public GET
-- /apigks/{id}/logo GET
+- (/v1)/public GET
+- (/v1)/apigks/{id}/logo GET
 
 ### Private, scope apigkadmin
 
-- /apigks/{id}/logo POST
+- (/v1)/apigks/{id}/logo POST
 
 - /apigks/ GET, POST
 - /apigks/{id} GET, PATCH, DELETE
@@ -74,13 +77,13 @@ Prefix: /clientadm
 
 ###  Public
 
-- /public/ GET
-- /clients/{id}/logo GET
-- /scopes/ GET
+- (/v1)/public/ GET
+- (/v1)/clients/{id}/logo GET
+- (/v1)/scopes/ GET
 
 ### Private, scope clientadmin
 
-- /clients/{id}/logo POST
+- (/v1)/clients/{id}/logo POST
 
 - /clients/ GET
 - /clients/ POST
@@ -108,15 +111,15 @@ Groups
 
 Prefix: /groups
 
-### Public, scope groups
+### External, scope groups
 
-- /groups/{groupid} GET
-- /groups/{groupid}/logo GET
-- /groups/{groupid}/members GET
-- /groups GET 
-- /grouptypes GET
-- /me/groups GET
-- /me/groups/{groupid} GET
+- (/v1)/groups/{groupid} GET
+- (/v1)/groups/{groupid}/logo GET
+- (/v1)/groups/{groupid}/members GET
+- (/v1)/groups GET
+- (/v1)/grouptypes GET
+- (/v1)/me/groups GET
+- (/v1)/me/groups/{groupid} GET
 
 
 Organizations
@@ -126,9 +129,9 @@ Prefix: /orgs
 
 ### [Public](org.md)
 
-- / GET
-- /{id} GET
-- /{id}/logo GET
+- (/v1)/ GET
+- (/v1)/{id} GET
+- (/v1)/{id}/logo GET
 
 ### [Private, scope orgadmin](orgadmin.md)
 
@@ -143,11 +146,11 @@ Peoplesearch
 Prefix: /peoplesearch
 
 
-### Public, scope peoplesearch
+### External, scope peoplesearch
 
-- /orgs GET
-- /people/profilephoto/{token} GET
-- /search/{org}/{name} GET
+- (/v1)/orgs GET
+- (/v1)/people/profilephoto/{token} GET
+- (/v1)/search/{org}/{name} GET
 
 
 [Userinfo](userinfo.md)
@@ -157,8 +160,8 @@ Prefix: /userinfo
 
 ### Public
 
-- /user/media/{userid_sec} GET
+- /v1/user/media/{userid_sec} GET
 
-### Public, scope userinfo
+### External, scope userinfo
 
-- /userinfo GET
+- /v1/userinfo GET
