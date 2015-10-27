@@ -159,6 +159,6 @@ Prefix: /userinfo
 
 - /user/media/{userid_sec} GET
 
-### Private, scope userinfo
+### Public, scope userinfo
 
 - /userinfo GET
