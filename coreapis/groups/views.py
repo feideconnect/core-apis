@@ -5,7 +5,7 @@ from coreapis.utils import get_user, translation
 
 
 def configure(config):
-    groups_controller = GroupsController(config)
+    groups_controller = GroupsController(config.get_settings())
     config.add_settings(groups_controller=groups_controller)
     config.add_request_method(lambda r: r.registry.settings.groups_controller,
                               'groups_controller', reify=True)

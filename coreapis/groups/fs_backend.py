@@ -8,15 +8,15 @@ import requests
 
 
 class FsBackend(BaseBackend):
-    def __init__(self, prefix, maxrows, config):
-        super(FsBackend, self).__init__(prefix, maxrows, config)
+    def __init__(self, prefix, maxrows, settings):
+        super(FsBackend, self).__init__(prefix, maxrows, settings)
         self.log = LogWrapper('groups.fsbackend')
-        self.timer = config.get_settings().get('timer')
-        self.base_url = config.get_settings().get('fs_base_url')
-        self.fs_user = config.get_settings().get('fs_username')
-        self.fs_pass = config.get_settings().get('fs_password')
-        contact_points = config.get_settings().get('cassandra_contact_points')
-        keyspace = config.get_settings().get('cassandra_keyspace')
+        self.timer = settings.get('timer')
+        self.base_url = settings.get('fs_base_url')
+        self.fs_user = settings.get('fs_username')
+        self.fs_pass = settings.get('fs_password')
+        contact_points = settings.get('cassandra_contact_points')
+        keyspace = settings.get('cassandra_keyspace')
         self.session = cassandra_client.Client(contact_points, keyspace, True)
         self.org_enabled = Cache(300)
 

@@ -11,7 +11,7 @@ class IDHandler(object):
 
 
 class BaseBackend(object):
-    def __init__(self, prefix, maxrows, config):
+    def __init__(self, prefix, maxrows, settings):
         self.prefix = prefix
         self.maxrows = maxrows
         self.scopes_needed = set()

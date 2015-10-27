@@ -34,11 +34,11 @@ def query_match(query, group):
 
 
 class AdHocGroupBackend(BaseBackend):
-    def __init__(self, prefix, maxrows, config):
-        super(AdHocGroupBackend, self).__init__(prefix, maxrows, config)
-        contact_points = config.get_settings().get('cassandra_contact_points')
-        keyspace = config.get_settings().get('cassandra_keyspace')
-        self.timer = config.get_settings().get('timer')
+    def __init__(self, prefix, maxrows, settings):
+        super(AdHocGroupBackend, self).__init__(prefix, maxrows, settings)
+        contact_points = settings.get('cassandra_contact_points')
+        keyspace = settings.get('cassandra_keyspace')
+        self.timer = settings.get('timer')
         self.session = cassandra_client.Client(contact_points, keyspace, True)
         self.session.timer = self.timer
         self.log = LogWrapper('groups.adhocgroupbackend')

@@ -203,13 +203,13 @@ def org_membership(person, org_type):
 
 
 class LDAPBackend(BaseBackend):
-    def __init__(self, prefix, maxrows, config):
-        super(LDAPBackend, self).__init__(prefix, maxrows, config)
+    def __init__(self, prefix, maxrows, settings):
+        super(LDAPBackend, self).__init__(prefix, maxrows, settings)
         self.log = LogWrapper('groups.ldapbackend')
-        self.timer = config.get_settings().get('timer')
-        self.ldap = LDAPController(config.get_settings(), pool=Pool)
-        contact_points = config.get_settings().get('cassandra_contact_points')
-        keyspace = config.get_settings().get('cassandra_keyspace')
+        self.timer = settings.get('timer')
+        self.ldap = LDAPController(settings, pool=Pool)
+        contact_points = settings.get('cassandra_contact_points')
+        keyspace = settings.get('cassandra_keyspace')
         self.session = cassandra_client.Client(contact_points, keyspace, True)
         self.org_types = Cache(3600)
 

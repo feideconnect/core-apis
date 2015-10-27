@@ -10,19 +10,19 @@ ID_PREFIX = 'fc'
 
 class GroupsController(object):
 
-    def __init__(self, config):
-        maxrows = config.get_settings().get('groups_maxrows', 100)
+    def __init__(self, settings):
+        maxrows = settings.get('groups_maxrows', 100)
         self.maxrows = maxrows
         self.log = LogWrapper('groups.GroupsController')
-        self.timer = config.get_settings().get('timer')
+        self.timer = settings.get('timer')
         self.backends = {}
         self.pool = GreenPool()
-        self.timeout = int(config.get_settings().get('groups_timeout_backend', '3000')) / 1000
-        for key, value in config.get_settings().items():
+        self.timeout = int(settings.get('groups_timeout_backend', '3000')) / 1000
+        for key, value in settings.items():
             if key.startswith(BACKEND_CONFIG_KEY):
                 grouptype = key[len(BACKEND_CONFIG_KEY):]
                 prefix = ID_PREFIX + ':' + grouptype
-                self.backends[grouptype] = lookup_object(value)(prefix, maxrows, config)
+                self.backends[grouptype] = lookup_object(value)(prefix, maxrows, settings)
         self.id_handlers = {}
         for backend in self.backends.values():
             self.id_handlers.update(backend.get_id_handlers())

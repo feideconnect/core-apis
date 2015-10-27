@@ -71,12 +71,12 @@ def format_orgadmin_group(role):
 
 
 class OrgAdminBackend(BaseBackend):
-    def __init__(self, prefix, maxrows, config):
-        super(OrgAdminBackend, self).__init__(prefix, maxrows, config)
+    def __init__(self, prefix, maxrows, settings):
+        super(OrgAdminBackend, self).__init__(prefix, maxrows, settings)
         self.log = LogWrapper('groups.orgadminbackend')
-        self.timer = config.get_settings().get('timer')
-        contact_points = config.get_settings().get('cassandra_contact_points')
-        keyspace = config.get_settings().get('cassandra_keyspace')
+        self.timer = settings.get('timer')
+        contact_points = settings.get('cassandra_contact_points')
+        keyspace = settings.get('cassandra_keyspace')
         self.session = cassandra_client.Client(contact_points, keyspace, True)
         self.scopes_needed = SCOPES_NEEDED
 
