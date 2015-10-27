@@ -1,3 +1,6 @@
+from coreapis.utils import now
+
+
 class IDHandler(object):
     def __init__(self, get_group, get_membership, get_members, get_logo, permissions_ok):
         self.get_group = get_group
@@ -42,7 +45,7 @@ class BaseBackend(object):
         pass
 
     def get_logo(self, groupid):
-        pass
+        return None, now()
 
     def get_member_groups(self, user, show_all):
         pass

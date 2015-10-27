@@ -2,6 +2,7 @@ import unittest
 import mock
 from webtest import TestApp
 from coreapis import main, middleware
+from coreapis.utils import now
 from . import groupid1, groupid2
 
 
@@ -95,6 +96,11 @@ class GroupsViewTests(unittest.TestCase):
         assert 'displayName' in groups[0]
         assert groups[1]['id'] == groupid2
         assert 'displayName' in groups[1]
+
+    def test_get_group_logo(self):
+        self.session().get_group_logo.return_value = (b'mylittlelogo', now())
+        res = self.testapp.get('/groups/groups/{}/logo'.format(groupid1), status=200)
+        assert res.content_type == 'image/png'
 
 
 class GroupsViewErrorHandlingTests(unittest.TestCase):
