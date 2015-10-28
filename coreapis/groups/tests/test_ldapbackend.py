@@ -88,7 +88,7 @@ class TestLDAPBackend(unittest.TestCase):
                 }
             },
         ]
-        result = self.backend.get_go_members(None, 'fc:org:example.org:b:NO975278964:6A:2014-08-01:2015-06-15', False)
+        result = self.backend.get_go_members(None, 'fc:org:example.org:b:NO975278964:6A:2014-08-01:2015-06-15', True, False)
         assert result == [
             {
                 'membership': {
@@ -104,6 +104,52 @@ class TestLDAPBackend(unittest.TestCase):
                     'basic': 'member',
                     'displayName': {'nb': 'Elev'}
                 },
+                'name': 'Member 2'
+            }
+        ]
+
+    def test_get_go_members_ids(self):
+        self.ldap.get_base_dn.return_value = 'dc=example,dc=org'
+        self.ldap.search.return_value = [
+            {
+                'attributes': {
+                    'displayName': ['Member 1'],
+                    'eduPersonPrincipalName': ['m1@example.org'],
+                    'eduPersonEntitlement': [
+                        test_gogroups.GROUP1,
+                        test_gogroups.GROUPID1,
+                    ],
+                }
+            },
+            {
+                'attributes': {
+                    'displayName': ['Member 2'],
+                    'eduPersonPrincipalName': ['m2@example.org'],
+                    'eduPersonEntitlement': [
+                        test_gogroups.GROUP1,
+                        test_gogroups.GROUPID1,
+                    ],
+                }
+            },
+        ]
+        result = self.backend.get_go_members(None, 'fc:org:example.org:b:NO975278964:6A:2014-08-01:2015-06-15', True, True)
+        assert result == [
+            {
+                'membership': {
+                    'affiliation': 'student',
+                    'basic': 'member',
+                    'displayName': {'nb': 'Elev'}
+                },
+                'userid_sec': ['feide:m1@example.org'],
+                'name': 'Member 1'
+            },
+            {
+                'membership': {
+                    'affiliation': 'student',
+                    'basic': 'member',
+                    'displayName': {'nb': 'Elev'}
+                },
+                'userid_sec': ['feide:m2@example.org'],
                 'name': 'Member 2'
             }
         ]

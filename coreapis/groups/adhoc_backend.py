@@ -98,7 +98,7 @@ class AdHocGroupBackend(BaseBackend):
             'name': public_userinfo(user)['name']
         }
 
-    def get_members(self, user, groupid, show_all):
+    def get_members(self, user, groupid, show_all, include_member_ids):
         userid = user['userid']
         group, membership = self._get(userid, groupid)
         if membership is None:

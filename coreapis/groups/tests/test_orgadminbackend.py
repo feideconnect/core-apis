@@ -83,7 +83,7 @@ class TestOrgAdminBackend(unittest.TestCase):
 
     def _get_members(self, feideid, groupid):
         self.session.get_roles.side_effect = mock_get_roles
-        return self.backend.get_members(make_user(feideid), groupid, False)
+        return self.backend.get_members(make_user(feideid), groupid, False, True)
 
     def test_get_members(self):
         res = self._get_members(FEIDEID_OWN, 'fc:orgadmin:{}'.format(ORGTAG1))

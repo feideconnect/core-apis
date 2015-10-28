@@ -62,7 +62,7 @@ class MockBackend(BaseBackend):
             return group1
         raise KeyError('No such group')
 
-    def get_members(self, user, groupid, show_all):
+    def get_members(self, user, groupid, show_all, include_member_ids):
         if user['userid'] == user1 and groupid == groupid1:
             result = [
                 {

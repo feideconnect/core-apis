@@ -320,7 +320,7 @@ class LDAPBackend(BaseBackend):
 
         return self._handle_grepcode(grep_id, False)
 
-    def get_members(self, user, groupid, show_all):
+    def get_members(self, user, groupid, show_all, include_member_ids):
         return []
 
     def _find_group_for_groupid(self, target, candidates):
@@ -335,7 +335,7 @@ class LDAPBackend(BaseBackend):
                 continue
         raise KeyError("Did not find group for group id")
 
-    def get_go_members(self, user, groupid, show_all):
+    def get_go_members(self, user, groupid, show_all, include_member_ids):
         intid = self._intid(groupid)
         realm, groupid_base = intid.split(':', 1)
         entitlement_value = groupid_entitlement(groupid_base)
@@ -345,15 +345,21 @@ class LDAPBackend(BaseBackend):
         except KeyError:
             self.log.debug('ldap not configured for realm', realm=realm)
             return []
+        query_attributes = ('displayName', 'eduPersonEntitlement')
+        if include_member_ids:
+            query_attributes += ('eduPersonPrincipalName',)
         ldap_res = self.ldap.search(realm, base_dn,
                                     '(eduPersonEntitlement={})'.format(entitlement_value),
                                     ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
-                                    ('displayName', 'eduPersonEntitlement'), 1000)
+                                    query_attributes, 1000)
         res = []
         for hit in ldap_res:
-            entry = {'name': hit['attributes']['displayName'][0]}
+            attributes = hit['attributes']
+            entry = {'name': attributes['displayName'][0]}
             try:
-                group = self._find_group_for_groupid(entitlement_value, hit['attributes']['eduPersonEntitlement'])
+                if include_member_ids:
+                    entry['userid_sec'] = ['feide:{}'.format(v) for v in attributes['eduPersonPrincipalName']]
+                group = self._find_group_for_groupid(entitlement_value, attributes['eduPersonEntitlement'])
                 entry['membership'] = group.membership()
             except KeyError:
                 import logging

@@ -82,7 +82,9 @@ class GroupsController(object):
         return self._backend(groupid, perm_checker).get_logo(groupid)
 
     def get_members(self, user, groupid, show_all, perm_checker):
-        return self._backend(groupid, perm_checker).get_members(user, groupid, show_all)
+        include_member_ids = perm_checker('scope_groups-memberids')
+        backend = self._backend(groupid, perm_checker)
+        return backend.get_members(user, groupid, show_all, include_member_ids)
 
     def get_groups(self, user, query, perm_checker):
         with self.timer.time('groups.get_groups'):

@@ -80,7 +80,7 @@ class OrgAdminBackend(BaseBackend):
         self.session = cassandra_client.Client(contact_points, keyspace, True)
         self.scopes_needed = SCOPES_NEEDED
 
-    def get_members(self, user, groupid, show_all):
+    def get_members(self, user, groupid, show_all, include_member_ids):
         feideids = get_feideids(user)
         orgtag = get_orgtag(groupid)
         if not groupid.startswith("{}:".format(ORGADMIN_TYPE)):

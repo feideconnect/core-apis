@@ -41,7 +41,7 @@ class BaseBackend(object):
     def get_group(self, user, groupid):
         pass
 
-    def get_members(self, user, groupid, show_all):
+    def get_members(self, user, groupid, show_all, include_member_ids):
         pass
 
     def get_logo(self, groupid):
