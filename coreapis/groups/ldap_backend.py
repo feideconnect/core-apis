@@ -1,8 +1,5 @@
-from urllib.parse import unquote as urlunquote, quote as urlquote
 import functools
-import datetime
-import pytz
-from coreapis.utils import LogWrapper, get_feideids, translatable, failsafe, now
+from coreapis.utils import LogWrapper, get_feideids, translatable, failsafe
 from coreapis.cache import Cache
 from . import BaseBackend, IDHandler
 import eventlet
@@ -11,6 +8,7 @@ from coreapis.peoplesearch.controller import LDAPController
 from eventlet.pools import Pool
 from eventlet.greenpool import GreenPool
 from coreapis import cassandra_client
+from coreapis.groups.gogroups import affiliation_names as go_affiliation_names, GOGroup, groupid_entitlement
 
 org_attribute_names = {
     'eduOrgLegalName',
@@ -56,23 +54,8 @@ AFFILIATION_PRIORITY = (
 )
 
 GREP_PREFIX = 'urn:mace:feide.no:go:grep:'
-GOGROUP_PREFIX = 'urn:mace:feide.no:go:group:'
-GOGROUPID_PREFIX = 'urn:mace:feide.no:go:groupid:'
 GREP_ID_PREFIX = 'fc:grep'
 GOGROUP_ID_PREFIX = 'fc:gogroup'
-
-go_types = {
-    'u': translatable({
-        'nb': 'undervisningsgruppe',
-    }),
-    'b': translatable({
-        'nb': 'basisgruppe',
-    }),
-    'a': translatable({
-        'nb': 'andre grupper',
-        'en': 'other groups',
-    }),
-}
 
 lang_map = {
     'nno': 'nn',
@@ -82,30 +65,7 @@ lang_map = {
 }
 
 affiliation_names = {
-    'go': {
-        'faculty': translatable({
-            'nb': 'Lærer',
-        }),
-        'staff': translatable({
-            'nb': 'Stab',
-        }),
-        'employee': translatable({
-            'nb': 'Ansatt',
-        }),
-        'student': translatable({
-            'nb': 'Elev',
-        }),
-#        'alum': translatable({
-#        }),
-        'affiliate': translatable({
-            'nb': 'Ekstern',
-        }),
-#        'library-walk-in': translatable({
-#        }),
-        'member': translatable({
-            'nb': 'Annet',
-        })
-    },
+    'go': go_affiliation_names,
     'he': {
         'faculty': translatable({
             'nb': 'Akademisk ansatt',
@@ -150,31 +110,6 @@ def quote(x, safe=''):
 
 def unquote(x):
     return x.replace('_', '/')
-
-
-def go_split(string):
-    return [urlunquote(part) for part in string.split(':')]
-
-
-def go_join(parts):
-    return ":".join((urlquote(part) for part in parts))
-
-
-def parse_go_date(date):
-    res = datetime.datetime.strptime(date, '%Y-%m-%d')
-    return res.replace(tzinfo=pytz.UTC)
-
-
-def go_membership(role):
-    membership = {
-        'basic': 'admin' if role == 'faculty' else 'member',
-        'affiliation': role,
-    }
-    if role in affiliation_names['go']:
-        membership['displayName'] = affiliation_names['go'][role]
-    else:
-        membership['displayName'] = role
-    return membership
 
 
 def org_membership_name(affiliation, org_type):
@@ -292,44 +227,17 @@ class LDAPBackend(BaseBackend):
             result['code'] = code
         return result
 
-    def _parse_gogroup(self, group_info):
-        if not group_info.startswith(GOGROUP_PREFIX):
-            self.log.warn("Found malformed group info: {}".format(group_info))
-            raise KeyError('invalid group info')
-        parts = go_split(group_info)
-        if len(parts) != 13:
-            self.log.warn("Found malformed group info: {}".format(group_info))
-            raise KeyError('invalid group info')
-        return parts[5:]
-
     def _handle_gogroup(self, realm, group_info, show_all):
-        group_type, grep_code, organization, _group_id, valid_from, valid_to, role, name = self._parse_gogroup(group_info)
-        group_id = go_join((realm, group_type, organization, _group_id, valid_from, valid_to))
-        valid_from = parse_go_date(valid_from)
-        valid_to = parse_go_date(valid_to)
-        ts = now()
-        if not show_all and (ts < valid_from or ts > valid_to):
+        group = GOGroup(group_info)
+        if not group.valid() and not show_all:
             raise KeyError('Group not valid now and show_all off')
-        result = {
-            'id': '{}:{}'.format(GOGROUP_ID_PREFIX, group_id),
-            'displayName': name,
-            'type': 'fc:gogroup',
-            'notBefore': valid_from,
-            'notAfter': valid_to,
-            'go_type': group_type,
-            'parent': self._groupid('{}:unit:{}'.format(realm, organization)),
-            'membership': go_membership(role),
-        }
-        if grep_code:
-            grep_data = self.session.get_grep_code_by_code(grep_code, 'fagkoder')
+        result = group.format_group(GOGROUP_ID_PREFIX, realm, self.prefix)
+        if group.grep_code:
+            grep_data = self.session.get_grep_code_by_code(group.grep_code, 'fagkoder')
             result['grep'] = {
                 'displayName': grep_translatable(grep_data['title']),
-                'code': grep_code,
+                'code': group.grep_code,
             }
-        if group_type in go_types:
-            result['go_type_displayName'] = go_types[group_type]
-        else:
-            self.log.warn('Found invalid go group type', go_type=group_type)
         return result
 
     def _handle_grepcodes(self, entitlements):
@@ -345,9 +253,9 @@ class LDAPBackend(BaseBackend):
     def _handle_go_groups(self, realm, entitlements, show_all):
         res = []
         for val in entitlements:
-            if val.startswith(GOGROUP_PREFIX):
+            if GOGroup.candidate(val):
                 try:
-                    res.append(self._handle_gogroup(realm, val, True))
+                    res.append(self._handle_gogroup(realm, val, show_all))
                 except KeyError:
                     pass
         return res
@@ -415,31 +323,23 @@ class LDAPBackend(BaseBackend):
     def get_members(self, user, groupid, show_all):
         return []
 
-    def _find_group_for_groupid(self, gogroupid, entitlements):
-        groupid_data = go_split(gogroupid)
-        group_type, organization, group_id, valid_from, valid_to = groupid_data
-        for a in entitlements:
-            if not a.startswith(GOGROUP_PREFIX):
+    def _find_group_for_groupid(self, target, candidates):
+        for group_data in candidates:
+            if not GOGroup.candidate(group_data):
                 continue
             try:
-                group_data = self._parse_gogroup(a)
-                _group_type, _grep_code, _organization, _group_id, _valid_from, _valid_to, _role, _name = group_data
-                print(groupid_data)
-                print(group_data)
-                if _group_type == group_type and \
-                   organization == _organization and \
-                   group_id == _group_id and \
-                   valid_to == _valid_to and \
-                   valid_from == _valid_from:
-                    return group_data
+                group = GOGroup(group_data)
+                if group.groupid_entitlement() == target:
+                    return group
             except KeyError:
                 continue
         raise KeyError("Did not find group for group id")
 
     def get_go_members(self, user, groupid, show_all):
         intid = self._intid(groupid)
-        realm, gogroupid = intid.split(':', 1)
-        entitlement_value = "{}{}".format(GOGROUPID_PREFIX, gogroupid)
+        realm, groupid_base = intid.split(':', 1)
+        entitlement_value = groupid_entitlement(groupid_base)
+        print(entitlement_value)
         try:
             base_dn = self.ldap.get_base_dn(realm)
         except KeyError:
@@ -453,12 +353,11 @@ class LDAPBackend(BaseBackend):
         for hit in ldap_res:
             entry = {'name': hit['attributes']['displayName'][0]}
             try:
-                data = self._find_group_for_groupid(gogroupid, hit['attributes']['eduPersonEntitlement'])
-                entry['membership'] = go_membership(data[6])
+                group = self._find_group_for_groupid(entitlement_value, hit['attributes']['eduPersonEntitlement'])
+                entry['membership'] = group.membership()
             except KeyError:
                 import logging
-                logging.execption('hmm')
-                pass
+                logging.exception('hmm')
             res.append(entry)
         return res
 
