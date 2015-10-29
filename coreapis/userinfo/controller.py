@@ -30,16 +30,18 @@ USER_INFO_ATTRIBUTES_FEIDE = {
     "userinfo-entitlement": [
         'eduPersonEntitlement',
     ],
-    "userinfo-contact": [
+    "address": [
         'postOfficeBox',
         'postalAddress',
         'postalCode',
-        'facsimileTelephoneNumber',
-        'homePhone',
         'homePostalAddress',
         'l',
-        'mobile',
         'street',
+    ],
+    "phone": [
+        'facsimileTelephoneNumber',
+        'homePhone',
+        'mobile',
         'telephoneNumber',
     ],
     "userinfo-extra": [
