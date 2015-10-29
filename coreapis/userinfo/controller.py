@@ -2,6 +2,11 @@ from coreapis import cassandra_client
 from coreapis.utils import LogWrapper, get_feideid
 
 USER_INFO_ATTRIBUTES_FEIDE = {
+    "profile": [
+        'displayName',
+        'sn',
+        'givenName',
+    ],
     "userinfo": [
         'displayName',
         'sn',
@@ -15,6 +20,9 @@ USER_INFO_ATTRIBUTES_FEIDE = {
         'norEduPersonNIN',
     ],
     "userinfo-mail": [
+        'mail',
+    ],
+    "email": [
         'mail',
     ],
     "groups": [
@@ -89,7 +97,7 @@ def allowed_attributes(attributes, perm_checker):
     for k, v in attributes.items():
         if perm_checker('scope_{}'.format(k)):
             res += v
-    return res
+    return list(set(res))
 
 
 class UserInfoController(object):
