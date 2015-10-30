@@ -80,7 +80,7 @@ def get_group(request):
 @view_config(route_name='get_group_details', renderer='json', permission='scope_adhocgroupadmin')
 def get_group_details(request):
     userid, group = check(request, "view_details")
-    return group
+    return request.ahgroupadm_controller.format_group(group, True)
 
 
 @view_config(route_name='add_group', renderer='json', request_method='POST',

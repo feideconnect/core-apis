@@ -8,7 +8,7 @@ from coreapis import main, middleware
 from coreapis.utils import (json_normalize, now)
 from coreapis.adhocgroupadm.tests.data import \
     public_userinfo, public_userinfo_view, \
-    group1, group1_invitation, group1_view, groupid1, \
+    group1, group1_invitation, group1_view, groupid1, group1_details, \
     group2, group2_invitation, group2_view, groupid2, \
     user1, user2, \
     post_body_minimal, post_body_maximal, member_token
@@ -73,8 +73,9 @@ class AdHocGroupAdmTests(unittest.TestCase):
     def test_get_group_details(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_group.return_value = group1
+        self.session().get_user_by_id.return_value = public_userinfo
         res = self.testapp.get('/adhocgroups/{}/details'.format(uuid.uuid4()), status=200, headers=headers)
-        assert res.json == json_normalize(group1)
+        assert res.json == json_normalize(group1_details)
 
     def test_missing_group(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -209,14 +210,19 @@ class AdHocGroupAdmTests(unittest.TestCase):
     def test_get_group_members(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_group.return_value = deepcopy(group1)
-        members = [{'userid': user1, 'type': 'member', 'status': 'normal'}]
+        members = [
+            {'userid': user1, 'type': 'member', 'status': 'normal'},
+            {'userid': user2, 'type': 'admin', 'status': 'normal'}
+        ]
         self.session().get_group_members.return_value = members
         self.session().get_user_by_id.return_value = public_userinfo
         res = self.testapp.get('/adhocgroups/{}/members'.format(groupid1), status=200,
                                headers=headers)
-        expected = {'type': 'member', 'status': 'normal'}
-        expected.update(public_userinfo_view)
-        assert res.json == [expected]
+        expected1 = {'type': 'member', 'status': 'normal', 'is_owner': True}
+        expected1.update(public_userinfo_view)
+        expected2 = {'type': 'admin', 'status': 'normal'}
+        expected2.update(public_userinfo_view)
+        assert res.json == [expected1, expected2]
 
     def test_get_group_members_no_access(self):
         headers = {'Authorization': 'Bearer user_token'}

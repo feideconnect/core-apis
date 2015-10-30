@@ -51,6 +51,16 @@ group1_view = {
     "descr": "some data",
     "public": False,
 }
+group1_details = {
+    "updated": parse_datetime("2015-01-26T16:05:59Z"),
+    "created": parse_datetime("2015-01-23T13:50:09Z"),
+    "id": groupid1,
+    "owner": public_userinfo_view,
+    "name": "pre update",
+    "descr": "some data",
+    "public": False,
+    'invitation_token': group1_invitation,
+}
 
 group2 = {
     "updated": parse_datetime("2015-01-26T16:05:59Z"),

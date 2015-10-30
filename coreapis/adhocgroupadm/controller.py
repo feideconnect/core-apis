@@ -53,11 +53,12 @@ class AdHocGroupAdmController(CrudControllerBase):
         self.ps_controller = ps_controller
         self.max_add_members = max_add_members
 
-    def format_group(self, group):
+    def format_group(self, group, with_invitation_token=False):
         res = {}
         res.update(group)
         res['owner'] = public_userinfo(self.session.get_user_by_id(group['owner']))
-        del res['invitation_token']
+        if not with_invitation_token:
+            del res['invitation_token']
         return res
 
     def get(self, id):
@@ -127,7 +128,7 @@ class AdHocGroupAdmController(CrudControllerBase):
 
     def has_permission(self, group, userid, permission):
         if permission == "update":
-            return self.is_owner(group, userid)
+            return self.is_owner_or_admin(group, userid)
         if permission == "delete":
             return self.is_owner(group, userid)
         if permission == "view":
@@ -141,6 +142,8 @@ class AdHocGroupAdmController(CrudControllerBase):
 
     def get_members(self, groupid):
         res = []
+        group = self.session.get_group(groupid)
+
         for member in self.session.get_group_members(groupid):
             user = public_userinfo(self.session.get_user_by_id(member['userid']))
             user['type'] = member['type']
@@ -148,6 +151,8 @@ class AdHocGroupAdmController(CrudControllerBase):
             added_by = member.get('added_by', None)
             if added_by:
                 user['added_by'] = public_userinfo(self.session.get_user_by_id(added_by))
+            if member['userid'] == group['owner']:
+                user['is_owner'] = True
             res.append(user)
         return res
 
