@@ -218,6 +218,12 @@ class Client(object):
             userid_sec_seen
         ]))
 
+    def reset_user(self, userid):
+        prep = self._prepare('INSERT INTO users (userid, usageterms,email, name, profilephoto, profilephotohash, selectedsource, aboveagelimit) VALUES (?,?,?,?,?,?,?,?)')
+        self.session.execute(prep.bind([
+            userid, False, {}, {}, {}, {}, None, None
+        ]))
+
     def get_userid_by_userid_sec(self, sec):
         prep = self._prepare('SELECT userid from userid_sec where userid_sec = ?')
         res = self.session.execute(prep.bind([sec]))

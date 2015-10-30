@@ -68,7 +68,8 @@ Prefix: /authorizations
 
 - / GET
 - /{id} DELETE
-
+- /resources_owned GET
+- /consent_withdrawn POST
 
 [Clients](clientadm.md)
 -----------------------
