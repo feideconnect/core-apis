@@ -1,5 +1,5 @@
 from pyramid.view import view_config
-from pyramid.httpexceptions import HTTPNotFound
+from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
 from pyramid.response import Response
 from .controller import AuthorizationController
 from coreapis.utils import get_userid
@@ -13,6 +13,8 @@ def configure(config):
                               reify=True)
     config.add_route('list_authz', '/', request_method='GET')
     config.add_route('delete_authz', '/{id}', request_method='DELETE')
+    config.add_route('resources_owned', '/resources_owned', request_method='GET')
+    config.add_route('consent_withdrawn', '/consent_withdrawn', request_method='POST')
     config.scan(__name__)
 
 
@@ -32,3 +34,18 @@ def delete(request):
         raise HTTPNotFound
     request.authz_controller.delete(userid, clientid)
     return Response(status=204, content_type=False)
+
+
+@view_config(route_name="resources_owned", permission="scope_authzinfo", renderer="json")
+def resources_owned(request):
+    userid = get_userid(request)
+    return request.authz_controller.resources_owned(userid)
+
+
+@view_config(route_name="consent_withdrawn", permission="scope_authzinfo", renderer="json")
+def consent_withdrawn(request):
+    userid = get_userid(request)
+    if request.authz_controller.consent_withdrawn(userid):
+        return 'OK'
+    else:
+        raise HTTPForbidden('User still owns resources')
