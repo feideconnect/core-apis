@@ -12,9 +12,10 @@ from coreapis.utils import LogWrapper
 
 DESCRIPTION = """Sync organizations from Feide API to Connect.
 Input can be from a file or a URL. One of these must be given.
+If URL, feideapi_token_secret must also be given.
 
-cassandra_contact_points, cassandra_keyspace and feideapi_token_secret are
-taken from config file.
+cassandra_contact_points and cassandra_keyspace are taken from
+config file.
 """
 URL = 'https://api.feide.no/2/'
 ORGPATH = 'org/all/full'
@@ -298,7 +299,6 @@ def parse_config(filename):
     return {
         'contact_points': parser['DEFAULT']['cassandra_contact_points'].split(', '),
         'keyspace': parser['DEFAULT']['cassandra_keyspace'],
-        'token': parser['DEFAULT']['feideapi_token_secret'],
         'sync_exclude': parser['DEFAULT'].get('feideapi_sync_exclude', '').split(','),
     }
 
@@ -310,6 +310,8 @@ def parse_args():
                         help="Config file to use")
     parser.add_argument('-u', '--url', default=URL,
                         help='Feide API URL')
+    parser.add_argument('-x', '--feideapi-token-secret',
+                        help='Feide API token secret'),
     parser.add_argument('-i', '--infile', type=argparse.FileType('r'),
                         help='Input file with organization data')
     parser.add_argument('-s', '--subsfile', type=argparse.FileType('r'),
@@ -338,11 +340,11 @@ def main():
         feideorgs = json.load(args.infile)
         feidesubs = json.load(args.subsfile)
     elif args.url:
-        if config['token']:
+        if args.feideapi_token_secret:
             orgurl = args.url + ORGPATH
             subsurl = args.url + SUBSPATH
-            feideorgs = get_json_from_url(orgurl, config['token'])
-            feidesubs = get_json_from_url(subsurl, config['token'])
+            feideorgs = get_json_from_url(orgurl, args.feideapi_token_secret)
+            feidesubs = get_json_from_url(subsurl, args.feideapi_token_secret)
         else:
             fail('Feide API token must be given in config file')
     else:
