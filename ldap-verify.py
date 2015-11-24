@@ -13,6 +13,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description=DESCRIPTION)
     parser.add_argument('--config', default="/conf/ldap-config.json",
                         help="Config file to use")
+    parser.add_argument('--ca-certs', default='/conf/ldap_certs.txt',
+                        help='Ca certificate bundle to use')
     parser.add_argument('orgs', help="organizations to query. (default all)",
                         nargs='*')
     return parser.parse_args()
@@ -79,13 +81,18 @@ def sanity_check_config(config):
 
 def main():
     args = parse_args()
-    config, servers = ldapcontroller.parse_ldap_config(args.config)
+    config, servers = ldapcontroller.parse_ldap_config(args.config, args.ca_certs)
     sanity_check_config(config)
     print("config file looks good")
     for org, conf in config.items():
         print("{}: base_dn: {} servers: {}".format(org, conf['base_dn'], ", ".join(conf['servers'])))
     timer = Timer('localhost', 1234, 'ldap-verify', True, ResourcePool)
-    ldap = ldapcontroller.LDAPController(timer, args.config)
+    settings = {
+        'ldap_config_file': args.config,
+        'ldap_ca_certs': args.ca_certs,
+        'timer': timer,
+    }
+    ldap = ldapcontroller.LDAPController(settings)
     if args.orgs:
         orgs = args.orgs
     else:
