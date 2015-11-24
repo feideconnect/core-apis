@@ -1,3 +1,4 @@
+#! /usr/bin/env python3
 from coreapis.peoplesearch import controller as ldapcontroller
 from coreapis.utils import Timer, ResourcePool
 import argparse
