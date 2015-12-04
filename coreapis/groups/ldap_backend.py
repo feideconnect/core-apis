@@ -9,6 +9,7 @@ from eventlet.pools import Pool
 from eventlet.greenpool import GreenPool
 from coreapis import cassandra_client
 from coreapis.groups.gogroups import affiliation_names as go_affiliation_names, GOGroup, groupid_entitlement
+import urllib.parse as urlparse
 
 org_attribute_names = {
     'eduOrgLegalName',
@@ -110,6 +111,10 @@ def quote(x, safe=''):
 
 def unquote(x):
     return x.replace('_', '/')
+
+
+def groupid_escape(x):
+    return ":".join((urlparse.quote(p) for p in x.split(':')))
 
 
 def org_membership_name(affiliation, org_type):
@@ -298,6 +303,7 @@ class LDAPBackend(BaseBackend):
         return result
 
     def get_membership(self, user, groupid):
+        groupid = groupid_escape(groupid)
         my_groups = self.get_member_groups(user, True)
         for group in my_groups:
             if group['id'] == groupid:
@@ -305,6 +311,7 @@ class LDAPBackend(BaseBackend):
         raise KeyError('Not found')
 
     def get_group(self, user, groupid):
+        groupid = groupid_escape(groupid)
         my_groups = self.get_member_groups(user, True)
         for group in my_groups:
             if group['id'] == groupid:
@@ -337,6 +344,7 @@ class LDAPBackend(BaseBackend):
 
     def get_go_members(self, user, groupid, show_all, include_member_ids):
         intid = self._intid(groupid)
+        intid = groupid_escape(intid)
         realm, groupid_base = intid.split(':', 1)
         entitlement_value = groupid_entitlement(groupid_base)
         print(entitlement_value)
