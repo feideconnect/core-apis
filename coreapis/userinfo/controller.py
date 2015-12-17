@@ -16,7 +16,7 @@ USER_INFO_ATTRIBUTES_FEIDE = {
         'eduPersonPrincipalName',
         'uid',
     ],
-    "userinfo-nin": [
+    "userid-nin": [
         'norEduPersonNIN',
     ],
     "userinfo-mail": [
