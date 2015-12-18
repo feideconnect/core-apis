@@ -25,7 +25,7 @@ class FsBackend(BaseBackend):
     def is_org_enabled(self, realm):
         return self.org_enabled.get(realm, functools.partial(self.session.org_use_fs_groups, realm))
 
-    def get_members(self, user, groupid, show_all):
+    def get_members(self, user, groupid, show_all, include_member_ids):
         gid_parts = groupid.split(':')
         if len(gid_parts) < 4:
             raise KeyError('invalid group id')
