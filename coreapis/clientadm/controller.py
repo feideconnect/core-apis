@@ -1,15 +1,17 @@
+from copy import deepcopy
+import json
+from urllib.parse import urlsplit
+import uuid
+
+import blist
+import valideer as V
+
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.utils import (
     LogWrapper, ts, public_userinfo, public_orginfo, ValidationError, ForbiddenError, valid_url,
     EmailNotifier)
 from .scope_request_notification import ScopeRequestNotification
-from urllib.parse import urlsplit
-import blist
-import json
-import uuid
-import valideer as V
-from copy import deepcopy
 
 
 USER_SETTABLE_STATUS_FLAGS = {'Public'}

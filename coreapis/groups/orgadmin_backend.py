@@ -1,8 +1,10 @@
 import functools
+
+from eventlet.greenpool import GreenPool
+
 from coreapis.utils import LogWrapper, get_feideids, failsafe, translatable
 from . import BaseBackend
 from coreapis import cassandra_client
-from eventlet.greenpool import GreenPool
 
 ORGADMIN_TYPE = 'fc:orgadmin'
 SCOPES_NEEDED = {'scope_groups-orgadmin'}

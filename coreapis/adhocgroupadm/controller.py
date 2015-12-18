@@ -1,10 +1,12 @@
+import base64
+import uuid
+
+import valideer as V
+
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.utils import LogWrapper, ts, ValidationError, public_userinfo, ResourceError
 from coreapis.peoplesearch.tokens import decrypt_token
-import uuid
-import valideer as V
-import base64
 
 
 def valid_member_type(mtype):

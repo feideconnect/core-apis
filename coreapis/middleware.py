@@ -1,10 +1,12 @@
-import uuid
 import json
+import urllib.parse
+import uuid
+
+from aniso8601 import parse_datetime
+from eventlet.pools import Pool as EventletPool
+
 from . import cassandra_client
 from .utils import LogWrapper, Timer, RateLimiter, now, www_authenticate, init_request_id, ResourcePool, log_token
-from aniso8601 import parse_datetime
-import urllib.parse
-from eventlet.pools import Pool as EventletPool
 
 NULL_USER = uuid.UUID('00000000-0000-0000-0000-000000000000')
 

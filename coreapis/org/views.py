@@ -1,7 +1,9 @@
+import uuid
+
 from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
 from pyramid.response import Response
-import uuid
+
 from .controller import OrgController
 from coreapis.utils import now, get_user, get_payload, ValidationError, translation
 

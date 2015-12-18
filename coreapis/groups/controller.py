@@ -1,8 +1,10 @@
-from coreapis.utils import LogWrapper
+import traceback
+
 from eventlet.greenpool import GreenPool, GreenPile
 from eventlet.timeout import Timeout
-import traceback
 from paste.deploy.util import lookup_object
+
+from coreapis.utils import LogWrapper
 
 BACKEND_CONFIG_KEY = 'groups_backend_'
 ID_PREFIX = 'fc'

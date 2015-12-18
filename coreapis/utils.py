@@ -1,24 +1,25 @@
-import logging
-import json
-import datetime
-import uuid
-import blist
-import statsd
-import time
-import pytz
-import functools
-from functools import wraps
 from collections import defaultdict, deque
-import threading
-from aniso8601 import parse_datetime
-from queue import Queue, Empty
-from threading import Lock
-from pyramid.httpexceptions import HTTPBadRequest, HTTPNotModified
-from urllib.parse import urlparse
-import hashlib
-import smtplib
+import datetime
 from email.mime.text import MIMEText
 import email.utils
+import functools
+from functools import wraps
+import hashlib
+import json
+import logging
+from queue import Queue, Empty
+import smtplib
+import threading
+from threading import Lock
+import time
+from urllib.parse import urlparse
+import uuid
+
+import blist
+import statsd
+import pytz
+from aniso8601 import parse_datetime
+from pyramid.httpexceptions import HTTPBadRequest, HTTPNotModified
 
 __local = threading.local()
 

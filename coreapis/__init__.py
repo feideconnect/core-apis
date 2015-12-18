@@ -1,11 +1,13 @@
-from pyramid.config import Configurator
 import datetime
 import uuid
+
 import blist
+from eventlet.pools import Pool as EventletPool
+from pyramid.config import Configurator
 import pyramid.renderers
+
 from .aaa import TokenAuthenticationPolicy, TokenAuthorizationPolicy
 from .utils import Timer, format_datetime, ResourcePool
-from eventlet.pools import Pool as EventletPool
 
 
 def options(request):

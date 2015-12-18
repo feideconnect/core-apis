@@ -1,10 +1,12 @@
+import re
+import uuid
+
+import valideer as V
+
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.clientadm.controller import ClientAdmController
 from coreapis.utils import LogWrapper, ts, public_userinfo, public_orginfo, log_token, valid_url
-import uuid
-import valideer as V
-import re
 
 
 def valid_gk_url(url):

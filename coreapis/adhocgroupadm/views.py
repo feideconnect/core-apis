@@ -1,9 +1,11 @@
+import uuid
+
 from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPForbidden, HTTPConflict
 from pyramid.response import Response
+
 from .controller import AdHocGroupAdmController
 from coreapis.utils import get_userid, get_payload, ResourceError
-import uuid
 
 
 def configure(config):

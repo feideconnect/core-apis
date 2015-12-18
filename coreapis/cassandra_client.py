@@ -1,11 +1,13 @@
 #! /usr/bin/env python
+import contextlib
+import datetime
+import json
+import time
+
 from cassandra.cluster import Cluster
 from cassandra.query import dict_factory
-import time
-import json
-import datetime
 import pytz
-import contextlib
+
 from coreapis.utils import LogWrapper, now, translatable
 
 

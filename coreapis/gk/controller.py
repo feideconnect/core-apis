@@ -1,8 +1,9 @@
+import base64
+import random
+
 from coreapis import cassandra_client
 from coreapis.utils import LogWrapper
 from coreapis.cache import Cache
-import random
-import base64
 
 
 def basic_auth(trust):

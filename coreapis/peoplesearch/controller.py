@@ -1,16 +1,18 @@
+import base64
 import datetime
-import json
-import ldap3
+from functools import partial
 import hashlib
+import io
+import json
 import ssl
+
+from cassandra.cluster import Cluster
+import ldap3
+from PIL import Image
+
 from coreapis.utils import ValidationError, LogWrapper, now, ResourcePool
 from .tokens import crypt_token, decrypt_token
-from PIL import Image
-import io
-from cassandra.cluster import Cluster
 from coreapis.cassandra_client import datetime_hack_dict_factory
-from functools import partial
-import base64
 
 THUMB_SIZE = 128, 128
 USER_INFO_ATTRIBUTES = ['cn', 'displayName', 'eduPersonPrincipalName']

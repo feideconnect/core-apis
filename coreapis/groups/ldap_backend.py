@@ -1,15 +1,17 @@
 import functools
+import urllib.parse as urlparse
+
+import eventlet
+from eventlet.pools import Pool
+from eventlet.greenpool import GreenPool
+ldap3 = eventlet.import_patched('ldap3')
+
 from coreapis.utils import LogWrapper, get_feideids, translatable, failsafe
 from coreapis.cache import Cache
 from . import BaseBackend, IDHandler
-import eventlet
-ldap3 = eventlet.import_patched('ldap3')
 from coreapis.peoplesearch.controller import LDAPController
-from eventlet.pools import Pool
-from eventlet.greenpool import GreenPool
 from coreapis import cassandra_client
 from coreapis.groups.gogroups import affiliation_names as go_affiliation_names, GOGroup, groupid_entitlement
-import urllib.parse as urlparse
 
 org_attribute_names = {
     'eduOrgLegalName',

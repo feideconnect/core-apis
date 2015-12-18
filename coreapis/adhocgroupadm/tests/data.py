@@ -1,5 +1,6 @@
-from coreapis.utils import parse_datetime
 import uuid
+
+from coreapis.utils import parse_datetime
 
 post_body_minimal = {
     'name': 'per',

@@ -1,7 +1,9 @@
+import logging
+
 from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound
+
 from .controller import GkController
-import logging
 
 
 def configure(config):

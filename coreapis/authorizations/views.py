@@ -1,9 +1,11 @@
+import uuid
+
 from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
 from pyramid.response import Response
+
 from .controller import AuthorizationController
 from coreapis.utils import get_userid
-import uuid
 
 
 def configure(config):

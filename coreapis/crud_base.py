@@ -1,8 +1,10 @@
-from coreapis.utils import now, ValidationError, AlreadyExistsError, LogWrapper, get_feideids
-import uuid
-import valideer as V
 import io
+import uuid
+
+import valideer as V
 from PIL import Image
+
+from coreapis.utils import now, ValidationError, AlreadyExistsError, LogWrapper, get_feideids
 
 LOGO_SIZE = 128, 128
 

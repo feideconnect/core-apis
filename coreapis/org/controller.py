@@ -1,7 +1,9 @@
 import json
-import ldap3
 import ssl
+
+import ldap3
 #import ldap3.ssl
+
 from coreapis.utils import LogWrapper, get_feideid
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase

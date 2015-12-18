@@ -1,7 +1,9 @@
-from coreapis.groups import BaseBackend
 import uuid
-import eventlet
 import logging
+
+import eventlet
+
+from coreapis.groups import BaseBackend
 
 user1 = uuid.UUID("00000000-0000-0000-0000-000000000001")
 user2 = uuid.UUID("00000000-0000-0000-0000-000000000002")

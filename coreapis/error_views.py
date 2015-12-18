@@ -1,7 +1,9 @@
+import traceback
+
 from pyramid.view import view_config, forbidden_view_config, notfound_view_config
 from pyramid.httpexceptions import HTTPConflict
+
 from .utils import www_authenticate, ValidationError, LogWrapper
-import traceback
 
 log = LogWrapper('error_views')
 
