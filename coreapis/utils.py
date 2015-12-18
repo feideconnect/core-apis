@@ -93,7 +93,7 @@ class LogWrapper(object):
         self.l.debug(LogMessage(msg, **kwargs))
 
     def warn(self, msg, **kwargs):
-        self.l.warn(LogMessage(msg, **kwargs))
+        self.l.warning(LogMessage(msg, **kwargs))
 
     def error(self, msg, **kwargs):
         self.l.error(LogMessage(msg, **kwargs))
@@ -410,7 +410,7 @@ def failsafe(func):
         try:
             return func(*args, **kwargs)
         except:
-            logging.warn('suppressed error')
+            logging.warning('suppressed error')
             return None
     return functools.partial(wrapped, func)
 
