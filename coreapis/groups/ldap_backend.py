@@ -184,6 +184,8 @@ class LDAPBackend(BaseBackend):
         org = org[0]
         orgAttributes = org['attributes']
         orgType = self._get_org_type(realm).intersection(educational_org_types)
+        if 'higher_education' not in orgType:
+            orgType = ['{}_owner'.format(o) for o in orgType]
         res = {
             'id': self._groupid(realm),
             'displayName': orgAttributes['eduOrgLegalName'][0],
