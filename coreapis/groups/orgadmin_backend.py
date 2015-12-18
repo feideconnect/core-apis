@@ -104,7 +104,7 @@ class OrgAdminBackend(BaseBackend):
             raise KeyError("Not member of group")
         return result
 
-    def _get_member_groups(self, pool,  feideid):
+    def _get_member_groups(self, pool, feideid):
         result = []
         roles = self.session.get_roles(['feideid = ?'], [feideid],
                                        self.maxrows)
