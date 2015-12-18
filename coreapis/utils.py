@@ -38,7 +38,7 @@ def now():
 
 
 def timestamp_adapter(d):
-    if type(d) == datetime.datetime:
+    if isinstance(d, datetime.datetime):
         return d
     else:
         return parse_datetime(d)
@@ -108,7 +108,7 @@ class DebugLogFormatter(logging.Formatter):
         secs = int(t)
         msecs = int((t - secs) * 1000)
         ts = time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime(secs)) + '.%03dZ' % msecs
-        if type(record.msg) != LogMessage:
+        if not isinstance(record.msg, LogMessage):
             record.msg = LogMessage(record.msg)
 
         obj = {
