@@ -93,6 +93,11 @@ affiliation_names = {
         })
     }
 }
+educational_org_types = {
+    'higher_education',
+    'primary_and_lower_secondary',
+    'upper_secondary'
+}
 
 
 def grep_translatable(input):
@@ -178,7 +183,7 @@ class LDAPBackend(BaseBackend):
             raise KeyError('orgDN not found in catalog')
         org = org[0]
         orgAttributes = org['attributes']
-        orgType = self._get_org_type(realm)
+        orgType = self._get_org_type(realm).intersection(educational_org_types)
         res = {
             'id': self._groupid(realm),
             'displayName': orgAttributes['eduOrgLegalName'][0],
@@ -200,17 +205,22 @@ class LDAPBackend(BaseBackend):
             raise KeyError('orgUnitDN not found in catalog')
         ou = ou[0]
         ouAttributes = ou['attributes']
-        return {
+        orgType = self._get_org_type(realm).intersection(educational_org_types)
+        data = {
             'id': self._groupid('{}:unit:{}'.format(realm,
                 ouAttributes['norEduOrgUnitUniqueIdentifier'][0])),
             'parent': self._groupid(realm),
             'displayName': ouAttributes['ou'][0],
-            'type': 'fc:org',
+            'type': 'fc:orgunit',
             'public': True,
             'membership': {
                 'basic': 'member',
             },
         }
+        if 'higher_education' not in orgType:
+            data['grouptype'] = 'fc:org'
+            data['orgType'] = orgType
+        return data
 
     def _handle_grepcode(self, grep_id, is_member):
         with self.timer.time('getting grep code'):
@@ -389,6 +399,13 @@ class LDAPBackend(BaseBackend):
                 "displayName": translatable({
                     "en": "Organization",
                     "nb": "Organisasjon"
+                })
+            },
+            {
+                "id": "fc:orgunit",
+                "displayName": translatable({
+                    "en": "Organizational Unit",
+                    "nb": "Organisasjonenhet"
                 })
             },
         ]
