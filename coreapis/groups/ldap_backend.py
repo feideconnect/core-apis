@@ -182,21 +182,21 @@ class LDAPBackend(BaseBackend):
         if len(org) == 0:
             raise KeyError('orgDN not found in catalog')
         org = org[0]
-        orgAttributes = org['attributes']
-        orgType = self._get_org_type(realm).intersection(educational_org_types)
-        if 'higher_education' not in orgType:
-            orgType = ['{}_owner'.format(o) for o in orgType]
+        org_attributes = org['attributes']
+        org_type = self._get_org_type(realm).intersection(educational_org_types)
+        if 'higher_education' not in org_type:
+            orgType = ['{}_owner'.format(o) for o in org_type]
         res = {
             'id': self._groupid(realm),
-            'displayName': orgAttributes['eduOrgLegalName'][0],
+            'displayName': org_attributes['eduOrgLegalName'][0],
             'type': 'fc:org',
             'public': True,
             'membership': org_membership(person, orgType),
             'orgType': orgType,
         }
         for attribute in org_attribute_names:
-            if attribute in orgAttributes:
-                res[attribute] = orgAttributes[attribute][0]
+            if attribute in org_attributes:
+                res[attribute] = org_attributes[attribute][0]
         return res
 
     def _get_orgunit(self, realm, dn):
@@ -206,22 +206,22 @@ class LDAPBackend(BaseBackend):
         if len(ou) == 0:
             raise KeyError('orgUnitDN not found in catalog')
         ou = ou[0]
-        ouAttributes = ou['attributes']
-        orgType = self._get_org_type(realm).intersection(educational_org_types)
+        ou_attributes = ou['attributes']
+        org_type = self._get_org_type(realm).intersection(educational_org_types)
         data = {
             'id': self._groupid('{}:unit:{}'.format(realm,
-                ouAttributes['norEduOrgUnitUniqueIdentifier'][0])),
+                ou_attributes['norEduOrgUnitUniqueIdentifier'][0])),
             'parent': self._groupid(realm),
-            'displayName': ouAttributes['ou'][0],
+            'displayName': ou_attributes['ou'][0],
             'type': 'fc:orgunit',
             'public': True,
             'membership': {
                 'basic': 'member',
             },
         }
-        if 'higher_education' not in orgType:
+        if 'higher_education' not in org_type:
             data['grouptype'] = 'fc:org'
-            data['orgType'] = orgType
+            data['orgType'] = org_type
         return data
 
     def _handle_grepcode(self, grep_id, is_member):
