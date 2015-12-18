@@ -127,7 +127,7 @@ class TestAdHocBackendGet(TestAdHocBackendBase):
         group['public'] = True
         self.session.get_group.return_value = group
         self.session.get_membership_data.side_effect = KeyError
-        assert self.backend._get(user2, 'fc:adhoc:{}'.format(groupid1)) == (group1, None)
+        assert self.backend._get(user2, 'fc:adhoc:{}'.format(groupid1)) == (group, None)
 
 
 class TestAdHocBackendGetMembership(TestAdHocBackendBase):
