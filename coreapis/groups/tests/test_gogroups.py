@@ -1,5 +1,4 @@
 import unittest
-import mock
 import datetime
 import pytz
 from pytest import raises

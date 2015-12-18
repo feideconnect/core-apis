@@ -2,7 +2,6 @@
 import contextlib
 import datetime
 import json
-import time
 
 from cassandra.cluster import Cluster
 from cassandra.query import dict_factory
