@@ -37,7 +37,7 @@ def now():
     return datetime.datetime.now(tz=pytz.UTC)
 
 
-def ts(d):
+def timestamp_adapter(d):
     if type(d) == datetime.datetime:
         return d
     else:

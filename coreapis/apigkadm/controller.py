@@ -6,7 +6,7 @@ import valideer as V
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.clientadm.controller import ClientAdmController
-from coreapis.utils import LogWrapper, ts, public_userinfo, public_orginfo, log_token, valid_url
+from coreapis.utils import LogWrapper, timestamp_adapter, public_userinfo, public_orginfo, log_token, valid_url
 
 
 def valid_gk_url(url):
@@ -21,10 +21,10 @@ class APIGKAdmController(CrudControllerBase):
         'owner': V.AdaptTo(uuid.UUID),
         'organization': V.Nullable('string'),
         '+id': re.compile('^[a-z][a-z0-9\-]{2,14}$'),
-        'created': V.AdaptBy(ts),
+        'created': V.AdaptBy(timestamp_adapter),
         'descr': V.Nullable('string'),
         'status': V.Nullable(['string']),
-        'updated': V.AdaptBy(ts),
+        'updated': V.AdaptBy(timestamp_adapter),
         '+endpoints': V.HomogeneousSequence(valid_gk_url, min_length=1),
         '+requireuser': 'boolean',
         'httpscertpinned': V.Nullable('string'),
