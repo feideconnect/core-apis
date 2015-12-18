@@ -9,7 +9,7 @@ import valideer as V
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.utils import (
-    LogWrapper, ts, public_userinfo, public_orginfo, ValidationError, ForbiddenError, valid_url,
+    LogWrapper, timestamp_adapter, public_userinfo, public_orginfo, ValidationError, ForbiddenError, valid_url,
     EmailNotifier)
 from .scope_request_notification import ScopeRequestNotification
 
@@ -78,11 +78,11 @@ class ClientAdmController(CrudControllerBase):
         '+redirect_uri': V.HomogeneousSequence(item_schema=V.Condition(is_valid_uri), min_length=1),
         '+scopes_requested':  V.HomogeneousSequence(item_schema='string', min_length=1),
         # Maintained by clientadm API
-        'created': V.AdaptBy(ts),
+        'created': V.AdaptBy(timestamp_adapter),
         'id': V.Nullable(V.AdaptTo(uuid.UUID)),
         'owner': V.AdaptTo(uuid.UUID),
         'organization': V.Nullable('string', None),
-        'updated': V.AdaptBy(ts),
+        'updated': V.AdaptBy(timestamp_adapter),
         'orgauthorization': V.Nullable({}),
         # Other attributes
         'client_secret': V.Nullable('string', ''),
