@@ -74,8 +74,8 @@ class TestOrgAdminBackend(unittest.TestCase):
 
     def test_get_member_groups(self):
         res = self._get_member_groups(FEIDEID_OWN)
-        assert len([mship for mship in res if 'admin' == mship['membership']['basic']]) == 1
-        assert len([mship for mship in res if 'member' == mship['membership']['basic']]) == 1
+        assert len([mship for mship in res if mship['membership']['basic'] == 'admin']) == 1
+        assert len([mship for mship in res if mship['membership']['basic'] == 'member']) == 1
 
     def test_get_member_groups_no_memberships(self):
         res = self._get_member_groups(FEIDEID_OTHER)

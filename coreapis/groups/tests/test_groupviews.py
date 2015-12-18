@@ -113,7 +113,7 @@ class GroupsViewTests(unittest.TestCase):
 class GroupsViewErrorHandlingTests(unittest.TestCase):
     @mock.patch('coreapis.middleware.cassandra_client.Client')
     def setUp(self, Client):
-        app = main({
+        settings = {
             'statsd_server': 'localhost',
             'statsd_port': '8125',
             'statsd_prefix': 'feideconnect.tests',
@@ -121,12 +121,13 @@ class GroupsViewErrorHandlingTests(unittest.TestCase):
             'cassandra_contact_points': '',
             'cassandra_keyspace': 'notused',
             'use_eventlets': 'true',
-        }, enabled_components='groups', groups_timeout_backend='200',
-            groups_backend_test='coreapis.groups.tests:MockBackend',
-            groups_backend_stale='coreapis.groups.tests:StaleBackend',
-            groups_backend_crash='coreapis.groups.tests:CrashBackend')
-        mw = middleware.MockAuthMiddleware(app, 'test realm')
-        self.testapp = TestApp(mw)
+        }
+        app = main(settings, enabled_components='groups', groups_timeout_backend='200',
+                   groups_backend_test='coreapis.groups.tests:MockBackend',
+                   groups_backend_stale='coreapis.groups.tests:StaleBackend',
+                   groups_backend_crash='coreapis.groups.tests:CrashBackend')
+        mockmiddleware = middleware.MockAuthMiddleware(app, 'test realm')
+        self.testapp = TestApp(mockmiddleware)
 
     def test_get_groups(self):
         headers = {'Authorization': 'Bearer user_token'}

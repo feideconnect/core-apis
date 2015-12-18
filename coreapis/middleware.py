@@ -193,7 +193,7 @@ class CassandraMiddleware(AuthMiddleware):
         self.session.timer = timer
 
     def __call__(self, environ, start_response):
-        if self.ratelimiter and self.ratelimiter.check_rate(environ['REMOTE_ADDR']) == False:
+        if self.ratelimiter and not self.ratelimiter.check_rate(environ['REMOTE_ADDR']):
             headers = []
             start_response('429 Too many requests', headers)
             return ""
