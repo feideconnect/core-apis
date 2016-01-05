@@ -109,8 +109,9 @@ class RetryPool(object):
         for server in random.sample(alive_servers, len(alive_servers)):
             with server.connection() as connection:
                 try:
-                    return connection.search(base_dn, search_filter, scope, attributes=attributes,
-                                             size_limit=size_limit)
+                    connection.search(base_dn, search_filter, scope, attributes=attributes,
+                                      size_limit=size_limit)
+                    return connection.response
                 except ldap3.LDAPExceptionError as ex:
                     exception = ex
         raise exception
