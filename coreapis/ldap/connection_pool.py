@@ -25,6 +25,11 @@ class ConnectionPool(object):
         self.server = ldap3.Server(host, port=port, use_ssl=True,
                                    connect_timeout=self.timeouts['connect'], tls=self.tls)
         self.create_semaphore = threading.Semaphore(max_total)
+        self.down_count = 3  # Based on haproxy "fall" option default
+        self.up_count = 2  # Based on haproxy "rise" option default
+        self.alive = True
+        self.last_result = HealthCheckResult.ok
+        self.result_count = self.up_count
 
     def _create(self):
         if self.create_semaphore.acquire(False):
@@ -79,25 +84,34 @@ class ConnectionPool(object):
             except:
                 return HealthCheckResult.fail
 
+    def check_connection(self):
+        result = self._try_connection()
+        if result != self.last_result:
+            self.last_result = result
+            self.result_count = 1
+        else:
+            self.result_count += 1
+        if result == HealthCheckResult.fail and self.result_count == self.down_count:
+            self.alive = False
+        elif result == HealthCheckResult.ok and self.result_count == self.up_count:
+            self.alive = True
+
 
 class HealthCheckResult(enum.Enum):
     ok = 1
     fail = 2
 
 
-class ServerPool(object):
+class RetryPool(object):
     def __init__(self, servers):
         self.servers = servers
-        self.alive_servers = set(servers)
-        self.last_result = [HealthCheckResult.ok] * len(self.servers)
-        self.result_count = [1] * len(self.servers)
-        self.down_count = 3  # Based on haproxy "fall" option default
-        self.up_count = 2  # Based on haproxy "rise" option default
 
     def search(self, base_dn, search_filter, scope, attributes, size_limit=None):
         exception = None
-        source = self.alive_servers if self.alive_servers else self.servers
-        for server in random.sample(source, len(source)):
+        alive_servers = {server for server in self.servers if server.alive}
+        if not alive_servers:
+            alive_servers = self.servers
+        for server in random.sample(alive_servers, len(alive_servers)):
             with server.connection() as connection:
                 try:
                     return connection.search(base_dn, search_filter, scope, attributes=attributes,
@@ -106,18 +120,6 @@ class ServerPool(object):
                     exception = ex
         raise exception
 
-    def _check_connection(self, server_num):
-        result = self.servers[server_num]._try_connection()
-        if result != self.last_result[server_num]:
-            self.last_result[server_num] = result
-            self.result_count[server_num] = 1
-        else:
-            self.result_count[server_num] += 1
-        if result == HealthCheckResult.fail and self.result_count[server_num] == self.down_count:
-            self.alive_servers.remove(self.servers[server_num])
-        elif result == HealthCheckResult.ok and self.result_count[server_num] == self.up_count:
-            self.alive_servers.add(self.servers[server_num])
-
     def do_health_checks(self):
-        for server_num in range(len(self.servers)):
-            self._check_connection(server_num)
+        for server in self.servers:
+            server.check_connection()
