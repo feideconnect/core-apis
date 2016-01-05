@@ -15,7 +15,7 @@ from coreapis.ldap.connection_pool import ConnectionPool, RetryPool, HealthCheck
 class TestConnectionPool(TestCase):
 
     def setUp(self):
-        self.pool = ConnectionPool("ldap.example.org:636", None, None,
+        self.pool = ConnectionPool("ldap.example.org", 636, None, None,
                                    2, 5, defaultdict(lambda: 1), None)
 
     def tearDown(self):
@@ -140,12 +140,6 @@ class TestConnectionPool(TestCase):
         assert self.pool._try_connection() == HealthCheckResult.ok
         connection.return_value.search.side_effect = RuntimeError
         assert self.pool._try_connection() == HealthCheckResult.fail
-
-    @mock.patch('ldap3.Server')
-    def test_create_no_port(self, mock_server):
-        ConnectionPool("example.com", None, None, 1, 1, {'connect': 2}, None)
-        mock_server.assert_called_with("example.com", port=None,
-                                       use_ssl=True, connect_timeout=2, tls=mock.ANY)
 
     def test_check_connection(self):
         cp = self.pool

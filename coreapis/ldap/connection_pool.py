@@ -9,12 +9,7 @@ import ldap3
 
 
 class ConnectionPool(object):
-    def __init__(self, server, username, password, max_idle, max_total, timeouts, ca_certs):
-        if ':' in server:
-            host, port = server.split(':', 1)
-            port = int(port)
-        else:
-            host, port = server, None
+    def __init__(self, host, port, username, password, max_idle, max_total, timeouts, ca_certs):
         self.username = username
         self.password = password
         self.max_total = max_total
