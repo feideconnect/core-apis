@@ -4,10 +4,12 @@ import threading
 import time
 
 import ldap3
+#import ldap3.core
+#import ldap3.core.exceptions
 import mock
 import pytest
 
-from coreapis.ldap.connection_pool import ConnectionPool
+from coreapis.ldap.connection_pool import ConnectionPool, ServerPool, HealthCheckResult
 
 
 class TestConnectionPool(TestCase):
@@ -138,3 +140,83 @@ class TestConnectionPool(TestCase):
         ConnectionPool("example.com", None, None, 1, 1, {'connect': 2}, None)
         mock_server.assert_called_with("example.com", port=None,
                                        use_ssl=True, connect_timeout=2, tls=mock.ANY)
+
+
+class TestServerPool(TestCase):
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    def test_try_connection(self):
+        cp = mock.MagicMock()
+        sp = ServerPool([cp])
+        assert sp._try_connection(0) == HealthCheckResult.ok
+        cp.connection().__enter__.return_value.search.side_effect = RuntimeError
+        assert sp._try_connection(0) == HealthCheckResult.fail
+
+    def test_check_connection(self):
+        cp = mock.MagicMock()
+        sp = ServerPool([cp])
+        assert cp in sp.alive_servers
+        assert sp.last_result[0] == HealthCheckResult.ok
+        assert sp.result_count[0] == 1
+        sp._check_connection(0)
+        assert sp.last_result[0] == HealthCheckResult.ok
+        assert sp.result_count[0] == 2
+
+        cp.connection().__enter__.return_value.search.side_effect = RuntimeError
+        sp._check_connection(0)
+        assert sp.last_result[0] == HealthCheckResult.fail
+        assert sp.result_count[0] == 1
+        assert cp in sp.alive_servers
+        sp._check_connection(0)
+        assert sp.last_result[0] == HealthCheckResult.fail
+        assert sp.result_count[0] == 2
+        assert cp in sp.alive_servers
+        sp._check_connection(0)
+        assert sp.last_result[0] == HealthCheckResult.fail
+        assert sp.result_count[0] == 3
+        assert cp not in sp.alive_servers
+
+        cp.connection().__enter__.return_value.search.side_effect = None
+        sp._check_connection(0)
+        assert sp.last_result[0] == HealthCheckResult.ok
+        assert sp.result_count[0] == 1
+        assert cp not in sp.alive_servers
+        sp._check_connection(0)
+        assert sp.last_result[0] == HealthCheckResult.ok
+        assert sp.result_count[0] == 2
+        assert cp in sp.alive_servers
+
+    def test_do_health_checks(self):
+        sp = ServerPool([mock.MagicMock()] * 3)
+        sp._check_connection = mock.MagicMock()
+        sp.do_health_checks()
+        sp._check_connection.assert_any_calls(0)
+        sp._check_connection.assert_any_calls(1)
+        sp._check_connection.assert_any_calls(2)
+
+    @mock.patch('random.sample')
+    def test_search(self, sample):
+        sample.side_effect = lambda x, y: sorted(x, key=str)
+        cp1 = mock.MagicMock(name="cp1")
+        cp2 = mock.MagicMock(name="cp2")
+        cp3 = mock.MagicMock(name="cp3")
+        sp = ServerPool([cp1, cp2, cp3])
+        cp1.connection().__enter__.return_value.search.side_effect = ldap3.LDAPExceptionError
+        cp2.connection().__enter__.return_value.search.return_value = "token"
+        cp3.connection().__enter__.return_value.search.return_value = "token2"
+        assert sp.search("dc=example,dc=org", "uid=1000", "BASE", ["uid"], 1) == "token"
+        assert cp1.connection().__enter__.return_value.search.called
+
+        sp.alive_servers = [cp1, cp3]
+        assert sp.search("dc=example,dc=org", "uid=1000", "BASE", ["uid"], 1) == "token2"
+
+        sp.alive_servers = []
+        assert sp.search("dc=example,dc=org", "uid=1000", "BASE", ["uid"], 1) == "token"
+
+        sp.alive_servers = [cp1]
+        with pytest.raises(ldap3.LDAPExceptionError):
+            sp.search("dc=example,dc=org", "uid=1000", "BASE", ["uid"], 1)

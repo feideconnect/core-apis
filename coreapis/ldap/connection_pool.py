@@ -1,5 +1,7 @@
 import contextlib
+import enum
 import queue
+import random
 import ssl
 import threading
 
@@ -67,3 +69,55 @@ class ConnectionPool(object):
             yield connection
         finally:
             self._release(connection)
+
+
+class HealthCheckResult(enum.Enum):
+    ok = 1
+    fail = 2
+
+
+class ServerPool(object):
+    def __init__(self, servers):
+        self.servers = servers
+        self.alive_servers = set(servers)
+        self.last_result = [HealthCheckResult.ok] * len(self.servers)
+        self.result_count = [1] * len(self.servers)
+        self.down_count = 3  # Based on haproxy "fall" option default
+        self.up_count = 2  # Based on haproxy "rise" option default
+
+    def search(self, base_dn, search_filter, scope, attributes, size_limit=None):
+        exception = None
+        source = self.alive_servers if self.alive_servers else self.servers
+        for server in random.sample(source, len(source)):
+            with server.connection() as connection:
+                try:
+                    return connection.search(base_dn, search_filter, scope, attributes=attributes,
+                                             size_limit=size_limit)
+                except ldap3.LDAPExceptionError as ex:
+                    exception = ex
+        raise exception
+
+    def _try_connection(self, server_num):
+        with self.servers[server_num].connection() as connection:
+            try:
+                connection.search("dc=example,dc=org", "(&(uid>1000)(uid<1000))",
+                                  ldap3.BASE, ['uid'], 1)
+                return HealthCheckResult.ok
+            except:
+                return HealthCheckResult.fail
+
+    def _check_connection(self, server_num):
+        result = self._try_connection(server_num)
+        if result != self.last_result[server_num]:
+            self.last_result[server_num] = result
+            self.result_count[server_num] = 1
+        else:
+            self.result_count[server_num] += 1
+        if result == HealthCheckResult.fail and self.result_count[server_num] == self.down_count:
+            self.alive_servers.remove(self.servers[server_num])
+        elif result == HealthCheckResult.ok and self.result_count[server_num] == self.up_count:
+            self.alive_servers.add(self.servers[server_num])
+
+    def do_health_checks(self):
+        for server_num in range(len(self.servers)):
+            self._check_connection(server_num)
