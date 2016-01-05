@@ -135,6 +135,12 @@ class TestConnectionPool(TestCase):
                 raise RuntimeError()
         self.pool._release.assert_called_with("token")
 
+    @mock.patch('ldap3.Connection')
+    def test_try_connection(self, connection):
+        assert self.pool._try_connection() == HealthCheckResult.ok
+        connection.return_value.search.side_effect = RuntimeError
+        assert self.pool._try_connection() == HealthCheckResult.fail
+
     @mock.patch('ldap3.Server')
     def test_create_no_port(self, mock_server):
         ConnectionPool("example.com", None, None, 1, 1, {'connect': 2}, None)
@@ -149,15 +155,9 @@ class TestServerPool(TestCase):
     def tearDown(self):
         pass
 
-    def test_try_connection(self):
-        cp = mock.MagicMock()
-        sp = ServerPool([cp])
-        assert sp._try_connection(0) == HealthCheckResult.ok
-        cp.connection().__enter__.return_value.search.side_effect = RuntimeError
-        assert sp._try_connection(0) == HealthCheckResult.fail
-
     def test_check_connection(self):
         cp = mock.MagicMock()
+        cp._try_connection.return_value = HealthCheckResult.ok
         sp = ServerPool([cp])
         assert cp in sp.alive_servers
         assert sp.last_result[0] == HealthCheckResult.ok
@@ -166,7 +166,7 @@ class TestServerPool(TestCase):
         assert sp.last_result[0] == HealthCheckResult.ok
         assert sp.result_count[0] == 2
 
-        cp.connection().__enter__.return_value.search.side_effect = RuntimeError
+        cp._try_connection.return_value = HealthCheckResult.fail
         sp._check_connection(0)
         assert sp.last_result[0] == HealthCheckResult.fail
         assert sp.result_count[0] == 1
@@ -180,7 +180,7 @@ class TestServerPool(TestCase):
         assert sp.result_count[0] == 3
         assert cp not in sp.alive_servers
 
-        cp.connection().__enter__.return_value.search.side_effect = None
+        cp._try_connection.return_value = HealthCheckResult.ok
         sp._check_connection(0)
         assert sp.last_result[0] == HealthCheckResult.ok
         assert sp.result_count[0] == 1

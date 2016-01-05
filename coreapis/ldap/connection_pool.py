@@ -70,6 +70,15 @@ class ConnectionPool(object):
         finally:
             self._release(connection)
 
+    def _try_connection(self):
+        with self.connection() as connection:
+            try:
+                connection.search("dc=example,dc=org", "(&(uid>1000)(uid<1000))",
+                                  ldap3.BASE, ['uid'], 1)
+                return HealthCheckResult.ok
+            except:
+                return HealthCheckResult.fail
+
 
 class HealthCheckResult(enum.Enum):
     ok = 1
@@ -97,17 +106,8 @@ class ServerPool(object):
                     exception = ex
         raise exception
 
-    def _try_connection(self, server_num):
-        with self.servers[server_num].connection() as connection:
-            try:
-                connection.search("dc=example,dc=org", "(&(uid>1000)(uid<1000))",
-                                  ldap3.BASE, ['uid'], 1)
-                return HealthCheckResult.ok
-            except:
-                return HealthCheckResult.fail
-
     def _check_connection(self, server_num):
-        result = self._try_connection(server_num)
+        result = self.servers[server_num]._try_connection()
         if result != self.last_result[server_num]:
             self.last_result[server_num] = result
             self.result_count[server_num] = 1
