@@ -1,8 +1,9 @@
 from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPNotFound, HTTPNotModified, HTTPBadRequest, HTTPForbidden
 from pyramid.response import Response
-from .controller import validate_query, LDAPController, PeopleSearchController
+from .controller import validate_query, PeopleSearchController
 from coreapis.utils import get_user
+from coreapis.ldap.controller import LDAPController
 
 
 def configure(config):

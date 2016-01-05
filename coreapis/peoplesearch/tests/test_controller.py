@@ -2,6 +2,7 @@ from unittest import TestCase
 import mock
 from coreapis.peoplesearch import controller
 from coreapis.utils import now, ValidationError
+import coreapis.ldap.controller
 import datetime
 import pytest
 import io
@@ -119,36 +120,6 @@ class TestProfileImageFetch(TestCase):
         assert image == imgdata
 
 
-class TestLookupFeideid(TestCase):
-    def setUp(self):
-        m = mock.mock_open(read_data='{}')
-        settings = {
-            'timer': mock.MagicMock(),
-            'ldap_config_file': 'testdata/test-ldap-config.json'
-        }
-        self.ldap = controller.LDAPController(settings)
-
-    def test_feide_multiple_users(self):
-        self.ldap.ldap_search = mock.MagicMock(return_value=[{'attributes': {'cn': ['Test User']}},
-                                                             {'attributes': {}}])
-        res = self.ldap.lookup_feideid('noone@feide.no', ['cn'])
-        assert res == {'cn': ['Test User']}
-
-    def test_feide_no_at(self):
-        with pytest.raises(ValidationError):
-            self.ldap.lookup_feideid('foo', ['cn'])
-
-    def test_feide_ldap_injection(self):
-        with pytest.raises(ValidationError):
-            self.ldap.lookup_feideid('foo)', ['cn'])
-        with pytest.raises(ValidationError):
-            self.ldap.lookup_feideid('(bar', ['cn'])
-        with pytest.raises(ValidationError):
-            self.ldap.lookup_feideid('baz*', ['cn'])
-        with pytest.raises(ValidationError):
-            self.ldap.lookup_feideid('test\\', ['cn'])
-
-
 class TestPeopleSearch(TestCase):
     def setUp(self):
         with mock.patch('coreapis.peoplesearch.controller.CassandraCache'):
@@ -161,7 +132,7 @@ class TestPeopleSearch(TestCase):
                 'ldap_config_file': 'testdata/test-ldap-config.json'
             }
             self.controller = controller.PeopleSearchController(mock.MagicMock(), settings)
-            self.controller.ldap = controller.LDAPController(settings)
+            self.controller.ldap = coreapis.ldap.controller.LDAPController(settings)
 
     def test_org_authorization_policy(self):
         policy = self.controller.org_authorization_policy('realm1.example.com')

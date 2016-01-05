@@ -9,7 +9,7 @@ ldap3 = eventlet.import_patched('ldap3')
 from coreapis.utils import LogWrapper, get_feideids, translatable, failsafe
 from coreapis.cache import Cache
 from . import BaseBackend, IDHandler
-from coreapis.peoplesearch.controller import LDAPController
+from coreapis.ldap.controller import LDAPController
 from coreapis import cassandra_client
 from coreapis.groups.gogroups import affiliation_names as go_affiliation_names, GOGroup, groupid_entitlement
 
