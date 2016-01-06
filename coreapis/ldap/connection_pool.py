@@ -7,6 +7,8 @@ import threading
 
 import ldap3
 
+from coreapis.utils import LogWrapper
+
 
 class ConnectionPool(object):
     def __init__(self, host, port, username, password, max_idle, max_total, timeouts, ca_certs):
@@ -19,16 +21,22 @@ class ConnectionPool(object):
                              ca_certs_file=ca_certs)
         self.server = ldap3.Server(host, port=port, use_ssl=True,
                                    connect_timeout=self.timeouts['connect'], tls=self.tls)
+        if port:
+            self.target = "{}:{}".format(host, port)
+        else:
+            self.target = host
         self.create_semaphore = threading.Semaphore(max_total)
         self.down_count = 3  # Based on haproxy "fall" option default
         self.up_count = 2  # Based on haproxy "rise" option default
         self.alive = True
         self.last_result = HealthCheckResult.ok
         self.result_count = self.up_count
+        self.log = LogWrapper('ldap.ConnectionPool')
 
     def _create(self):
         if self.create_semaphore.acquire(False):
             try:
+                self.log.debug("Creating new connection", target=self.target)
                 return ldap3.Connection(self.server, auto_bind=True,
                                         user=self.username, password=self.password,
                                         client_strategy=ldap3.STRATEGY_SYNC,
@@ -40,6 +48,7 @@ class ConnectionPool(object):
 
     def _destroy(self):
         self.create_semaphore.release()
+        self.log.debug("Connection destroyed", target=self.target)
 
     def _get(self):
         try:
@@ -93,8 +102,10 @@ class ConnectionPool(object):
         else:
             self.result_count += 1
         if result == HealthCheckResult.fail and self.result_count == self.down_count:
+            self.log.info("Server marked as down", target=self.target)
             self.alive = False
         elif result == HealthCheckResult.ok and self.result_count == self.up_count:
+            self.log.info("Server back up", target=self.target)
             self.alive = True
 
 
