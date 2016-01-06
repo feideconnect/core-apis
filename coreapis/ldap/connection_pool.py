@@ -64,20 +64,22 @@ class ConnectionPool(object):
 
     @contextlib.contextmanager
     def connection(self):
+        connection = None
         try:
             connection = self._get()
             yield connection
         finally:
-            self._release(connection)
+            if connection:
+                self._release(connection)
 
     def _try_connection(self):
-        with self.connection() as connection:
-            try:
+        try:
+            with self.connection() as connection:
                 connection.search("dc=example,dc=org", "(&(uid>1000)(uid<1000))",
                                   ldap3.BASE, ['uid'], 1)
                 return HealthCheckResult.ok
-            except:
-                return HealthCheckResult.fail
+        except:
+            return HealthCheckResult.fail
 
     def check_connection(self):
         result = self._try_connection()
