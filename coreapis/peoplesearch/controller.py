@@ -127,7 +127,7 @@ class PeopleSearchController(object):
         elif query.isnumeric():
             search_filter = '(mobile=*{}*)'.format(query)
         else:
-            search_filter = '(cn=*{}*)'.format(query)
+            search_filter = '(displayName=*{}*)'.format(query)
         search_filter = '(&{}(objectClass=person))'.format(search_filter)
         if 'others' in access and 'employees' not in access:
             search_filter = '(&{}(!(eduPersonAffiliation=employee)))'.format(search_filter)
