@@ -28,10 +28,14 @@ class ConnectionPool(object):
 
     def _create(self):
         if self.create_semaphore.acquire(False):
-            return ldap3.Connection(self.server, auto_bind=True,
-                                    user=self.username, password=self.password,
-                                    client_strategy=ldap3.STRATEGY_SYNC,
-                                    check_names=True)
+            try:
+                return ldap3.Connection(self.server, auto_bind=True,
+                                        user=self.username, password=self.password,
+                                        client_strategy=ldap3.STRATEGY_SYNC,
+                                        check_names=True)
+            except:
+                self.create_semaphore.release()
+                raise
         return None
 
     def _destroy(self):

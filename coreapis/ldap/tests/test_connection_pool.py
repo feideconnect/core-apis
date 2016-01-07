@@ -46,6 +46,13 @@ class TestConnectionPool(TestCase):
         assert not self.pool._create()
 
     @mock.patch('ldap3.Connection')
+    def test_create_connection_failure(self, mock_connection):
+        mock_connection.side_effect = RuntimeError
+        with pytest.raises(RuntimeError):
+            self.pool._create()
+        assert self.pool.create_semaphore._value == 5
+
+    @mock.patch('ldap3.Connection')
     def test_get_max_connections(self, mock_connection):
         assert self.pool._get()
         assert self.pool._get()
@@ -134,6 +141,13 @@ class TestConnectionPool(TestCase):
             with self.pool.connection():
                 raise RuntimeError()
         self.pool._release.assert_called_with("token")
+
+    def test_context_connection_failure(self):
+        self.pool._get = mock.Mock(return_value=None)
+        self.pool._release = mock.Mock()
+        with self.pool.connection():
+            pass
+        assert not self.pool._release.called
 
     @mock.patch('ldap3.Connection')
     def test_try_connection(self, connection):
