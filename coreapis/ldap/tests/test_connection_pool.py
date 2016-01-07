@@ -9,7 +9,11 @@ import ldap3
 import mock
 import pytest
 
-from coreapis.ldap.connection_pool import ConnectionPool, RetryPool, HealthCheckResult
+from coreapis.ldap.connection_pool import (
+    ConnectionPool,
+    HealthCheckResult,
+    RetryPool,
+)
 
 
 class TestConnectionPool(TestCase):
