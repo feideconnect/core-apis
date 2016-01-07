@@ -13,6 +13,7 @@ from coreapis.ldap.connection_pool import (
     ConnectionPool,
     HealthCheckResult,
     RetryPool,
+    TooManyConnectionsException
 )
 
 
@@ -63,7 +64,8 @@ class TestConnectionPool(TestCase):
         assert self.pool._get()
         assert self.pool._get()
         assert self.pool._get()
-        assert not self.pool._get()
+        with pytest.raises(TooManyConnectionsException):
+            self.pool._get()
 
     @mock.patch('ldap3.Connection')
     def test_release_ok(self, mock_connection):

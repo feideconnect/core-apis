@@ -10,6 +10,10 @@ import ldap3
 from coreapis.utils import LogWrapper
 
 
+class TooManyConnectionsException(ldap3.LDAPExceptionError):
+    pass
+
+
 class ConnectionPool(object):
     def __init__(self, host, port, username, password, max_idle, max_total, timeouts, ca_certs):
         self.username = username
@@ -63,7 +67,7 @@ class ConnectionPool(object):
             con = self.idle.get(timeout=self.timeouts['connection_wait'])
             return con
         except queue.Empty:
-            return None
+            raise TooManyConnectionsException()
 
     def _release(self, connection):
         try:
@@ -93,9 +97,14 @@ class ConnectionPool(object):
     def _try_connection(self):
         try:
             with self.connection() as connection:
-                connection.search("dc=example,dc=org", "(&(uid>1000)(uid<1000))",
-                                  ldap3.BASE, ['uid'], 1)
-                return HealthCheckResult.ok
+                try:
+                    connection.search("dc=example,dc=org", "(&(uid>1000)(uid<1000))",
+                                      ldap3.BASE, ['uid'], 1)
+                    return HealthCheckResult.ok
+                except TooManyConnectionsException:
+                    self.log.warn("Failed to get connection. Pool full?")
+                    self.status()
+                    return HealthCheckResult.ok
         except:
             return HealthCheckResult.fail
 
@@ -129,13 +138,13 @@ class RetryPool(object):
         if not alive_servers:
             alive_servers = self.servers
         for server in random.sample(alive_servers, len(alive_servers)):
-            with server.connection() as connection:
-                try:
+            try:
+                with server.connection() as connection:
                     connection.search(base_dn, search_filter, scope, attributes=attributes,
                                       size_limit=size_limit)
                     return connection.response
-                except ldap3.LDAPExceptionError as ex:
-                    exception = ex
+            except ldap3.LDAPExceptionError as ex:
+                exception = ex
         raise exception
 
     def do_health_checks(self):
