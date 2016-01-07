@@ -1,3 +1,4 @@
+import threading
 from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPNotFound, HTTPNotModified, HTTPBadRequest, HTTPForbidden
 from pyramid.response import Response
@@ -9,6 +10,7 @@ from coreapis.ldap.controller import LDAPController
 def configure(config):
     settings = config.get_settings()
     ldap_controller = LDAPController(settings)
+    threading.Thread(target=ldap_controller.health_check_thread).start()
     ps_controller = PeopleSearchController(ldap_controller, settings)
     config.add_settings(ldap_controller=ldap_controller, ps_controller=ps_controller)
     config.add_request_method(lambda r: r.registry.settings.ldap_controller, 'ldap_controller',

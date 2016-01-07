@@ -2,7 +2,7 @@ import functools
 import urllib.parse as urlparse
 
 import eventlet
-from eventlet.pools import Pool
+import eventlet.greenthread
 from eventlet.greenpool import GreenPool
 ldap3 = eventlet.import_patched('ldap3')
 
@@ -154,7 +154,8 @@ class LDAPBackend(BaseBackend):
         super(LDAPBackend, self).__init__(prefix, maxrows, settings)
         self.log = LogWrapper('groups.ldapbackend')
         self.timer = settings.get('timer')
-        self.ldap = LDAPController(settings, pool=Pool)
+        self.ldap = LDAPController(settings)
+        eventlet.greenthread.spawn(self.ldap.health_check_thread)
         contact_points = settings.get('cassandra_contact_points')
         keyspace = settings.get('cassandra_keyspace')
         self.session = cassandra_client.Client(contact_points, keyspace, True)

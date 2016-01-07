@@ -82,7 +82,8 @@ def sanity_check_config(config):
 
 def main():
     args = parse_args()
-    config, servers = ldapcontroller.parse_ldap_config(args.config, args.ca_certs)
+    with open(args.config) as fh:
+        config = json.load(fh)
     sanity_check_config(config)
     print("config file looks good")
     for org, conf in config.items():

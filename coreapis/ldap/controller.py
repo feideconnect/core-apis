@@ -1,10 +1,11 @@
-from functools import partial
 import json
-import ssl
+import logging
+import time
 
 import ldap3
 
-from coreapis.utils import ValidationError, LogWrapper, ResourcePool
+from coreapis.utils import ValidationError, LogWrapper
+from .connection_pool import RetryPool, ConnectionPool
 
 
 def validate_query(string):
@@ -13,53 +14,55 @@ def validate_query(string):
             raise ValidationError('Bad character in request')
 
 
-def parse_ldap_config(filename, ca_certs):
+def parse_ldap_config(filename, ca_certs, max_idle, max_connections, timeouts):
     config = json.load(open(filename))
     servers = {}
-    tls = ldap3.Tls(validate=ssl.CERT_REQUIRED,
-                    ca_certs_file=ca_certs)
+    orgpools = {}
     for org in config:
         orgconf = config[org]
-        server_pool = ldap3.ServerPool(None, ldap3.POOLING_STRATEGY_ROUND_ROBIN,
-                                       active=True, exhaust=True)
+        org_connection_pools = []
         for server in orgconf['servers']:
+            if 'bind_user' in orgconf:
+                user = orgconf['bind_user']['dn']
+                password = orgconf['bind_user']['password']
+            else:
+                user = None
+                password = None
             if ':' in server:
                 host, port = server.split(':', 1)
                 port = int(port)
             else:
                 host, port = server, None
-            server = ldap3.Server(host, port=port, use_ssl=True, connect_timeout=1, tls=tls)
-            server_pool.add(server)
-        servers[org] = server_pool
-    return config, servers
+            if not (host, port, user) in servers:
+                cp = ConnectionPool(host, port, user, password,
+                                    max_idle, max_connections, timeouts, ca_certs)
+                servers[(host, port, user)] = cp
+            org_connection_pools.append(servers[(host, port, user)])
+        orgpool = RetryPool(org_connection_pools)
+        orgpools[org] = orgpool
+    return config, servers, orgpools
 
 
 class LDAPController(object):
-    def __init__(self, settings, pool=ResourcePool):
+    def __init__(self, settings):
         timer = settings.get('timer')
         ldap_config = settings.get('ldap_config_file', 'ldap-config.json')
         ca_certs = settings.get('ldap_ca_certs', None)
+        max_idle = int(settings.get('ldap_max_idle_connections', '4'))
+        max_connections = int(settings.get('ldap_max_connections', '10'))
+        timeouts = {
+            'connect': int(settings.get('ldap_connect_timeout', '1')),
+            'connection_wait': int(settings.get('ldap_max_connection_pool_wait', '1')),
+        }
         self.t = timer
         self.log = LogWrapper('peoplesearch.LDAPController')
-        self.config, self.servers = parse_ldap_config(ldap_config, ca_certs)
-        self.conpools = {org: pool(create=partial(self.get_connection, org)) for org in self.config}
+        self.config, self.servers, self.orgpools = parse_ldap_config(ldap_config, ca_certs,
+                                                                     max_idle, max_connections,
+                                                                     timeouts)
+        self.health_check_interval = 10
 
     def get_ldap_config(self):
         return self.config
-
-    def get_connection(self, org):
-        orgconf = self.config[org]
-        if 'bind_user' in orgconf:
-            user = orgconf['bind_user']['dn']
-            password = orgconf['bind_user']['password']
-        else:
-            user = None
-            password = None
-        con = ldap3.Connection(self.servers[org], auto_bind=True,
-                               user=user, password=password,
-                               client_strategy=ldap3.STRATEGY_SYNC_RESTARTABLE,
-                               check_names=True)
-        return con
 
     def get_base_dn(self, org):
         return self.get_ldap_config()[org]['base_dn']
@@ -71,11 +74,9 @@ class LDAPController(object):
         return search
 
     def search(self, org, base_dn, search_filter, scope, attributes, size_limit=None):
-        with self.conpools[org].item() as con:
-            with self.t.time('ps.ldap_search'):
-                con.search(base_dn, search_filter, scope, attributes=attributes,
-                           size_limit=size_limit)
-            return con.response
+        with self.t.time('ps.ldap_search'):
+            return self.orgpools[org].search(base_dn, search_filter, scope, attributes=attributes,
+                                             size_limit=size_limit)
 
     def ldap_search(self, org, search_filter, scope, attributes, size_limit=None):
         base_dn = self.get_base_dn(org)
@@ -97,3 +98,11 @@ class LDAPController(object):
         if len(res) > 1:
             self.log.warn('Multiple matches to eduPersonPrincipalName')
         return res[0]['attributes']
+
+    def health_check_thread(self):
+        while True:
+            servers = list(self.servers.values())
+            sleeptime = self.health_check_interval / len(servers)
+            for server in servers:
+                server.check_connection()
+                time.sleep(sleeptime)
