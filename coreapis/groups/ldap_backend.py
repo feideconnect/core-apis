@@ -186,9 +186,9 @@ class LDAPBackend(BaseBackend):
             raise KeyError('orgDN not found in catalog')
         org = org[0]
         org_attributes = org['attributes']
-        org_type = self._get_org_type(realm).intersection(educational_org_types)
-        if 'higher_education' not in org_type:
-            orgType = ['{}_owner'.format(o) for o in org_type]
+        orgType = self._get_org_type(realm).intersection(educational_org_types)
+        if 'higher_education' not in orgType:
+            orgType = ['{}_owner'.format(o) for o in orgType]
         res = {
             'id': self._groupid(realm),
             'displayName': org_attributes['eduOrgLegalName'][0],
