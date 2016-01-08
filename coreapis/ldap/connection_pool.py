@@ -82,7 +82,7 @@ class ConnectionPool(object):
     def status(self):
         self.log.info("Connection pool status", target=self.target,
                       idle_connections=self.idle.qsize(),
-                      ramaining_connections=self.create_semaphore._value)
+                      remaining_connections=self.create_semaphore._value)
 
     @contextlib.contextmanager
     def connection(self):
