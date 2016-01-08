@@ -186,7 +186,7 @@ class LDAPBackend(BaseBackend):
             raise KeyError('orgDN not found in catalog')
         org = org[0]
         org_attributes = org['attributes']
-        orgType = self._get_org_type(realm).intersection(educational_org_types)
+        orgType = list(self._get_org_type(realm).intersection(educational_org_types))
         if 'higher_education' not in orgType:
             orgType = ['{}_owner'.format(o) for o in orgType]
         res = {
@@ -223,8 +223,8 @@ class LDAPBackend(BaseBackend):
             },
         }
         if 'higher_education' not in org_type:
-            data['grouptype'] = 'fc:org'
-            data['orgType'] = org_type
+            data['type'] = 'fc:org'
+            data['orgType'] = list(org_type)
         return data
 
     def _handle_grepcode(self, grep_id, is_member):

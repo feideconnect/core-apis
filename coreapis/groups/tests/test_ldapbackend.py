@@ -153,3 +153,94 @@ class TestLDAPBackend(unittest.TestCase):
                 'name': 'Member 2'
             }
         ]
+
+    def test_get_org_he(self):
+        self.ldap.search.return_value = [{
+            'attributes': {
+                'eduOrgLegalName': ['testOrg'],
+            },
+        }]
+        self.session.get_org_by_realm.return_value = {
+            'type': {'higher_education', 'service_provider'},
+        }
+        result = self.backend._get_org('example.org', 'dc=example,dc=org', {})
+        assert result == {
+            'displayName': 'testOrg',
+            'orgType': ['higher_education'],
+            'type': 'fc:org',
+            'public': True,
+            'id': 'org:example.org',
+            'eduOrgLegalName': 'testOrg',
+            'membership': {'basic': 'member'}
+        }
+
+    def test_get_org_go(self):
+        self.ldap.search.return_value = [{
+            'attributes': {
+                'eduOrgLegalName': ['testOrg'],
+            },
+        }]
+        self.session.get_org_by_realm.return_value = {
+            'type': {'primary_and_lower_secondary', 'service_provider'},
+        }
+        result = self.backend._get_org('example.org', 'dc=example,dc=org', {})
+        assert result == {
+            'displayName': 'testOrg',
+            'orgType': ['primary_and_lower_secondary_owner'],
+            'type': 'fc:org',
+            'public': True,
+            'id': 'org:example.org',
+            'eduOrgLegalName': 'testOrg',
+            'membership': {'basic': 'member'}
+        }
+
+    def test_get_org_not_found(self):
+        self.ldap.search.return_value = []
+        with raises(KeyError):
+            self.backend._get_org('example.org', 'dc=example,dc=org', {})
+
+    def test_get_orgunit_he(self):
+        self.ldap.search.return_value = [{
+            'attributes': {
+                'ou': ['testOrgUnit'],
+                'norEduOrgUnitUniqueIdentifier': ['AVD-Q10'],
+            },
+        }]
+        self.session.get_org_by_realm.return_value = {
+            'type': {'higher_education', 'service_provider'},
+        }
+        result = self.backend._get_orgunit('example.org', 'dc=example,dc=org')
+        assert result == {
+            'displayName': 'testOrgUnit',
+            'type': 'fc:orgunit',
+            'public': True,
+            'id': 'org:example.org:unit:AVD-Q10',
+            'membership': {'basic': 'member'},
+            'parent': 'org:example.org',
+        }
+
+    def test_get_orgunit_go(self):
+        self.ldap.search.return_value = [{
+            'attributes': {
+                'ou': ['testSchool'],
+                'norEduOrgUnitUniqueIdentifier': ['NO123456789'],
+            },
+        }]
+        self.session.get_org_by_realm.return_value = {
+            'type': {'primary_and_lower_secondary', 'service_provider'},
+        }
+        result = self.backend._get_orgunit('example.org', 'dc=example,dc=org')
+        assert result == {
+            'displayName': 'testSchool',
+            'orgType': ['primary_and_lower_secondary'],
+            'type': 'fc:org',
+            'public': True,
+            'id': 'org:example.org:unit:NO123456789',
+            'membership': {'basic': 'member'},
+            'parent': 'org:example.org',
+        }
+
+    def test_get_orgunit_not_found(self):
+        self.ldap.search.return_value = []
+        with raises(KeyError):
+            self.backend._get_orgunit('example.org', 'dc=example,dc=org')
