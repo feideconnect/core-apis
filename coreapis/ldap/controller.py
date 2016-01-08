@@ -15,7 +15,8 @@ def validate_query(string):
 
 
 def parse_ldap_config(filename, ca_certs, max_idle, max_connections, timeouts):
-    config = json.load(open(filename))
+    with open(filename) as fh:
+        config = json.load(fh)
     servers = {}
     orgpools = {}
     for org in config:
