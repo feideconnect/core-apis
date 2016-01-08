@@ -99,7 +99,7 @@ class ConnectionPool(object):
             with self.connection() as connection:
                 try:
                     connection.search("dc=example,dc=org", "(&(uid>1000)(uid<1000))",
-                                      ldap3.BASE, ['uid'], 1)
+                                      ldap3.SEARCH_SCOPE_BASE_OBJECT, attributes=['uid'], size_limit=1)
                     return HealthCheckResult.ok
                 except TooManyConnectionsException:
                     self.log.warn("Failed to get connection. Pool full?")
