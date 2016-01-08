@@ -97,14 +97,13 @@ class ConnectionPool(object):
     def _try_connection(self):
         try:
             with self.connection() as connection:
-                try:
-                    connection.search("", "(objectClass=*)",
-                                      ldap3.SEARCH_SCOPE_BASE_OBJECT, attributes=['vendorversion'], size_limit=1)
-                    return HealthCheckResult.ok
-                except TooManyConnectionsException:
-                    self.log.warn("Failed to get connection. Pool full?")
-                    self.status()
-                    return HealthCheckResult.ok
+                connection.search("", "(objectClass=*)", ldap3.SEARCH_SCOPE_BASE_OBJECT,
+                                  attributes=['vendorversion'], size_limit=1)
+                return HealthCheckResult.ok
+        except TooManyConnectionsException:
+            self.log.warn("Failed to get connection. Pool full?")
+            self.status()
+            return HealthCheckResult.ok
         except:
             return HealthCheckResult.fail
 

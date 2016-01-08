@@ -160,6 +160,8 @@ class TestConnectionPool(TestCase):
         assert self.pool._try_connection() == HealthCheckResult.ok
         connection.return_value.search.side_effect = RuntimeError
         assert self.pool._try_connection() == HealthCheckResult.fail
+        self.pool._get = mock.Mock(side_effect=TooManyConnectionsException)
+        assert self.pool._try_connection() == HealthCheckResult.ok
 
     def test_check_connection(self):
         cp = self.pool
