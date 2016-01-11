@@ -6,7 +6,7 @@ from aniso8601 import parse_datetime
 from eventlet.pools import Pool as EventletPool
 
 from . import cassandra_client
-from .utils import LogWrapper, Timer, RateLimiter, now, www_authenticate, init_request_id, ResourcePool, log_token
+from .utils import LogWrapper, Timer, RateLimiter, now, www_authenticate, init_request_id, request_id, ResourcePool, log_token
 
 NULL_USER = uuid.UUID('00000000-0000-0000-0000-000000000000')
 
@@ -79,6 +79,7 @@ class LogMiddleware(object):
                 req_uri += '?'+environ['QUERY_STRING']
             method = environ['REQUEST_METHOD']
             self.log.info('access', uri=req_uri, method=method, status=status)
+            headers.append(('X-Request-Id', str(request_id())))
             return start_response(status, headers)
         return self.app(environ, replace_start_response)
 
