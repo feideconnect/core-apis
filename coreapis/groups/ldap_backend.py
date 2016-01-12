@@ -9,7 +9,7 @@ ldap3 = eventlet.import_patched('ldap3')
 from coreapis.utils import LogWrapper, get_feideids, translatable, failsafe
 from coreapis.cache import Cache
 from . import BaseBackend, IDHandler
-from coreapis.ldap.controller import LDAPController
+ldapcontroller = eventlet.import_patched('coreapis.ldap.controller')
 from coreapis import cassandra_client
 from coreapis.groups.gogroups import affiliation_names as go_affiliation_names, GOGroup, groupid_entitlement
 
@@ -154,7 +154,7 @@ class LDAPBackend(BaseBackend):
         super(LDAPBackend, self).__init__(prefix, maxrows, settings)
         self.log = LogWrapper('groups.ldapbackend')
         self.timer = settings.get('timer')
-        self.ldap = LDAPController(settings)
+        self.ldap = ldapcontroller.LDAPController(settings)
         eventlet.greenthread.spawn(self.ldap.health_check_thread)
         contact_points = settings.get('cassandra_contact_points')
         keyspace = settings.get('cassandra_keyspace')
