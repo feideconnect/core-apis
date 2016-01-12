@@ -22,12 +22,12 @@ class TestOrgMembershipName(unittest.TestCase):
 
 
 class TestLDAPBackend(unittest.TestCase):
-    @mock.patch('coreapis.groups.ldap_backend.LDAPController')
+    @mock.patch('coreapis.groups.ldap_backend.ldapcontroller')
     @mock.patch('coreapis.groups.ldap_backend.cassandra_client.Client')
     def setUp(self, session, ldap):
         self.backend = LDAPBackend('org', 100, {})
         self.session = session()
-        self.ldap = ldap()
+        self.ldap = ldap.LDAPController()
 
     def test_handle_gogroup(self):
         with raises(KeyError):
