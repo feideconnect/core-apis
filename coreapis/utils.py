@@ -322,6 +322,11 @@ def json_load(filename, fallback):
         return fallback
 
 
+def get_platform_admins(filename):
+    contents = json_load(filename, fallback={"platformadmins": []})
+    return contents.get('platformadmins', [])
+
+
 class ResourcePool(object):
     def __init__(self, min_size=0, max_size=4, order_as_stack=False, create=None):
         self.create = create
