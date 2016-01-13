@@ -300,7 +300,7 @@ class Client(object):
         prep = self._default_get('groups')
         res = self.session.execute(prep.bind([groupid]))
         if len(res) == 0:
-            raise KeyError('No such group')
+            raise KeyError('No such group: ' + str(groupid))
         return res[0]
 
     def delete_group(self, groupid):

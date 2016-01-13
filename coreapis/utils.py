@@ -60,6 +60,8 @@ class CustomEncoder(json.JSONEncoder):
             return list(obj)
         if isinstance(obj, set):
             return list(obj)
+        if isinstance(obj, Exception):
+            return str(obj)
         # Let the base class default method raise the TypeError
         return json.JSONEncoder.default(self, obj)
 
