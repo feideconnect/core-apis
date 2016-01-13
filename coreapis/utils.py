@@ -313,6 +313,15 @@ def json_normalize(data):
     return json.loads(json.dumps(data, cls=CustomEncoder))
 
 
+# Raises exception if filename is given, but open fails
+def json_load(filename, fallback):
+    if filename:
+        with open(filename) as fh:
+            return json.load(fh)
+    else:
+        return fallback
+
+
 class ResourcePool(object):
     def __init__(self, min_size=0, max_size=4, order_as_stack=False, create=None):
         self.create = create

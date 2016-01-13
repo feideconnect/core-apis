@@ -10,7 +10,7 @@ from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.utils import (
     LogWrapper, timestamp_adapter, public_userinfo, public_orginfo, ValidationError, ForbiddenError, valid_url,
-    EmailNotifier)
+    EmailNotifier, json_load)
 from .scope_request_notification import ScopeRequestNotification
 
 
@@ -31,13 +31,8 @@ def is_valid_uri(uri):
         return True
 
 
-# Raises exception if filename is given, but open fails
 def get_scopedefs(filename):
-    if filename:
-        with open(filename) as fh:
-            return json.load(fh)
-    else:
-        return {}
+    return json_load(filename, fallback={})
 
 
 def is_gkscopename(name):
