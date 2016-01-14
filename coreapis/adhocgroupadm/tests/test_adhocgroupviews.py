@@ -14,9 +14,21 @@ from coreapis.adhocgroupadm.tests.data import \
     post_body_minimal, post_body_maximal, member_token
 
 
+PLATFORMADMIN = 'admin@example.com'
+
+
+def make_user(feideid):
+    return {
+        'userid': 'foo',
+        'userid_sec': ['feide:' + str(feideid)]
+    }
+
+
 class AdHocGroupAdmTests(unittest.TestCase):
+    @mock.patch('coreapis.adhocgroupadm.controller.get_platform_admins')
     @mock.patch('coreapis.middleware.cassandra_client.Client')
-    def setUp(self, Client):
+    def setUp(self, Client, gpa):
+        gpa.return_value = [PLATFORMADMIN]
         app = main({
             'statsd_server': 'localhost',
             'statsd_port': '8125',
@@ -57,10 +69,18 @@ class AdHocGroupAdmTests(unittest.TestCase):
                          {'invitation_token': group1_invitation},
                          status=403, headers=headers)
 
-    def test_get_group_no_access(self):
+    def _test_get_group_no_access(self, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_group.return_value = group2
-        self.testapp.get('/adhocgroups/{}'.format(uuid.uuid4()), status=403, headers=headers)
+        self.session().get_user_by_id.return_value = public_userinfo
+        self.testapp.get('/adhocgroups/{}'.format(uuid.uuid4()), status=httpstat, headers=headers)
+
+    def test_get_group_no_access(self):
+        self._test_get_group_no_access(403)
+
+    @mock.patch('coreapis.adhocgroupadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_get_group_platform_admin(self, get_user):
+        self._test_get_group_no_access(200)
 
     def test_get_group_member(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -164,10 +184,21 @@ class AdHocGroupAdmTests(unittest.TestCase):
         self.session().insert_group = mock.MagicMock()
         self.testapp.post_json('/adhocgroups/', body, status=400, headers=headers)
 
-    def test_delete_group(self):
+    def _test_delete_group(self, group, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session().get_group.return_value = group1
-        self.testapp.delete('/adhocgroups/{}'.format(uuid.uuid4()), status=204, headers=headers)
+        self.session().get_group.return_value = group
+        self.testapp.delete('/adhocgroups/{}'.format(uuid.uuid4()),
+                            status=httpstat, headers=headers)
+
+    def test_delete_group(self):
+        self._test_delete_group(group1, 204)
+
+    def test_delete_group_not_owner(self):
+        self._test_delete_group(group2, 403)
+
+    @mock.patch('coreapis.adhocgroupadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_delete_group_platform_admin(self, get_user):
+        self._test_delete_group(group2, 204)
 
     def test_delete_group_no_id(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -191,14 +222,21 @@ class AdHocGroupAdmTests(unittest.TestCase):
         self.testapp.patch_json('/adhocgroups/{}'.format(groupid1), {'endpoints': 'file:///etc/shadow'},
                                 status=400, headers=headers)
 
-    def test_update_not_owner(self):
+    def _test_update_not_owner(self, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         to_update = deepcopy(group1)
         to_update['owner'] = uuid.uuid4()
         self.session().get_group.return_value = to_update
-        res = self.testapp.patch_json('/adhocgroups/{}'.format(groupid1), {},
-                                      status=403, headers=headers)
+        return self.testapp.patch_json('/adhocgroups/{}'.format(groupid1), {},
+                                       status=httpstat, headers=headers)
+
+    def test_update_not_owner(self):
+        res = self._test_update_not_owner(403)
         assert res.www_authenticate is None
+
+    @mock.patch('coreapis.adhocgroupadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_update_platform_admin(self, get_user):
+        self._test_update_not_owner(200)
 
     def test_get_group_members_empty(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -224,21 +262,36 @@ class AdHocGroupAdmTests(unittest.TestCase):
         expected2.update(public_userinfo_view)
         assert res.json == [expected1, expected2]
 
-    def test_get_group_members_no_access(self):
+    def _test_get_group_members_no_access(self, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         group = deepcopy(group1)
         group['owner'] = user2
         self.session().get_group.return_value = group
         self.session().get_group_members.return_value = []
-        self.testapp.get('/adhocgroups/{}/members'.format(groupid1), status=403, headers=headers)
+        self.testapp.get('/adhocgroups/{}/members'.format(groupid1),
+                         status=httpstat, headers=headers)
 
-    def test_add_group_members_no_access(self):
+    def test_get_group_members_no_access(self):
+        self._test_get_group_members_no_access(403)
+
+    @mock.patch('coreapis.adhocgroupadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_get_group_members_platform_admin(self, get_user):
+        self._test_get_group_members_no_access(200)
+
+    def _test_add_group_members_no_access(self, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         group = deepcopy(group1)
         group['owner'] = user2
         self.session().get_group.return_value = group
-        self.testapp.patch_json('/adhocgroups/{}/members'.format(groupid1), [], status=403,
+        self.testapp.patch_json('/adhocgroups/{}/members'.format(groupid1), [], status=httpstat,
                                 headers=headers)
+
+    def test_add_group_members_no_access(self):
+        self._test_add_group_members_no_access(403)
+
+    @mock.patch('coreapis.adhocgroupadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_add_group_members_platform_admin(self, get_user):
+        self._test_add_group_members_no_access(200)
 
     def test_add_group_members_over_limit(self):
         headers = {'Authorization': 'Bearer user_token'}
