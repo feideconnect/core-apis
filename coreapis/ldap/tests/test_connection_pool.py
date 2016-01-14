@@ -1,27 +1,21 @@
 from collections import defaultdict
 from unittest import TestCase
-import threading
 import time
 
-import ldap3
-#import ldap3.core
-#import ldap3.core.exceptions
+import eventlet
+ldap3 = eventlet.import_patched('ldap3')
+threading = eventlet.import_patched('threading')
 import mock
 import pytest
 
-from coreapis.ldap.connection_pool import (
-    ConnectionPool,
-    HealthCheckResult,
-    RetryPool,
-    TooManyConnectionsException
-)
+cpl = eventlet.import_patched('coreapis.ldap.connection_pool')
 
 
 class TestConnectionPool(TestCase):
 
     def setUp(self):
-        self.pool = ConnectionPool("ldap.example.org", 636, None, None,
-                                   2, 5, defaultdict(lambda: 1), None)
+        self.pool = cpl.ConnectionPool("ldap.example.org", 636, None, None,
+                                      2, 5, defaultdict(lambda: 1), None)
 
     def tearDown(self):
         pass
@@ -64,7 +58,7 @@ class TestConnectionPool(TestCase):
         assert self.pool._get()
         assert self.pool._get()
         assert self.pool._get()
-        with pytest.raises(TooManyConnectionsException):
+        with pytest.raises(cpl.TooManyConnectionsException):
             self.pool._get()
 
     @mock.patch('ldap3.Connection')
@@ -157,43 +151,43 @@ class TestConnectionPool(TestCase):
 
     @mock.patch('ldap3.Connection')
     def test_try_connection(self, connection):
-        assert self.pool._try_connection() == HealthCheckResult.ok
+        assert self.pool._try_connection() == cpl.HealthCheckResult.ok
         connection.return_value.search.side_effect = RuntimeError
-        assert self.pool._try_connection() == HealthCheckResult.fail
-        self.pool._get = mock.Mock(side_effect=TooManyConnectionsException)
-        assert self.pool._try_connection() == HealthCheckResult.ok
+        assert self.pool._try_connection() == cpl.HealthCheckResult.fail
+        self.pool._get = mock.Mock(side_effect=cpl.TooManyConnectionsException)
+        assert self.pool._try_connection() == cpl.HealthCheckResult.ok
 
     def test_check_connection(self):
         cp = self.pool
-        cp._try_connection = mock.MagicMock(return_value=HealthCheckResult.ok)
+        cp._try_connection = mock.MagicMock(return_value=cpl.HealthCheckResult.ok)
         assert cp.alive
-        assert cp.last_result == HealthCheckResult.ok
+        assert cp.last_result == cpl.HealthCheckResult.ok
         assert cp.result_count == 2
         cp.check_connection()
-        assert cp.last_result == HealthCheckResult.ok
+        assert cp.last_result == cpl.HealthCheckResult.ok
         assert cp.result_count == 3
 
-        cp._try_connection.return_value = HealthCheckResult.fail
+        cp._try_connection.return_value = cpl.HealthCheckResult.fail
         cp.check_connection()
-        assert cp.last_result == HealthCheckResult.fail
+        assert cp.last_result == cpl.HealthCheckResult.fail
         assert cp.result_count == 1
         assert cp.alive
         cp.check_connection()
-        assert cp.last_result == HealthCheckResult.fail
+        assert cp.last_result == cpl.HealthCheckResult.fail
         assert cp.result_count == 2
         assert cp.alive
         cp.check_connection()
-        assert cp.last_result == HealthCheckResult.fail
+        assert cp.last_result == cpl.HealthCheckResult.fail
         assert cp.result_count == 3
         assert not cp.alive
 
-        cp._try_connection.return_value = HealthCheckResult.ok
+        cp._try_connection.return_value = cpl.HealthCheckResult.ok
         cp.check_connection()
-        assert cp.last_result == HealthCheckResult.ok
+        assert cp.last_result == cpl.HealthCheckResult.ok
         assert cp.result_count == 1
         assert not cp.alive
         cp.check_connection()
-        assert cp.last_result == HealthCheckResult.ok
+        assert cp.last_result == cpl.HealthCheckResult.ok
         assert cp.result_count == 2
         assert cp.alive
 
@@ -203,7 +197,7 @@ class TestRetryPool(TestCase):
         self.cp1 = mock.MagicMock(name="cp1")
         self.cp2 = mock.MagicMock(name="cp2")
         self.cp3 = mock.MagicMock(name="cp3")
-        self.sp = RetryPool([self.cp1, self.cp2, self.cp3])
+        self.sp = cpl.RetryPool([self.cp1, self.cp2, self.cp3])
 
     def tearDown(self):
         pass
