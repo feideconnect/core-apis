@@ -5,7 +5,8 @@ import valideer as V
 
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
-from coreapis.utils import LogWrapper, timestamp_adapter, ValidationError, public_userinfo, ResourceError
+from coreapis.utils import (LogWrapper, timestamp_adapter, ValidationError, public_userinfo,
+                            ResourceError, get_platform_admins)
 from coreapis.peoplesearch.tokens import decrypt_token
 
 
@@ -50,6 +51,8 @@ class AdHocGroupAdmController(CrudControllerBase):
         max_add_members = int(settings.get('adhocgroupadm_max_add_members', '50'))
         super(AdHocGroupAdmController, self).__init__(maxrows)
         self.session = cassandra_client.Client(contact_points, keyspace)
+        platformadmins_file = settings.get('platformadmins_file')
+        self.platformadmins = get_platform_admins(platformadmins_file)
         self.log = LogWrapper('adhocgroupadm.AdHocGroupAdmController')
         self.key = key
         self.ps_controller = ps_controller
@@ -128,7 +131,10 @@ class AdHocGroupAdmController(CrudControllerBase):
     def is_owner_or_member(self, group, userid):
         return self.is_owner(group, userid) or self.is_member(group, userid)
 
-    def has_permission(self, group, userid, permission):
+    def has_permission(self, group, user, permission):
+        if self.is_platform_admin(user):
+            return True
+        userid = user['userid']
         if permission == "update":
             return self.is_owner_or_admin(group, userid)
         if permission == "delete":
