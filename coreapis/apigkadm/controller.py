@@ -6,7 +6,8 @@ import valideer as V
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.clientadm.controller import ClientAdmController
-from coreapis.utils import LogWrapper, timestamp_adapter, public_userinfo, public_orginfo, log_token, valid_url
+from coreapis.utils import (LogWrapper, timestamp_adapter, public_userinfo, public_orginfo,
+                            log_token, valid_url, get_platform_admins)
 
 
 def valid_gk_url(url):
@@ -53,12 +54,16 @@ class APIGKAdmController(CrudControllerBase):
         maxrows = int(settings.get('apigkadm_maxrows') or 300)
         super(APIGKAdmController, self).__init__(maxrows)
         self.session = cassandra_client.Client(contact_points, keyspace)
+        platformadmins_file = settings.get('platformadmins_file')
+        self.platformadmins = get_platform_admins(platformadmins_file)
         self.log = LogWrapper('apigkadm.APIGKAdmController')
         self.cadm_controller = ClientAdmController(settings)
 
     def has_permission(self, apigk, user):
         if user is None:
             return False
+        if self.is_platform_admin(user):
+            return True
         org = apigk.get('organization', None)
         if org:
             return self.is_org_admin(user, org)

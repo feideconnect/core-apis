@@ -96,8 +96,21 @@ class CrudControllerBase(object):
         updated = now()
         self._save_logo(itemid, fake_output.getbuffer(), updated)
 
+    def is_platform_admin(self, user):
+        if user is None:
+            return False
+        for feideid in get_feideids(user):
+            if feideid in self.platformadmins:
+                return True
+        return False
+
     def is_org_admin(self, user, org):
+        if user is None:
+            return False
         for feideid in get_feideids(user):
             if self.session.is_org_admin(feideid, org):
                 return True
         return False
+
+    def is_admin(self, user, org):
+        return self.is_platform_admin(user) or self.is_org_admin(user, org)

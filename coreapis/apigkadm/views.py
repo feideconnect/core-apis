@@ -50,7 +50,7 @@ def list_apigks(request):
     user = get_user(request)
     organization = request.params.get('organization', None)
     if organization:
-        if request.gkadm_controller.is_org_admin(user, organization):
+        if request.gkadm_controller.is_admin(user, organization):
             return request.gkadm_controller.list_by_organization(organization)
         else:
             raise HTTPForbidden('user is not admin for given organization')
@@ -102,7 +102,7 @@ def add_apigk(request):
         attrs = allowed_attrs(payload, 'add')
         if 'organization' in attrs:
             user = get_user(request)
-            if not request.gkadm_controller.is_org_admin(user, attrs['organization']):
+            if not request.gkadm_controller.is_admin(user, attrs['organization']):
                 raise HTTPForbidden('Not administrator for organization')
         apigk = request.gkadm_controller.add(attrs, userid)
         request.response.status = 201
@@ -182,6 +182,6 @@ def apigk_owner_clients(request):
 def apigk_org_clients(request):
     user = get_user(request)
     orgid = request.matchdict['orgid']
-    if not request.gkadm_controller.is_org_admin(user, orgid):
+    if not request.gkadm_controller.is_admin(user, orgid):
         raise HTTPForbidden('No access')
     return request.gkadm_controller.get_gkorg_clients(orgid)
