@@ -44,22 +44,19 @@ class APIGKAdmTests(unittest.TestCase):
         out = res.json
         assert out['id'] == 'updateable'
 
-    def test_get_apigk_not_owner(self):
+    def _test_get_apigk_not_owner(self, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         other_owner = deepcopy(pre_update)
         other_owner['owner'] = uuid.uuid4()
         self.session().get_apigk.return_value = other_owner
-        self.testapp.get('/apigkadm/apigks/{}'.format(uuid.uuid4()), status=403, headers=headers)
+        self.testapp.get('/apigkadm/apigks/{}'.format(uuid.uuid4()), status=httpstat, headers=headers)
+
+    def test_get_apigk_not_owner(self):
+        self._test_get_apigk_not_owner(403)
 
     @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_get_apigk_platform_admin(self, get_user):
-        headers = {'Authorization': 'Bearer user_token'}
-        other_owner = deepcopy(pre_update)
-        other_owner['owner'] = uuid.uuid4()
-        self.session().get_apigk.return_value = other_owner
-        res = self.testapp.get('/apigkadm/apigks/{}'.format(uuid.uuid4()), status=200, headers=headers)
-        out = res.json
-        assert out['id'] == 'updateable'
+        self._test_get_apigk_not_owner(200)
 
     def test_missing_apigk(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -81,31 +78,24 @@ class APIGKAdmTests(unittest.TestCase):
         out = res.json
         assert out[0]['id'] == 'updateable'
 
-    def test_list_apigks_by_org(self):
+    def _test_list_apigks_by_org(self, orgadmin, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_apigks.return_value = [pre_update]
-        self.session().is_org_admin.return_value = True
-        res = self.testapp.get('/apigkadm/apigks/?organization={}'.format('fc:org:example.com'),
-                               status=200, headers=headers)
+        self.session().is_org_admin.return_value = orgadmin
+        return self.testapp.get('/apigkadm/apigks/?organization={}'.format('fc:org:example.com'),
+                                status=httpstat, headers=headers)
+
+    def test_list_apigks_by_org(self):
+        res = self._test_list_apigks_by_org(True, 200)
         out = res.json
         assert out[0]['id'] == 'updateable'
 
     def test_list_apigks_by_org_not_admin(self):
-        headers = {'Authorization': 'Bearer user_token'}
-        self.session().get_apigks.return_value = [pre_update]
-        self.session().is_org_admin.return_value = False
-        self.testapp.get('/apigkadm/apigks/?organization={}'.format('fc:org:example.com'),
-                         status=403, headers=headers)
+        self._test_list_apigks_by_org(False, 403)
 
     @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_list_apigks_by_org_admin_for_platform_not_for_org(self, get_user):
-        headers = {'Authorization': 'Bearer user_token'}
-        self.session().get_apigks.return_value = [pre_update]
-        self.session().is_org_admin.return_value = False
-        res = self.testapp.get('/apigkadm/apigks/?organization={}'.format('fc:org:example.com'),
-                               status=200, headers=headers)
-        out = res.json
-        assert out[0]['id'] == 'updateable'
+        self._test_list_apigks_by_org(False, 200)
 
     def test_list_public_apigks(self):
         pubapi = deepcopy(pre_update)
@@ -151,35 +141,26 @@ class APIGKAdmTests(unittest.TestCase):
         data['endpoints'] = ['https://ugle.com/bar']
         self.testapp.post_json('/apigkadm/apigks/', data, status=201, headers=headers)
 
-    def test_post_apigk_org(self):
+    def _test_post_apigk(self, orgadmin, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().insert_apigk = mock.MagicMock()
         self.session().get_apigk.side_effect = KeyError()
-        self.session().is_org_admin.return_value = True
+        self.session().is_org_admin.return_value = orgadmin
         data = deepcopy(post_body_maximal)
         data['organization'] = 'fc:org:example.com'
-        res = self.testapp.post_json('/apigkadm/apigks/', data, status=201, headers=headers)
+        return self.testapp.post_json('/apigkadm/apigks/', data, status=httpstat, headers=headers)
+
+    def test_post_apigk_org(self):
+        res = self._test_post_apigk(True, 201)
         out = res.json
         assert out['owner'] == '00000000-0000-0000-0000-000000000001'
 
     def test_post_apigk_org_not_admin(self):
-        headers = {'Authorization': 'Bearer user_token'}
-        self.session().insert_apigk = mock.MagicMock()
-        self.session().get_apigk.side_effect = KeyError()
-        self.session().is_org_admin.return_value = False
-        data = deepcopy(post_body_maximal)
-        data['organization'] = 'fc:org:example.com'
-        self.testapp.post_json('/apigkadm/apigks/', data, status=403, headers=headers)
+        self._test_post_apigk(False, 403)
 
     @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_post_apigk_admin_for_platform_not_for_org(self, get_user):
-        headers = {'Authorization': 'Bearer user_token'}
-        self.session().insert_apigk = mock.MagicMock()
-        self.session().get_apigk.side_effect = KeyError()
-        self.session().is_org_admin.return_value = False
-        data = deepcopy(post_body_maximal)
-        data['organization'] = 'fc:org:example.com'
-        self.testapp.post_json('/apigkadm/apigks/', data, status=201, headers=headers)
+        self._test_post_apigk(False, 201)
 
     def test_post_apigk_duplicate(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -261,28 +242,25 @@ class APIGKAdmTests(unittest.TestCase):
         self.session().insert_apigk = mock.MagicMock()
         self.testapp.post_json('/apigkadm/apigks/', body, status=400, headers=headers)
 
-    def test_delete_apigk(self):
+    def _test_delete_apigk(self, owner, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         id = 'testapi'
-        self.session().get_apigk.return_value = {'owner': uuid.UUID('00000000-0000-0000-0000-000000000001'), 'id': id}
-        self.testapp.delete('/apigkadm/apigks/{}'.format(id), status=204, headers=headers)
+        self.session().get_apigk.return_value = {'owner': uuid.UUID(owner), 'id': id}
+        self.testapp.delete('/apigkadm/apigks/{}'.format(id), status=httpstat, headers=headers)
+
+    def test_delete_apigk(self):
+        self._test_delete_apigk('00000000-0000-0000-0000-000000000001', 204)
 
     def test_delete_apigk_no_id(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.testapp.delete('/apigkadm/apigks/', status=404, headers=headers)
 
     def test_delete_apigk_not_owner(self):
-        headers = {'Authorization': 'Bearer user_token'}
-        id = 'testapi'
-        self.session().get_apigk.return_value = {'owner': uuid.UUID('00000000-0000-0000-0000-000000000002'), 'id': id}
-        self.testapp.delete('/apigkadm/apigks/{}'.format(id), status=403, headers=headers)
+        self._test_delete_apigk('00000000-0000-0000-0000-000000000002', 403)
 
     @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_delete_apigk_platform_admin(self, get_user):
-        headers = {'Authorization': 'Bearer user_token'}
-        id = 'testapi'
-        self.session().get_apigk.return_value = {'owner': uuid.UUID('00000000-0000-0000-0000-000000000002'), 'id': id}
-        self.testapp.delete('/apigkadm/apigks/{}'.format(id), status=204, headers=headers)
+        self._test_delete_apigk('00000000-0000-0000-0000-000000000002', 204)
 
     def test_update_no_change(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -302,22 +280,20 @@ class APIGKAdmTests(unittest.TestCase):
         self.testapp.patch_json('/apigkadm/apigks/updatable', {'endpoints': 'file:///etc/shadow'},
                                 status=400, headers=headers)
 
-    def test_update_not_owner(self):
+    def _test_update_not_owner(self, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         to_update = deepcopy(pre_update)
         to_update['owner'] = uuid.uuid4()
         self.session().get_apigk.return_value = to_update
         self.testapp.patch_json('/apigkadm/apigks/updatable', {},
-                                status=403, headers=headers)
+                                status=httpstat, headers=headers)
+
+    def test_update_not_owner(self):
+        self._test_update_not_owner(403)
 
     @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_update_as_platform_admin(self, get_user):
-        headers = {'Authorization': 'Bearer user_token'}
-        to_update = deepcopy(pre_update)
-        to_update['owner'] = uuid.uuid4()
-        self.session().get_apigk.return_value = to_update
-        self.testapp.patch_json('/apigkadm/apigks/updatable', {},
-                                status=200, headers=headers)
+        self._test_update_not_owner(200)
 
     def test_apigk_exists(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -361,45 +337,28 @@ class APIGKAdmTests(unittest.TestCase):
         self.testapp.get('/apigkadm/apigks/owners/{}/clients/'.format(uuid.uuid4()),
                          status=403, headers=headers)
 
-    def test_apigk_get_org_clients(self):
+    def _test_apigk_get_org_clients(self, orgadmin, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         org = 'fc:org:example.com'
         apigks = [{'id': 'fooapi', 'organization': org},
                   {'id': 'barapi', 'organization': org}]
-        self.session().is_org_admin.return_value = True
+        self.session().is_org_admin.return_value = orgadmin
         for count in [0, 1, 2]:
             self.session().get_apigks.return_value = apigks[:count]
             with mock.patch('coreapis.clientadm.controller.ClientAdmController.get_gkscope_clients',
                             return_value=[]):
                 self.testapp.get('/apigkadm/apigks/orgs/{}/clients/'.format(org),
-                                 status=200, headers=headers)
+                                 status=httpstat, headers=headers)
+
+    def test_apigk_get_org_clients(self):
+        self._test_apigk_get_org_clients(True, 200)
 
     def test_apigk_get_org_clients_not_admin(self):
-        headers = {'Authorization': 'Bearer user_token'}
-        org = 'fc:org:example.com'
-        apigks = [{'id': 'fooapi', 'organization': org},
-                  {'id': 'barapi', 'organization': org}]
-        self.session().is_org_admin.return_value = False
-        for count in [0, 1, 2]:
-            self.session().get_apigks.return_value = apigks[:count]
-            with mock.patch('coreapis.clientadm.controller.ClientAdmController.get_gkscope_clients',
-                            return_value=[]):
-                self.testapp.get('/apigkadm/apigks/orgs/{}/clients/'.format(org),
-                                 status=403, headers=headers)
+        self._test_apigk_get_org_clients(False, 403)
 
     @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_apigk_get_org_clients_admin_for_platform_not_for_org(self, get_user):
-        headers = {'Authorization': 'Bearer user_token'}
-        org = 'fc:org:example.com'
-        apigks = [{'id': 'fooapi', 'organization': org},
-                  {'id': 'barapi', 'organization': org}]
-        self.session().is_org_admin.return_value = False
-        for count in [0, 1, 2]:
-            self.session().get_apigks.return_value = apigks[:count]
-            with mock.patch('coreapis.clientadm.controller.ClientAdmController.get_gkscope_clients',
-                            return_value=[]):
-                self.testapp.get('/apigkadm/apigks/orgs/{}/clients/'.format(org),
-                                 status=200, headers=headers)
+        self._test_apigk_get_org_clients(False, 200)
 
     def test_get_apigk_logo(self):
         headers = {'Authorization': 'Bearer user_token'}
