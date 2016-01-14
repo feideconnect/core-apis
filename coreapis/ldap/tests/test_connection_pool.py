@@ -15,7 +15,7 @@ class TestConnectionPool(TestCase):
 
     def setUp(self):
         self.pool = cpl.ConnectionPool("ldap.example.org", 636, None, None,
-                                      2, 5, defaultdict(lambda: 1), None)
+                                       2, 5, defaultdict(lambda: 1), None)
 
     def tearDown(self):
         pass
