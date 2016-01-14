@@ -60,7 +60,7 @@ def list_clients(request):
     organization = request.params.get('organization', None)
     scope = request.params.get('scope', None)
     if organization:
-        if request.cadm_controller.is_org_admin(user, organization):
+        if request.cadm_controller.is_admin(user, organization):
             return request.cadm_controller.list_by_organization(organization, scope)
         else:
             raise HTTPForbidden('user is not admin for given organization')
@@ -114,7 +114,7 @@ def add_client(request):
         attrs = allowed_attrs(payload, 'add')
         if 'organization' in attrs:
             user = get_user(request)
-            if not request.cadm_controller.is_org_admin(user, attrs['organization']):
+            if not request.cadm_controller.is_admin(user, attrs['organization']):
                 raise HTTPForbidden('Not administrator for organization')
         client = request.cadm_controller.add(attrs, userid)
         request.response.status = '201 Created'

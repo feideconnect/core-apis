@@ -17,9 +17,20 @@ from coreapis.clientadm.tests.helper import (
     httptime, mock_get_apigk, retrieved_apigks, userstatus, reservedstatus, testrealm)
 
 
+PLATFORMADMIN = 'admin@example.com'
+
+
+def make_user(feideid):
+    return {
+        'userid_sec': ['feide:' + str(feideid)]
+    }
+
+
 class ClientAdmTests(unittest.TestCase):
+    @mock.patch('coreapis.clientadm.controller.get_platform_admins')
     @mock.patch('coreapis.middleware.cassandra_client.Client')
-    def setUp(self, Client):
+    def setUp(self, Client, gpa):
+        gpa.return_value = [PLATFORMADMIN]
         app = main({
             'statsd_server': 'localhost',
             'statsd_port': '8125',

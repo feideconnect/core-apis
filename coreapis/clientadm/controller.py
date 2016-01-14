@@ -9,8 +9,8 @@ import valideer as V
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.utils import (
-    LogWrapper, timestamp_adapter, public_userinfo, public_orginfo, ValidationError, ForbiddenError, valid_url,
-    EmailNotifier, get_feideids, json_load)
+    LogWrapper, timestamp_adapter, public_userinfo, public_orginfo, ValidationError, ForbiddenError,
+    valid_url, EmailNotifier, get_feideids, json_load, get_platform_admins)
 from .scope_request_notification import ScopeRequestNotification
 
 
@@ -105,6 +105,8 @@ class ClientAdmController(CrudControllerBase):
         system_moderator = settings.get('clientadm_system_moderator', '')
         super(ClientAdmController, self).__init__(maxrows)
         self.session = cassandra_client.Client(contact_points, keyspace)
+        platformadmins_file = settings.get('platformadmins_file')
+        self.platformadmins = get_platform_admins(platformadmins_file)
         self.log = LogWrapper('clientadm.ClientAdmController')
         self.scopedefs = get_scopedefs(scopedefs_file)
         self.system_moderator = system_moderator
@@ -159,6 +161,8 @@ class ClientAdmController(CrudControllerBase):
         return [self.get_public_client(c) for c in clients if c]
 
     def has_permission(self, client, user):
+        if self.is_platform_admin(user):
+            return True
         if user is None:
             return False
         org = client.get('organization', None)
@@ -476,7 +480,7 @@ class ClientAdmController(CrudControllerBase):
 
     def has_realm_permission(self, realm, user):
         org = self.session.get_org_by_realm(realm)
-        return self.is_org_admin(user, org['id'])
+        return self.is_admin(user, org['id'])
 
     @staticmethod
     def get_orgauthorization(client, realm):
