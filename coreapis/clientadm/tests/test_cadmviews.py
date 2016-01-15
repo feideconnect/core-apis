@@ -40,11 +40,12 @@ class ClientAdmTests(unittest.TestCase):
 
     def test_get_client(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_client_by_id.return_value = {'foo': 'bar', 'owner': uuid.UUID(userid_own)}
+        self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
         res = self.testapp.get('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=200,
                                headers=headers)
         out = res.json
-        assert 'foo' in out
+        assert 'id' not in out['owner']
+        assert 'scopes' in out
 
     def test_missing_client(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -57,7 +58,8 @@ class ClientAdmTests(unittest.TestCase):
         self.session.get_user_by_id.return_value = retrieved_user
         res = self.testapp.get('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=200)
         out = res.json
-        assert out['descr'] == 'green'
+        assert 'id' in out['owner']
+        assert 'scopes' not in out
 
     def test_get_client_missing_user(self):
         headers = {'Authorization': 'Bearer client_token'}
