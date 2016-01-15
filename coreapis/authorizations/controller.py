@@ -17,14 +17,14 @@ class AuthorizationController(object):
     def list(self, userid):
         res = []
         for authz in self.session.get_authorizations(userid):
+            el = authz.copy()
+            del el['clientid']
             try:
-                el = authz.copy()
-                del el['clientid']
                 client = self.session.get_client_by_id(authz['clientid'])
-                el['client'] = dict(id=client['id'], name=client['name'])
-                res.append(el)
             except KeyError:
-                pass
+                continue
+            el['client'] = dict(id=client['id'], name=client['name'])
+            res.append(el)
         return res
 
     def resources_owned(self, userid):
