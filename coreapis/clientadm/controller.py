@@ -10,7 +10,7 @@ from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.utils import (
     LogWrapper, timestamp_adapter, public_userinfo, public_orginfo, ValidationError, ForbiddenError, valid_url,
-    EmailNotifier, json_load)
+    EmailNotifier, get_feideids, json_load)
 from .scope_request_notification import ScopeRequestNotification
 
 
@@ -487,3 +487,14 @@ class ClientAdmController(CrudControllerBase):
 
     def delete_orgauthorization(self, client, realm):
         self.session.delete_orgauthorization(client['id'], realm)
+
+    def get_mandatory_clients(self, user):
+        selectors = ['status contains ?']
+        values = ['Mandatory']
+        by_id = {c['id']: c for c in self._list(selectors, values, None)}
+        for feideid in get_feideids(user):
+            print(feideid)
+            uid, realm = feideid.split('@')
+            for clientid in self.session.get_mandatory_clients(realm):
+                by_id[clientid] = self.session.get_client_by_id(clientid)
+        return [self.get_public_client(c) for c in by_id.values()]
