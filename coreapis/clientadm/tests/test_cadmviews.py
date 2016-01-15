@@ -81,21 +81,6 @@ class ClientAdmTests(unittest.TestCase):
         out = res.json
         assert out[0]['name'] == 'per'
 
-    def test_list_clients_by_owner(self):
-        headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_clients.return_value = [deepcopy(retrieved_client)]
-        path = '/clientadm/clients/?owner={}'.format(uuid.UUID(userid_own))
-        res = self.testapp.get(path, status=200, headers=headers)
-        out = res.json
-        assert out[0]['name'] == 'per'
-
-    def test_list_clients_by_other_owner(self):
-        headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_clients.return_value = [deepcopy(retrieved_client)]
-        path = '/clientadm/clients/?owner={}'.format(uuid.UUID(userid_other))
-        self.testapp.get(path, status=200, headers=headers)
-        assert self.session.get_clients.call_args[0][1][0] == uuid.UUID(userid_own)
-
     def test_list_clients_by_org(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_clients.return_value = [deepcopy(retrieved_client)]
