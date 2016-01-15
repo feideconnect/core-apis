@@ -24,6 +24,8 @@ class AuthorizationController(object):
             except KeyError:
                 continue
             el['client'] = dict(id=client['id'], name=client['name'])
+            if 'apigk_scopes' in el and el['apigk_scopes']:
+                el['apigk_scopes'] = dict(el['apigk_scopes'])
             res.append(el)
         return res
 
