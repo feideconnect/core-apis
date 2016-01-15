@@ -135,6 +135,14 @@ def httptime(timestamp):
     return timestamp.strftime("%a, %d %b %Y %H:%M:%S +0000")
 
 
+def is_full_client(client):
+    return ('scopes' in client) and ('id' not in client.get('owner', {}))
+
+
+def is_public_client(client):
+    return ('scopes' not in client) and ('id' in client.get('owner', {}))
+
+
 def mock_get_apigk(gkid):
     ret = deepcopy(apigks[gkid])
     ret.update({'id': gkid})

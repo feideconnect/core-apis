@@ -14,7 +14,8 @@ from coreapis.clientadm.tests.helper import (
     userid_own, userid_other, clientid, date_created, testscope, otherscope, testuris, baduris,
     post_body_minimal, post_body_other_owner, post_body_maximal, retrieved_client,
     retrieved_user, retrieved_gk_clients, testgk, testgk_foo, othergk, owngk, nullscopedefgk,
-    httptime, mock_get_apigk, retrieved_apigks, userstatus, reservedstatus, testrealm)
+    httptime, mock_get_apigk, retrieved_apigks, userstatus, reservedstatus, testrealm,
+    is_full_client, is_public_client)
 
 
 PLATFORMADMIN = 'admin@example.com'
@@ -55,8 +56,7 @@ class ClientAdmTests(unittest.TestCase):
         res = self.testapp.get('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=200,
                                headers=headers)
         out = res.json
-        assert 'id' not in out['owner']
-        assert 'scopes' in out
+        assert is_full_client(out)
 
     def test_missing_client(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -64,13 +64,30 @@ class ClientAdmTests(unittest.TestCase):
         self.testapp.get('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=404,
                          headers=headers)
 
+    def _test_get_client_not_owner(self, headers, httpstat):
+        client = deepcopy(retrieved_client)
+        client['owner'] = userid_other
+        owner = deepcopy(retrieved_user)
+        owner['userid'] = uuid.UUID(userid_other)
+        self.session.get_client_by_id.return_value = client
+        self.session.get_user_by_id.return_value = owner
+        return self.testapp.get('/clientadm/clients/{}'.format(uuid.UUID(clientid)),
+                                headers=headers, status=httpstat)
+
     def test_get_client_unauthenticated(self):
-        self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
-        self.session.get_user_by_id.return_value = retrieved_user
-        res = self.testapp.get('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=200)
-        out = res.json
-        assert 'id' in out['owner']
-        assert 'scopes' not in out
+        res = self._test_get_client_not_owner(None, 200)
+        assert is_public_client(res.json)
+
+    def test_get_client_not_owner(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        res = self._test_get_client_not_owner(headers, 200)
+        assert is_public_client(res.json)
+
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_get_client_platform_admin(self, get_user):
+        headers = {'Authorization': 'Bearer user_token'}
+        res = self._test_get_client_not_owner(headers, 200)
+        assert is_full_client(res.json)
 
     def test_get_client_missing_user(self):
         headers = {'Authorization': 'Bearer client_token'}
@@ -82,30 +99,32 @@ class ClientAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_clients.return_value = [deepcopy(retrieved_client)]
         res = self.testapp.get('/clientadm/clients/', status=200, headers=headers)
-        out = res.json
-        assert out[0]['name'] == 'per'
+        assert is_full_client(res.json[0])
 
     def test_list_clients_by_scope(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_clients.return_value = [deepcopy(retrieved_client)]
         res = self.testapp.get('/clientadm/clients/?scope=userlist', status=200, headers=headers)
-        out = res.json
-        assert out[0]['name'] == 'per'
+        assert is_full_client(res.json[0])
 
-    def test_list_clients_by_org(self):
+    def _test_list_clients_by_org_as_admin(self, orgadmin, expected):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_clients.return_value = [deepcopy(retrieved_client)]
-        self.session.is_org_admin.return_value = True
+        self.session.is_org_admin.return_value = orgadmin
         path = '/clientadm/clients/?organization={}'.format('fc:org:example.com')
-        res = self.testapp.get(path, status=200, headers=headers)
-        out = res.json
-        assert out[0]['name'] == 'per'
+        return self.testapp.get(path, status=expected, headers=headers)
+
+    def test_list_clients_by_org_as_admin(self):
+        res = self._test_list_clients_by_org_as_admin(True, 200)
+        assert is_full_client(res.json[0])
 
     def test_list_clients_by_org_not_admin(self):
-        headers = {'Authorization': 'Bearer user_token'}
-        self.session.is_org_admin.return_value = False
-        path = '/clientadm/clients/?organization={}'.format('fc:org:example.com')
-        self.testapp.get(path, status=403, headers=headers)
+        self._test_list_clients_by_org_as_admin(False, 403)
+
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_list_clients_by_org_platform_admin(self, get_user):
+        res = self._test_list_clients_by_org_as_admin(False, 200)
+        assert is_full_client(res.json[0])
 
     def test_list_public_clients(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -119,7 +138,7 @@ class ClientAdmTests(unittest.TestCase):
             res = self.testapp.get('/clientadm{}/public/'.format(ver), status=200, headers=headers)
             out = res.json
             assert out[0]['name'] == 'per'
-            assert 'scopes' not in out[0]
+            assert all(is_public_client(c) for c in out)
             assert out[1]['organization']['id'] == 'fc:org:example.com'
             assert out[1]['organization']['name'] == 'testorg'
 
@@ -167,14 +186,21 @@ class ClientAdmTests(unittest.TestCase):
         assert out['organization'] is None
         assert out['orgauthorization'] is None
 
-    def test_post_client_other_owner(self):
+    def _test_post_client_other_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.side_effect = KeyError
         self.session.insert_client = mock.MagicMock()
         path = '/clientadm/clients/'
         res = self.testapp.post_json(path, post_body_other_owner, status=201, headers=headers)
-        out = res.json
-        assert out['owner'] == userid_own
+        assert res.json['owner'] == userid_own
+
+    def test_post_client_other_owner(self):
+        self._test_post_client_other_owner()
+
+    # Or should platformadmin be allowed to set another user as owner?
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_post_client_other_owner_platform_admin(self, get_user):
+        self._test_post_client_other_owner()
 
     def test_post_client_duplicate(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -183,15 +209,22 @@ class ClientAdmTests(unittest.TestCase):
         path = '/clientadm/clients/'
         self.testapp.post_json(path, post_body_maximal, status=409, headers=headers)
 
-    def test_post_client_scope_given(self):
+    def _test_post_client_scope_given(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.side_effect = KeyError
         body = deepcopy(post_body_minimal)
         body['scopes'] = [testscope]
         self.session.insert_client = mock.MagicMock()
         res = self.testapp.post_json('/clientadm/clients/', body, status=201, headers=headers)
-        out = res.json
-        assert out['scopes'] == []
+        assert res.json['scopes'] == []
+
+    def test_post_client_scope_given(self):
+        self._test_post_client_scope_given()
+
+    # Or should platformadmin be allowed to set scope?
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_post_client_scope_given_platform_admin(self, get_user):
+        self._test_post_client_scope_given()
 
     def test_post_client_autoscope_requested(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -203,16 +236,26 @@ class ClientAdmTests(unittest.TestCase):
         out = res.json
         assert out['scopes'] == [otherscope]
 
-    def test_post_client_organization(self):
+    def _test_post_client_organization(self, orgadmin, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.side_effect = KeyError
         body = deepcopy(post_body_minimal)
         body['organization'] = 'fc:org:example.com'
         self.session.insert_client = mock.MagicMock()
-        self.session.is_org_admin.return_value = True
-        res = self.testapp.post_json('/clientadm/clients/', body, status=201, headers=headers)
-        out = res.json
-        assert out['organization'] == 'fc:org:example.com'
+        self.session.is_org_admin.return_value = orgadmin
+        return self.testapp.post_json('/clientadm/clients/', body, status=httpstat, headers=headers)
+
+    def test_post_client_organization_as_orgadmin(self):
+        res = self._test_post_client_organization(True, 201)
+        assert res.json['organization'] == 'fc:org:example.com'
+
+    def test_post_client_organization_not_orgadmin(self):
+        self._test_post_client_organization(False, 403)
+
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_post_client_organization_platform_admin(self, get_user):
+        res = self._test_post_client_organization(False, 201)
+        assert res.json['organization'] == 'fc:org:example.com'
 
     def test_post_client_invalid_scope_requested(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -301,35 +344,30 @@ class ClientAdmTests(unittest.TestCase):
         self.session.insert_client = mock.MagicMock()
         self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
 
-    def test_post_client_org_not_admin(self):
+    def _test_post_client_status_permitted(self, flag):
         headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_by_id.side_effect = KeyError
         body = deepcopy(post_body_minimal)
-        body['organization'] = 'fc:org:example.com'
+        body['status'] = [flag]
         self.session.insert_client = mock.MagicMock()
-        self.session.is_org_admin.return_value = False
-        self.testapp.post_json('/clientadm/clients/', body, status=403, headers=headers)
+        return self.testapp.post_json('/clientadm/clients/', body, status=201, headers=headers)
 
     def test_post_client_status_permitted(self):
-        headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_client_by_id.side_effect = KeyError
-        body = deepcopy(post_body_minimal)
         flag = userstatus
-        body['status'] = [flag]
-        self.session.insert_client = mock.MagicMock()
-        res = self.testapp.post_json('/clientadm/clients/', body, status=201, headers=headers)
-        out = res.json
-        assert flag in out['status']
+        res = self._test_post_client_status_permitted(flag)
+        assert flag in res.json['status']
 
     def test_post_client_status_not_permitted(self):
-        headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_client_by_id.side_effect = KeyError
-        body = deepcopy(post_body_minimal)
         flag = reservedstatus
-        body['status'] = [flag]
-        self.session.insert_client = mock.MagicMock()
-        res = self.testapp.post_json('/clientadm/clients/', body, status=201, headers=headers)
-        out = res.json
-        assert flag not in out['status']
+        res = self._test_post_client_status_permitted(flag)
+        assert flag not in res.json['status']
+
+    # Or should platformadmin be allowed to set arbitrary status?
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_post_client_status_not_permitted_platform_admin(self, get_user):
+        flag = reservedstatus
+        res = self._test_post_client_status_permitted(flag)
+        assert flag not in res.json['status']
 
     def test_post_client_status_null(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -397,12 +435,25 @@ class ClientAdmTests(unittest.TestCase):
         path = '/clientadm/clients/{}'.format('foo')
         self.testapp.delete(path, status=404, headers=headers)
 
-    def test_delete_client_not_owner(self):
+    def _test_delete_client_not_owner(self, orgadmin, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
-        ret = {'foo': 'bar', 'owner': uuid.UUID(userid_other)}
-        self.session.get_client_by_id.return_value = ret
+        client = deepcopy(retrieved_client)
+        client['owner'] = uuid.UUID(userid_other)
+        client['organization'] = 'fc:org:example.com'
+        self.session.get_client_by_id.return_value = client
+        self.session.is_org_admin.return_value = orgadmin
         path = '/clientadm/clients/{}'.format(uuid.UUID(clientid))
-        self.testapp.delete(path, status=403, headers=headers)
+        self.testapp.delete(path, status=httpstat, headers=headers)
+
+    def test_delete_client_not_owner(self):
+        self._test_delete_client_not_owner(False, 403)
+
+    def test_delete_client_not_owner_org_admin_(self):
+        self._test_delete_client_not_owner(True, 204)
+
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_delete_client_not_owner_platform_admin_(self, get_user):
+        self._test_delete_client_not_owner(False, 204)
 
     def test_update_client(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -437,15 +488,29 @@ class ClientAdmTests(unittest.TestCase):
         attrs = {'descr': 'blue'}
         self.testapp.patch_json(path, attrs, status=404, headers=headers)
 
-    def test_update_client_not_owner(self):
+    def _test_update_client_not_owner(self, orgadmin, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         client = deepcopy(retrieved_client)
         client['owner'] = uuid.UUID(userid_other)
+        client['organization'] = 'fc:org:example.com'
         self.session.get_client_by_id.return_value = client
+        self.session.is_org_admin.return_value = orgadmin
         self.session.insert_client = mock.MagicMock()
         path = '/clientadm/clients/{}'.format(clientid)
         attrs = {'descr': 'blue'}
-        self.testapp.patch_json(path, attrs, status=403, headers=headers)
+        return self.testapp.patch_json(path, attrs, status=httpstat, headers=headers)
+
+    def test_update_client_not_owner(self):
+        self._test_update_client_not_owner(False, 403)
+
+    def test_update_client_not_owner_org_admin(self):
+        res = self._test_update_client_not_owner(True, 200)
+        assert res.json['descr'] == 'blue'
+
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_update_client_not_owner_platform_admin(self, make_user):
+        res = self._test_update_client_not_owner(False, 200)
+        assert res.json['descr'] == 'blue'
 
     def test_update_client_change_timestamp(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -787,14 +852,30 @@ class ClientAdmTests(unittest.TestCase):
         logo = b'mylittlelogo'
         self.testapp.post(path, logo, status=400, headers=headers)
 
-    def test_post_client_logo_not_owner(self):
+    def _test_post_client_logo_not_owner(self, orgadmin, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         client = deepcopy(retrieved_client)
         client['owner'] = uuid.UUID(userid_other)
+        client['organization'] = 'fc:org:example.com'
         self.session.get_client_by_id.return_value = client
-        path = '/clientadm/clients/{}/logo'.format(uuid.UUID(clientid))
-        logo = b'mylittlelogo'
-        self.testapp.post(path, logo, status=403, headers=headers)
+        self.session.is_org_admin.return_value = orgadmin
+        self.session.save_logo = mock.MagicMock()
+        with open('data/default-client.png', 'rb') as fh:
+            path = '/clientadm/clients/{}/logo'.format(uuid.UUID(clientid))
+            logo = fh.read()
+            return self.testapp.post(path, logo, status=httpstat, headers=headers)
+
+    def test_post_client_logo_not_owner(self):
+        self._test_post_client_logo_not_owner(False, 403)
+
+    def test_post_client_logo_org_admin(self):
+        res = self._test_post_client_logo_not_owner(True, 200)
+        assert res.json == 'OK'
+
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_post_client_logo_platform_admin(self, get_user):
+        res = self._test_post_client_logo_not_owner(False, 200)
+        assert res.json == 'OK'
 
     def test_list_public_scopes(self):
         for ver in ['', '/v1']:
@@ -815,21 +896,25 @@ class ClientAdmTests(unittest.TestCase):
         path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
         self.testapp.get(path, status=404, headers=headers)
 
-    def test_get_orgauth_not_owner(self):
+    def _test_get_orgauth_not_owner(self, realmadmin, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         client = deepcopy(retrieved_gk_clients[3])
         client['owner'] = uuid.UUID(userid_other)
         self.session.get_client_by_id.return_value = client
-        self.session.is_org_admin.return_value = False
+        self.session.is_org_admin.return_value = realmadmin
         path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
-        self.testapp.get(path, status=403, headers=headers)
+        return self.testapp.get(path, status=httpstat, headers=headers)
 
-    def test_get_orgauth_not_realm_admin(self):
-        headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_client_by_id.return_value = deepcopy(retrieved_gk_clients[3])
-        self.session.is_org_admin.return_value = False
-        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
-        res = self.testapp.get(path, status=200, headers=headers)
+    def test_get_orgauth_not_owner(self):
+        self._test_get_orgauth_not_owner(False, 403)
+
+    def test_get_orgauth_realm_admin(self):
+        res = self._test_get_orgauth_not_owner(True, 200)
+        assert res.json[0] == testgk
+
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_get_orgauth_platform_admin(self, get_user):
+        res = self._test_get_orgauth_not_owner(False, 200)
         assert res.json[0] == testgk
 
     def test_get_orgauth_empty_orgauthorization(self):
@@ -847,35 +932,57 @@ class ClientAdmTests(unittest.TestCase):
         path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
         self.testapp.get(path, status=404, headers=headers)
 
-    def test_update_orgauthorization(self):
+    def _test_update_orgauthorization(self, realmadmin, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
-        res = self.testapp.patch_json(path, [testgk], status=200, headers=headers)
+        self.session.is_org_admin.return_value = realmadmin
+        return self.testapp.patch_json(path, [testgk], status=httpstat, headers=headers)
+
+    def test_update_orgauthorization(self):
+        res = self._test_update_orgauthorization(True, 200)
         assert res.json == [testgk]
 
     def test_update_orgauth_not_realm_admin(self):
-        headers = {'Authorization': 'Bearer user_token'}
-        self.session.is_org_admin.return_value = False
-        path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
-        self.testapp.patch_json(path, testgk, status=403, headers=headers)
+        self._test_update_orgauthorization(False, 403)
+
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_update_orgauthorization_platform_admin(self, get_user):
+        res = self._test_update_orgauthorization(False, 200)
+        assert res.json == [testgk]
 
     def test_update_orgauth_bad_realm(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.is_org_admin.return_value = False
         for realm in [testrealm, 'big|bad|wolf.com', 'feide|vgs|' + testrealm]:
             path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, realm)
-            self.testapp.patch_json(path, testgk, status=403, headers=headers)
+            self.testapp.patch_json(path, [testgk], status=403, headers=headers)
 
     def test_update_orgauth_bad_scopes(self):
         headers = {'Authorization': 'Bearer user_token'}
         path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
         self.testapp.patch_json(path, testgk, status=400, headers=headers)
 
-    def test_delete_orgauthorization(self):
+    def _test_delete_orgauthorization(self, ownerid, realmadmin, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
+        client = deepcopy(retrieved_gk_clients[3])
+        client['owner'] = uuid.UUID(ownerid)
+        self.session.get_client_by_id.return_value = client
+        self.session.is_org_admin.return_value = realmadmin
         path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
-        self.testapp.delete(path, status=204, headers=headers)
+        self.testapp.delete(path, status=httpstat, headers=headers)
+
+    def test_delete_orgauthorization_owner(self):
+        self._test_delete_orgauthorization(userid_own, True, 204)
+
+    def test_delete_orgauthorization_realm_admin(self):
+        self._test_delete_orgauthorization(userid_other, True, 204)
+
+    def test_delete_orgauthorization_stranger(self):
+        self._test_delete_orgauthorization(userid_other, False, 403)
+
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_delete_orgauthorization_platform_admin(self, get_user):
+        self._test_delete_orgauthorization(userid_other, False, 204)
 
     def test_list_targetrealm(self):
         headers = {'Authorization': 'Bearer user_token'}

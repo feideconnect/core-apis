@@ -56,11 +56,17 @@ class TestController(TestCase):
         assert self.controller.has_permission(retrieved_gk_client, retrieved_user) is True
         client = deepcopy(retrieved_gk_client)
         client['organization'] = 'test:org'
+        is_platform_admin = mock.MagicMock()
+        self.controller.is_platform_admin = is_platform_admin
+        is_platform_admin.return_value = False
         is_org_admin = mock.MagicMock()
         self.controller.is_org_admin = is_org_admin
         is_org_admin.return_value = False
         assert self.controller.has_permission(client, retrieved_user) is False
         is_org_admin.return_value = True
+        assert self.controller.has_permission(client, retrieved_user) is True
+        is_platform_admin.return_value = True
+        is_org_admin.return_value = False
         assert self.controller.has_permission(client, retrieved_user) is True
 
     def test_add_with_owner(self):
