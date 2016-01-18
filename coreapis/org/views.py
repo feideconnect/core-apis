@@ -90,7 +90,7 @@ def check(request, as_platform_admin):
     orgid = request.matchdict['id']
     user = get_user(request)
     if not request.org_controller.has_permission(user, orgid, as_platform_admin):
-        raise HTTPForbidden('Insufficient priviledges')
+        raise HTTPForbidden('Insufficient privileges')
     return orgid
 
 
