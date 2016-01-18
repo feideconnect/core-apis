@@ -6,8 +6,7 @@ import valideer as V
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.clientadm.controller import ClientAdmController
-from coreapis.utils import (LogWrapper, timestamp_adapter, public_userinfo, public_orginfo,
-                            log_token, valid_url, get_platform_admins)
+from coreapis.utils import LogWrapper, timestamp_adapter, log_token, valid_url, get_platform_admins
 
 
 def valid_gk_url(url):
@@ -47,6 +46,7 @@ class APIGKAdmController(CrudControllerBase):
         'privacypolicyurl': V.Nullable(valid_url),
         'docurl': V.Nullable(valid_url),
     }
+    public_attrs = ['id', 'name', 'descr', 'scopedef', 'systemdescr', 'privacypolicyurl', 'docurl']
 
     def __init__(self, settings):
         contact_points = settings.get('cassandra_contact_points')
@@ -149,22 +149,9 @@ class APIGKAdmController(CrudControllerBase):
         res = [r for count, r in enumerate(self.session.get_apigks(['status contains ?'],
                                                                    ['public'], maxrows))
                if count < max_replies and self.matches_query(r, query)]
-        owner_ids = set(r['owner'] for r in res)
-        owners = {ownerid: self.session.get_user_by_id(ownerid) for ownerid in owner_ids}
-        organization_ids = set(r['organization'] for r in res if r['organization'])
-        organizations = {orgid: self.session.get_org(orgid) for orgid in organization_ids}
-        return [{
-            'id': r['id'],
-            'name': r['name'],
-            'descr': r['descr'],
-            'scopedef': r['scopedef'],
-            'expose': r['expose'],
-            'owner': public_userinfo(owners[r['owner']]),
-            'organization': r['organization'] and public_orginfo(organizations[r['organization']]) or None,
-            'systemdescr': r['systemdescr'],
-            'privacypolicyurl': r['privacypolicyurl'],
-            'docurl': r['docurl'],
-        } for r in res]
+        users = {}
+        orgs = {}
+        return [self.get_public_info(r, users, orgs) for r in res]
 
     def get_gkowner_clients(self, ownerid):
         gkscopes = ['gk_{}'.format(r['id']) for r in self.list_by_owner(ownerid)]
