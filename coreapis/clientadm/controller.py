@@ -11,7 +11,7 @@ from coreapis.crud_base import CrudControllerBase
 from coreapis.scopes import is_gkscopename, has_gkscope_match
 from coreapis.scopes.manager import ScopesManager
 from coreapis.utils import (
-    LogWrapper, timestamp_adapter, public_userinfo, public_orginfo, ForbiddenError, valid_url,
+    LogWrapper, timestamp_adapter, ForbiddenError, valid_url,
     get_feideids, get_platform_admins)
 
 
@@ -29,14 +29,6 @@ def is_valid_uri(uri):
         return len(parsed.netloc) > 0
     else:
         return True
-
-
-def cache(data, key, fetch):
-    if key in data:
-        return data[key]
-    value = fetch(key)
-    data[key] = value
-    return value
 
 
 class ClientAdmController(CrudControllerBase):
@@ -74,11 +66,11 @@ class ClientAdmController(CrudControllerBase):
         contact_points = settings.get('cassandra_contact_points')
         keyspace = settings.get('cassandra_keyspace')
         maxrows = settings.get('clientadm_maxrows')
-        super(ClientAdmController, self).__init__(maxrows)
+        super(ClientAdmController, self).__init__(maxrows, 'client')
         self.session = cassandra_client.Client(contact_points, keyspace)
         platformadmins_file = settings.get('platformadmins_file')
         self.platformadmins = get_platform_admins(platformadmins_file)
-        self.scopemgr = ScopesManager(settings, self.session, self.get_public_client)
+        self.scopemgr = ScopesManager(settings, self.session, self.get_public_info)
         self.log = LogWrapper('clientadm.ClientAdmController')
 
     @staticmethod
@@ -122,7 +114,7 @@ class ClientAdmController(CrudControllerBase):
             selectors = ['orgauthorization contains key ?']
             values = [orgauthorization]
         clients = self._list(selectors, values, None)
-        return [self.get_public_client(c) for c in clients if c]
+        return [self.get_public_info(c) for c in clients if c]
 
     def has_permission(self, client, user):
         if self.is_platform_admin(user):
@@ -190,28 +182,6 @@ class ClientAdmController(CrudControllerBase):
     def _save_logo(self, clientid, data, updated):
         self.session.save_logo('clients', clientid, data, updated)
 
-    def get_public_client(self, client, users=None, orgs=None):
-        if users is None:
-            users = {}
-        if orgs is None:
-            orgs = {}
-        pubclient = {attr: client[attr] for attr in self.public_attrs}
-        try:
-            def get_user(userid):
-                return public_userinfo(self.session.get_user_by_id(userid))
-
-            def get_org(orgid):
-                return public_orginfo(self.session.get_org(orgid))
-            pubclient['owner'] = cache(users, client['owner'], get_user)
-            org = client.get('organization', None)
-            if org:
-                pubclient['organization'] = cache(orgs, org, get_org)
-        except KeyError:
-            self.log.warn('Client owner does not exist in users table',
-                          clientid=client['id'], userid=client['owner'])
-            return None
-        return pubclient
-
     # Return clients for each scope as dict { <scope>: set(clientids)}
     def get_scope_clients(self):
         res = {}
@@ -266,7 +236,7 @@ class ClientAdmController(CrudControllerBase):
         client = self.get(uuid.UUID(clientid))
         orgauthz = client.get('orgauthorization', {})
         scopeauthz = {scope: scope in orgauthz.get(realm, '[]') for scope in list(scopes)}
-        pubclient = self.get_public_client(client)
+        pubclient = self.get_public_info(client)
         pubclient['scopeauthorizations'] = scopeauthz
         return pubclient
 
@@ -275,7 +245,7 @@ class ClientAdmController(CrudControllerBase):
                 for k, v in self.get_realmclient_scopes(realm).items()]
 
     def get_gkscope_client(self, client, gkscopes, users=None, orgs=None):
-        gkclient = self.get_public_client(client, users, orgs)
+        gkclient = self.get_public_info(client, users, orgs)
         orgauthz = client['orgauthorization']
         if orgauthz:
             orgauthz = {k: json.loads(v) for k, v in orgauthz.items()}
@@ -357,4 +327,4 @@ class ClientAdmController(CrudControllerBase):
             uid, realm = feideid.split('@')
             for clientid in self.session.get_mandatory_clients(realm):
                 by_id[clientid] = self.session.get_client_by_id(clientid)
-        return [self.get_public_client(c) for c in by_id.values()]
+        return [self.get_public_info(c) for c in by_id.values()]

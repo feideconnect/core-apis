@@ -4,17 +4,26 @@ import uuid
 import valideer as V
 from PIL import Image
 
-from coreapis.utils import now, ValidationError, AlreadyExistsError, LogWrapper, get_feideids
+from coreapis.utils import now, ValidationError, AlreadyExistsError, LogWrapper, get_feideids, public_userinfo, public_orginfo
 
 LOGO_SIZE = 128, 128
+
+
+def cache(data, key, fetch):
+    if key in data:
+        return data[key]
+    value = fetch(key)
+    data[key] = value
+    return value
 
 
 class CrudControllerBase(object):
     schema = {}
 
-    def __init__(self, maxrows):
+    def __init__(self, maxrows, objtype="target"):
         self.maxrows = maxrows
         self.log = LogWrapper('crud_base')
+        self.objtype = objtype
 
     def validate(self, item):
         validator = V.parse(self.schema, additional_properties=False)
@@ -114,3 +123,26 @@ class CrudControllerBase(object):
 
     def is_admin(self, user, org):
         return self.is_platform_admin(user) or self.is_org_admin(user, org)
+
+    def get_public_info(self, target, users=None, orgs=None):
+        if users is None:
+            users = {}
+        if orgs is None:
+            orgs = {}
+        pubtarget = {attr: target[attr] for attr in self.public_attrs}
+        try:
+            def get_user(userid):
+                return public_userinfo(self.session.get_user_by_id(userid))
+
+            def get_org(orgid):
+                return public_orginfo(self.session.get_org(orgid))
+            pubtarget['owner'] = cache(users, target['owner'], get_user)
+            org = target.get('organization', None)
+            if org:
+                pubtarget['organization'] = cache(orgs, org, get_org)
+        except KeyError:
+            logdata = dict(userid=target['owner'])
+            logdata[self.objtype + 'id'] = target['id']
+            self.log.warn('{} owner does not exist in users table', **logdata)
+            return None
+        return pubtarget

@@ -90,7 +90,7 @@ def get_client(request):
         client = request.cadm_controller.get(clientid)
         if not request.cadm_controller.has_permission(client, user) or \
            (not request.has_permission('scope_clientadmin')):
-            return request.cadm_controller.get_public_client(client)
+            return request.cadm_controller.get_public_info(client)
     except KeyError:
         raise HTTPNotFound
     return client
