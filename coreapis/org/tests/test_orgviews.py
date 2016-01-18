@@ -27,9 +27,20 @@ testorg2 = {
 }
 
 
+PLATFORMADMIN = 'admin@example.com'
+
+
+def make_user(feideid):
+    return {
+        'userid_sec': ['feide:' + str(feideid)]
+    }
+
+
 class OrgViewTests(unittest.TestCase):
+    @mock.patch('coreapis.org.controller.get_platform_admins')
     @mock.patch('coreapis.middleware.cassandra_client.Client')
-    def setUp(self, Client):
+    def setUp(self, Client, gpa):
+        gpa.return_value = [PLATFORMADMIN]
         app = main({
             'statsd_server': 'localhost',
             'statsd_port': '8125',
@@ -103,21 +114,25 @@ class OrgViewTests(unittest.TestCase):
         self.session.get_org_logo.side_effect = KeyError
         self.testapp.get('/orgs/{}/logo'.format(testorg), status=404)
 
-    def test_list_mandatory_clients(self):
+    def _test_list_mandatory_clients(self, orgadmin, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session.is_org_admin.return_value = True
+        self.session.is_org_admin.return_value = orgadmin
         self.session.get_mandatory_clients.return_value = []
         self.session.get_org.return_value = testorg
-        res = self.testapp.get('/orgs/{}/mandatory_clients/'.format(testorg_id), status=200,
-                               headers=headers)
+        return self.testapp.get('/orgs/{}/mandatory_clients/'.format(testorg_id), status=httpstat,
+                                headers=headers)
+
+    def test_list_mandatory_clients(self):
+        res = self._test_list_mandatory_clients(True, 200)
         assert res.json == []
 
     def test_list_mandatory_clients_no_access(self):
-        headers = {'Authorization': 'Bearer user_token'}
-        self.session.is_org_admin.return_value = False
-        self.session.get_org.return_value = testorg
-        self.testapp.get('/orgs/{}/mandatory_clients/'.format(testorg_id), status=403,
-                         headers=headers)
+        self._test_list_mandatory_clients(False, 403)
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_list_mandatory_clients_platform_admin(self, get_user):
+        res = self._test_list_mandatory_clients(False, 200)
+        assert res.json == []
 
     def test_list_mandatory_clients_no_realm(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -126,13 +141,27 @@ class OrgViewTests(unittest.TestCase):
         self.testapp.get('/orgs/{}/mandatory_clients/'.format(testorg2_id), status=403,
                          headers=headers)
 
-    def test_add_mandatory_client(self):
+    def _test_add_mandatory_client(self, clientid, orgadmin, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session.is_org_admin.return_value = True
+        self.session.is_org_admin.return_value = orgadmin
         self.session.get_org.return_value = testorg
+        return self.testapp.post_json('/orgs/{}/mandatory_clients/'.format(testorg_id),
+                                      str(clientid), status=httpstat, headers=headers)
+
+    def test_add_mandatory_client(self):
         clientid = uuid.uuid4()
-        res = self.testapp.post_json('/orgs/{}/mandatory_clients/'.format(testorg_id),
-                                     str(clientid), status=201, headers=headers)
+        res = self._test_add_mandatory_client(clientid, True, 201)
+        self.session.add_mandatory_client.assert_called_with(testorg_realm, clientid)
+        assert res.json == str(clientid)
+
+    def test_add_mandatory_client_no_access(self):
+        clientid = uuid.uuid4()
+        self._test_add_mandatory_client(clientid, False, 403)
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_add_mandatory_client_platform_admin(self, get_user):
+        clientid = uuid.uuid4()
+        res = self._test_add_mandatory_client(clientid, False, 201)
         self.session.add_mandatory_client.assert_called_with(testorg_realm, clientid)
         assert res.json == str(clientid)
 
@@ -144,13 +173,26 @@ class OrgViewTests(unittest.TestCase):
         self.testapp.post_json('/orgs/{}/mandatory_clients/'.format(testorg_id),
                                str(clientid), status=400, headers=headers)
 
-    def test_del_mandatory_client(self):
+    def _test_del_mandatory_client(self, clientid, orgadmin, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session.is_org_admin.return_value = True
+        self.session.is_org_admin.return_value = orgadmin
         self.session.get_org.return_value = testorg
-        clientid = uuid.uuid4()
         self.testapp.delete('/orgs/{}/mandatory_clients/{}'.format(testorg_id, clientid),
-                            status=204, headers=headers)
+                            status=httpstat, headers=headers)
+
+    def test_del_mandatory_client(self):
+        clientid = uuid.uuid4()
+        self._test_del_mandatory_client(clientid, True, 204)
+        self.session.del_mandatory_client.assert_called_with(testorg_realm, clientid)
+
+    def test_del_mandatory_client_no_access(self):
+        clientid = uuid.uuid4()
+        self._test_del_mandatory_client(clientid, False, 403)
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_del_mandatory_client_platform_admin(self, get_user):
+        clientid = uuid.uuid4()
+        self._test_del_mandatory_client(clientid, False, 204)
         self.session.del_mandatory_client.assert_called_with(testorg_realm, clientid)
 
     def test_del_mandatory_client_malformed(self):
