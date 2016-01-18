@@ -25,28 +25,28 @@ class ScopesManager(object):
             if k.startswith(EMAIL_NOTIFICATIONS_CONFIG_KEY)
         })
 
-    def _add_scope_if_approved(self, client, scopedef, scope):
+    def _add_scope_if_approved(self, target, scopedef, scope):
         try:
             if scopedef['policy']['auto']:
                 self.log.debug('Accept scope', scope=scope)
-                client['scopes'].append(scope)
+                target['scopes'].append(scope)
         except KeyError:
             pass
 
-    def _handle_gksubscope_request(self, client, scope, subname, subscopes):
+    def _handle_gksubscope_request(self, target, scope, subname, subscopes):
         try:
             scopedef = subscopes[subname]
         except:
             raise ValidationError('invalid scope: {}'.format(scope))
-        self._add_scope_if_approved(client, scopedef, scope)
+        self._add_scope_if_approved(target, scopedef, scope)
 
-    def _handle_scope_request(self, client, scope):
+    def _handle_scope_request(self, target, scope):
         if is_gkscopename(scope):
-            self._handle_gkscope_request(client, scope)
+            self._handle_gkscope_request(target, scope)
         elif not scope in self.scopedefs:
             raise ValidationError('invalid scope: {}'.format(scope))
         else:
-            self._add_scope_if_approved(client, self.scopedefs[scope], scope)
+            self._add_scope_if_approved(target, self.scopedefs[scope], scope)
 
     def _get_gk_moderator(self, scope):
         apigk = self.scope_to_gk(scope)
@@ -78,18 +78,18 @@ class ScopesManager(object):
             ret[base].add(scope)
         return ret
 
-    def _notify_moderator(self, moderator, client, scopes):
+    def _notify_moderator(self, moderator, target, scopes):
         apigk = None
         first_scope = list(scopes)[0]
         if is_gkscopename(first_scope):
             apigk = self.scope_to_gk(first_scope)
-        notification = ScopeRequestNotification(self.get_public_info(client), scopes, apigk)
+        notification = ScopeRequestNotification(self.get_public_info(target), scopes, apigk)
         subject = notification.get_subject()
         body = notification.get_body()
         self.log.debug('notify_moderator', moderator=moderator, subject=subject)
         EmailNotifier(self.email_notification_settings).notify(moderator, subject, body)
 
-    def _handle_gkscope_request(self, client, scope):
+    def _handle_gkscope_request(self, target, scope):
         nameparts = scope.split('_')
         gkname = nameparts[1]
         try:
@@ -99,23 +99,23 @@ class ScopesManager(object):
                 scopedef = {}
         except:
             raise ValidationError('invalid scope: {}'.format(scope))
-        if str(apigk['owner']) == str(client['owner']):
-            client['scopes'].append(scope)
+        if str(apigk['owner']) == str(target['owner']):
+            target['scopes'].append(scope)
         elif len(nameparts) > 2:
             if 'subscopes' in scopedef:
                 subname = nameparts[2]
-                self._handle_gksubscope_request(client, scope, subname, scopedef['subscopes'])
+                self._handle_gksubscope_request(target, scope, subname, scopedef['subscopes'])
             else:
                 raise ValidationError('invalid scope: {}'.format(scope))
         else:
-            self._add_scope_if_approved(client, scopedef, scope)
+            self._add_scope_if_approved(target, scopedef, scope)
 
-    def notify_moderators(self, client):
-        modscopes = set(client['scopes_requested']).difference(set(client['scopes']))
+    def notify_moderators(self, target):
+        modscopes = set(target['scopes_requested']).difference(set(target['scopes']))
         for base, scopes in self._get_scopes_by_base(modscopes).items():
             mod = self._get_moderator(base)
             if mod and len(mod) > 0:
-                self._notify_moderator(mod, client, scopes)
+                self._notify_moderator(mod, target, scopes)
             else:
                 self.log.debug('No moderator address', base=base, mod=mod)
 
@@ -130,8 +130,8 @@ class ScopesManager(object):
     def list_public_scopes(self):
         return {k: v for k, v in self.scopedefs.items() if v.get('public', False)}
 
-    def handle_update(self, client):
-        client['scopes_requested'] = filter_missing_mainscope(client['scopes_requested'])
-        client['scopes'] = list(set(client['scopes']).intersection(set(client['scopes_requested'])))
-        for scope in set(client['scopes_requested']).difference(set(client['scopes'])):
-            self._handle_scope_request(client, scope)
+    def handle_update(self, target):
+        target['scopes_requested'] = filter_missing_mainscope(target['scopes_requested'])
+        target['scopes'] = list(set(target['scopes']).intersection(set(target['scopes_requested'])))
+        for scope in set(target['scopes_requested']).difference(set(target['scopes'])):
+            self._handle_scope_request(target, scope)
