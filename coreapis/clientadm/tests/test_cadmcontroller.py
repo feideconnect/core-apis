@@ -10,26 +10,6 @@ from coreapis.clientadm.tests.helper import (
     retrieved_user, date_created, mock_get_apigk, mock_get_clients_by_scope,
     mock_get_clients_by_scope_requested, baduris)
 
-# A few cases that aren't exercised from the clientadm view tests
-
-
-class TestFilterMissingMainscope(TestCase):
-    def test_empty(self):
-        assert controller.filter_missing_mainscope([]) == []
-
-    def test_no_gk_scopes(self):
-        assert controller.filter_missing_mainscope(['groups', 'userinfo']) == ['groups', 'userinfo']
-
-    def test_gk_just_mainscope(self):
-        assert controller.filter_missing_mainscope(['gk_foo']) == ['gk_foo']
-
-    def test_gk_main_and_subscope(self):
-        filter = ['gk_foo', 'gk_foo_bar']
-        assert controller.filter_missing_mainscope(filter) == filter
-
-    def test_gk_missing_mainscope(self):
-        assert controller.filter_missing_mainscope(['gk_foo_bar']) == []
-
 
 class TestController(TestCase):
     @mock.patch('coreapis.middleware.cassandra_client.Client')

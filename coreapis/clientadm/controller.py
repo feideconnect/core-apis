@@ -8,16 +8,16 @@ import valideer as V
 
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
+from coreapis.scopes import is_gkscopename, has_gkscope_match
+from coreapis.scopes.manager import ScopesManager
 from coreapis.utils import (
-    LogWrapper, timestamp_adapter, public_userinfo, public_orginfo, ValidationError, ForbiddenError,
-    valid_url, EmailNotifier, get_feideids, json_load, get_platform_admins)
-from .scope_request_notification import ScopeRequestNotification
+    LogWrapper, timestamp_adapter, public_userinfo, public_orginfo, ForbiddenError, valid_url,
+    get_feideids, get_platform_admins)
 
 
 USER_SETTABLE_STATUS_FLAGS = {'Public'}
 INVALID_URISCHEMES = {'data', 'javascript', 'file', 'about'}
 FEIDE_REALM_PREFIX = 'feide|realm|'
-EMAIL_NOTIFICATIONS_CONFIG_KEY = 'notifications.email.'
 
 
 def is_valid_uri(uri):
@@ -29,33 +29,6 @@ def is_valid_uri(uri):
         return len(parsed.netloc) > 0
     else:
         return True
-
-
-def get_scopedefs(filename):
-    return json_load(filename, fallback={})
-
-
-def is_gkscopename(name):
-    return name.startswith('gk_')
-
-
-def filter_missing_mainscope(scopes):
-    return [scope for scope in scopes if gk_mainscope(scope) in scopes]
-
-
-def gk_mainscope(name):
-    if not is_gkscopename(name):
-        return name
-    nameparts = name.split('_')
-    if len(nameparts) == 2:
-        return name
-    else:
-        return "_".join(nameparts[:2])
-
-
-def has_gkscope_match(scope, gkscopes):
-    return any(scope == gkscope or scope.startswith(gkscope + '_')
-               for gkscope in gkscopes)
 
 
 def cache(data, key, fetch):
@@ -100,22 +73,13 @@ class ClientAdmController(CrudControllerBase):
     def __init__(self, settings):
         contact_points = settings.get('cassandra_contact_points')
         keyspace = settings.get('cassandra_keyspace')
-        scopedefs_file = settings.get('clientadm_scopedefs_file')
         maxrows = settings.get('clientadm_maxrows')
-        system_moderator = settings.get('clientadm_system_moderator', '')
         super(ClientAdmController, self).__init__(maxrows)
         self.session = cassandra_client.Client(contact_points, keyspace)
         platformadmins_file = settings.get('platformadmins_file')
         self.platformadmins = get_platform_admins(platformadmins_file)
+        self.scopemgr = ScopesManager(settings, self.session, self.get_public_client)
         self.log = LogWrapper('clientadm.ClientAdmController')
-        self.scopedefs = get_scopedefs(scopedefs_file)
-        self.system_moderator = system_moderator
-        self.email_notification_settings = {'enabled': False}
-        self.email_notification_settings.update({
-            '.'.join(k.split('.')[2:]): v
-            for k, v in settings.items()
-            if k.startswith(EMAIL_NOTIFICATIONS_CONFIG_KEY)
-        })
 
     @staticmethod
     def adapt_client(client):
@@ -177,50 +141,6 @@ class ClientAdmController(CrudControllerBase):
         self.log.debug('Get client', clientid=clientid)
         return self.adapt_client(self.session.get_client_by_id(clientid))
 
-    def add_scope_if_approved(self, client, scopedef, scope):
-        try:
-            if scopedef['policy']['auto']:
-                self.log.debug('Accept scope', scope=scope)
-                client['scopes'].append(scope)
-        except KeyError:
-            pass
-
-    def handle_gksubscope_request(self, client, scope, subname, subscopes):
-        try:
-            scopedef = subscopes[subname]
-        except:
-            raise ValidationError('invalid scope: {}'.format(scope))
-        self.add_scope_if_approved(client, scopedef, scope)
-
-    def handle_gkscope_request(self, client, scope):
-        nameparts = scope.split('_')
-        gkname = nameparts[1]
-        try:
-            apigk = self.session.get_apigk(gkname)
-            scopedef = apigk.get('scopedef', {})
-            if not scopedef:
-                scopedef = {}
-        except:
-            raise ValidationError('invalid scope: {}'.format(scope))
-        if str(apigk['owner']) == str(client['owner']):
-            client['scopes'].append(scope)
-        elif len(nameparts) > 2:
-            if 'subscopes' in scopedef:
-                subname = nameparts[2]
-                self.handle_gksubscope_request(client, scope, subname, scopedef['subscopes'])
-            else:
-                raise ValidationError('invalid scope: {}'.format(scope))
-        else:
-            self.add_scope_if_approved(client, scopedef, scope)
-
-    def handle_scope_request(self, client, scope):
-        if is_gkscopename(scope):
-            self.handle_gkscope_request(client, scope)
-        elif not scope in self.scopedefs:
-            raise ValidationError('invalid scope: {}'.format(scope))
-        else:
-            self.add_scope_if_approved(client, self.scopedefs[scope], scope)
-
     def insert_client(self, client):
         sessclient = deepcopy(client)
         orgauthz = sessclient.get('orgauthorization', None)
@@ -229,65 +149,12 @@ class ClientAdmController(CrudControllerBase):
                 orgauthz[k] = json.dumps(v)
         self.session.insert_client(sessclient)
 
-    def get_gk_moderator(self, scope):
-        apigk = self.scope_to_gk(scope)
-        owner = self.session.get_user_by_id(apigk['owner'])
-        try:
-            return list(owner['email'].values())[0]
-        except (AttributeError, IndexError):
-            return None
-
-    def get_moderator(self, scope):
-        if is_gkscopename(scope):
-            return self.get_gk_moderator(scope)
-        else:
-            return self.system_moderator
-
-    # Group scopes by apigk, with a separate bucket for built-in scopes
-    # Example:
-    # {'system': {systemscopes},
-    #  'gk_foo': {'gk_foo', gk_foo_bar'},
-    #  'gk_baz': {'gk_baz1}}
-    def get_scopes_by_base(self, modscopes):
-        ret = {}
-        for scope in modscopes:
-            if is_gkscopename(scope):
-                base = gk_mainscope(scope)
-            else:
-                base = 'system'
-            ret[base] = ret.get(base, set())
-            ret[base].add(scope)
-        return ret
-
-    def notify_moderator(self, moderator, client, scopes):
-        apigk = None
-        first_scope = list(scopes)[0]
-        if is_gkscopename(first_scope):
-            apigk = self.scope_to_gk(first_scope)
-        notification = ScopeRequestNotification(self.get_public_client(client), scopes, apigk)
-        subject = notification.get_subject()
-        body = notification.get_body()
-        self.log.debug('notify_moderator', moderator=moderator, subject=subject)
-        EmailNotifier(self.email_notification_settings).notify(moderator, subject, body)
-
-    def notify_moderators(self, client):
-        modscopes = set(client['scopes_requested']).difference(set(client['scopes']))
-        for base, scopes in self.get_scopes_by_base(modscopes).items():
-            mod = self.get_moderator(base)
-            if mod and len(mod) > 0:
-                self.notify_moderator(mod, client, scopes)
-            else:
-                self.log.debug('No moderator address', base=base, mod=mod)
-
     # Used both for add and update.
     # By default CQL does not distinguish between INSERT and UPDATE
     def _insert(self, client):
-        client['scopes_requested'] = filter_missing_mainscope(client['scopes_requested'])
-        client['scopes'] = list(set(client['scopes']).intersection(set(client['scopes_requested'])))
-        for scope in set(client['scopes_requested']).difference(set(client['scopes'])):
-            self.handle_scope_request(client, scope)
+        self.scopemgr.handle_update(client)
         self.insert_client(client)
-        self.notify_moderators(client)
+        self.scopemgr.notify_moderators(client)
         return client
 
     @staticmethod
@@ -311,9 +178,6 @@ class ClientAdmController(CrudControllerBase):
         client = self.get(itemid)
         self.filter_client_status(attrs, client)
         client = self.validate_update(itemid, attrs)
-        for scope in client['scopes_requested']:
-            if not scope in client['scopes']:
-                self.handle_scope_request(client, scope)
         return self._insert(client)
 
     def delete(self, clientid):
@@ -438,20 +302,12 @@ class ClientAdmController(CrudControllerBase):
 
     def list_public_scopes(self):
         self.log.debug('List public scopes')
-        return {k: v for k, v in self.scopedefs.items() if v.get('public', False)}
-
-    def scope_to_gk(self, scopename):
-        try:
-            nameparts = scopename.split('_')
-            gkname = nameparts[1]
-            return self.session.get_apigk(gkname)
-        except KeyError:
-            return None
+        return self.scopemgr.list_public_scopes()
 
     def validate_gkscope(self, user, scope):
         if not is_gkscopename(scope):
             raise ForbiddenError('{} is not an API Gatekeeper'.format(scope))
-        gk = self.scope_to_gk(scope)
+        gk = self.scopemgr.scope_to_gk(scope)
         if not gk or not self.has_permission(gk, user):
             raise ForbiddenError('User does not have access to manage API Gatekeeper')
 
