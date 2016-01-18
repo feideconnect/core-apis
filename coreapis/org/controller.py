@@ -4,7 +4,7 @@ import ssl
 import ldap3
 #import ldap3.ssl
 
-from coreapis.utils import LogWrapper, get_feideid
+from coreapis.utils import LogWrapper, get_feideid, get_platform_admins
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.clientadm.controller import ClientAdmController
@@ -31,6 +31,8 @@ class OrgController(CrudControllerBase):
         self.cadm_controller = ClientAdmController(settings)
         self.ldap_config = json.load(open(ldap_config))
         self.ldap_certs = settings.get('ldap_ca_certs', None)
+        platformadmins_file = settings.get('platformadmins_file')
+        self.platformadmins = get_platform_admins(platformadmins_file)
 
     def format_org(self, org):
         has_ldapgroups = False
@@ -97,7 +99,7 @@ class OrgController(CrudControllerBase):
         self.session.del_mandatory_client(realm, clientid)
 
     def has_permission(self, user, orgid):
-        if user is None or not self.is_org_admin(user, orgid):
+        if user is None or not self.is_admin(user, orgid):
             return False
         org = self.session.get_org(orgid)
         if not org['realm']:
