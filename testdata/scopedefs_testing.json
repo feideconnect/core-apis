@@ -22,5 +22,14 @@
 		"policy": {
 			"auto": false
 		}
-	}
+	},
+    "openid": {
+		"title": "Openid connect",
+		"descr": "Fuu",
+		"public": true,
+		"policy": {
+			"auto": true
+		},
+        "client_only": true
+    }
 }

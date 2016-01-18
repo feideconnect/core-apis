@@ -11,7 +11,7 @@ from coreapis.utils import LogWrapper, now, translatable
 
 
 def parse_apigk(obj):
-    for key in ('expose', 'scopedef', 'trust'):
+    for key in ('scopedef', 'trust'):
         if key in obj:
             if obj[key]:
                 obj[key] = json.loads(obj[key])
@@ -55,8 +55,9 @@ class Client(object):
                 'authoptions'],
             'apigk': [
                 'id', 'requireuser', 'created', 'name', 'scopedef', 'httpscertpinned',
-                'status', 'descr', 'expose', 'updated', 'trust', 'endpoints', 'owner',
-                'organization', 'systemdescr', 'privacypolicyurl', 'docurl'],
+                'status', 'descr', 'updated', 'trust', 'endpoints', 'owner',
+                'organization', 'systemdescr', 'privacypolicyurl', 'docurl',
+                'scopes', 'scopes_requested'],
             'groups': [
                 'id', 'created', 'descr', 'name', 'owner', 'public', 'updated',
                 'invitation_token'],
@@ -68,7 +69,7 @@ class Client(object):
         }
         self.json_columns = {
             'clients': ['authoptions'],
-            'apigk': ['expose', 'scopedef', 'trust']
+            'apigk': ['scopedef', 'trust']
         }
         self.session = cluster.connect(keyspace)
         self.session.row_factory = datetime_hack_dict_factory

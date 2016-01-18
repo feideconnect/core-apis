@@ -6,6 +6,7 @@ import valideer as V
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.clientadm.controller import ClientAdmController
+from coreapis.scopes.manager import ScopesManager
 from coreapis.utils import LogWrapper, timestamp_adapter, log_token, valid_url, get_platform_admins
 
 
@@ -21,6 +22,7 @@ class APIGKAdmController(CrudControllerBase):
         'owner': V.AdaptTo(uuid.UUID),
         'organization': V.Nullable('string'),
         '+id': re.compile('^[a-z][a-z0-9\-]{2,14}$'),
+        '+scopes_requested':  V.HomogeneousSequence(item_schema='string', min_length=1),
         'created': V.AdaptBy(timestamp_adapter),
         'descr': V.Nullable('string'),
         'status': V.Nullable(['string']),
@@ -28,13 +30,6 @@ class APIGKAdmController(CrudControllerBase):
         '+endpoints': V.HomogeneousSequence(valid_gk_url, min_length=1),
         '+requireuser': 'boolean',
         'httpscertpinned': V.Nullable('string'),
-        'expose': {
-            'clientid': 'boolean',
-            'userid': 'boolean',
-            'scopes': 'boolean',
-            'groups': 'boolean',
-            'userid-sec': V.AnyOf('boolean', ['string']),
-        },
         'scopedef': V.Nullable({}),
         '+trust': {
             '+type': 'string',
@@ -45,6 +40,7 @@ class APIGKAdmController(CrudControllerBase):
         'systemdescr': V.Nullable('string'),
         'privacypolicyurl': V.Nullable(valid_url),
         'docurl': V.Nullable(valid_url),
+        'scopes': V.Nullable(['string'], lambda: list()),
     }
     public_attrs = ['id', 'name', 'descr', 'scopedef', 'systemdescr', 'privacypolicyurl', 'docurl']
 
@@ -57,6 +53,7 @@ class APIGKAdmController(CrudControllerBase):
         platformadmins_file = settings.get('platformadmins_file')
         self.platformadmins = get_platform_admins(platformadmins_file)
         self.log = LogWrapper('apigkadm.APIGKAdmController')
+        self.scopemgr = ScopesManager(settings, self.session, self.get_public_info, True)
         self.cadm_controller = ClientAdmController(settings)
 
     def has_permission(self, apigk, user):
@@ -124,8 +121,13 @@ class APIGKAdmController(CrudControllerBase):
         values = [organization]
         return self.session.get_apigks(selectors, values, self.maxrows)
 
+    # Used both for add and update.
+    # By default CQL does not distinguish between INSERT and UPDATE
     def _insert(self, apigk):
+        self.scopemgr.handle_update(apigk)
         return self.session.insert_apigk(apigk)
+        self.scopemgr.notify_moderators(apigk)
+        return apigk
 
     def get_logo(self, gkid):
         return self.session.get_apigk_logo(gkid)

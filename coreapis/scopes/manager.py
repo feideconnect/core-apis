@@ -10,7 +10,7 @@ def get_scopedefs(filename):
 
 
 class ScopesManager(object):
-    def __init__(self, settings, session, get_public_info):
+    def __init__(self, settings, session, get_public_info, for_apigk):
         self.log = LogWrapper('scopes.ScopesManager')
         scopedefs_file = settings.get('clientadm_scopedefs_file')
         system_moderator = settings.get('clientadm_system_moderator', '')
@@ -24,6 +24,7 @@ class ScopesManager(object):
             for k, v in settings.items()
             if k.startswith(EMAIL_NOTIFICATIONS_CONFIG_KEY)
         })
+        self.for_apigk = for_apigk
 
     def _add_scope_if_approved(self, target, scopedef, scope):
         try:
@@ -110,6 +111,11 @@ class ScopesManager(object):
         else:
             self._add_scope_if_approved(target, scopedef, scope)
 
+    def _scope_allowed_for_apigk(self, scope):
+        if is_gkscopename(scope):
+            return False
+        return not self.scopedefs.get(scope, {}).get('client_only', False)
+
     def notify_moderators(self, target):
         modscopes = set(target['scopes_requested']).difference(set(target['scopes']))
         for base, scopes in self._get_scopes_by_base(modscopes).items():
@@ -131,7 +137,11 @@ class ScopesManager(object):
         return {k: v for k, v in self.scopedefs.items() if v.get('public', False)}
 
     def handle_update(self, target):
-        target['scopes_requested'] = filter_missing_mainscope(target['scopes_requested'])
+        if self.for_apigk:
+            target['scopes_requested'] = [scope for scope in target['scopes_requested']
+                                          if self._scope_allowed_for_apigk(scope)]
+        else:
+            target['scopes_requested'] = filter_missing_mainscope(target['scopes_requested'])
         target['scopes'] = list(set(target['scopes']).intersection(set(target['scopes_requested'])))
         for scope in set(target['scopes_requested']).difference(set(target['scopes'])):
             self._handle_scope_request(target, scope)

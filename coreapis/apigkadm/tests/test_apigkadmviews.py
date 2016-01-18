@@ -29,7 +29,7 @@ class APIGKAdmTests(unittest.TestCase):
             'oauth_realm': 'test realm',
             'cassandra_contact_points': '',
             'cassandra_keyspace': 'notused',
-        }, enabled_components='apigkadm', apigkadm_maxrows=100)
+        }, enabled_components='apigkadm', apigkadm_maxrows=100, clientadm_scopedefs_file='testdata/scopedefs_testing.json',)
         mw = middleware.MockAuthMiddleware(app, 'test realm')
         self.session = Client
         self.testapp = TestApp(mw)
@@ -265,7 +265,34 @@ class APIGKAdmTests(unittest.TestCase):
     def test_update_no_change(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_apigk.return_value = deepcopy(pre_update)
-        res = self.testapp.patch_json('/apigkadm/apigks/updatable', {}, status=200, headers=headers)
+        val = self.testapp.get('/apigkadm/apigks/updatable', status=200, headers=headers).json
+        res = self.testapp.patch_json('/apigkadm/apigks/updatable', val, status=200, headers=headers)
+        updated = res.json
+        expected = json_normalize(pre_update)
+        assert updated['updated'] > expected['updated']
+        del updated['updated']
+        del expected['updated']
+        assert updated == expected
+
+    def test_update_clientonly_scope(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().get_apigk.return_value = deepcopy(pre_update)
+        val = self.testapp.get('/apigkadm/apigks/updatable', status=200, headers=headers).json
+        val['scopes_requested'].append('openid')
+        res = self.testapp.patch_json('/apigkadm/apigks/updatable', val, status=200, headers=headers)
+        updated = res.json
+        expected = json_normalize(pre_update)
+        assert updated['updated'] > expected['updated']
+        del updated['updated']
+        del expected['updated']
+        assert updated == expected
+
+    def test_update_api_scope(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().get_apigk.return_value = deepcopy(pre_update)
+        val = self.testapp.get('/apigkadm/apigks/updatable', status=200, headers=headers).json
+        val['scopes_requested'].append('gk_someapi')
+        res = self.testapp.patch_json('/apigkadm/apigks/updatable', val, status=200, headers=headers)
         updated = res.json
         expected = json_normalize(pre_update)
         assert updated['updated'] > expected['updated']

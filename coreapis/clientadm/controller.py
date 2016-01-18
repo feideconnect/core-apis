@@ -70,7 +70,7 @@ class ClientAdmController(CrudControllerBase):
         self.session = cassandra_client.Client(contact_points, keyspace)
         platformadmins_file = settings.get('platformadmins_file')
         self.platformadmins = get_platform_admins(platformadmins_file)
-        self.scopemgr = ScopesManager(settings, self.session, self.get_public_info)
+        self.scopemgr = ScopesManager(settings, self.session, self.get_public_info, False)
         self.log = LogWrapper('clientadm.ClientAdmController')
 
     @staticmethod

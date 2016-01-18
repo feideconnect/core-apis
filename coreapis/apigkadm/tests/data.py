@@ -13,6 +13,7 @@ post_body_minimal = {
         'username': 'username',
         'password': 'secrit',
     },
+    'scopes_requested': ['userinfo'],
 }
 
 post_body_maximal = {
@@ -25,13 +26,6 @@ post_body_maximal = {
     'endpoints': ['https://foo.com', 'https://ugle.org:5000'],
     'requireuser': True,
     'httpscertpinned': '',
-    'expose': {
-        'userid': True,
-        'clientid': True,
-        'scopes': True,
-        'groups': False,
-        'userid-sec': ['feide'],
-    },
     'scopedef': {},
     'trust': {
         'type': 'basic',
@@ -40,7 +34,8 @@ post_body_maximal = {
     },
     'systemdescr': 'Awesome!',
     'privacypolicyurl': 'http://www.seoghor.no',
-    'docurl': 'http://la.wikipedia.org'
+    'docurl': 'http://la.wikipedia.org',
+    'scopes_requested': ['userinfo'],
 }
 
 
@@ -52,8 +47,6 @@ pre_update = {
     "updated": parse_datetime("2015-01-26T16:05:59Z"),
     "created": parse_datetime("2015-01-23T13:50:09Z"),
     "id": "updateable",
-    "expose": {
-    },
     "owner": uuid.UUID("00000000-0000-0000-0000-000000000001"),
     "trust": {
         "token": "abcderf",
@@ -68,4 +61,6 @@ pre_update = {
     "systemdescr": None,
     "privacypolicyurl": None,
     "docurl": None,
+    "scopes": ['userinfo'],
+    "scopes_requested": ['userinfo'],
 }
