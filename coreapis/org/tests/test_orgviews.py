@@ -25,6 +25,7 @@ testorg2 = {
     'name': {'nb': 'testorganisasjon 2',
              'en': 'test organization 2', },
 }
+testservice = 'pilot'
 
 
 PLATFORMADMIN = 'admin@example.com'
@@ -202,3 +203,66 @@ class OrgViewTests(unittest.TestCase):
         clientid = "foo"
         self.testapp.delete('/orgs/{}/mandatory_clients/{}'.format(testorg_id, clientid),
                             status=404, headers=headers)
+
+    def _test_list_services(self, orgadmin, httpstat):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.is_org_admin.return_value = orgadmin
+        self.session.get_services.return_value = []
+        self.session.get_org.return_value = testorg
+        return self.testapp.get('/orgs/{}/services/'.format(testorg_id), status=httpstat,
+                                headers=headers)
+
+    def test_list_services(self):
+        res = self._test_list_services(True, 200)
+        assert res.json == []
+
+    def test_list_services_no_access(self):
+        self._test_list_services(False, 403)
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_list_services_platform_admin(self, get_user):
+        res = self._test_list_services(False, 200)
+        assert res.json == []
+
+    def _test_add_service(self, service, httpstat):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.is_org_admin.return_value = True
+        self.session.get_org.return_value = testorg
+        return self.testapp.post_json('/orgs/{}/services/'.format(testorg_id),
+                                      service, status=httpstat, headers=headers)
+
+    def test_add_service_org_admin(self):
+        self._test_add_service(testservice, 403)
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_add_service_platform_admin(self, get_user):
+        res = self._test_add_service(testservice, 201)
+        services = set()
+        services.add(testservice)
+        self.session.add_services.assert_called_with(testorg_id, services)
+        assert res.json == str(testservice)
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_add_unknown_service(self, get_user):
+        self._test_add_service("foo", 400)
+
+    def _test_del_service(self, service, httpstat):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.is_org_admin.return_value = True
+        self.session.get_org.return_value = testorg
+        self.testapp.delete('/orgs/{}/services/{}'.format(testorg_id, service),
+                            status=httpstat, headers=headers)
+
+    def test_del_service_org_admin(self):
+        self._test_del_service(testservice, 403)
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_del_service_platform_admin(self, get_user):
+        self._test_del_service(testservice, 204)
+        services = set()
+        services.add(testservice)
+        self.session.del_services.assert_called_with(testorg_id, services)
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_del_unknown_service(self, get_user):
+        self._test_del_service("foo", 400)
