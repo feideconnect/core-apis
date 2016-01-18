@@ -453,6 +453,16 @@ class Client(object):
         prep = self._prepare('DELETE FROM mandatory_clients WHERE realm = ? AND clientid = ?')
         return self.session.execute(prep.bind([realm, clientid]))
 
+    def add_services(self, org, services):
+        stmt = 'UPDATE organizations set services = services + ? WHERE id = ?'
+        prep = self._prepare(stmt)
+        return self.session.execute(prep.bind([services, org]))
+
+    def del_services(self, org, services):
+        stmt = 'UPDATE organizations set services = services - ? WHERE id = ?'
+        prep = self._prepare(stmt)
+        return self.session.execute(prep.bind([services, org]))
+
     def get_roles(self, selectors, values, maxrows):
         return self.get_generic('roles', selectors, values, maxrows)
 

@@ -98,13 +98,39 @@ class OrgController(CrudControllerBase):
                       user=get_feideid(user))
         self.session.del_mandatory_client(realm, clientid)
 
-    def has_permission(self, user, orgid):
+    def list_services(self, orgid):
+        org = self.session.get_org(orgid)
+        services = org.get('services', [])
+        if services is None:
+            services = []
+        return list(services)
+
+    def add_service(self, user, orgid, service):
+        self.log.info('enabling service for organization',
+                      audit=True, orgid=orgid, service=service,
+                      user=get_feideid(user))
+        services = set()
+        services.add(service)
+        self.session.add_services(orgid, services)
+
+    def del_service(self, user, orgid, service):
+        self.log.info('disabling service for organization',
+                      audit=True, orgid=orgid, service=service,
+                      user=get_feideid(user))
+        services = set()
+        services.add(service)
+        self.session.del_services(orgid, services)
+
+    def has_permission(self, user, orgid, as_platform_admin):
         if user is None or not self.is_admin(user, orgid):
             return False
         org = self.session.get_org(orgid)
         if not org['realm']:
             return False
-        return True
+        if as_platform_admin:
+            return self.is_platform_admin(user)
+        else:
+            return True
 
     def ldap_status(self, user, orgid):
         org = self.session.get_org(orgid)

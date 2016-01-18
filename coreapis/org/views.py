@@ -8,6 +8,11 @@ from .controller import OrgController
 from coreapis.utils import now, get_user, get_payload, ValidationError, translation
 
 
+def valid_service(service):
+    valid_services = ['auth', 'avtale', 'pilot']
+    return service in valid_services
+
+
 def configure(config):
     org_controller = OrgController(config.get_settings())
     config.add_settings(org_controller=org_controller)
@@ -21,6 +26,8 @@ def configure(config):
     config.add_route('org_logo', '/{id}/logo')
     config.add_route('org_mandatory_clients', '/{id}/mandatory_clients/')
     config.add_route('org_mandatory_client', '/{id}/mandatory_clients/{clientid}')
+    config.add_route('org_services', '/{id}/services/')
+    config.add_route('org_service', '/{id}/services/{service}')
     config.add_route('org_ldap_status', '/{id}/ldap_status')
     config.scan(__name__)
 
@@ -79,10 +86,10 @@ def org_logo(request):
     return org_logo_v1(request)
 
 
-def check(request):
+def check(request, as_platform_admin):
     orgid = request.matchdict['id']
     user = get_user(request)
-    if not request.org_controller.has_permission(user, orgid):
+    if not request.org_controller.has_permission(user, orgid, as_platform_admin):
         raise HTTPForbidden('Insufficient priviledges')
     return orgid
 
@@ -90,7 +97,7 @@ def check(request):
 @view_config(route_name='org_mandatory_clients', request_method="GET",
              permission='scope_orgadmin', renderer="json")
 def list_mandatory_clients(request):
-    orgid = check(request)
+    orgid = check(request, False)
     return request.org_controller.list_mandatory_clients(orgid)
 
 
@@ -98,7 +105,7 @@ def list_mandatory_clients(request):
              request_method='POST', renderer="json")
 def add_mandatory_clients(request):
     user = get_user(request)
-    orgid = check(request)
+    orgid = check(request, False)
     payload = get_payload(request)
     try:
         clientid = uuid.UUID(payload)
@@ -115,13 +122,46 @@ def add_mandatory_clients(request):
              request_method='DELETE', renderer="json")
 def del_mandatory_clients(request):
     user = get_user(request)
-    orgid = check(request)
+    orgid = check(request, False)
     clientid = request.matchdict['clientid']
     try:
         clientid = uuid.UUID(clientid)
     except ValueError:
         raise HTTPNotFound('invalid client id')
     request.org_controller.del_mandatory_client(user, orgid, clientid)
+    return Response(status='204 No Content', content_type=False)
+
+
+@view_config(route_name='org_services', request_method="GET",
+             permission='scope_orgadmin', renderer="json")
+def list_services(request):
+    orgid = check(request, False)
+    return request.org_controller.list_services(orgid)
+
+
+@view_config(route_name='org_services', request_method='POST', renderer="json")
+def add_service(request):
+    user = get_user(request)
+    orgid = check(request, True)
+    service = get_payload(request)
+    if not valid_service(service):
+        raise ValidationError('playload must be a valid service')
+    request.org_controller.add_service(user, orgid, service)
+    request.response.status = 201
+    request.response.location = request.route_path('org_service', id=orgid,
+                                                   service=service)
+    return service
+
+
+@view_config(route_name='org_service', permission='scope_orgadmin',
+             request_method='DELETE', renderer="json")
+def del_service(request):
+    user = get_user(request)
+    orgid = check(request, True)
+    service = request.matchdict['service']
+    if not valid_service(service):
+        raise ValidationError('not a valid service')
+    request.org_controller.del_service(user, orgid, service)
     return Response(status='204 No Content', content_type=False)
 
 
