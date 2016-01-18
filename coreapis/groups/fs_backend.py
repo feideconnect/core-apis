@@ -1,7 +1,8 @@
 import functools
 
+import eventlet
 from eventlet.greenpool import GreenPool
-import requests
+requests = eventlet.import_patched('requests')
 
 from coreapis.utils import LogWrapper, get_feideids, failsafe, translatable, parse_datetime
 from coreapis.cache import Cache
