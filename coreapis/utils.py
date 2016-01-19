@@ -16,6 +16,7 @@ from urllib.parse import urlparse
 import uuid
 
 import blist
+import cassandra.util
 import statsd
 import pytz
 from aniso8601 import parse_datetime
@@ -57,6 +58,8 @@ class CustomEncoder(json.JSONEncoder):
         if isinstance(obj, uuid.UUID):
             return str(obj)
         if isinstance(obj, blist.sortedset):
+            return list(obj)
+        if isinstance(obj, cassandra.util.SortedSet):
             return list(obj)
         if isinstance(obj, set):
             return list(obj)

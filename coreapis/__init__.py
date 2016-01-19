@@ -5,6 +5,7 @@ import blist
 from eventlet.pools import Pool as EventletPool
 from pyramid.config import Configurator
 import pyramid.renderers
+import cassandra.util
 
 from .aaa import TokenAuthenticationPolicy, TokenAuthorizationPolicy
 from .utils import Timer, format_datetime, ResourcePool
@@ -71,5 +72,6 @@ def main(global_config, **settings):
     json_renderer.add_adapter(datetime.datetime, lambda x, y: format_datetime(x))
     json_renderer.add_adapter(blist.sortedset, lambda x, y: list(x))
     json_renderer.add_adapter(uuid.UUID, lambda x, y: str(x))
+    json_renderer.add_adapter(cassandra.util.SortedSet, lambda x, y: list(x))
     config.add_renderer('json', json_renderer)
     return config.make_wsgi_app()
