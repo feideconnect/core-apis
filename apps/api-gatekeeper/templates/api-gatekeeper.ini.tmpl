@@ -25,7 +25,7 @@ enabled_components = gk
 pipeline =
          logmiddleware
          corsmiddleware
-         cassandramiddleware
+         gkmiddleware
          coreapis
 # By default, the toolbar only appears for clients from IP addresses
 # '127.0.0.1' and '::1'.
@@ -80,8 +80,8 @@ class = coreapis.utils.DebugLogFormatter
 [filter:mockauthmiddleware]
 use = egg:core-apis#mockauthmiddleware
 
-[filter:cassandramiddleware]
-use = egg:core-apis#cassandramiddleware
+[filter:gkmiddleware]
+use = egg:core-apis#gkmiddleware
 client_max_share = {{getv "/fc/ratelimit/maxshare"}}
 client_max_rate = {{getv "/fc/ratelimit/maxrate"}}
 client_max_burst_size= {{getv "/fc/ratelimit/maxburstsize"}}
