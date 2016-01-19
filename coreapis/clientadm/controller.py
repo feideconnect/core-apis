@@ -324,7 +324,7 @@ class ClientAdmController(CrudControllerBase):
         by_id = {c['id']: c for c in self._list(selectors, values, None)}
         for feideid in get_feideids(user):
             print(feideid)
-            uid, realm = feideid.split('@')
+            _, realm = feideid.split('@')
             for clientid in self.session.get_mandatory_clients(realm):
                 by_id[clientid] = self.session.get_client_by_id(clientid)
         return [self.get_public_info(c) for c in by_id.values()]
