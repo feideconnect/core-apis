@@ -82,9 +82,16 @@ class Client(object):
         self.prepared[query] = prep
         return prep
 
-    def _default_get(self, table):
-        stmt = 'SELECT {} FROM {} WHERE id = ?'.format(','.join(self.default_columns[table]), table)
-        return self._prepare(stmt)
+    def _get(self, table, idv, columns=None, idcolumn='id'):
+        if columns is None:
+            columns = self.default_columns[table]
+        stmt = 'SELECT {} FROM {} WHERE {} = ?'.format(','.join(columns), table, idcolumn)
+        prep = self._prepare(stmt)
+        res = self.session.execute(prep.bind([idv]))
+        try:
+            return next(iter(res))
+        except StopIteration:
+            raise KeyError('{} entry not found'.format(table))
 
     @staticmethod
     def val_to_store(client, colname, jsoncols):
@@ -107,11 +114,7 @@ class Client(object):
         self.insert_generic(client, 'clients')
 
     def get_client_by_id(self, clientid):
-        prep = self._default_get('clients')
-        res = self.session.execute(prep.bind([clientid]))
-        if len(res) == 0:
-            raise KeyError('No such client')
-        return res[0]
+        return self._get('clients', clientid)
 
     def get_generic(self, table, selectors, values, maxrows):
         if len(selectors) != len(values):
@@ -164,11 +167,7 @@ class Client(object):
         self.session.execute(prep.bind([realm, clientid]))
 
     def get_token(self, tokenid):
-        prep = self._prepare('SELECT * FROM oauth_tokens WHERE access_token = ?')
-        res = self.session.execute(prep.bind([tokenid]))
-        if len(res) == 0:
-            raise KeyError('No such token')
-        return res[0]
+        return self._get('oauth_tokens', tokenid, ['*'], 'access_token')
 
     def get_tokens_by_scope(self, scope):
         prep = self._prepare('SELECT * FROM oauth_tokens WHERE scope contains ?')
@@ -179,18 +178,13 @@ class Client(object):
         return self.session.execute(prep.bind([scopes, access_token]))
 
     def get_user_by_id(self, userid):
-        prep = self._prepare('SELECT userid, aboveagelimit, created, email, name, selectedsource, updated, usageterms, userid_sec, userid_sec_seen FROM users WHERE userid = ?')
-        res = self.session.execute(prep.bind([userid]))
-        if len(res) == 0:
-            raise KeyError('No such user')
-        return res[0]
+        return self._get('users', userid,
+                                 ['userid', 'aboveagelimit', 'created', 'email', 'name', 'selectedsource', 'updated', 'usageterms', 'userid_sec', 'userid_sec_seen'],
+                                 'userid')
 
     def get_user_profilephoto(self, userid):
-        prep = self._prepare('SELECT selectedsource, profilephoto, updated from users where userid = ?')
-        res = self.session.execute(prep.bind([userid]))
-        if len(res) == 0:
-            raise KeyError('No such user')
-        userinfo = res[0]
+        userinfo = self._get('users', userid,
+                                     ['selectedsource', 'profilephoto', 'updated'], 'userid')
         selectedsource = userinfo['selectedsource']
         profilephoto = userinfo['profilephoto']
         updated = userinfo['updated']
@@ -227,22 +221,10 @@ class Client(object):
         ]))
 
     def get_userid_by_userid_sec(self, sec):
-        prep = self._prepare('SELECT userid from userid_sec where userid_sec = ?')
-        res = self.session.execute(prep.bind([sec]))
-        if len(res) == 0:
-            raise KeyError('No such user')
-        if len(res) > 1:
-            raise RuntimeError('inconsistent database')
-        return res[0]['userid']
+        return self._get('userid_sec', sec, ['userid'], 'userid_sec')['userid']
 
     def get_apigk(self, id):
-        prep = self._default_get('apigk')
-        res = self.session.execute(prep.bind([id]))
-        if len(res) == 0:
-            raise KeyError('No such apigk')
-        apigk = res[0]
-        parse_apigk(apigk)
-        return apigk
+        return parse_apigk(self._get('apigk', id))
 
     def get_apigks(self, selectors, values, maxrows):
         return [parse_apigk(gk) for gk in self.get_generic('apigk', selectors, values, maxrows)]
@@ -254,19 +236,15 @@ class Client(object):
     def insert_apigk(self, apigk):
         self.insert_generic(apigk, 'apigk')
 
+    def _get_logo(self, table, idvalue):
+        res = self._get(table, idvalue, ['logo', 'updated'])
+        return res['logo'], res['updated']
+
     def get_client_logo(self, clientid):
-        prep = self._prepare('SELECT logo, updated FROM clients WHERE id = ?')
-        res = self.session.execute(prep.bind([clientid]))
-        if len(res) == 0:
-            raise KeyError('no such client')
-        return res[0]['logo'], res[0]['updated']
+        return self._get_logo('client', clientid)
 
     def get_apigk_logo(self, gkid):
-        prep = self._prepare('SELECT logo, updated FROM apigk WHERE id = ?')
-        res = self.session.execute(prep.bind([gkid]))
-        if len(res) == 0:
-            raise KeyError('no such client')
-        return res[0]['logo'], res[0]['updated']
+        return self._get_logo('apigk', gkid)
 
     def save_logo(self, table, itemid, data, updated):
         prep = self._prepare('INSERT INTO {} (id, logo, updated) VALUES (?, ?, ?)'.format(table))
@@ -298,11 +276,7 @@ class Client(object):
         return self.session.execute(prep.bind([auth['userid'], auth['clientid'], auth['scopes']]))
 
     def get_group(self, groupid):
-        prep = self._default_get('groups')
-        res = self.session.execute(prep.bind([groupid]))
-        if len(res) == 0:
-            raise KeyError('No such group: ' + str(groupid))
-        return res[0]
+        return self._get('groups', groupid)
 
     def delete_group(self, groupid):
         prep = self._prepare('DELETE FROM groups WHERE id = ?')
@@ -322,11 +296,7 @@ class Client(object):
         ]))
 
     def get_group_logo(self, groupid):
-        prep = self._prepare('SELECT logo, updated FROM groups WHERE id = ?')
-        res = self.session.execute(prep.bind([groupid]))
-        if len(res) == 0:
-            raise KeyError('no such group')
-        return res[0]['logo'], res[0]['updated']
+        return self._get_logo('groups', groupid)
 
     def get_groups(self, selectors, values, maxrows):
         return self.get_generic('groups', selectors, values, maxrows)
@@ -375,11 +345,7 @@ class Client(object):
                                                grep['type'], grep['last_changed']]))
 
     def get_grep_code(self, grepid):
-        prep = self._prepare('SELECT * from grep_codes WHERE id = ?')
-        data = self.session.execute(prep.bind([grepid]))
-        if len(data) == 0:
-            raise KeyError('No such grep code')
-        return data[0]
+        return self._get('grep_codes', grepid, ['*'])
 
     def get_grep_code_by_code(self, code, greptype):
         prep = self._prepare('SELECT * from grep_codes WHERE code = ? and type = ? ALLOW FILTERING')
@@ -389,20 +355,13 @@ class Client(object):
         return data[0]
 
     def get_org(self, orgid):
-        prep = self._default_get('organizations')
-        data = self.session.execute(prep.bind([orgid]))
-        if len(data) == 0:
-            raise KeyError('no such organization')
-        data = data[0]
+        data = self._get('organizations', orgid)
         if 'name' in data and data['name'] is not None:
             data['name'] = translatable(data['name'])
         return data
 
     def get_org_by_realm(self, realm):
-        data = self.get_generic('organizations', ['realm = ?'], [realm], 1)
-        if len(data) == 0:
-            raise KeyError('no such organization')
-        data = data[0]
+        data = self._get('organizations', realm, idcolumn='realm')
         if 'name' in data and data['name'] is not None:
             data['name'] = translatable(data['name'])
         return data
@@ -418,11 +377,7 @@ class Client(object):
         return data
 
     def get_org_logo(self, orgid):
-        prep = self._prepare('SELECT logo, logo_updated FROM organizations WHERE id = ?')
-        res = self.session.execute(prep.bind([orgid]))
-        if len(res) == 0:
-            raise KeyError('no such organization')
-        return res[0]['logo'], res[0]['logo_updated']
+        return self._get_logo('organizations', orgid)
 
     def org_use_fs_groups(self, realm):
         prep = self._prepare('SELECT fs_groups FROM organizations WHERE realm = ?')
