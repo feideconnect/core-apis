@@ -82,16 +82,20 @@ class Client(object):
         self.prepared[query] = prep
         return prep
 
-    def _get(self, table, idv, columns=None, idcolumn='id'):
-        if columns is None:
-            columns = self.default_columns[table]
-        stmt = 'SELECT {} FROM {} WHERE {} = ?'.format(','.join(columns), table, idcolumn)
+    def _get_compound_pk(self, table, idvs, columns, idcolumns):
+        where = ' AND '.join(('{} = ?'.format(col) for col in idcolumns))
+        stmt = 'SELECT {} FROM {} WHERE {}'.format(','.join(columns), table, where)
         prep = self._prepare(stmt)
-        res = self.session.execute(prep.bind([idv]))
+        res = self.session.execute(prep.bind(idvs))
         try:
             return next(iter(res))
         except StopIteration:
             raise KeyError('{} entry not found'.format(table))
+
+    def _get(self, table, idv, columns=None, idcolumn='id'):
+        if columns is None:
+            columns = self.default_columns[table]
+        return self._get_compound_pk(table, [idv], columns, [idcolumn])
 
     @staticmethod
     def val_to_store(client, colname, jsoncols):
@@ -322,11 +326,8 @@ class Client(object):
         return self.session.execute(prep.bind([groupid, userid]))
 
     def get_membership_data(self, groupid, userid):
-        prep = self._prepare('SELECT * FROM group_members WHERE groupid=? AND userid=?')
-        memberships = self.session.execute(prep.bind([groupid, userid]))
-        if len(memberships) == 0:
-            raise KeyError('No such membership')
-        return memberships[0]
+        return self._get_compound_pk('group_members', [groupid, userid],
+                                     ['*'], ['groupid', 'userid'])
 
     def get_group_memberships(self, userid, mtype, status, maxrows):
         selectors = ['userid = ?']
