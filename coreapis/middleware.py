@@ -262,6 +262,8 @@ class CassandraMiddleware(AuthMiddleware):
 class GKMiddleware(CassandraMiddleware):
     def lookup_token(self, token_string):
         token, client, user = self._lookup_token(token_string)
+        if not 'subtokens' in token or not token['subtokens']:
+            raise KeyError("Token is invalid")
         return {
             'FC_USER': user,
             'FC_CLIENT': client,
