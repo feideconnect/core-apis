@@ -226,7 +226,10 @@ class CassandraMiddleware(AuthMiddleware):
         return True
 
     def _lookup_token(self, token_string):
-        token_uuid = uuid.UUID(token_string)
+        try:
+            token_uuid = uuid.UUID(token_string)
+        except ValueError:
+            raise KeyError("Token is invalid")
         with self.timer.time('auth.lookup_token'):
             token = self.session.get_token(token_uuid)
             if not self.token_is_valid(token, token_string):
