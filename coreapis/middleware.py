@@ -23,7 +23,8 @@ def cors_main(app, config):
     return CorsMiddleware(app)
 
 
-def cassandra_main(app, config, client_max_share, client_max_rate, client_max_burst_size):
+def cassandra_main(app, config, client_max_share, client_max_rate, client_max_burst_size,
+                   cls=None):
     contact_points = config['cassandra_contact_points'].split(', ')
     keyspace = config['cassandra_keyspace']
     log_timings = config.get('log_timings', 'false').lower() == 'true'
@@ -40,8 +41,15 @@ def cassandra_main(app, config, client_max_share, client_max_rate, client_max_bu
         use_eventlets = True
     else:
         use_eventlets = False
-    return CassandraMiddleware(app, config['oauth_realm'], contact_points,
-                               keyspace, timer, ratelimiter, use_eventlets)
+    if cls is None:
+        cls = CassandraMiddleware
+    return cls(app, config['oauth_realm'], contact_points,
+               keyspace, timer, ratelimiter, use_eventlets)
+
+
+def gk_main(app, config, client_max_share, client_max_rate, client_max_burst_size):
+    return cassandra_main(app, config, client_max_share, client_max_rate, client_max_burst_size,
+                          GKMiddleware)
 
 
 class CorsMiddleware(object):
