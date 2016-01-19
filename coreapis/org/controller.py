@@ -55,8 +55,13 @@ class OrgController(CrudControllerBase):
             org['uiinfo'] = json.loads(org['uiinfo'])
         return org
 
+    def get(self, orgid):
+        self.log.debug('Get org', id=id)
+        org = self.session.get_org(id)
+        return org
+
     def show_org(self, orgid):
-        org = self.format_org(self.session.get_org(orgid))
+        org = self.format_org(self.get(orgid))
         return org
 
     def list_orgs(self, want_peoplesearch=None):
@@ -121,16 +126,15 @@ class OrgController(CrudControllerBase):
         services.add(service)
         self.session.del_services(orgid, services)
 
-    def has_permission(self, user, orgid, as_platform_admin):
+    def has_permission(self, user, orgid, needs_realm, needs_platform_admin):
         if user is None or not self.is_admin(user, orgid):
             return False
         org = self.session.get_org(orgid)
-        if not org['realm']:
+        if needs_realm and not org['realm']:
             return False
-        if as_platform_admin:
-            return self.is_platform_admin(user)
-        else:
-            return True
+        if needs_platform_admin and not self.is_platform_admin(user):
+            return False
+        return True
 
     def ldap_status(self, user, orgid):
         org = self.session.get_org(orgid)

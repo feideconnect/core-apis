@@ -86,18 +86,22 @@ def org_logo(request):
     return org_logo_v1(request)
 
 
-def check(request, as_platform_admin):
+def check(request, needs_realm, needs_platform_admin):
     orgid = request.matchdict['id']
     user = get_user(request)
-    if not request.org_controller.has_permission(user, orgid, as_platform_admin):
-        raise HTTPForbidden('Insufficient privileges')
-    return orgid
+    try:
+        if not request.org_controller.has_permission(user, orgid, needs_realm,
+                                                     needs_platform_admin):
+            raise HTTPForbidden('Insufficient privileges')
+        return orgid
+    except KeyError:
+        raise HTTPNotFound()
 
 
 @view_config(route_name='org_mandatory_clients', request_method="GET",
              permission='scope_orgadmin', renderer="json")
 def list_mandatory_clients(request):
-    orgid = check(request, False)
+    orgid = check(request, needs_realm=True, needs_platform_admin=False)
     return request.org_controller.list_mandatory_clients(orgid)
 
 
@@ -105,7 +109,7 @@ def list_mandatory_clients(request):
              request_method='POST', renderer="json")
 def add_mandatory_clients(request):
     user = get_user(request)
-    orgid = check(request, False)
+    orgid = check(request, needs_realm=True, needs_platform_admin=False)
     payload = get_payload(request)
     try:
         clientid = uuid.UUID(payload)
@@ -122,7 +126,7 @@ def add_mandatory_clients(request):
              request_method='DELETE', renderer="json")
 def del_mandatory_clients(request):
     user = get_user(request)
-    orgid = check(request, False)
+    orgid = check(request, needs_realm=True, needs_platform_admin=False)
     clientid = request.matchdict['clientid']
     try:
         clientid = uuid.UUID(clientid)
@@ -135,14 +139,14 @@ def del_mandatory_clients(request):
 @view_config(route_name='org_services', request_method="GET",
              permission='scope_orgadmin', renderer="json")
 def list_services(request):
-    orgid = check(request, False)
+    orgid = check(request, needs_realm=False, needs_platform_admin=False)
     return request.org_controller.list_services(orgid)
 
 
 @view_config(route_name='org_services', request_method='POST', renderer="json")
 def add_service(request):
     user = get_user(request)
-    orgid = check(request, True)
+    orgid = check(request, needs_realm=False, needs_platform_admin=True)
     service = get_payload(request)
     if not valid_service(service):
         raise ValidationError('payload must be a valid service')
@@ -157,7 +161,7 @@ def add_service(request):
              request_method='DELETE', renderer="json")
 def del_service(request):
     user = get_user(request)
-    orgid = check(request, True)
+    orgid = check(request, needs_realm=False, needs_platform_admin=True)
     service = request.matchdict['service']
     if not valid_service(service):
         raise ValidationError('not a valid service')
@@ -169,5 +173,5 @@ def del_service(request):
              request_method='GET', renderer="json")
 def ldap_status(request):
     user = get_user(request)
-    orgid = check(request)
+    orgid = check(request, needs_realm=True, needs_platform_admin=False)
     return(request.org_controller.ldap_status(user, orgid))
