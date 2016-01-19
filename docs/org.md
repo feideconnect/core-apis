@@ -25,6 +25,6 @@
 
 - `<org-id>`: Must be the `id` of an organization in the format returned by the organization list.
 
-## Get an organizations logo
+## Get an organization's logo
 
     $ curl 'https://api.feideconnect.no/orgs/<org-id>/logo'|display

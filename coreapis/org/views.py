@@ -110,7 +110,7 @@ def add_mandatory_clients(request):
     try:
         clientid = uuid.UUID(payload)
     except ValueError:
-        raise ValidationError('playload must be only a client id')
+        raise ValidationError('payload must be only a client id')
     request.org_controller.add_mandatory_client(user, orgid, clientid)
     request.response.status = 201
     request.response.location = request.route_path('org_mandatory_client', id=orgid,
@@ -145,7 +145,7 @@ def add_service(request):
     orgid = check(request, True)
     service = get_payload(request)
     if not valid_service(service):
-        raise ValidationError('playload must be a valid service')
+        raise ValidationError('payload must be a valid service')
     request.org_controller.add_service(user, orgid, service)
     request.response.status = 201
     request.response.location = request.route_path('org_service', id=orgid,
