@@ -115,6 +115,38 @@ class OrgViewTests(unittest.TestCase):
         self.session.get_org_logo.side_effect = KeyError
         self.testapp.get('/orgs/{}/logo'.format(testorg), status=404)
 
+    def _test_post_org_logo_body(self, ver, orgadmin, httpstat):
+        headers = {'Authorization': 'Bearer user_token', 'Content-Type': 'image/png'}
+        self.session.is_org_admin.return_value = orgadmin
+        self.session.get_org.return_value = testorg2
+        self.session.save_org_logo = mock.MagicMock()
+        with open('data/default-client.png', 'rb') as fh:
+            path = '/orgs{}/{}/logo'.format(ver, uuid.uuid4())
+            logo = fh.read()
+            return self.testapp.post(path, logo, status=httpstat, headers=headers)
+
+    def test_post_org_logo_body(self):
+        for ver in ['', '/v1']:
+            res = self._test_post_org_logo_body(ver, True, 200)
+            assert res.json == 'OK'
+
+    def test_post_org_logo_body_not_admin(self):
+        self._test_post_org_logo_body('', False, 403)
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_post_org_logo_body_platform_admin(self, get_user):
+        res = self._test_post_org_logo_body('', False, 200)
+        assert res.json == 'OK'
+
+    def test_post_org_logo_body_unknown_org(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.is_org_admin.return_value = True
+        self.session.get_org.side_effect = KeyError
+        with open('data/default-client.png', 'rb') as fh:
+            path = '/orgs{}/{}/logo'.format('', uuid.uuid4())
+            logo = fh.read()
+            self.testapp.post(path, logo, status=404, headers=headers)
+
     def _test_list_mandatory_clients(self, orgadmin, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.is_org_admin.return_value = orgadmin

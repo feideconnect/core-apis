@@ -380,6 +380,11 @@ class Client(object):
     def get_org_logo(self, orgid):
         return self._get_logo('organizations', orgid)
 
+    def save_org_logo(self, table, itemid, data, updated):
+        stmt = 'INSERT INTO {} (id, logo, logo_updated) VALUES (?, ?, ?)'.format(table)
+        prep = self._prepare(stmt)
+        self.session.execute(prep.bind([itemid, data, updated]))
+
     def org_use_fs_groups(self, realm):
         prep = self._prepare('SELECT fs_groups FROM organizations WHERE realm = ?')
         res = list(self.session.execute(prep.bind([realm])))

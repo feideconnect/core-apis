@@ -136,6 +136,8 @@ Prefix: /orgs
 
 ### [Private, scope orgadmin](orgadmin.md)
 
+- (/v1)/{id}/logo POST
+
 - /{id}/ldap_status GET
 - /{id}/mandatory_clients/ GET, POST
 - /{id}/mandatory_clients/{clientid} DELETE

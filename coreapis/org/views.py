@@ -86,6 +86,26 @@ def org_logo(request):
     return org_logo_v1(request)
 
 
+@view_config(route_name='org_logo_v1', request_method="POST", permission='scope_orgadmin',
+             renderer="json")
+def upload_logo_v1(request):
+    orgid = check(request, needs_realm=False, needs_platform_admin=False)
+    if 'logo' in request.POST:
+        input_file = request.POST['logo'].file
+    else:
+        input_file = request.body_file_seekable
+    input_file.seek(0)
+    data = input_file.read()
+    request.org_controller.update_logo(orgid, data)
+    return 'OK'
+
+
+@view_config(route_name='org_logo', request_method="POST", permission='scope_orgadmin',
+             renderer="json")
+def upload_logo(request):
+    return upload_logo_v1(request)
+
+
 def check(request, needs_realm, needs_platform_admin):
     orgid = request.matchdict['id']
     user = get_user(request)

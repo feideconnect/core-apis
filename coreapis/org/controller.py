@@ -81,6 +81,9 @@ class OrgController(CrudControllerBase):
             return None, None
         return logo, updated
 
+    def _save_logo(self, orgid, data, updated):
+        self.session.save_org_logo('organizations', orgid, data, updated)
+
     def list_mandatory_clients(self, orgid):
         org = self.session.get_org(orgid)
         clientids = self.session.get_mandatory_clients(org['realm'])
