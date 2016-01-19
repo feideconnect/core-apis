@@ -174,6 +174,14 @@ class OrgViewTests(unittest.TestCase):
         self.testapp.post_json('/orgs/{}/mandatory_clients/'.format(testorg_id),
                                str(clientid), status=400, headers=headers)
 
+    def test_add_mandatory_client_unknown_org(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.is_org_admin.return_value = True
+        self.session.get_org.side_effect = KeyError
+        clientid = uuid.uuid4()
+        self.testapp.post_json('/orgs/{}/mandatory_clients/'.format(testorg_id),
+                               str(clientid), status=404, headers=headers)
+
     def _test_del_mandatory_client(self, clientid, orgadmin, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.is_org_admin.return_value = orgadmin
@@ -204,12 +212,20 @@ class OrgViewTests(unittest.TestCase):
         self.testapp.delete('/orgs/{}/mandatory_clients/{}'.format(testorg_id, clientid),
                             status=404, headers=headers)
 
+    def test_del_mandatory_client_unknown_org(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.is_org_admin.return_value = True
+        self.session.get_org.side_effect = KeyError
+        clientid = uuid.uuid4()
+        self.testapp.delete('/orgs/{}/mandatory_clients/{}'.format(testorg_id, clientid),
+                            status=404, headers=headers)
+
     def _test_list_services(self, orgadmin, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.is_org_admin.return_value = orgadmin
         self.session.get_services.return_value = []
-        self.session.get_org.return_value = testorg
-        return self.testapp.get('/orgs/{}/services/'.format(testorg_id), status=httpstat,
+        self.session.get_org.return_value = testorg2
+        return self.testapp.get('/orgs/{}/services/'.format(testorg2_id), status=httpstat,
                                 headers=headers)
 
     def test_list_services(self):
@@ -224,12 +240,12 @@ class OrgViewTests(unittest.TestCase):
         res = self._test_list_services(False, 200)
         assert res.json == []
 
-    def _test_add_service(self, service, httpstat):
+    def _test_add_service(self, services, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.is_org_admin.return_value = True
-        self.session.get_org.return_value = testorg
-        return self.testapp.post_json('/orgs/{}/services/'.format(testorg_id),
-                                      service, status=httpstat, headers=headers)
+        self.session.get_org.return_value = testorg2
+        return self.testapp.post_json('/orgs/{}/services/'.format(testorg2_id),
+                                      services, status=httpstat, headers=headers)
 
     def test_add_service_org_admin(self):
         self._test_add_service(testservice, 403)
@@ -239,18 +255,26 @@ class OrgViewTests(unittest.TestCase):
         res = self._test_add_service(testservice, 201)
         services = set()
         services.add(testservice)
-        self.session.add_services.assert_called_with(testorg_id, services)
+        self.session.add_services.assert_called_with(testorg2_id, services)
         assert res.json == str(testservice)
 
     @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_add_unknown_service(self, get_user):
         self._test_add_service("foo", 400)
 
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_add_service_unknown_org(self, get_user):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.is_org_admin.return_value = False
+        self.session.get_org.side_effect = KeyError
+        self.testapp.post_json('/orgs/{}/services/'.format(testorg2_id),
+                               testservice, status=404, headers=headers)
+
     def _test_del_service(self, service, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.is_org_admin.return_value = True
-        self.session.get_org.return_value = testorg
-        self.testapp.delete('/orgs/{}/services/{}'.format(testorg_id, service),
+        self.session.get_org.return_value = testorg2
+        self.testapp.delete('/orgs/{}/services/{}'.format(testorg2_id, service),
                             status=httpstat, headers=headers)
 
     def test_del_service_org_admin(self):
@@ -261,7 +285,15 @@ class OrgViewTests(unittest.TestCase):
         self._test_del_service(testservice, 204)
         services = set()
         services.add(testservice)
-        self.session.del_services.assert_called_with(testorg_id, services)
+        self.session.del_services.assert_called_with(testorg2_id, services)
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_del_service_unknown_org(self, get_user):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.is_org_admin.return_value = False
+        self.session.get_org.side_effect = KeyError
+        self.testapp.delete('/orgs/{}/services/{}'.format(testorg2_id, testservice),
+                            status=404, headers=headers)
 
     @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_del_unknown_service(self, get_user):
