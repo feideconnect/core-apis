@@ -40,3 +40,49 @@ Returns a list of objects representing clients that are currently marked as mand
 Removes a client from list of mandatory clients for an
 organization. Both `org-id` and `client-id` are passed in the
 url. Returns `204 No Content` on success.
+
+## List services for an organization
+
+    curl -H "Authorization: Bearer $TOKEN" 'https://api.feideconnect.no/orgs/<org-id>/services/'
+
+	[
+		"auth",
+		"avtale"
+	]
+
+### Description
+
+Returns a list of strings representing services that are currently
+enabled for the given `org-id`
+
+## Enable a service for an organization
+
+    curl -H "Authorization: Bearer $TOKEN" -X POST --data-binary '"<service>"' 'https://api.feideconnect.no/orgs/<org-id>/services/'
+
+### Parameters
+
+- `org-id`: In the url. The id of the organization to work on
+- `service`: A single json-encoded string in the request body is the
+  service to enable
+
+### Description
+
+Enables a service for an organization. At present, the supported
+values are:
+
+- auth
+- avtale
+- pilot
+
+Only for platform administrators
+
+## Disable a service for an organization
+
+    curl -H "Authorization: Bearer $TOKEN" 'https://api.feideconnect.no/orgs/<org-id>/services/<service>' -X DELETE
+
+### Description
+
+Disables a service for an organization. Both `org-id` and `service` are passed in the
+url. Returns `204 No Content` on success.
+
+Only for platform administrators
