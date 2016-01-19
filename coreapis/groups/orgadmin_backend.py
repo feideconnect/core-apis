@@ -106,8 +106,8 @@ class OrgAdminBackend(BaseBackend):
 
     def _get_member_groups(self, pool, feideid):
         result = []
-        roles = self.session.get_roles(['feideid = ?'], [feideid],
-                                       self.maxrows)
+        roles = list(self.session.get_roles(['feideid = ?'], [feideid],
+                                            self.maxrows))
         if len(roles) == 0:
             return []
         orgnames = {role['orgid']: {} for role in roles}

@@ -32,9 +32,9 @@ class AuthorizationController(object):
     def resources_owned(self, userid):
         self.log.debug('Resources owned', userid=userid)
         maxrows = 99
-        groupcount = len(self.session.get_groups(['owner = ?'], [userid], maxrows))
-        apigkcount = len(self.session.get_apigks(['owner = ?'], [userid], maxrows))
-        clientcount = len(self.session.get_clients(['owner = ?'], [userid], maxrows))
+        groupcount = sum(1 for i in self.session.get_groups(['owner = ?'], [userid], maxrows))
+        apigkcount = sum(1 for i in self.session.get_apigks(['owner = ?'], [userid], maxrows))
+        clientcount = sum(1 for i in self.session.get_clients(['owner = ?'], [userid], maxrows))
         ready = groupcount == 0 and apigkcount == 0 and clientcount == 0
         return {
             "ready": ready,

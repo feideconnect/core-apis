@@ -200,7 +200,7 @@ class AdHocGroupAdmController(CrudControllerBase):
             adapted = validator.validate(data)
         except V.ValidationError as ex:
             raise ValidationError(str(ex))
-        members = len(self.session.get_group_members(groupid))
+        members = sum(1 for i in self.session.get_group_members(groupid))
         to_add = len([member for member in adapted if 'token' in member])
         if to_add > 0 and to_add + members > self.max_add_members:
             raise ResourceError("Can not add more than {} members".format(self.max_add_members))

@@ -48,7 +48,7 @@ class CassandraCache(object):
         self.s_insert = self.session.prepare('UPDATE profile_image_cache set last_modified=?, etag=?, last_updated=?, image=? WHERE user=?')
 
     def lookup(self, user):
-        res = self.session.execute(self.s_lookup.bind([user]))
+        res = list(self.session.execute(self.s_lookup.bind([user])))
         if len(res) == 0:
             return None
         entry = res[0]

@@ -350,7 +350,7 @@ class Client(object):
 
     def get_grep_code_by_code(self, code, greptype):
         prep = self._prepare('SELECT * from grep_codes WHERE code = ? and type = ? ALLOW FILTERING')
-        data = self.session.execute(prep.bind([code, greptype]))
+        data = list(self.session.execute(prep.bind([code, greptype])))
         if len(data) == 0:
             raise KeyError('No such grep code')
         return data[0]
@@ -382,7 +382,7 @@ class Client(object):
 
     def org_use_fs_groups(self, realm):
         prep = self._prepare('SELECT fs_groups FROM organizations WHERE realm = ?')
-        res = self.session.execute(prep.bind([realm]))
+        res = list(self.session.execute(prep.bind([realm])))
         if len(res) == 0:
             return False
         row = res[0]
@@ -392,7 +392,7 @@ class Client(object):
 
     def is_org_admin(self, feideid, orgid):
         prep = self._prepare('SELECT role from roles where feideid = ? AND orgid = ?')
-        res = self.session.execute(prep.bind([feideid, orgid]))
+        res = list(self.session.execute(prep.bind([feideid, orgid])))
         if len(res) == 0:
             return False
         return 'admin' in res[0]['role']
@@ -425,5 +425,5 @@ class Client(object):
 
     def apigk_allowed_dn(self, dn):
         prep = self._prepare('SELECT dn from remote_apigatekeepers WHERE dn = ?')
-        res = self.session.execute(prep.bind([dn]))
+        res = list(self.session.execute(prep.bind([dn])))
         return len(res) > 0
