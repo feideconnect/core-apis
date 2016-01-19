@@ -262,6 +262,20 @@ class APIGKAdmTests(unittest.TestCase):
     def test_delete_apigk_platform_admin(self, get_user):
         self._test_delete_apigk('00000000-0000-0000-0000-000000000002', 204)
 
+    def _test_delete_unknown_apigk(self, orgadmin):
+        headers = {'Authorization': 'Bearer user_token'}
+        id = 'testapi'
+        self.session().get_apigk.side_effect = KeyError
+        self.session().is_org_admin.return_value = orgadmin
+        self.testapp.delete('/apigkadm/apigks/{}'.format(id), status=404, headers=headers)
+
+    def test_delete_unknown_apigk_orgadmin(self):
+        self._test_delete_unknown_apigk(True)
+
+    @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_delete_unknown_apigk_platform_admin(self, get_user):
+        self._test_delete_unknown_apigk(True)
+
     def test_update_no_change(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_apigk.return_value = deepcopy(pre_update)

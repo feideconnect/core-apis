@@ -455,6 +455,23 @@ class ClientAdmTests(unittest.TestCase):
     def test_delete_client_not_owner_platform_admin_(self, get_user):
         self._test_delete_client_not_owner(False, 204)
 
+    def _test_delete_missing_client(self, orgadmin):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_by_id.side_effect = KeyError
+        self.session.is_org_admin.return_value = orgadmin
+        path = '/clientadm/clients/{}'.format(uuid.UUID(clientid))
+        self.testapp.delete(path, status=404, headers=headers)
+
+    def test_delete_missing_client(self):
+        self._test_delete_missing_client(False)
+
+    def test_delete_missing_client_org_admin_(self):
+        self._test_delete_missing_client(True)
+
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_delete_missing_client_platform_admin_(self, get_user):
+        self._test_delete_missing_client(False)
+
     def test_update_client(self):
         headers = {'Authorization': 'Bearer user_token'}
         ret = deepcopy(retrieved_client)

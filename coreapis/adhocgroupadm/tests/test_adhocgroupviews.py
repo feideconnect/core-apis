@@ -293,6 +293,19 @@ class AdHocGroupAdmTests(unittest.TestCase):
     def test_add_group_members_platform_admin(self, get_user):
         self._test_add_group_members_no_access(200)
 
+    def _test_add_group_members_unknown_group(self, httpstat):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().get_group.side_effect = KeyError
+        self.testapp.patch_json('/adhocgroups/{}/members'.format(groupid1), [], status=httpstat,
+                                headers=headers)
+
+    def test_add_group_members_unknown_group(self):
+        self._test_add_group_members_unknown_group(404)
+
+    @mock.patch('coreapis.adhocgroupadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_add_group_members_unknown_group_platform_admin(self, get_user):
+        self._test_add_group_members_unknown_group(404)
+
     def test_add_group_members_over_limit(self):
         headers = {'Authorization': 'Bearer user_token'}
         group = deepcopy(group1)
