@@ -16,7 +16,7 @@ class GkViewTests(unittest.TestCase):
             'cassandra_contact_points': '',
             'cassandra_keyspace': 'notused',
         }, enabled_components='gk')
-        mw = middleware.MockAuthMiddleware(app, 'test realm')
+        mw = middleware.GKMockAuthMiddleware(app, 'test realm')
         self.session = Client()
         self.testapp = TestApp(mw)
 

@@ -41,40 +41,39 @@ class GkController(object):
                        gatekeeper=backend_id, endpoint=headers['endpoint'])
         return headers
 
-    def info(self, backend_id, client, user, scopes):
+    def info(self, backend_id, client, user, scopes, subtokens):
         backend = self.session.get_apigk(backend_id)
         if backend['requireuser'] and user is None:
             self.log.warn('user required but not in token', gatekeeper=backend_id,
                           client=client['id'])
             return None
-        expose = backend['expose']
         headers = dict()
 
-        if user:
-            if expose.get('userid', False):
-                headers['userid'] = str(user['userid'])
-            expose_sec = expose.get('userid-sec', False)
-            if expose_sec is True:
-                headers['userid-sec'] = ",".join(user['userid_sec'])
-            elif isinstance(expose_sec, list):
-                exposed_sec_ids = []
-                for sec in expose_sec:
+        if backend_id in subtokens:
+            subtoken = self.session.get_token(subtokens[backend_id])
+            headers['token'] = str(subtoken['access_token'])
+
+            if user:
+                if 'userid' in subtoken['scope']:
+                    headers['userid'] = str(user['userid'])
+                allowed_prefixes = set()
+                if 'userid-nin' in subtoken['scope']:
+                    allowed_prefixes.add('nin')
+                if 'userid-feide' in subtoken['scope']:
+                    allowed_prefixes.add('feide')
+                if allowed_prefixes:
+                    exposed_sec_ids = []
                     for sec_id in user['userid_sec']:
                         sec_id_type, _ = sec_id.split(':', 1)
-                        if sec_id_type == sec:
+                        if sec_id_type in allowed_prefixes:
                             exposed_sec_ids.append(sec_id)
-                headers['userid-sec'] = ",".join(exposed_sec_ids)
+                    headers['userid-sec'] = ",".join(exposed_sec_ids)
 
-            if expose.get('groups', False):
-                raise NotImplementedError()
+        scope_prefix = 'gk_{}_'.format(backend_id)
+        exposed_scopes = [scope[len(scope_prefix):] for scope in scopes if scope.startswith(scope_prefix)]
+        headers['scopes'] = ','.join(exposed_scopes)
 
-        if expose.get('scopes', False):
-            scope_prefix = 'gk_{}_'.format(backend_id)
-            exposed_scopes = [scope[len(scope_prefix):] for scope in scopes if scope.startswith(scope_prefix)]
-            headers['scopes'] = ','.join(exposed_scopes)
-
-        if expose.get('clientid', False):
-            headers['clientid'] = str(client['id'])
+        headers['clientid'] = str(client['id'])
         headers['endpoint'] = random.choice(backend['endpoints'])
         header, value = auth_header(backend['trust'])
         headers[header] = value

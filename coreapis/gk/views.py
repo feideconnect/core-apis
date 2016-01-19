@@ -42,8 +42,9 @@ def info(request):
     client = request.environ['FC_CLIENT']
     user = request.environ.get('FC_USER', None)
     scopes = request.environ['FC_SCOPES']
+    subtokens = request.environ['FC_SUBTOKENS']
     try:
-        headers = request.gk_controller.info(backend, client, user, scopes)
+        headers = request.gk_controller.info(backend, client, user, scopes, subtokens)
         if headers is None:
             raise HTTPForbidden('token with user required')
         for header, value in headers.items():

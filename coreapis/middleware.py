@@ -94,12 +94,13 @@ class AuthMiddleware(object):
         token = self.get_token(environ)
         if token:
             try:
-                user, client, scopes = self.lookup_token(token)
-                self.log.debug('successfully looked up token', user=user['userid'] if user else None, client=client['id'],
-                               scopes=scopes, accesstoken=log_token(token))
-                environ["FC_USER"] = user
-                environ["FC_CLIENT"] = client
-                environ["FC_SCOPES"] = scopes
+                tokendata = self.lookup_token(token)
+                environ.update(tokendata)
+                user = environ["FC_USER"]
+                client = environ["FC_CLIENT"]
+                scopes = environ["FC_SCOPES"]
+                self.log.debug('successfully looked up token', user=user['userid'] if user else None,
+                               client=client['id'], scopes=scopes, accesstoken=log_token(token))
             except KeyError as ex:
                 # Invalid token passed. Perhaps return 402?
                 self.log.debug('failed to find token', accesstoken=log_token(token))
@@ -180,9 +181,20 @@ class MockAuthMiddleware(AuthMiddleware):
     def lookup_token(self, token):
         if token in self.tokens:
             data = self.tokens[token]
-            return data.get('user', None), data['client'], data['scopes']
+            return {
+                'FC_USER': data.get('user', None),
+                'FC_CLIENT': data['client'],
+                'FC_SCOPES': data['scopes'],
+            }
         else:
             raise KeyError('Token not found')
+
+
+class GKMockAuthMiddleware(MockAuthMiddleware):
+    def lookup_token(self, token):
+        data = super(GKMockAuthMiddleware, self).lookup_token(token)
+        data['FC_SUBTOKENS'] = {}
+        return data
 
 
 class CassandraMiddleware(AuthMiddleware):
@@ -213,7 +225,7 @@ class CassandraMiddleware(AuthMiddleware):
             return False
         return True
 
-    def lookup_token(self, token_string):
+    def _lookup_token(self, token_string):
         token_uuid = uuid.UUID(token_string)
         with self.timer.time('auth.lookup_token'):
             token = self.session.get_token(token_uuid)
@@ -225,4 +237,23 @@ class CassandraMiddleware(AuthMiddleware):
                 user = self.session.get_user_by_id(token['userid'])
             else:
                 user = None
-        return user, client, token['scope']
+            return token, client, user
+
+    def lookup_token(self, token_string):
+        token, client, user = self._lookup_token(token_string)
+        return {
+            'FC_USER': user,
+            'FC_CLIENT': client,
+            'FC_SCOPES': token['scope'],
+        }
+
+
+class GKMiddleware(CassandraMiddleware):
+    def lookup_token(self, token_string):
+        token, client, user = self._lookup_token(token_string)
+        return {
+            'FC_USER': user,
+            'FC_CLIENT': client,
+            'FC_SCOPES': token['scope'],
+            'FC_SUBTOKENS': token['subtokens'],
+        }
