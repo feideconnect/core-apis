@@ -16,12 +16,10 @@ def make_user(feideid):
 
 
 class TestPlatformAdminBackend(unittest.TestCase):
-    @mock.patch('coreapis.middleware.cassandra_client.Client')
-    def setUp(self, Client):
-        self.session = Client()
-        with mock.patch('coreapis.groups.platformadmin_backend.get_platform_admins') as gpa:
-            gpa.return_value = [FEIDEID_OWN]
-            self.backend = PlatformAdminBackend('orgadmin', 100, mock.Mock())
+    @mock.patch('coreapis.groups.platformadmin_backend.get_platform_admins')
+    def setUp(self, get_platform_admins):
+        get_platform_admins.return_value = [FEIDEID_OWN]
+        self.backend = PlatformAdminBackend('orgadmin', 100, mock.Mock())
 
     def _get_member_groups(self, feideid):
         return self.backend.get_member_groups(make_user(feideid), False)
