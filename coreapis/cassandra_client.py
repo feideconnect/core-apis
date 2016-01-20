@@ -378,7 +378,8 @@ class Client(object):
         return data
 
     def get_org_logo(self, orgid):
-        return self._get_logo('organizations', orgid)
+        res = self._get('organizations', orgid, ['logo', 'logo_updated'])
+        return res['logo'], res['logo_updated']
 
     def save_org_logo(self, table, itemid, data, updated):
         stmt = 'INSERT INTO {} (id, logo, logo_updated) VALUES (?, ?, ?)'.format(table)
