@@ -24,12 +24,12 @@ Returns a list of objects representing clients that are currently marked as mand
 
 ## Mark a client as mandatory for an organization
 
-    curl -H "Authorization: Bearer $TOKEN" -X POST --data-binary '"<client-id>"' 'https://api.feideconnect.no/orgs/<org-id>/mandatory_clients/'
+    curl -H "Authorization: Bearer $TOKEN" -X PUT 'https://api.feideconnect.no/orgs/<org-id>/mandatory_clients/<client-id>'
 
 ### Parameters
 
 - `org-id`: In the url. The id of the organization to work on
-- `client-id`: A single json-encoded uuid in the request body is the id of the client to mark as mandatory
+- `client-id`: A single json-encoded uuid in the url is the id of the client to mark as mandatory
 
 ## Make a client no longer mandatory for an organization
 
@@ -57,13 +57,12 @@ enabled for the given `org-id`
 
 ## Enable a service for an organization
 
-    curl -H "Authorization: Bearer $TOKEN" -X POST --data-binary '"<service>"' 'https://api.feideconnect.no/orgs/<org-id>/services/'
+    curl -H "Authorization: Bearer $TOKEN" -X PUT 'https://api.feideconnect.no/orgs/<org-id>/services/<service>'
 
 ### Parameters
 
 - `org-id`: In the url. The id of the organization to work on
-- `service`: A single json-encoded string in the request body is the
-  service to enable
+- `service`: A single json-encoded string in the url is the service to enable
 
 ### Description
 

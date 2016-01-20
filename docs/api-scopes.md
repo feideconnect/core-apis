@@ -139,8 +139,10 @@ Prefix: /orgs
 - (/v1)/{id}/logo POST
 
 - /{id}/ldap_status GET
-- /{id}/mandatory_clients/ GET, POST
-- /{id}/mandatory_clients/{clientid} DELETE
+- /{id}/mandatory_clients/ GET
+- /{id}/mandatory_clients/{clientid} PUT, DELETE
+- /{id}/services/ GET
+- /{id}/services/{service} PUT, DELETE
 
 
 Peoplesearch

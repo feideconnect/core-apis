@@ -125,26 +125,23 @@ def list_mandatory_clients(request):
     return request.org_controller.list_mandatory_clients(orgid)
 
 
-@view_config(route_name='org_mandatory_clients', permission='scope_orgadmin',
-             request_method='POST', renderer="json")
-def add_mandatory_clients(request):
+@view_config(route_name='org_mandatory_client', permission='scope_orgadmin',
+             request_method='PUT', renderer="json")
+def add_mandatory_client(request):
     user = get_user(request)
     orgid = check(request, needs_realm=True, needs_platform_admin=False)
-    payload = get_payload(request)
+    clientid = request.matchdict['clientid']
     try:
-        clientid = uuid.UUID(payload)
+        clientid = uuid.UUID(clientid)
     except ValueError:
-        raise ValidationError('payload must be only a client id')
+        raise ValidationError('client id must be a valid uuid')
     request.org_controller.add_mandatory_client(user, orgid, clientid)
-    request.response.status = 201
-    request.response.location = request.route_path('org_mandatory_client', id=orgid,
-                                                   clientid=clientid)
-    return clientid
+    return Response(status='204 No Content', content_type=False)
 
 
 @view_config(route_name='org_mandatory_client', permission='scope_orgadmin',
              request_method='DELETE', renderer="json")
-def del_mandatory_clients(request):
+def del_mandatory_client(request):
     user = get_user(request)
     orgid = check(request, needs_realm=True, needs_platform_admin=False)
     clientid = request.matchdict['clientid']
@@ -163,18 +160,15 @@ def list_services(request):
     return request.org_controller.list_services(orgid)
 
 
-@view_config(route_name='org_services', request_method='POST', renderer="json")
+@view_config(route_name='org_service', request_method='PUT', renderer="json")
 def add_service(request):
     user = get_user(request)
     orgid = check(request, needs_realm=False, needs_platform_admin=True)
-    service = get_payload(request)
+    service = request.matchdict['service']
     if not valid_service(service):
         raise ValidationError('payload must be a valid service')
     request.org_controller.add_service(user, orgid, service)
-    request.response.status = 201
-    request.response.location = request.route_path('org_service', id=orgid,
-                                                   service=service)
-    return service
+    return Response(status='204 No Content', content_type=False)
 
 
 @view_config(route_name='org_service', permission='scope_orgadmin',
