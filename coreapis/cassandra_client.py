@@ -375,7 +375,7 @@ class Client(object):
         for a in data:
             if 'name' in a and a['name'] is not None:
                 a['name'] = translatable(a['name'])
-        return data
+            yield a
 
     def get_org_logo(self, orgid):
         res = self._get('organizations', orgid, ['logo', 'logo_updated'])
