@@ -1,9 +1,10 @@
 from copy import deepcopy
+import itertools
 import json
 from urllib.parse import urlsplit
 import uuid
 
-import blist
+import cassandra.util
 import valideer as V
 
 from coreapis import cassandra_client
@@ -85,7 +86,7 @@ class ClientAdmController(CrudControllerBase):
                 adapted[k] = {}
                 if v:
                     adapted[k] = json.loads(v)
-            elif isinstance(v, blist.sortedset):
+            elif isinstance(v, cassandra.util.SortedSet):
                 adapted[k] = list(v)
         return adapted
 

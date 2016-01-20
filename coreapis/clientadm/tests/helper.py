@@ -1,4 +1,4 @@
-import blist
+from cassandra.util import SortedSet
 import uuid
 import json
 from copy import deepcopy
@@ -60,13 +60,13 @@ post_body_maximal = {
 }
 
 retrieved_client = {
-    'name': 'per', 'scopes': blist.sortedset(), 'redirect_uri': testuris,
+    'name': 'per', 'scopes': SortedSet(), 'redirect_uri': testuris,
     'owner': uuid.UUID(userid_own),
     'organization': None,
     'id': uuid.UUID(clientid),
     'client_secret': 'sekrit', 'created': parse_datetime(date_created),
     'descr': 'green',
-    'scopes_requested': blist.sortedset([testscope]), 'status': ['lab'], 'type': 'client',
+    'scopes_requested': SortedSet([testscope]), 'status': ['lab'], 'type': 'client',
     'authproviders': [],
     'orgauthorization': {},
     'systemdescr': None,

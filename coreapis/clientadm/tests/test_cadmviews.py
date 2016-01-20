@@ -1,6 +1,6 @@
 import unittest
 import mock
-import blist
+from cassandra.util import SortedSet
 import json
 import uuid
 from aniso8601 import parse_datetime
@@ -632,7 +632,7 @@ class ClientAdmTests(unittest.TestCase):
     def test_update_client_remove_requested_scope(self):
         headers = {'Authorization': 'Bearer user_token'}
         client = deepcopy(retrieved_client)
-        client['scopes'] = blist.sortedset([otherscope])
+        client['scopes'] = SortedSet([otherscope])
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
         path = '/clientadm/clients/{}'.format(clientid)
@@ -665,8 +665,8 @@ class ClientAdmTests(unittest.TestCase):
     def test_update_client_gkowner_removes_gkscope(self):
         headers = {'Authorization': 'Bearer user_token'}
         client = deepcopy(retrieved_client)
-        client['scopes'] = blist.sortedset([owngk])
-        client['scopes_requested'] = blist.sortedset([owngk])
+        client['scopes'] = SortedSet([owngk])
+        client['scopes_requested'] = SortedSet([owngk])
         client['owner'] = userid_other
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
@@ -690,7 +690,7 @@ class ClientAdmTests(unittest.TestCase):
     def test_update_client_gkowner_removes_unwanted_gkscope(self):
         headers = {'Authorization': 'Bearer user_token'}
         client = deepcopy(retrieved_client)
-        client['scopes'] = blist.sortedset([owngk])
+        client['scopes'] = SortedSet([owngk])
         client['owner'] = userid_other
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
@@ -703,7 +703,7 @@ class ClientAdmTests(unittest.TestCase):
     def test_update_client_gkowner_removes_requested_gkscope(self):
         headers = {'Authorization': 'Bearer user_token'}
         client = deepcopy(retrieved_client)
-        client['scopes_requested'] = blist.sortedset([owngk])
+        client['scopes_requested'] = SortedSet([owngk])
         client['owner'] = userid_other
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
