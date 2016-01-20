@@ -56,8 +56,8 @@ class OrgController(CrudControllerBase):
         return org
 
     def get(self, orgid):
-        self.log.debug('Get org', id=id)
-        org = self.session.get_org(id)
+        self.log.debug('Get org', orgid=orgid)
+        org = self.session.get_org(orgid)
         return org
 
     def show_org(self, orgid):
