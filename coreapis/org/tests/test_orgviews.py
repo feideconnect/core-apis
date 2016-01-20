@@ -69,8 +69,8 @@ class OrgViewTests(unittest.TestCase):
         self.testapp.get('/orgs/{}'.format(testorg), status=404)
 
     def test_list_orgs(self):
-        self.session.list_orgs.return_value = [testorg, testorg2]
         for ver in ['', '/v1']:
+            self.session.list_orgs.return_value = iter([testorg, testorg2])
             res = self.testapp.get('/orgs{}/'.format(ver), status=200)
             out = res.json
             assert len(out) == 2
@@ -78,21 +78,21 @@ class OrgViewTests(unittest.TestCase):
             assert out[1]['id'] == testorg2_id
 
     def test_list_orgs_with_peoplesearch(self):
-        self.session.list_orgs.return_value = [testorg, testorg2]
+        self.session.list_orgs.return_value = iter([testorg, testorg2])
         res = self.testapp.get('/orgs/?peoplesearch=true', status=200)
         out = res.json
         assert len(out) == 1
         assert out[0]['id'] == testorg_id
 
     def test_list_orgs_without_peoplesearch(self):
-        self.session.list_orgs.return_value = [testorg, testorg2]
+        self.session.list_orgs.return_value = iter([testorg, testorg2])
         res = self.testapp.get('/orgs/?peoplesearch=false', status=200)
         out = res.json
         assert len(out) == 1
         assert out[0]['id'] == testorg2_id
 
     def test_list_orgs_invalid_param(self):
-        self.session.list_orgs.return_value = [testorg, testorg2]
+        self.session.list_orgs.return_value = iter([testorg, testorg2])
         res = self.testapp.get('/orgs/?peoplesearch=ugle', status=200)
         out = res.json
         assert len(out) == 2
@@ -255,7 +255,6 @@ class OrgViewTests(unittest.TestCase):
     def _test_list_services(self, orgadmin, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.is_org_admin.return_value = orgadmin
-        self.session.get_services.return_value = []
         self.session.get_org.return_value = testorg2
         return self.testapp.get('/orgs/{}/services/'.format(testorg2_id), status=httpstat,
                                 headers=headers)

@@ -149,14 +149,14 @@ def mock_get_apigk(gkid):
     return ret
 
 
-retrieved_apigks = [mock_get_apigk(id) for id in apigks]
+retrieved_apigks = iter([mock_get_apigk(id) for id in apigks])
 
 
 def mock_get_clients_by_scope(scope):
-    return [client for client in retrieved_gk_clients
-            if scope in client['scopes']]
+    return (client for client in retrieved_gk_clients
+            if scope in client['scopes'])
 
 
 def mock_get_clients_by_scope_requested(scope):
-    return [client for client in retrieved_gk_clients
-            if scope in client['scopes_requested']]
+    return (client for client in retrieved_gk_clients
+            if scope in client['scopes_requested'])

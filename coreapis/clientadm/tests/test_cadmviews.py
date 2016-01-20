@@ -97,19 +97,19 @@ class ClientAdmTests(unittest.TestCase):
 
     def test_list_clients(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_clients.return_value = [deepcopy(retrieved_client)]
+        self.session.get_clients.return_value = iter([deepcopy(retrieved_client)])
         res = self.testapp.get('/clientadm/clients/', status=200, headers=headers)
         assert is_full_client(res.json[0])
 
     def test_list_clients_by_scope(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_clients.return_value = [deepcopy(retrieved_client)]
+        self.session.get_clients.return_value = iter([deepcopy(retrieved_client)])
         res = self.testapp.get('/clientadm/clients/?scope=userlist', status=200, headers=headers)
         assert is_full_client(res.json[0])
 
     def _test_list_clients_by_org_as_admin(self, orgadmin, expected):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_clients.return_value = [deepcopy(retrieved_client)]
+        self.session.get_clients.return_value = iter([deepcopy(retrieved_client)])
         self.session.is_org_admin.return_value = orgadmin
         path = '/clientadm/clients/?organization={}'.format('fc:org:example.com')
         return self.testapp.get(path, status=expected, headers=headers)
@@ -130,11 +130,11 @@ class ClientAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         org_client = deepcopy(retrieved_client)
         org_client['organization'] = 'fc:org:example.com'
-        self.session.get_clients.return_value = deepcopy([retrieved_client, org_client])
         self.session.get_user_by_id.return_value = retrieved_user
         self.session.get_org.return_value = {'id': 'fc:org:example.com',
                                              'name': translatable({'en': 'testorg'})}
         for ver in ['', '/v1']:
+            self.session.get_clients.return_value = iter(deepcopy([retrieved_client, org_client]))
             res = self.testapp.get('/clientadm{}/public/'.format(ver), status=200, headers=headers)
             out = res.json
             assert out[0]['name'] == 'per'
@@ -144,7 +144,7 @@ class ClientAdmTests(unittest.TestCase):
 
     def test_list_public_clients_bogus_user(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_clients.return_value = deepcopy([retrieved_client])
+        self.session.get_clients.return_value = iter(deepcopy([retrieved_client]))
         self.session.get_user_by_id.side_effect = KeyError
         res = self.testapp.get('/clientadm/public/', status=200, headers=headers)
         assert res.json[0] is None
@@ -153,7 +153,7 @@ class ClientAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         org_client = deepcopy(retrieved_gk_clients[3])
         org_client['organization'] = 'fc:org:example.com'
-        self.session.get_clients.return_value = [org_client]
+        self.session.get_clients.return_value = iter([org_client])
         self.session.get_user_by_id.return_value = retrieved_user
         self.session.get_org.return_value = {'id': 'fc:org:example.com',
                                              'name': translatable({'en': 'testorg'})}
@@ -1003,7 +1003,7 @@ class ClientAdmTests(unittest.TestCase):
 
     def test_list_targetrealm(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session.get_clients.return_value = deepcopy(retrieved_gk_clients)
+        self.session.get_clients.return_value = iter(deepcopy(retrieved_gk_clients))
         self.session.get_apigks.return_value = deepcopy(retrieved_apigks)
         self.session.get_client_by_id.return_value = deepcopy(retrieved_gk_clients[3])
         self.session.get_user_by_id.return_value = retrieved_user

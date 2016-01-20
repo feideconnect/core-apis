@@ -104,7 +104,7 @@ class AdHocGroupAdmTests(unittest.TestCase):
 
     def test_list_groups(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session().get_groups.return_value = [group1]
+        self.session().get_groups.return_value = iter([group1])
         self.session().get_user_by_id.return_value = public_userinfo
         self.session().get_group_memberships.return_value = [
             {
@@ -241,7 +241,7 @@ class AdHocGroupAdmTests(unittest.TestCase):
     def test_get_group_members_empty(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_group.return_value = deepcopy(group1)
-        self.session().get_group_members.return_value = []
+        self.session().get_group_members.return_value = iter([])
         res = self.testapp.get('/adhocgroups/{}/members'.format(groupid1), status=200, headers=headers)
         assert res.json == []
 
@@ -267,7 +267,7 @@ class AdHocGroupAdmTests(unittest.TestCase):
         group = deepcopy(group1)
         group['owner'] = user2
         self.session().get_group.return_value = group
-        self.session().get_group_members.return_value = []
+        self.session().get_group_members.return_value = iter([])
         self.testapp.get('/adhocgroups/{}/members'.format(groupid1),
                          status=httpstat, headers=headers)
 
@@ -310,7 +310,7 @@ class AdHocGroupAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         group = deepcopy(group1)
         self.session().get_group.return_value = group
-        self.session().get_group_members.return_value = list(range(10))
+        self.session().get_group_members.return_value = iter(range(10))
         data = [
             {
                 'token': member_token,
@@ -324,7 +324,7 @@ class AdHocGroupAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         group = deepcopy(group1)
         self.session().get_group.return_value = group
-        self.session().get_group_members.return_value = list(range(10))
+        self.session().get_group_members.return_value = iter(range(10))
         self.session().get_userid_by_userid_sec.return_value = user1
         data = [
             {
@@ -477,14 +477,14 @@ class AdHocGroupAdmTests(unittest.TestCase):
         group = deepcopy(group1)
         self.session().get_user_by_id.return_value = public_userinfo
         self.session().get_group.return_value = group
-        self.session().get_group_memberships.return_value = [
+        self.session().get_group_memberships.return_value = iter([
             {
                 'groupid': groupid1,
                 'userid': user1,
                 'status': 'normal',
                 'type': 'member',
             },
-        ]
+        ])
 
         res = self.testapp.get('/adhocgroups/memberships', status=200,
                                headers=headers)

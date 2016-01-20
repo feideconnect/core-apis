@@ -54,7 +54,7 @@ def mock_get_roles(selectors, values, maxrows):
         keyname = 'orgid'
     else:
         raise RuntimeError('No mock handles this case')
-    return [role for role in ROLES if role[keyname] == values[0]]
+    return (role for role in ROLES if role[keyname] == values[0])
 
 
 def mock_get_org(orgid):

@@ -84,7 +84,7 @@ class TestAdHocBackendBase(unittest.TestCase):
 
 class TestAdHocBackend(TestAdHocBackendBase):
     def test_get_member_groups(self):
-        self.session.get_group_memberships.return_value = [
+        self.session.get_group_memberships.return_value = iter([
             {
                 'groupid': groupid1,
                 'status': 'normal',
@@ -97,7 +97,7 @@ class TestAdHocBackend(TestAdHocBackendBase):
                 'type': 'admin',
                 'userid': user3
             },
-        ]
+        ])
         self.session.get_group.side_effect = groups.get
         res = self.backend.get_member_groups(dict(userid=user3), False)
         assert res == [group1_view, group2_view]
@@ -156,7 +156,7 @@ class TestAdHocBackendGetGroup(TestAdHocBackendBase):
 class TestAdHocBackendGetMembers(TestAdHocBackendBase):
     def test_normal(self):
         members = [{'userid': user1, 'type': 'member', 'status': 'normal'}]
-        self.session.get_group_members.return_value = members
+        self.session.get_group_members.return_value = iter(members)
         self.session.get_user_by_id.return_value = public_userinfo
         with mock.patch('coreapis.groups.adhoc_backend.AdHocGroupBackend._get') as _get:
             _get.return_value = group1, membership1
@@ -165,7 +165,7 @@ class TestAdHocBackendGetMembers(TestAdHocBackendBase):
 
     def test_bad_member(self):
         members = [{'userid': user1, 'type': 'member', 'status': 'normal'}]
-        self.session.get_group_members.return_value = members
+        self.session.get_group_members.return_value = iter(members)
         self.session.get_user_by_id.side_effect = KeyError
         with mock.patch('coreapis.groups.adhoc_backend.AdHocGroupBackend._get') as _get:
             _get.return_value = group1, membership1
@@ -174,7 +174,7 @@ class TestAdHocBackendGetMembers(TestAdHocBackendBase):
 
     def test_bad_status(self):
         members = [{'userid': user1, 'type': 'member', 'status': 'hacked'}]
-        self.session.get_group_members.return_value = members
+        self.session.get_group_members.return_value = iter(members)
         self.session.get_user_by_id.return_value = public_userinfo
         with mock.patch('coreapis.groups.adhoc_backend.AdHocGroupBackend._get') as _get:
             _get.return_value = group1, membership1
@@ -183,7 +183,7 @@ class TestAdHocBackendGetMembers(TestAdHocBackendBase):
 
     def test_not_member(self):
         members = []
-        self.session.get_group_members.return_value = members
+        self.session.get_group_members.return_value = iter(members)
         self.session.get_user_by_id.return_value = public_userinfo
         with mock.patch('coreapis.groups.adhoc_backend.AdHocGroupBackend._get') as _get:
             _get.return_value = group1, None

@@ -83,22 +83,22 @@ class TestController(TestCase):
         assert res['created'] == parse_datetime(date_created)
 
     def test_get_gkscope_clients(self):
-        self.session.get_clients_by_scope.return_value = []
-        self.session.get_clients_by_scope_requested.return_value = [retrieved_gk_client]
+        self.session.get_clients_by_scope.return_value = iter([])
+        self.session.get_clients_by_scope_requested.return_value = iter([retrieved_gk_client])
         self.session.get_user_by_id.return_value = retrieved_user
         res = self.controller.get_gkscope_clients([testgk, 'gk_bar'])
         assert testgk in res[0]['scopes_requested']
 
     def test_get_gkscope_clients_no_match(self):
-        self.session.get_clients_by_scope.return_value = []
-        self.session.get_clients_by_scope_requested.return_value = []
+        self.session.get_clients_by_scope.return_value = iter([])
+        self.session.get_clients_by_scope_requested.return_value = iter([])
         self.session.get_user_by_id.return_value = retrieved_user
         res = self.controller.get_gkscope_clients([testgk, 'gk_bar'])
         assert res == []
 
     def test_get_gkscope_clients_no_scopes(self):
-        self.session.get_clients_by_scope.return_value = []
-        self.session.get_clients_by_scope_requested.return_value = [retrieved_gk_client]
+        self.session.get_clients_by_scope.return_value = iter([])
+        self.session.get_clients_by_scope_requested.return_value = iter([retrieved_gk_client])
         self.session.get_user_by_id.return_value = retrieved_user
         res = self.controller.get_gkscope_clients([])
         assert res == []
