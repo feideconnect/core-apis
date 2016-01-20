@@ -249,7 +249,7 @@ class Client(object):
         return res['logo'], res['updated']
 
     def get_client_logo(self, clientid):
-        return self._get_logo('client', clientid)
+        return self._get_logo('clients', clientid)
 
     def get_apigk_logo(self, gkid):
         return self._get_logo('apigk', gkid)
