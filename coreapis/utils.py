@@ -448,7 +448,8 @@ def failsafe(func):
         try:
             return func(*args, **kwargs)
         except Exception as ex:
-            LogWrapper('coreapis.utils.failsafe').warn('suppressed error', exception=ex)
+            LogWrapper('coreapis.utils.failsafe').warn('suppressed error', exception=ex,
+                                                       exception_class=ex.__class__.__name__)
             return None
     return functools.partial(wrapped, func)
 
