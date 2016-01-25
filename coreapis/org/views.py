@@ -5,7 +5,7 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
 from pyramid.response import Response
 
 from .controller import OrgController
-from coreapis.utils import now, get_user, ValidationError, translation
+from coreapis.utils import now, get_user, ValidationError, translation, get_logo_bytes
 
 
 def valid_service(service):
@@ -90,12 +90,7 @@ def org_logo(request):
              renderer="json")
 def upload_logo_v1(request):
     orgid = check(request, needs_realm=False, needs_platform_admin=False)
-    if 'logo' in request.POST:
-        input_file = request.POST['logo'].file
-    else:
-        input_file = request.body_file_seekable
-    input_file.seek(0)
-    data = input_file.read()
+    data = get_logo_bytes(request)
     request.org_controller.update_logo(orgid, data)
     return 'OK'
 

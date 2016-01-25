@@ -5,7 +5,7 @@ from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPForbidden, 
 from pyramid.response import Response
 
 from .controller import AdHocGroupAdmController
-from coreapis.utils import get_user, get_userid, get_payload, ResourceError
+from coreapis.utils import get_user, get_userid, get_payload, get_logo_bytes, ResourceError
 
 
 def configure(config):
@@ -131,14 +131,8 @@ def group_logo(request):
 @view_config(route_name='ahgroup_logo_v1', request_method="POST", permission='scope_adhocgroupadmin',
              renderer="json")
 def upload_logo_v1(request):
-    user, group = check(request, "update")
-
-    if 'logo' in request.POST:
-        input_file = request.POST['logo'].file
-    else:
-        input_file = request.body_file_seekable
-    input_file.seek(0)
-    data = input_file.read()
+    _, group = check(request, "update")
+    data = get_logo_bytes(request)
     request.ahgroupadm_controller.update_logo(group['id'], data)
     return 'OK'
 

@@ -7,7 +7,8 @@ from pyramid.response import Response
 
 from .controller import ClientAdmController
 from coreapis.utils import (
-    AlreadyExistsError, ForbiddenError, get_userid, get_payload, get_user, translation)
+    AlreadyExistsError, ForbiddenError, get_userid, get_payload, get_user, translation,
+    get_logo_bytes)
 
 
 def get_clientid(request):
@@ -174,12 +175,7 @@ def client_logo(request):
              renderer="json")
 def upload_logo_v1(request):
     client = check(request)
-    if 'logo' in request.POST:
-        input_file = request.POST['logo'].file
-    else:
-        input_file = request.body_file_seekable
-    input_file.seek(0)
-    data = input_file.read()
+    data = get_logo_bytes(request)
     request.cadm_controller.update_logo(client['id'], data)
     return 'OK'
 

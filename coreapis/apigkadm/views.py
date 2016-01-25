@@ -2,7 +2,8 @@ from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPNotFound, HTTPConflict, HTTPBadRequest, HTTPForbidden
 from pyramid.response import Response
 from .controller import APIGKAdmController
-from coreapis.utils import AlreadyExistsError, get_userid, get_payload, get_user, translation
+from coreapis.utils import (AlreadyExistsError, get_userid, get_payload, get_user, translation,
+                            get_logo_bytes)
 
 
 def configure(config):
@@ -148,13 +149,7 @@ def apigk_logo(request):
              renderer="json")
 def upload_logo_v1(request):
     gk = check(request)
-
-    if 'logo' in request.POST:
-        input_file = request.POST['logo'].file
-    else:
-        input_file = request.body_file_seekable
-    input_file.seek(0)
-    data = input_file.read()
+    data = get_logo_bytes(request)
     request.gkadm_controller.update_logo(gk['id'], data)
     return 'OK'
 

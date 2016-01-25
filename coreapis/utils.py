@@ -293,6 +293,15 @@ def get_payload(request):
         raise HTTPBadRequest('missing or malformed json body')
 
 
+def get_logo_bytes(request):
+    if 'logo' in request.POST:
+        input_file = request.POST['logo'].file
+    else:
+        input_file = request.body_file_seekable
+    input_file.seek(0)
+    return input_file.read()
+
+
 def public_userinfo(user):
     userid = None
     for sec in user['userid_sec']:
