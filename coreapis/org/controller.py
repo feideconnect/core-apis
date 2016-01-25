@@ -88,7 +88,7 @@ class OrgController(CrudControllerBase):
         org = self.session.get_org(orgid)
         clientids = self.session.get_mandatory_clients(org['realm'])
         cadm = self.cadm_controller
-        return [cadm.get_public_client(cadm.get(clientid)) for clientid in clientids]
+        return [cadm.get_public_info(cadm.get(clientid)) for clientid in clientids]
 
     def add_mandatory_client(self, user, orgid, clientid):
         org = self.session.get_org(orgid)
