@@ -5,7 +5,7 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
 from pyramid.response import Response
 
 from .controller import OrgController
-from coreapis.utils import now, get_user, get_payload, ValidationError, translation
+from coreapis.utils import now, get_user, ValidationError, translation
 
 
 def valid_service(service):
