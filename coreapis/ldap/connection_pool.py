@@ -23,8 +23,8 @@ class ConnectionPool(object):
         self.idle = queue.Queue(max_idle)
         self.tls = ldap3.Tls(validate=ssl.CERT_REQUIRED,
                              ca_certs_file=ca_certs)
-        self.server = ldap3.Server(host, port=port, use_ssl=True,
-                                   connect_timeout=self.timeouts['connect'], tls=self.tls)
+        self.host = host
+        self.port = port
         if port:
             self.target = "{}:{}".format(host, port)
         else:
@@ -41,7 +41,9 @@ class ConnectionPool(object):
         if self.create_semaphore.acquire(False):
             try:
                 self.log.debug("Creating new connection", target=self.target)
-                return ldap3.Connection(self.server, auto_bind=True,
+                server = ldap3.Server(self.host, port=self.port, use_ssl=True,
+                                      connect_timeout=self.timeouts['connect'], tls=self.tls)
+                return ldap3.Connection(server, auto_bind=True,
                                         user=self.username, password=self.password,
                                         client_strategy=ldap3.STRATEGY_SYNC,
                                         check_names=True)
