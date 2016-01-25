@@ -1,9 +1,9 @@
 import threading
 from pyramid.view import view_config
-from pyramid.httpexceptions import HTTPNotFound, HTTPNotModified, HTTPBadRequest, HTTPForbidden
+from pyramid.httpexceptions import HTTPNotFound, HTTPNotModified, HTTPForbidden
 from pyramid.response import Response
 from .controller import validate_query, PeopleSearchController
-from coreapis.utils import get_user
+from coreapis.utils import get_user, get_max_replies
 from coreapis.ldap.controller import LDAPController
 
 
@@ -33,12 +33,7 @@ def person_search_v1(request):
         raise HTTPForbidden('This resource requires a personal token')
     org = request.matchdict['org']
     search = request.matchdict['name']
-    max_replies = request.params.get('max_replies', None)
-    if max_replies is not None:
-        try:
-            max_replies = int(max_replies)
-        except ValueError:
-            raise HTTPBadRequest()
+    max_replies = get_max_replies(request)
     validate_query(search)
     if not org or not search:
         raise HTTPNotFound('missing org or search term')

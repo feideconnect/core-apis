@@ -302,6 +302,16 @@ def get_logo_bytes(request):
     return input_file.read()
 
 
+def get_max_replies(request):
+    max_replies = request.params.get('max_replies', None)
+    if max_replies is not None:
+        try:
+            max_replies = int(max_replies)
+        except ValueError:
+            raise HTTPBadRequest()
+    return max_replies
+
+
 def public_userinfo(user):
     userid = None
     for sec in user['userid_sec']:
