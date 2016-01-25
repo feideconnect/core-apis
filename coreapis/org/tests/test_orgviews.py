@@ -5,6 +5,8 @@ from webtest import TestApp
 from pyramid import testing
 from coreapis import main, middleware
 from coreapis.utils import now
+from coreapis.clientadm.tests.helper import retrieved_client
+from coreapis.clientadm.tests.helper import clientid as testclient_id
 
 testorg_id = 'fc:org:realm1.example.com'
 testorg_realm = 'realm1.example.com'
@@ -24,6 +26,7 @@ testorg2 = {
     'realm': None,
     'name': {'nb': 'testorganisasjon 2',
              'en': 'test organization 2', },
+    'services': ['auth'],
 }
 testservice = 'pilot'
 
@@ -150,14 +153,20 @@ class OrgViewTests(unittest.TestCase):
     def _test_list_mandatory_clients(self, orgadmin, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.is_org_admin.return_value = orgadmin
-        self.session.get_mandatory_clients.return_value = []
+        self.session.get_mandatory_clients.return_value = iter([testclient_id])
+        self.session.get_client_by_id.return_value = retrieved_client
         self.session.get_org.return_value = testorg
-        return self.testapp.get('/orgs/{}/mandatory_clients/'.format(testorg_id), status=httpstat,
-                                headers=headers)
+        with mock.patch('coreapis.crud_base.public_userinfo') as pui:
+            pui.return_value = {'foo': 'bar'}
+            with mock.patch('coreapis.crud_base.public_orginfo') as poi:
+                poi.return_value = {'ditt': 'datt'}
+                return self.testapp.get('/orgs/{}/mandatory_clients/'.format(testorg_id),
+                                        status=httpstat, headers=headers)
 
     def test_list_mandatory_clients(self):
         res = self._test_list_mandatory_clients(True, 200)
-        assert res.json == []
+        assert len(res.json) == 1
+        assert res.json[0]['redirect_uri'] == retrieved_client['redirect_uri']
 
     def test_list_mandatory_clients_no_access(self):
         self._test_list_mandatory_clients(False, 403)
@@ -165,7 +174,8 @@ class OrgViewTests(unittest.TestCase):
     @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_list_mandatory_clients_platform_admin(self, get_user):
         res = self._test_list_mandatory_clients(False, 200)
-        assert res.json == []
+        assert len(res.json) == 1
+        assert res.json[0]['redirect_uri'] == retrieved_client['redirect_uri']
 
     def test_list_mandatory_clients_no_realm(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -259,7 +269,7 @@ class OrgViewTests(unittest.TestCase):
 
     def test_list_services(self):
         res = self._test_list_services(True, 200)
-        assert res.json == []
+        assert res.json == ['auth']
 
     def test_list_services_no_access(self):
         self._test_list_services(False, 403)
@@ -267,7 +277,7 @@ class OrgViewTests(unittest.TestCase):
     @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_list_services_platform_admin(self, get_user):
         res = self._test_list_services(False, 200)
-        assert res.json == []
+        assert res.json == ['auth']
 
     def _test_add_service(self, service, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
