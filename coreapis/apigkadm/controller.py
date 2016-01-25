@@ -21,7 +21,7 @@ class APIGKAdmController(CrudControllerBase):
         '+name': 'string',
         'owner': V.AdaptTo(uuid.UUID),
         'organization': V.Nullable('string'),
-        '+id': re.compile('^[a-z][a-z0-9\-]{2,14}$'),
+        '+id': re.compile(r'^[a-z][a-z0-9\-]{2,14}$'),
         '+scopes_requested':  V.HomogeneousSequence(item_schema='string', min_length=1),
         'created': V.AdaptBy(timestamp_adapter),
         'descr': V.Nullable('string'),
