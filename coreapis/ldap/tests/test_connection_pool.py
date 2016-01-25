@@ -20,11 +20,15 @@ class TestConnectionPool(TestCase):
     def tearDown(self):
         pass
 
+    @mock.patch('ldap3.Server')
     @mock.patch('ldap3.Connection')
-    def test_get(self, mock_connection):
+    def test_get(self, mock_connection, mock_server):
         self.pool._get()
         assert self.pool.idle.empty()
-        mock_connection.assert_called_once_with(self.pool.server,
+        mock_server.assert_called_once_with(self.pool.host,
+                                            port=self.pool.port, use_ssl=True, connect_timeout=1,
+                                            tls=self.pool.tls)
+        mock_connection.assert_called_once_with(mock_server(),
                                                 auto_bind=True,
                                                 user=None,
                                                 password=None,
@@ -97,8 +101,9 @@ class TestConnectionPool(TestCase):
         assert self.pool.idle.qsize() == 2
         assert self.pool.create_semaphore._value == 3
 
+    @mock.patch('ldap3.Server')
     @mock.patch('ldap3.Connection')
-    def test_get_idle(self, mock_connection):
+    def test_get_idle(self, mock_connection, mock_server):
         instance = mock_connection.return_value
         instance.closed = False
         instance.bound = True
@@ -107,7 +112,7 @@ class TestConnectionPool(TestCase):
         assert not self.pool.idle.empty()
         con = self.pool._get()
         assert self.pool.idle.empty()
-        mock_connection.assert_called_once_with(self.pool.server,
+        mock_connection.assert_called_once_with(mock_server(),
                                                 auto_bind=True, user=None, password=None,
                                                 client_strategy=ldap3.STRATEGY_SYNC,
                                                 check_names=True)
