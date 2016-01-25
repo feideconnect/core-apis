@@ -6,8 +6,7 @@ from . import groupid1, groupid2
 
 
 class GroupsViewTests(unittest.TestCase):
-    @mock.patch('coreapis.middleware.cassandra_client.Client')
-    def setUp(self, Client):
+    def setUp(self):
         app = main({
             'statsd_server': 'localhost',
             'statsd_port': '8125',
@@ -111,8 +110,7 @@ class GroupsViewTests(unittest.TestCase):
 
 
 class GroupsViewErrorHandlingTests(unittest.TestCase):
-    @mock.patch('coreapis.middleware.cassandra_client.Client')
-    def setUp(self, Client):
+    def setUp(self):
         settings = {
             'statsd_server': 'localhost',
             'statsd_port': '8125',
