@@ -3,11 +3,13 @@ import uuid
 
 import blist
 from eventlet.pools import Pool as EventletPool
+import eventlet.green.threading
 from pyramid.config import Configurator
 import pyramid.renderers
 import cassandra.util
 
 from .aaa import TokenAuthenticationPolicy, TokenAuthorizationPolicy
+import coreapis.utils
 from .utils import Timer, format_datetime, ResourcePool
 
 
@@ -26,6 +28,7 @@ def main(global_config, **settings):
     config.set_authorization_policy(authz_policy)
     if global_config.get('use_eventlets', '') == 'true':
         pool = EventletPool
+        coreapis.utils.__local = eventlet.green.threading.local()
     else:
         pool = ResourcePool
     log_timings = global_config.get('log_timings', 'false').lower() == 'true'
