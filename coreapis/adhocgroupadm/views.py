@@ -50,7 +50,7 @@ def check(request, permission):
         raise HTTPNotFound
     if not request.ahgroupadm_controller.has_permission(group, user, permission):
         raise HTTPForbidden('no permission')
-    return user, group
+    return group
 
 
 @view_config(route_name='list_groups', renderer='json', permission='scope_adhocgroupadmin')
@@ -81,7 +81,7 @@ def get_group(request):
 
 @view_config(route_name='get_group_details', renderer='json', permission='scope_adhocgroupadmin')
 def get_group_details(request):
-    user, group = check(request, "view_details")
+    group = check(request, "view_details")
     return request.ahgroupadm_controller.format_group(group, True)
 
 
@@ -99,14 +99,14 @@ def add_group(request):
 
 @view_config(route_name='delete_group', renderer='json', permission='scope_adhocgroupadmin')
 def delete_group(request):
-    user, group = check(request, "delete")
+    group = check(request, "delete")
     request.ahgroupadm_controller.delete(group['id'])
     return Response(status=204, content_type=False)
 
 
 @view_config(route_name='update_group', renderer='json', permission='scope_adhocgroupadmin')
 def update_group(request):
-    user, group = check(request, "update")
+    group = check(request, "update")
     payload = get_payload(request)
     attrs = allowed_attrs(payload, 'update')
     group = request.ahgroupadm_controller.update(group['id'], attrs)
@@ -131,7 +131,7 @@ def group_logo(request):
 @view_config(route_name='ahgroup_logo_v1', request_method="POST", permission='scope_adhocgroupadmin',
              renderer="json")
 def upload_logo_v1(request):
-    _, group = check(request, "update")
+    group = check(request, "update")
     data = get_logo_bytes(request)
     request.ahgroupadm_controller.update_logo(group['id'], data)
     return 'OK'
@@ -146,15 +146,15 @@ def upload_logo(request):
 @view_config(route_name='ahgroup_members', request_method="GET", permission='scope_adhocgroupadmin',
              renderer="json")
 def group_members(request):
-    user, group = check(request, "view_members")
+    group = check(request, "view_members")
     return request.ahgroupadm_controller.get_members(group['id'])
 
 
 @view_config(route_name='ahgroup_members', request_method="PATCH",
              permission='scope_adhocgroupadmin', renderer="json")
 def add_group_members(request):
-    user, group = check(request, "edit_members")
-    userid = user['userid']
+    group = check(request, "edit_members")
+    userid = get_userid(request)
     payload = get_payload(request)
     try:
         return request.ahgroupadm_controller.add_members(group['id'], payload, userid)
@@ -165,7 +165,7 @@ def add_group_members(request):
 @view_config(route_name='ahgroup_members', request_method="DELETE",
              permission='scope_adhocgroupadmin')
 def del_group_members(request):
-    user, group = check(request, "edit_members")
+    group = check(request, "edit_members")
     payload = get_payload(request)
     request.ahgroupadm_controller.del_members(group['id'], payload)
     return Response(status=204, content_type=False)
