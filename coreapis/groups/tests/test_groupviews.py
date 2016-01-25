@@ -1,5 +1,4 @@
 import unittest
-import mock
 from webtest import TestApp
 from coreapis import main, middleware
 from . import groupid1, groupid2
