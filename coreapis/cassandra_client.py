@@ -185,7 +185,7 @@ class Client(object):
 
     def update_token_scopes(self, access_token, scopes):
         prep = self._prepare('UPDATE oauth_tokens SET scope = ? WHERE access_token = ?')
-        return self.session.execute(prep.bind([scopes, access_token]))
+        self.session.execute(prep.bind([scopes, access_token]))
 
     def get_user_by_id(self, userid):
         return self._get('users', userid,
@@ -267,7 +267,7 @@ class Client(object):
     def delete_token(self, token):
         prep = self._prepare('DELETE FROM oauth_tokens WHERE access_token = ?')
         prep.consistency_level = cassandra.ConsistencyLevel.ALL
-        return self.session.execute(prep.bind([token]))
+        self.session.execute(prep.bind([token]))
 
     def delete_authorization(self, userid, clientid):
         prep_del_auth = self._prepare('DELETE FROM oauth_authorizations WHERE userid = ? AND clientid = ?')
@@ -285,7 +285,7 @@ class Client(object):
 
     def update_oauth_authorization_scopes(self, auth):
         prep = self._prepare('INSERT INTO oauth_authorizations (userid, clientid, scopes) VALUES (?, ?, ?)')
-        return self.session.execute(prep.bind([auth['userid'], auth['clientid'], auth['scopes']]))
+        self.session.execute(prep.bind([auth['userid'], auth['clientid'], auth['scopes']]))
 
     def get_group(self, groupid):
         return self._get('groups', groupid)
@@ -319,19 +319,19 @@ class Client(object):
 
     def add_group_member(self, groupid, userid, mtype, status, added_by):
         prep = self._prepare('INSERT INTO group_members (groupid, userid, type, status, added_by) values (?,?,?,?,?)')
-        return self.session.execute(prep.bind([groupid, userid, mtype, status, added_by]))
+        self.session.execute(prep.bind([groupid, userid, mtype, status, added_by]))
 
     def set_group_member_status(self, groupid, userid, status):
         prep = self._prepare('INSERT INTO group_members (groupid, userid, status) values (?,?,?)')
-        return self.session.execute(prep.bind([groupid, userid, status]))
+        self.session.execute(prep.bind([groupid, userid, status]))
 
     def set_group_member_type(self, groupid, userid, mtype):
         prep = self._prepare('INSERT INTO group_members (groupid, userid, type) values (?,?,?)')
-        return self.session.execute(prep.bind([groupid, userid, mtype]))
+        self.session.execute(prep.bind([groupid, userid, mtype]))
 
     def del_group_member(self, groupid, userid):
         prep = self._prepare('DELETE FROM group_members WHERE groupid = ? AND userid = ?')
-        return self.session.execute(prep.bind([groupid, userid]))
+        self.session.execute(prep.bind([groupid, userid]))
 
     def get_membership_data(self, groupid, userid):
         return self._get_compound_pk('group_members', [groupid, userid],
@@ -350,8 +350,8 @@ class Client(object):
 
     def insert_grep_code(self, grep):
         prep = self._prepare('INSERT INTO grep_codes (id, code, title, type, last_changed) values (?,?,?,?,?)')
-        return self.session.execute(prep.bind([grep['id'], grep['code'], grep['title'],
-                                               grep['type'], grep['last_changed']]))
+        self.session.execute(prep.bind([grep['id'], grep['code'], grep['title'],
+                                        grep['type'], grep['last_changed']]))
 
     def get_grep_code(self, grepid):
         return self._get('grep_codes', grepid, ['*'])
@@ -418,7 +418,7 @@ class Client(object):
 
     def add_mandatory_client(self, realm, clientid):
         prep = self._prepare('INSERT INTO mandatory_clients (realm, clientid) values (?, ?)')
-        return self.session.execute(prep.bind([realm, clientid]))
+        self.session.execute(prep.bind([realm, clientid]))
 
     def del_mandatory_client(self, realm, clientid):
         prep = self._prepare('DELETE FROM mandatory_clients WHERE realm = ? AND clientid = ?')
@@ -427,12 +427,12 @@ class Client(object):
     def add_services(self, org, services):
         stmt = 'UPDATE organizations set services = services + ? WHERE id = ?'
         prep = self._prepare(stmt)
-        return self.session.execute(prep.bind([services, org]))
+        self.session.execute(prep.bind([services, org]))
 
     def del_services(self, org, services):
         stmt = 'UPDATE organizations set services = services - ? WHERE id = ?'
         prep = self._prepare(stmt)
-        return self.session.execute(prep.bind([services, org]))
+        self.session.execute(prep.bind([services, org]))
 
     def get_roles(self, selectors, values, maxrows):
         return self.get_generic('roles', selectors, values, maxrows)
