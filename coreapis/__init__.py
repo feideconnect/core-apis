@@ -80,5 +80,5 @@ def main(global_config, **settings):
     config.add_renderer('json', json_renderer)
     docker_env = {x.lower(): y for x, y in os.environ.items() if x.startswith("DOCKER_")}
     if docker_env:
-        LogWrapper.add_defaults(docker_env)
+        LogWrapper.add_defaults(**docker_env)
     return config.make_wsgi_app()
