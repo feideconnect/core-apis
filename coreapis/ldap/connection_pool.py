@@ -35,12 +35,12 @@ class ConnectionPool(object):
         self.alive = True
         self.last_result = HealthCheckResult.ok
         self.result_count = self.up_count
-        self.log = LogWrapper('ldap.ConnectionPool')
+        self.log = LogWrapper('ldap.ConnectionPool', target=self.target)
 
     def _create(self):
         if self.create_semaphore.acquire(False):
             try:
-                self.log.debug("Creating new connection", target=self.target)
+                self.log.debug("Creating new connection")
                 server = ldap3.Server(self.host, port=self.port, use_ssl=True,
                                       connect_timeout=self.timeouts['connect'], tls=self.tls)
                 return ldap3.Connection(server, auto_bind=True,
@@ -54,7 +54,7 @@ class ConnectionPool(object):
 
     def _destroy(self):
         self.create_semaphore.release()
-        self.log.debug("Connection destroyed", target=self.target)
+        self.log.debug("Connection destroyed")
 
     def _get(self):
         try:
@@ -82,7 +82,7 @@ class ConnectionPool(object):
             self._destroy()
 
     def status(self):
-        self.log.info("Connection pool status", target=self.target,
+        self.log.info("Connection pool status",
                       idle_connections=self.idle.qsize(),
                       remaining_connections=self.create_semaphore._value)
 
@@ -117,10 +117,10 @@ class ConnectionPool(object):
         else:
             self.result_count += 1
         if result == HealthCheckResult.fail and self.result_count == self.down_count:
-            self.log.info("Server marked as down", target=self.target)
+            self.log.info("Server marked as down")
             self.alive = False
         elif result == HealthCheckResult.ok and self.result_count == self.up_count:
-            self.log.info("Server back up", target=self.target)
+            self.log.info("Server back up")
             self.alive = True
 
 
