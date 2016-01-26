@@ -93,9 +93,21 @@ class LogMessage(object):
 
 
 class LogWrapper(object):
+    clsbase = {}
+
     def __init__(self, name, **base):
-        self.base = base
+        self._base = base
         self.l = logging.getLogger(name)
+
+    @property
+    def base(self):
+        base = LogWrapper.clsbase.copy()
+        base.update(self._base)
+        return base
+
+    @classmethod
+    def add_defaults(cls, **kwargs):
+        cls.clsbase.update(kwargs)
 
     def debug(self, msg, **kwargs):
         self.l.debug(LogMessage(msg, self.base, **kwargs))
