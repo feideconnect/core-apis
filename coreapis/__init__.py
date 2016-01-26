@@ -1,4 +1,5 @@
 import datetime
+import os
 import uuid
 
 import blist
@@ -10,7 +11,7 @@ import cassandra.util
 
 from .aaa import TokenAuthenticationPolicy, TokenAuthorizationPolicy
 import coreapis.utils
-from .utils import Timer, format_datetime, ResourcePool
+from .utils import Timer, format_datetime, ResourcePool, LogWrapper
 
 
 def options(request):
@@ -77,4 +78,7 @@ def main(global_config, **settings):
     json_renderer.add_adapter(uuid.UUID, lambda x, y: str(x))
     json_renderer.add_adapter(cassandra.util.SortedSet, lambda x, y: list(x))
     config.add_renderer('json', json_renderer)
+    docker_env = {x.lower(): y for x, y in os.environ.items() if x.startswith("DOCKER_")}
+    if docker_env:
+        LogWrapper.add_defaults(docker_env)
     return config.make_wsgi_app()
