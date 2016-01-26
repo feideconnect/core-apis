@@ -70,9 +70,11 @@ class CustomEncoder(json.JSONEncoder):
 
 
 class LogMessage(object):
-    def __init__(self, message, **kwargs):
+    def __init__(self, message, _base, **kwargs):
         self.message = message
-        self.args = kwargs
+        args = _base.copy()
+        args.update(kwargs)
+        self.args = args
         request = request_id()
         if request:
             self.args['request'] = request
@@ -91,20 +93,21 @@ class LogMessage(object):
 
 
 class LogWrapper(object):
-    def __init__(self, name):
+    def __init__(self, name, **base):
+        self.base = base
         self.l = logging.getLogger(name)
 
     def debug(self, msg, **kwargs):
-        self.l.debug(LogMessage(msg, **kwargs))
+        self.l.debug(LogMessage(msg, self.base, **kwargs))
 
     def warn(self, msg, **kwargs):
-        self.l.warning(LogMessage(msg, **kwargs))
+        self.l.warning(LogMessage(msg, self.base, **kwargs))
 
     def error(self, msg, **kwargs):
-        self.l.error(LogMessage(msg, **kwargs))
+        self.l.error(LogMessage(msg, self.base, **kwargs))
 
     def info(self, msg, **kwargs):
-        self.l.info(LogMessage(msg, **kwargs))
+        self.l.info(LogMessage(msg, self.base, **kwargs))
 
 
 class DebugLogFormatter(logging.Formatter):
