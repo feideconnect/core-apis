@@ -47,7 +47,7 @@ class GroupsController(object):
     def _backend_call(self, method, *args, **kwargs):
         backend = method.__self__.prefix
         call = method.__name__
-        with self.timer.time('groups.{}.{}'.format(call, backend)):
+        with self.timer.time('groups.{}.{}'.format(call, backend.replace(':', '_'))):
             with Timeout(self.timeout):
                 try:
                     return method(*args, **kwargs)
