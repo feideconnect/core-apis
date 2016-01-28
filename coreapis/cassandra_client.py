@@ -266,10 +266,12 @@ class Client(object):
 
     def delete_token(self, token):
         prep = self._prepare('DELETE FROM oauth_tokens WHERE access_token = ?')
+        prep.consistency_level = cassandra.ConsistencyLevel.ALL
         return self.session.execute(prep.bind([token]))
 
     def delete_authorization(self, userid, clientid):
         prep_del_auth = self._prepare('DELETE FROM oauth_authorizations WHERE userid = ? AND clientid = ?')
+        prep_del_auth.consistency_level = cassandra.ConsistencyLevel.ALL
         self.session.execute(prep_del_auth.bind([userid, clientid]))
         prep_find_tokens = self._prepare('SELECT access_token FROM oauth_tokens WHERE userid = ? AND clientid = ? ALLOW FILTERING')
         for token in self.session.execute(prep_find_tokens.bind([userid, clientid])):
