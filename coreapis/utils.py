@@ -129,7 +129,7 @@ class DebugLogFormatter(logging.Formatter):
         msecs = int((t - secs) * 1000)
         ts = time.strftime('%Y-%m-%dT%H:%M:%S', time.gmtime(secs)) + '.%03dZ' % msecs
         if not isinstance(record.msg, LogMessage):
-            record.msg = LogMessage(record.msg)
+            record.msg = LogMessage(record.msg, {})
 
         obj = {
             'time': ts,
