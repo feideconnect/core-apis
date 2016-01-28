@@ -4,6 +4,7 @@ import datetime
 import json
 
 from cassandra.cluster import Cluster
+import cassandra
 from cassandra.query import dict_factory
 import pytz
 
@@ -77,6 +78,7 @@ class Client(object):
         }
         self.session = cluster.connect(keyspace)
         self.session.row_factory = datetime_hack_dict_factory
+        self.session.default_consistency_level = cassandra.ConsistencyLevel.LOCAL_QUORUM
         self.timer = DummyTimer()
 
     def _prepare(self, query):
