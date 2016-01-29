@@ -131,6 +131,7 @@ class TestPeopleSearch(TestCase):
                 'peoplesearch.cache_update_seconds': 0,
                 'ldap_config_file': 'testdata/test-ldap-config.json',
                 'statsd_factory': mock.MagicMock(),
+                'statsd_host_factory': mock.MagicMock(),
             }
             self.controller = controller.PeopleSearchController(mock.MagicMock(), settings)
             self.controller.ldap = coreapis.ldap.controller.LDAPController(settings)

@@ -14,6 +14,7 @@ class TestLookupFeideid(TestCase):
             'timer': mock.MagicMock(),
             'ldap_config_file': 'testdata/test-ldap-config.json',
             'statsd_factory': mock.MagicMock(),
+            'statsd_host_factory': mock.MagicMock(),
         }
         self.ldap = controller.LDAPController(settings)
 

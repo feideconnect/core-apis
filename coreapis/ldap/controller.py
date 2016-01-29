@@ -57,7 +57,7 @@ class LDAPController(object):
         self.t = timer
         self.log = LogWrapper('peoplesearch.LDAPController')
         statsd = settings.get('statsd_factory')()
-        self.host_statsd = settings.get('statsd_factory')()
+        self.host_statsd = settings.get('statsd_host_factory')()
         self.config, self.servers, self.orgpools = parse_ldap_config(ldap_config, ca_certs,
                                                                      max_idle, max_connections,
                                                                      timeouts, self.host_statsd)
