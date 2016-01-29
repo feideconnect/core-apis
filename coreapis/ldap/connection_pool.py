@@ -135,7 +135,7 @@ class RetryPool(object):
 
     def search(self, base_dn, search_filter, scope, attributes, size_limit=None):
         exception = None
-        alive_servers = {server for server in self.servers if server.alive}
+        alive_servers = self.alive_servers()
         if not alive_servers:
             alive_servers = self.servers
         for server in random.sample(alive_servers, len(alive_servers)):
@@ -147,6 +147,9 @@ class RetryPool(object):
             except ldap3.LDAPExceptionError as ex:
                 exception = ex
         raise exception
+
+    def alive_servers(self):
+        return {server for server in self.servers if server.alive}
 
     def do_health_checks(self):
         for server in self.servers:

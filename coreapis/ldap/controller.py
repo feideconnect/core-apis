@@ -56,10 +56,13 @@ class LDAPController(object):
         }
         self.t = timer
         self.log = LogWrapper('peoplesearch.LDAPController')
+        statsd = settings.get('statsd_factory')()
         self.config, self.servers, self.orgpools = parse_ldap_config(ldap_config, ca_certs,
                                                                      max_idle, max_connections,
                                                                      timeouts)
         self.health_check_interval = 10
+        self.statsd = statsd
+        self.statsd_hostid = settings.get('statsd_hostid')
 
     def get_ldap_config(self):
         return self.config
@@ -73,11 +76,13 @@ class LDAPController(object):
             search = "(&{}(!{}))".format(search, exclude_filter)
         return search
 
-    def _org_statsd_key(self, org, key):
+    def _org_statsd_key(self, org, key, with_hostid):
+        if with_hostid:
+            key = '{}.{}'.format(self.statsd_hostid, key)
         return 'ldap.org.{}.{}'.format(org.replace('.', '_'), key)
 
     def search(self, org, base_dn, search_filter, scope, attributes, size_limit=None):
-        with self.t.time(self._org_statsd_key(org, 'search_ms')):
+        with self.t.time(self._org_statsd_key(org, 'search_ms', False)):
             return self.orgpools[org].search(base_dn, search_filter, scope, attributes=attributes,
                                              size_limit=size_limit)
 
@@ -109,3 +114,6 @@ class LDAPController(object):
             for server in servers:
                 server.check_connection()
                 time.sleep(sleeptime)
+            for org, orgpool in self.orgpools.items():
+                self.statsd.gauge(self._org_statsd_key(org, 'alive_servers', True),
+                                  len(orgpool.alive_servers()))

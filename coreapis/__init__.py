@@ -1,5 +1,6 @@
 import datetime
 import os
+import socket
 import uuid
 
 import blist
@@ -8,6 +9,7 @@ import eventlet.green.threading
 from pyramid.config import Configurator
 import pyramid.renderers
 import cassandra.util
+import statsd
 
 from .aaa import TokenAuthenticationPolicy, TokenAuthorizationPolicy
 import coreapis.utils
@@ -34,13 +36,26 @@ def main(global_config, **settings):
         pool = ResourcePool
     log_timings = global_config.get('log_timings', 'false').lower() == 'true'
 
-    timer = Timer(global_config['statsd_server'], int(global_config['statsd_port']),
-                  global_config['statsd_prefix'], log_timings, pool)
+    statsd_server = global_config['statsd_server']
+    statsd_port = int(global_config['statsd_port'])
+    statsd_prefix = global_config['statsd_prefix']
+    timer = Timer(statsd_server, statsd_port,
+                  statsd_prefix, log_timings, pool)
+    config.add_settings(statsd_factory=lambda: statsd.StatsClient(statsd_server, statsd_port,
+                                                                  prefix=statsd_prefix))
     config.add_renderer('logo', 'coreapis.utils.LogoRenderer')
     config.add_settings(cassandra_contact_points=global_config['cassandra_contact_points'].split(', '))
     config.add_settings(cassandra_keyspace=global_config['cassandra_keyspace'])
     config.add_settings(timer=timer)
     config.add_settings(log_timings=log_timings)
+
+    if 'DOCKER_HOST' in os.environ and 'DOCKER_INSTANCE' in os.environ:
+        statsd_hostid = '{}.{}'.format(os.environ['DOCKER_HOST'].replace('.', '_'),
+                                       os.environ['DOCKER_INSTANCE'])
+    else:
+        statsd_hostid = socket.getfqdn().replace('.', '_')
+    config.add_settings(statsd_hostid=statsd_hostid)
+
     config.add_route('pre_flight', pattern='/*path', request_method='OPTIONS')
     config.add_view(options, route_name='pre_flight')
     if 'enabled_components' in settings:

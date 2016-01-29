@@ -129,7 +129,8 @@ class TestPeopleSearch(TestCase):
                 'cassandra_contact_points': [],
                 'peoplesearch.cache_keyspace': 'keyspace',
                 'peoplesearch.cache_update_seconds': 0,
-                'ldap_config_file': 'testdata/test-ldap-config.json'
+                'ldap_config_file': 'testdata/test-ldap-config.json',
+                'statsd_factory': mock.MagicMock(),
             }
             self.controller = controller.PeopleSearchController(mock.MagicMock(), settings)
             self.controller.ldap = coreapis.ldap.controller.LDAPController(settings)

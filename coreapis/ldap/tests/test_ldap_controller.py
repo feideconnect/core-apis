@@ -12,7 +12,8 @@ class TestLookupFeideid(TestCase):
         m = mock.mock_open(read_data='{}')
         settings = {
             'timer': mock.MagicMock(),
-            'ldap_config_file': 'testdata/test-ldap-config.json'
+            'ldap_config_file': 'testdata/test-ldap-config.json',
+            'statsd_factory': mock.MagicMock(),
         }
         self.ldap = controller.LDAPController(settings)
 
