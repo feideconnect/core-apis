@@ -73,8 +73,11 @@ class LDAPController(object):
             search = "(&{}(!{}))".format(search, exclude_filter)
         return search
 
+    def _org_statsd_key(self, org, key):
+        return 'ldap.org.{}.{}'.format(org.replace('.', '_'), key)
+
     def search(self, org, base_dn, search_filter, scope, attributes, size_limit=None):
-        with self.t.time('ps.ldap_search'):
+        with self.t.time(self._org_statsd_key(org, 'search_ms')):
             return self.orgpools[org].search(base_dn, search_filter, scope, attributes=attributes,
                                              size_limit=size_limit)
 
