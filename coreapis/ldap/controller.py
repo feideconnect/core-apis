@@ -83,6 +83,7 @@ class LDAPController(object):
 
     def search(self, org, base_dn, search_filter, scope, attributes, size_limit=None):
         with self.t.time(self._org_statsd_key(org, 'search_ms', False)):
+            self.statsd.incr(self._org_statsd_key(org, 'searches', True))
             return self.orgpools[org].search(base_dn, search_filter, scope, attributes=attributes,
                                              size_limit=size_limit)
 
