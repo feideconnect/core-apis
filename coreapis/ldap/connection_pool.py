@@ -159,10 +159,10 @@ class RetryPool(object):
                 with server.connection() as connection:
                     connection.search(base_dn, search_filter, scope, attributes=attributes,
                                       size_limit=size_limit)
-                    self.statsd.incr('{org}.successes'.format(org=self.statsd_org))
+                    self.statsd.incr('ldap.{org}.successes'.format(org=self.statsd_org))
                     return connection.response
             except ldap3.LDAPExceptionError as ex:
-                self.statsd.incr('{org}.failures'.format(org=self.statsd_org))
+                self.statsd.incr('ldap.{org}.failures'.format(org=self.statsd_org))
                 exception = ex
         raise exception
 
