@@ -13,7 +13,7 @@ def validate_query(string):
             raise ValidationError('Bad character in request')
 
 
-def parse_ldap_config(filename, ca_certs, max_idle, max_connections, timeouts):
+def parse_ldap_config(filename, ca_certs, max_idle, max_connections, timeouts, statsd):
     with open(filename) as fh:
         config = json.load(fh)
     servers = {}
@@ -35,10 +35,10 @@ def parse_ldap_config(filename, ca_certs, max_idle, max_connections, timeouts):
                 host, port = server, None
             if not (host, port, user) in servers:
                 cp = ConnectionPool(host, port, user, password,
-                                    max_idle, max_connections, timeouts, ca_certs)
+                                    max_idle, max_connections, timeouts, ca_certs, statsd)
                 servers[(host, port, user)] = cp
             org_connection_pools.append(servers[(host, port, user)])
-        orgpool = RetryPool(org_connection_pools)
+        orgpool = RetryPool(org_connection_pools, org, statsd)
         orgpools[org] = orgpool
     return config, servers, orgpools
 
@@ -60,7 +60,7 @@ class LDAPController(object):
         self.host_statsd = settings.get('statsd_factory')()
         self.config, self.servers, self.orgpools = parse_ldap_config(ldap_config, ca_certs,
                                                                      max_idle, max_connections,
-                                                                     timeouts)
+                                                                     timeouts, self.host_statsd)
         self.health_check_interval = 10
         self.statsd = statsd
 

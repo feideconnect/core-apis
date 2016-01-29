@@ -15,7 +15,8 @@ class TooManyConnectionsException(ldap3.LDAPExceptionError):
 
 
 class ConnectionPool(object):
-    def __init__(self, host, port, username, password, max_idle, max_total, timeouts, ca_certs):
+    def __init__(self, host, port, username, password, max_idle,
+                 max_total, timeouts, ca_certs, statsd):
         self.username = username
         self.password = password
         self.max_total = max_total
@@ -29,6 +30,7 @@ class ConnectionPool(object):
             self.target = "{}:{}".format(host, port)
         else:
             self.target = host
+        self.statsd_target = self.target.replace('.', '_').replace(':', '_').replace('/', '.')
         self.create_semaphore = threading.Semaphore(max_total)
         self.down_count = 3  # Based on haproxy "fall" option default
         self.up_count = 2  # Based on haproxy "rise" option default
@@ -36,6 +38,10 @@ class ConnectionPool(object):
         self.last_result = HealthCheckResult.ok
         self.result_count = self.up_count
         self.log = LogWrapper('ldap.ConnectionPool', target=self.target)
+        self.statsd = statsd
+
+    def _statsd_key(self, key):
+        return 'ldap.servers.{target}.{key}'.format(target=self.statsd_target, key=key)
 
     def _create(self):
         if self.create_semaphore.acquire(False):
@@ -43,10 +49,13 @@ class ConnectionPool(object):
                 self.log.debug("Creating new connection")
                 server = ldap3.Server(self.host, port=self.port, use_ssl=True,
                                       connect_timeout=self.timeouts['connect'], tls=self.tls)
-                return ldap3.Connection(server, auto_bind=True,
+                conn = ldap3.Connection(server, auto_bind=True,
                                         user=self.username, password=self.password,
                                         client_strategy=ldap3.STRATEGY_SYNC,
                                         check_names=True)
+                self.statsd.gauge(self._statsd_key('connections'),
+                                  self.max_total - self.create_semaphore._value)
+                return conn
             except:
                 self.create_semaphore.release()
                 raise
@@ -55,6 +64,8 @@ class ConnectionPool(object):
     def _destroy(self):
         self.create_semaphore.release()
         self.log.debug("Connection destroyed")
+        self.statsd.gauge(self._statsd_key('connections'),
+                          self.max_total - self.create_semaphore._value)
 
     def _get(self):
         try:
@@ -95,6 +106,8 @@ class ConnectionPool(object):
         finally:
             if connection:
                 self._release(connection)
+            self.statsd.gauge(self._statsd_key('idle_connections'),
+                              self.idle.qsize())
 
     def _try_connection(self):
         try:
@@ -130,8 +143,11 @@ class HealthCheckResult(enum.Enum):
 
 
 class RetryPool(object):
-    def __init__(self, servers):
+    def __init__(self, servers, org, statsd):
         self.servers = servers
+        self.org = org
+        self.statsd_org = org.replace('.', '_')
+        self.statsd = statsd
 
     def search(self, base_dn, search_filter, scope, attributes, size_limit=None):
         exception = None
@@ -143,8 +159,10 @@ class RetryPool(object):
                 with server.connection() as connection:
                     connection.search(base_dn, search_filter, scope, attributes=attributes,
                                       size_limit=size_limit)
+                    self.statsd.incr('{org}.successes'.format(org=self.statsd_org))
                     return connection.response
             except ldap3.LDAPExceptionError as ex:
+                self.statsd.incr('{org}.failures'.format(org=self.statsd_org))
                 exception = ex
         raise exception
 

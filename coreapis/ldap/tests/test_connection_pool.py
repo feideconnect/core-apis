@@ -15,7 +15,7 @@ class TestConnectionPool(TestCase):
 
     def setUp(self):
         self.pool = cpl.ConnectionPool("ldap.example.org", 636, None, None,
-                                       2, 5, defaultdict(lambda: 1), None)
+                                       2, 5, defaultdict(lambda: 1), None, mock.MagicMock())
 
     def tearDown(self):
         pass
@@ -202,7 +202,7 @@ class TestRetryPool(TestCase):
         self.cp1 = mock.MagicMock(name="cp1")
         self.cp2 = mock.MagicMock(name="cp2")
         self.cp3 = mock.MagicMock(name="cp3")
-        self.sp = cpl.RetryPool([self.cp1, self.cp2, self.cp3])
+        self.sp = cpl.RetryPool([self.cp1, self.cp2, self.cp3], "example.org", mock.MagicMock())
 
     def tearDown(self):
         pass
