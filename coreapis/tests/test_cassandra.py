@@ -52,17 +52,6 @@ TABLES = [
 db_node = os.environ.get('DP_CASSANDRA_TEST_NODE', 'cassandra-test-coreapis')
 db_keyspace = os.environ.get('DP_CASSANDRA_TEST_KEYSPACE', 'test_coreapis')
 
-# docker-compose up -d <composefile>
-# docker exec -i -t jk_cassandra_1 bash
-# # cqlsh localhost
-# > drop keyspace test_coreapis;
-# > CREATE KEYSPACE
-# . IF NOT EXISTS test_coreapis
-# . WITH replication = {'class' : 'SimpleStrategy', 'replication_factor' : 1 };
-# git clone git@github.com:feideconnect/cassandra-schema.git
-# cd cassandra-schema
-# CASSANDRA_NODE=<external_ip_or_dns> CASSANDRA_KEYSPACE=test_coreapis ./migrate up
-
 cclient = None
 
 
