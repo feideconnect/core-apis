@@ -54,7 +54,9 @@ def main(global_config, **settings):
                                        os.environ['DOCKER_INSTANCE'])
     else:
         statsd_hostid = socket.getfqdn().replace('.', '_')
-    config.add_settings(statsd_hostid=statsd_hostid)
+    statsd_host_prefix = "{}.{}".format(statsd_prefix, statsd_hostid)
+    config.add_settings(statsd_host_factory=lambda: statsd.StatsClient(statsd_server, statsd_port,
+                                                                       prefix=statsd_host_prefix))
 
     config.add_route('pre_flight', pattern='/*path', request_method='OPTIONS')
     config.add_view(options, route_name='pre_flight')
