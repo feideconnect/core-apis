@@ -13,8 +13,7 @@ The tests are skipped if no database is available.
 Here's how to set up a test environment:
 
     $ docker run -d -p 9042:9042 cassandra:2.1
-    wait for cassandra to initialize
-    $ python <coreapis/bin> init_keyspace.py
+    $ python <coreapis/bin> init_keyspace.py -w
     $ git clone git@github.com:feideconnect/cassandra-schema.git
     $ cd cassandra-schema
     $ CASSANDRA_NODE=<external_ip_or_dns> CASSANDRA_KEYSPACE=test_coreapis \

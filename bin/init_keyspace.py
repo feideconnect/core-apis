@@ -1,6 +1,7 @@
 import argparse
 import os
 import sys
+import time
 from cassandra.cluster import Cluster, NoHostAvailable
 
 
@@ -18,19 +19,16 @@ class KeyspaceInitializer(object):
         self.keyspace = keyspace
         self.cluster = None
         self.session = None
+        self.error = None
         self.connect()
-        metadata = self.cluster.metadata
-        print('Connected to cluster: ' + metadata.cluster_name)
-        print('Node:', self.node)
 
     def connect(self):
         nodes = [self.node]
+        self.cluster = Cluster(nodes)
         try:
-            self.cluster = Cluster(nodes)
+            self.session = self.cluster.connect()
         except NoHostAvailable as e:
-            print(e)
-            sys.exit(1)
-        self.session = self.cluster.connect()
+            self.error = e
 
     def exec_cql(self, stmt, msg):
         if msg:
@@ -56,22 +54,40 @@ def parse_args():
     parser = argparse.ArgumentParser(description=DESCRIPTION)
     parser.add_argument('-f', '--force', dest='force', action='store_true',
                         help="drop and recreate keyspace")
-    parser.set_defaults(force=False)
+    parser.add_argument('-w', '--wait-for-db', dest='wait_for_db', action='store_true',
+                        help="wait for db to become ready")
+    parser.add_argument('-m', '--max-wait', type=int, help="max secs to wait for db")
+    parser.set_defaults(force=False, wait_for_db=False, max_wait=100)
     return parser.parse_args()
 
 
 def main():
     db_node = os.environ.get('DP_CASSANDRA_TEST_NODE', 'cassandra-test-coreapis')
     db_keyspace = os.environ.get('DP_CASSANDRA_TEST_KEYSPACE', 'test_coreapis')
-    kinit = KeyspaceInitializer(db_node, db_keyspace)
     args = parse_args()
+    now = time.time()
+    if args.wait_for_db:
+        latest = now + args.max_wait
+    else:
+        latest = now - 1
+    while True:
+        kinit = KeyspaceInitializer(db_node, db_keyspace)
+        if kinit.session is None and time.time() < latest:
+            print('database not ready, waiting ...')
+            time.sleep(5)
+            continue
+        else:
+            break
+    if kinit.session is None:
+        print(kinit.error)
+        sys.exit(1)
     exists = kinit.keyspace_exists()
     if exists:
         if args.force:
             kinit.drop_keyspace()
             exists = False
         else:
-            print('Keyspace already exists, nothing to do')
+            print('keyspace already exists, nothing to do')
     if not exists:
         kinit.create_keyspace()
 
