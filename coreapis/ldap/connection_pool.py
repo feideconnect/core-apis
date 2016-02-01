@@ -119,7 +119,10 @@ class ConnectionPool(object):
             self.log.warn("Failed to get connection. Pool full?")
             self.status()
             return HealthCheckResult.ok
-        except:
+        except Exception as ex:
+            if self.alive:
+                self.log.warn("Failed health check", exception=str(ex),
+                              exception_class=ex.__class__.__name__)
             return HealthCheckResult.fail
 
     def check_connection(self):
