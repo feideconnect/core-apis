@@ -140,12 +140,13 @@ class TestConnectionPool(TestCase):
         self.pool._release.assert_called_with("token")
 
     def test_context_exception(self):
-        self.pool._get = mock.Mock(return_value="token")
+        connection = mock.Mock()
+        self.pool._get = mock.Mock(return_value=connection)
         self.pool._release = mock.Mock()
         with pytest.raises(RuntimeError):
             with self.pool.connection():
                 raise RuntimeError()
-        self.pool._release.assert_called_with("token")
+        self.pool._release.assert_called_with(connection)
 
     def test_context_connection_failure(self):
         self.pool._get = mock.Mock(return_value=None)
@@ -158,6 +159,8 @@ class TestConnectionPool(TestCase):
     def test_try_connection(self, connection):
         assert self.pool._try_connection() == cpl.HealthCheckResult.ok
         connection.return_value.search.side_effect = RuntimeError
+        connection.return_value.closed = True
+        connection.return_value.bound = True
         assert self.pool._try_connection() == cpl.HealthCheckResult.fail
         self.pool._get = mock.Mock(side_effect=cpl.TooManyConnectionsException)
         assert self.pool._try_connection() == cpl.HealthCheckResult.ok

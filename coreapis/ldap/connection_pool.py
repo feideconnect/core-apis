@@ -104,10 +104,11 @@ class ConnectionPool(object):
             connection = self._get()
             yield connection
         except:
-            if self.alive:
+            if self.alive and connection:
                 self.log.debug("Connection status after exception",
                                closed=connection.closed,
                                bound=connection.bound)
+            raise
         finally:
             if connection:
                 self._release(connection)
