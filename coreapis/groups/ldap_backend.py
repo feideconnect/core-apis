@@ -10,7 +10,7 @@ from coreapis.utils import LogWrapper, get_feideids, translatable, failsafe
 from coreapis.cache import Cache
 from . import BaseBackend, IDHandler
 ldapcontroller = eventlet.import_patched('coreapis.ldap.controller')
-from coreapis import cassandra_client
+from coreapis import cassandra_client, feide
 from coreapis.groups.gogroups import affiliation_names as go_affiliation_names, GOGroup, groupid_entitlement
 
 org_attribute_names = {
@@ -141,6 +141,8 @@ def org_membership(person, org_type):
     }
     for key, value in person.items():
         if key in PERSON_ATTRIBUTE_MAPPING:
+            if key in feide.SINGLE_VALUED_ATTRIBUTES:
+                value = value[0]
             membership[PERSON_ATTRIBUTE_MAPPING[key]] = value
     affiliation = membership.get('affiliation', [])
     if 'employee' in affiliation:

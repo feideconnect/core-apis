@@ -1,4 +1,4 @@
-from coreapis import cassandra_client
+from coreapis import cassandra_client, feide
 from coreapis.utils import LogWrapper, get_feideid
 
 USER_INFO_ATTRIBUTES_FEIDE = {
@@ -63,17 +63,6 @@ USER_INFO_ATTRIBUTES_FEIDE = {
         'preferredLanguage',
     ]
 }
-SINGLE_VALUED_ATTRIBUTES_FEIDE = [
-    'displayName',
-    'eduPersonPrincipalName',
-    'eduPersonPrimaryAffiliation',
-    'norEduPersonBirthDate',
-    'norEduPersonLegalName',
-    'norEduPersonNIN',
-    'o',
-    'preferredLanguage',
-    'schacHomeOrganization',
-]
 
 
 def flatten(user, single_val_attrs):
@@ -114,7 +103,7 @@ class UserInfoController(object):
         feideid = get_feideid(user)
         attributes = allowed_attributes(USER_INFO_ATTRIBUTES_FEIDE, perm_checker)
         person = self.ldap.lookup_feideid(feideid, attributes)
-        normalize(person, SINGLE_VALUED_ATTRIBUTES_FEIDE)
+        normalize(person, feide.SINGLE_VALUED_ATTRIBUTES)
         return dict(person)
 
     def get_profilephoto(self, userid_sec):
