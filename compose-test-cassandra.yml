@@ -1,0 +1,16 @@
+cassandra:
+  image: cassandra:2.1
+  ports:
+    - "9042:9042"
+core-apis:
+  image: uninett-docker-uninett.bintray.io/feideconnect/core-apis-base
+  links:
+    - cassandra:cassandra
+  environment:
+    - DP_CASSANDRA_TEST_NODE=cassandra
+dataportenschemas:
+  image: jhellan/dataportenschemas
+  links:
+    - cassandra:cassandra
+  environment:
+    - CASSANDRA_NODE=cassandra
