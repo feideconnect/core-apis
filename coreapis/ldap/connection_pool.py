@@ -108,6 +108,8 @@ class ConnectionPool(object):
                 self.log.debug("Connection status after exception",
                                closed=connection.closed,
                                bound=connection.bound)
+            if connection:
+                connection.closed = True
             raise
         finally:
             if connection:
