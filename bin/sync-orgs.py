@@ -3,11 +3,11 @@ import argparse
 import json
 import logging
 import re
-import requests
 import sys
+from configparser import SafeConfigParser
+import requests
 import valideer as V
 from cassandra.cluster import Cluster
-from configparser import SafeConfigParser
 from coreapis.utils import LogWrapper
 
 DESCRIPTION = """Sync organizations from Feide API to Connect.
@@ -23,16 +23,10 @@ SUBSPATH = 'sp/2021732/full'
 
 
 class CassandraClient(object):
-    def __init__(self, log, contact_points, keyspace, use_eventlets=False):
+    def __init__(self, log, contact_points, keyspace):
         self.log = log
-        connection_class = None
-        if use_eventlets:
-            from cassandra.io.eventletreactor import EventletConnection
-            connection_class = EventletConnection
-            log.debug("Using eventlet based cassandra connection")
         cluster = Cluster(
-            contact_points=contact_points,
-            connection_class=connection_class,
+            contact_points=contact_points
         )
         self.session = cluster.connect(keyspace)
         stmt = """
@@ -138,7 +132,7 @@ def is_connect_subscriber(feideorg, feidesubs):
 
 
 class Syncer(object):
-    def __init__(self, log, client, sync_exclude=[]):
+    def __init__(self, log, client, sync_exclude):
         self.log = log
         self.client = client
         self.sync_exclude = sync_exclude
@@ -192,7 +186,8 @@ class Syncer(object):
                 'role': roles
             }
 
-    def roles_from_db(self, rows):
+    @staticmethod
+    def roles_from_db(rows):
         for row in rows:
             yield {
                 'feideid': row[0],
@@ -274,7 +269,7 @@ class Syncer(object):
 
 class ApiError(requests.exceptions.RequestException):
     def __init__(self, message):
-        super(requests.exceptions.RequestException, self).__init__(message)
+        super(ApiError, self).__init__(message)
         self.message = message
 
 
@@ -284,13 +279,13 @@ def get_json_from_url(url, token):
         'Accept-Encoding': 'gzip, deflate',
         'Accept': 'application/json',
     }
-    r = requests.get(url, headers=headers)
-    if r.status_code != 200:
-        r.raise_for_status()
-    content_type = r.headers['content-type']
+    req = requests.get(url, headers=headers)
+    if req.status_code != 200:
+        req.raise_for_status()
+    content_type = req.headers['content-type']
     if content_type != 'application/json':
         raise ApiError("Wrong content type: {}".format(content_type))
-    return r.json()
+    return req.json()
 
 
 def parse_config(filename):
@@ -311,7 +306,7 @@ def parse_args():
     parser.add_argument('-u', '--url', default=URL,
                         help='Feide API URL')
     parser.add_argument('-x', '--feideapi-token-secret',
-                        help='Feide API token secret'),
+                        help='Feide API token secret')
     parser.add_argument('-i', '--infile', type=argparse.FileType('r'),
                         help='Input file with organization data')
     parser.add_argument('-s', '--subsfile', type=argparse.FileType('r'),
