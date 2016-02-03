@@ -9,7 +9,7 @@ core-apis:
   environment:
     - DP_CASSANDRA_TEST_NODE=cassandra
 dataportenschemas:
-  image: jhellan/dataportenschemas
+  image: uninett-docker-uninett.bintray.io/feideconnect/dataportenschemas
   links:
     - cassandra:cassandra
   environment:

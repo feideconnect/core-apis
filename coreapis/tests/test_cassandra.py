@@ -17,7 +17,8 @@ manually:
     $ DP_CASSANDRA_TEST_NODE=<ip_of_cassandra_container> \
         python <coreapis/bin>/init_keyspace.py -fw
     $ docker run -e CASSANDRA_NODE=<ip_of_cassandra_container> \
-        -e CASSANDRA_KEYSPACE=test_coreapis jhellan/dataportenschemas up
+        -e CASSANDRA_KEYSPACE=test_coreapis \
+        uninett-docker-uninett.bintray.io/feideconnect/dataportenschemas up
 '''
 
 import unittest
