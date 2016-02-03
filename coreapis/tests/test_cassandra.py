@@ -13,6 +13,9 @@ The tests are skipped if no database is available.
 The tests are run by Jenkins, but here's how to set up a test environment
 manually:
 
+    $ docker pull cassandra:2.1
+    $ docker pull \
+        uninett-docker-uninett.bintray.io/feideconnect/dataportenschemas
     $ docker run -d -p 9042:9042 cassandra:2.1
     $ DP_CASSANDRA_TEST_NODE=<ip_of_cassandra_container> \
         python <coreapis/bin>/init_keyspace.py -fw

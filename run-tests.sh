@@ -5,6 +5,7 @@ KEYSPACE=test_coreapis
 
 # Set up cassandra test environment
 pip install docker-compose
+docker-compose -f $COMPOSEFILE pull
 docker-compose -f $COMPOSEFILE run -e DP_CASSANDRA_TEST_KEYSPACE=$KEYSPACE \
     core-apis python3 bin/init_keyspace.py -fw
 docker-compose -f $COMPOSEFILE run -e CASSANDRA_KEYSPACE=$KEYSPACE dataportenschemas up
