@@ -146,6 +146,7 @@ class Syncer(object):
             'contacts_technical': [V.Object()],
             'contacts_mercantile': [V.Object()],
             # Not used in connect
+            'servers': ['string'],
             'support_email': V.Nullable('string'),
             'support_phone': V.Nullable('string'),
             'support_web': V.Nullable('string'),
