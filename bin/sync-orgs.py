@@ -220,7 +220,7 @@ class Syncer(object):
 
     def drop_orgs(self, dropped_kindids):
         for kindid in dropped_kindids:
-            orgs = self.client.get_orgs_by_kindid(kindid)
+            orgs = list(self.client.get_orgs_by_kindid(kindid))
             if len(orgs) > 0:
                 orgid = orgs[0][0]
                 if orgid in self.sync_exclude:
@@ -233,7 +233,7 @@ class Syncer(object):
         for feideorg in feideorgs:
             try:
                 ko_cooked = self.ko_validator.validate(feideorg)
-                oldorgs = self.client.get_orgs_by_kindid(int(feideorg['id']))
+                oldorgs = list(self.client.get_orgs_by_kindid(int(feideorg['id'])))
                 oldroles = []
                 if len(oldorgs) > 0:
                     orgid = oldorgs[0][0]
