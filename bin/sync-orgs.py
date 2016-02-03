@@ -10,7 +10,7 @@ import valideer as V
 from cassandra.cluster import Cluster
 from coreapis.utils import LogWrapper
 
-DESCRIPTION = """Sync organizations from Feide API to Connect.
+DESCRIPTION = """Sync organizations from Feide API to Dataporten.
 Input can be from a file or a URL. One of these must be given.
 If URL, feideapi_token_secret must also be given.
 
@@ -25,9 +25,7 @@ SUBSPATH = 'sp/2021732/full'
 class CassandraClient(object):
     def __init__(self, log, contact_points, keyspace):
         self.log = log
-        cluster = Cluster(
-            contact_points=contact_points
-        )
+        cluster = Cluster(contact_points)
         self.session = cluster.connect(keyspace)
         stmt = """
             INSERT INTO "organizations" (id, kindid, realm, type, organization_number, name)
@@ -123,12 +121,9 @@ def adapt_orgno(organization_number):
         return None
 
 
-def is_connect_subscriber(feideorg, feidesubs):
+def is_dataporten_subscriber(feideorg, feidesubs):
     kindid = feideorg['id']
-    for subscriber in feidesubs['subscribers']:
-        if subscriber['id'] == kindid:
-            return True
-    return False
+    return any([subscriber['id'] == kindid for subscriber in feidesubs['subscribers']])
 
 
 class Syncer(object):
@@ -145,7 +140,7 @@ class Syncer(object):
             'contacts_admin': [V.Object()],
             'contacts_technical': [V.Object()],
             'contacts_mercantile': [V.Object()],
-            # Not used in connect
+            # Not used in dataporten
             'servers': ['string'],
             'support_email': V.Nullable('string'),
             'support_phone': V.Nullable('string'),
@@ -153,7 +148,7 @@ class Syncer(object):
         }
         kor_schema = {
             '+eduPersonPrincipalName': 'string',
-            # Not used in connect
+            # Not used in dataporten
             'id': V.AdaptTo(int),
             'name': V.Nullable('string'),
             'email': V.Nullable('string'),
@@ -220,8 +215,8 @@ class Syncer(object):
 
     def drop_orgs(self, dropped_kindids):
         for kindid in dropped_kindids:
-            orgs = list(self.client.get_orgs_by_kindid(kindid))
-            if len(orgs) > 0:
+            orgs = self.client.get_orgs_by_kindid(kindid)
+            if orgs:
                 orgid = orgs[0][0]
                 if orgid in self.sync_exclude:
                     self.log.info("Not dropping org on exclude list", orgid=orgid)
@@ -233,9 +228,9 @@ class Syncer(object):
         for feideorg in feideorgs:
             try:
                 ko_cooked = self.ko_validator.validate(feideorg)
-                oldorgs = list(self.client.get_orgs_by_kindid(int(feideorg['id'])))
+                oldorgs = self.client.get_orgs_by_kindid(int(feideorg['id']))
                 oldroles = []
-                if len(oldorgs) > 0:
+                if oldorgs:
                     orgid = oldorgs[0][0]
                     rows = self.client.get_roles_by_orgid(orgid)
                     oldroles = list(self.roles_from_db(rows))
@@ -258,7 +253,7 @@ class Syncer(object):
                 continue
             self.sync_roles(roles, oldroles)
             self.client.update_service(org['id'], 'auth',
-                                       is_connect_subscriber(feideorg, feidesubs))
+                                       is_dataporten_subscriber(feideorg, feidesubs))
 
     def sync_orgs(self, feideorgs, feidesubs):
         known_kindids = {org[1] for org in self.client.get_orgs()}
@@ -313,7 +308,7 @@ def parse_args():
     parser.add_argument('-s', '--subsfile', type=argparse.FileType('r'),
                         help='Input file with subscription data')
     parser.add_argument('-d', '--delete-missing', action='store_true',
-                        help='Delete organizations from Connect when missing from Feide API')
+                        help='Delete organizations from Dataporten when missing from Feide API')
     parser.add_argument("-v", "--verbose", help="increase output verbosity",
                         action="store_true")
     return parser.parse_args()
