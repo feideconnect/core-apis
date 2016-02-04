@@ -9,6 +9,7 @@ from configparser import SafeConfigParser
 import requests
 import valideer as V
 from cassandra.cluster import Cluster
+import cassandra
 from coreapis.utils import LogWrapper
 
 DESCRIPTION = """Sync organizations from Feide API to Dataporten.
@@ -28,6 +29,7 @@ class CassandraClient(object):
         self.log = log
         cluster = Cluster(contact_points)
         self.session = cluster.connect(keyspace)
+        self.session.default_consistency_level = cassandra.ConsistencyLevel.LOCAL_QUORUM
         stmt = """
             INSERT INTO "organizations" (id, kindid, realm, type, organization_number, name)
             VALUES (?, ?, ?, ?, ?,?)
