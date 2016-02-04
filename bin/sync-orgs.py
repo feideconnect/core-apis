@@ -325,6 +325,10 @@ def main():
     config = parse_config(args.config)
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
+    else:
+        log.l.setLevel(logging.INFO)
+        logging.basicConfig(level=logging.CRITICAL)
+    log.info("Sync started")
     session = CassandraClient(log, config['contact_points'], config['keyspace'])
     syncer = Syncer(log, session, sync_exclude=config['sync_exclude'])
     if args.infile:
@@ -344,6 +348,7 @@ def main():
         syncer.sync_orgs(feideorgs, feidesubs)
     else:
         syncer.load_orgs(feideorgs, feidesubs)
+    log.info("Sync done")
 
 if __name__ == "__main__":
     main()
