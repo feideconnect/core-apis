@@ -677,7 +677,7 @@ class CassandraClientTests(unittest.TestCase):
         userid = member['userid']
         self.cclient.del_group_member(groupid, userid)
         res = self.cclient.get_group_members(userid)
-        assert len(list(res)) == 0
+        assert list(res) == []
 
     def test_get_membership_data(self):
         member = self.setup_group_member()

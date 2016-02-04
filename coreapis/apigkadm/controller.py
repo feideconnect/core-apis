@@ -137,7 +137,7 @@ class APIGKAdmController(CrudControllerBase):
 
     @staticmethod
     def matches_query(apigk, query):
-        if query is None or len(query) == 0:
+        if not query:
             return True
         query = query.lower()
         return query in apigk['id'].lower() or query in apigk['name'].lower()
@@ -146,7 +146,7 @@ class APIGKAdmController(CrudControllerBase):
         if max_replies is None or max_replies > self.maxrows:
             max_replies = self.maxrows
         maxrows = self.maxrows
-        if query and len(query) > 0:
+        if query:
             maxrows = 9999
         res = [r for count, r in enumerate(self.session.get_apigks(['status contains ?'],
                                                                    ['public'], maxrows))

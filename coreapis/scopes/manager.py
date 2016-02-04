@@ -44,7 +44,7 @@ class ScopesManager(object):
     def _handle_scope_request(self, target, scope):
         if is_gkscopename(scope):
             self._handle_gkscope_request(target, scope)
-        elif not scope in self.scopedefs:
+        elif scope not in self.scopedefs:
             raise ValidationError('invalid scope: {}'.format(scope))
         else:
             self._add_scope_if_approved(target, self.scopedefs[scope], scope)

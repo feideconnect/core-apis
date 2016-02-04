@@ -23,28 +23,28 @@ class RateLimitTests(unittest.TestCase):
         with mock.patch('coreapis.utils.now', return_value=faketime):
             for _ in range(self.bucket_capacity):
                 res = self.ratelimiter.check_rate(self.remote_addr)
-                assert res == True
+                assert res is True
             res = self.ratelimiter.check_rate(self.remote_addr)
-            assert res == False
+            assert res is False
 
     def test_spaced_calls(self):
         faketime = datetime.datetime.now()
         with mock.patch('coreapis.utils.now', return_value=faketime):
             for _ in range(self.bucket_capacity):
                 res = self.ratelimiter.check_rate(self.remote_addr)
-                assert res == True
+                assert res is True
             res = self.ratelimiter.check_rate(self.remote_addr)
-            assert res == False
+            assert res is False
         faketime += datetime.timedelta(milliseconds=1)
         with mock.patch('coreapis.utils.now', return_value=faketime):
             res = self.ratelimiter.check_rate(self.remote_addr)
-            assert res == True
+            assert res is True
             res = self.ratelimiter.check_rate(self.remote_addr)
-            assert res == False
+            assert res is False
         faketime += datetime.timedelta(milliseconds=1000./self.bucket_leak_rate + 1)
         with mock.patch('coreapis.utils.now', return_value=faketime):
             res = self.ratelimiter.check_rate(self.remote_addr)
-            assert res == True
+            assert res is True
 
     def test_few_clients(self):
         faketime = datetime.datetime.now()
@@ -54,7 +54,7 @@ class RateLimitTests(unittest.TestCase):
             for i in range(self.nwatched - 1):
                 self.ratelimiter.check_rate(str(i))
             res = self.ratelimiter.check_rate(self.remote_addr)
-            assert res == False
+            assert res is False
 
     def test_many_clients(self):
         faketime = datetime.datetime.now()
@@ -64,4 +64,4 @@ class RateLimitTests(unittest.TestCase):
             for i in range(self.nwatched + 1):
                 self.ratelimiter.check_rate(str(i))
             res = self.ratelimiter.check_rate(self.remote_addr)
-            assert res == True
+            assert res is True

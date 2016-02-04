@@ -500,7 +500,7 @@ class EmailNotifier(object):
         self.enabled = False
         self.log = LogWrapper('coreapis.emailnotifier')
         if settings.get('enabled', '') == 'true':
-            if (self.sender and (len(self.sender) > 0) and self.mta and (len(self.mta) > 0)):
+            if self.sender and self.mta:
                 self.enabled = True
             else:
                 self.log.debug('Insufficient email settings', sender=self.sender, mta=self.mta)
