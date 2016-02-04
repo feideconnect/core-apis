@@ -2,6 +2,7 @@
 import argparse
 import json
 import logging
+import os
 import re
 import sys
 from configparser import SafeConfigParser
@@ -323,7 +324,7 @@ def main():
     log = LogWrapper('sync_orgs')
     args = parse_args()
     config = parse_config(args.config)
-    if args.verbose:
+    if args.verbose or os.environ.get('SYNC_ORGS_VERBOSE'):
         logging.basicConfig(level=logging.DEBUG)
     else:
         log.l.setLevel(logging.INFO)
