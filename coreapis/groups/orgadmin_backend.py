@@ -9,7 +9,7 @@ from coreapis import cassandra_client
 ORGADMIN_TYPE = 'fc:orgadmin'
 SCOPES_NEEDED = {'scope_groups-orgadmin'}
 
-ROLE_NB = {
+ROLE_NO = {
     'admin': 'admin',
     'technical': 'teknisk',
     'mercantile': 'merkantil'
@@ -37,10 +37,13 @@ def basic(role):
 
 
 def format_membership(role):
-    displayname = ", ".join([ROLE_NB.get(elem, elem) for elem in role]).title()
+    displayname_en = ", ".join(role).title()
+    displayname_no = ", ".join([ROLE_NO.get(elem, elem) for elem in role]).title()
     return {
         'basic': basic(role),
-        'displayName': displayname,
+        'displayName': translatable(dict(en=displayname_en,
+                                         nb=displayname_no,
+                                         nn=displayname_no)),
         'adminRoles': role
     }
 
