@@ -176,7 +176,7 @@ class RateLimiter(object):
     # Requests are let through if client is not among last 1/maxshare
     # clients served, or if there is still room in the client's token bucket.
     def __init__(self, maxshare, capacity, rate):
-        self.log = LogWrapper('feideconnect.ratelimit')
+        self.log = LogWrapper('dataporten.ratelimit')
         self.nwatched = int(1./maxshare + 0.5)
         self.recents = deque([None] * self.nwatched)
         self.counts = defaultdict(lambda: 0)

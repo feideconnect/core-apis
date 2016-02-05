@@ -96,7 +96,7 @@ class AuthMiddleware(object):
     def __init__(self, app, realm):
         self._app = app
         self.realm = realm
-        self.log = LogWrapper('feideconnect.auth')
+        self.log = LogWrapper('dataporten.auth')
 
     def __call__(self, environ, start_response):
         token = self.get_token(environ)

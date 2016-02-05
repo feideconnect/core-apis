@@ -32,7 +32,7 @@ class AdHocGroupAdmTests(unittest.TestCase):
         app = main({
             'statsd_server': 'localhost',
             'statsd_port': '8125',
-            'statsd_prefix': 'feideconnect.tests',
+            'statsd_prefix': 'dataporten.tests',
             'oauth_realm': 'test realm',
             'cassandra_contact_points': '',
             'cassandra_keyspace': 'notused',

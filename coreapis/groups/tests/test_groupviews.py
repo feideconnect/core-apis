@@ -9,7 +9,7 @@ class GroupsViewTests(unittest.TestCase):
         app = main({
             'statsd_server': 'localhost',
             'statsd_port': '8125',
-            'statsd_prefix': 'feideconnect.tests',
+            'statsd_prefix': 'dataporten.tests',
             'oauth_realm': 'test realm',
             'cassandra_contact_points': '',
             'cassandra_keyspace': 'notused',
@@ -28,7 +28,7 @@ class GroupsViewTests(unittest.TestCase):
             gtype = out[0]
             assert 'id' in gtype
             assert 'displayName' in gtype
-            assert gtype['id'] == 'feideconnect:test'
+            assert gtype['id'] == 'dataporten:test'
 
     def test_group_members(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -113,7 +113,7 @@ class GroupsViewErrorHandlingTests(unittest.TestCase):
         settings = {
             'statsd_server': 'localhost',
             'statsd_port': '8125',
-            'statsd_prefix': 'feideconnect.tests',
+            'statsd_prefix': 'dataporten.tests',
             'oauth_realm': 'test realm',
             'cassandra_contact_points': '',
             'cassandra_keyspace': 'notused',

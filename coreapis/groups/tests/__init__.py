@@ -98,7 +98,7 @@ class MockBackend(BaseBackend):
     def grouptypes(self):
         return [
             {
-                'id': 'feideconnect:test',
+                'id': 'dataporten:test',
                 'displayName': "test groups",
             }
         ]

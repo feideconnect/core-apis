@@ -1,13 +1,13 @@
 from coreapis.utils import (translatable, pick_lang)
 
 SIMPLESCOPE_TMPL = {
-    "nb": "FC-klienten {} ønsker tilgang til API {}",
-    "en": "FC client {} wants to access API(s) {}",
+    "nb": "Dataporten-klienten {} ønsker tilgang til API {}",
+    "en": "Dataporten client {} wants to access API(s) {}",
 }
 
 APIGK_TMPL = {
-    "nb": "FC-klienten {} ønsker tilgang til API {}, subscope {}",
-    "en": "FC client {} wants to access API {}, subscope {}",
+    "nb": "Dataporten-klienten {} ønsker tilgang til API {}, subscope {}",
+    "en": "Dataporten client {} wants to access API {}, subscope {}",
 }
 
 CLIENT_TMPL_NB = '''
@@ -29,18 +29,18 @@ description:  {}
 CLIENT_TMPL = {"nb": CLIENT_TMPL_NB, "en": CLIENT_TMPL_EN}
 
 DASHBOARDMSG = {
-    "nb": "Du kan behandle forespørselen i FeideConnect dashbord på URLen nedenfor",
-    "en": "You may handle the request in the FeideConnect dashboard at the URL below",
+    "nb": "Du kan behandle forespørselen i dashbordet til Dataporten på URLen nedenfor",
+    "en": "You may handle the request in the Dataporten dashboard at the URL below",
 }
 
 CONNECTMSG = {
-    "nb": "Les mer om FeideConnect på",
-    "en": "Read more about FeideConnect at",
+    "nb": "Les mer om Dataporten på",
+    "en": "Read more about Dataporten at",
 }
 
-DASHBOARD_URL_TMPL = "https://dashboard.feideconnect.no/#!/{}/apigk/{}/edit/tabRequests"
+DASHBOARD_URL_TMPL = "https://dashboard.dataporten.no/#!/{}/apigk/{}/edit/tabRequests"
 
-FC_URL = "http://feideconnect.no"
+DOC_URL = "http://docs.dataporten.no"
 
 
 class ScopeRequestNotification(object):
@@ -95,14 +95,14 @@ class ScopeRequestNotification(object):
         base = self.scopes[0].split('_')[1]
         return DASHBOARD_URL_TMPL.format(orgid, base)
 
-    def get_fc_help(self):
+    def get_dataporten_help(self):
         dashboardmsg = self.translate(translatable(DASHBOARDMSG))
         connectmsg = self.translate(translatable(CONNECTMSG))
         if self.apigk:
             return "{}:\n{}\n{} {}".format(dashboardmsg, self.get_dashboard_url(),
-                                           connectmsg, FC_URL)
+                                           connectmsg, DOC_URL)
         else:
-            return "{} {}".format(connectmsg, FC_URL)
+            return "{} {}".format(connectmsg, DOC_URL)
 
     def get_body(self):
         tmpl = '''
@@ -112,4 +112,4 @@ class ScopeRequestNotification(object):
 '''
         return tmpl.format(self.get_subject(),
                            self.get_client_info(),
-                           self.get_fc_help())
+                           self.get_dataporten_help())
