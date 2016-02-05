@@ -2,11 +2,13 @@ from coreapis.utils import (translatable, pick_lang)
 
 SIMPLESCOPE_TMPL = {
     "nb": "Dataporten-klienten {} ønsker tilgang til API {}",
+    "nn": "Dataporten-klienten {} ynskjer tilgjenge til API {}",
     "en": "Dataporten client {} wants to access API(s) {}",
 }
 
 APIGK_TMPL = {
     "nb": "Dataporten-klienten {} ønsker tilgang til API {}, subscope {}",
+    "nn": "Dataporten-klienten {} ynskjer tilgjenge til API {}, subscope {}",
     "en": "Dataporten client {} wants to access API {}, subscope {}",
 }
 
@@ -18,6 +20,14 @@ URL:          {}
 beskrivelse:  {}
 '''
 
+CLIENT_TMPL_NN = '''
+Informasjon om klienten:
+eigar:        {}
+organisasjon: {}
+URL:          {}
+omtale:       {}
+'''
+
 CLIENT_TMPL_EN = '''
 Client information:
 owner:        {}
@@ -26,15 +36,17 @@ URL:          {}
 description:  {}
 '''
 
-CLIENT_TMPL = {"nb": CLIENT_TMPL_NB, "en": CLIENT_TMPL_EN}
+CLIENT_TMPL = {"nb": CLIENT_TMPL_NB, "nn": CLIENT_TMPL_NN, "en": CLIENT_TMPL_EN}
 
 DASHBOARDMSG = {
     "nb": "Du kan behandle forespørselen i dashbordet til Dataporten på URLen nedenfor",
+    "nb": "Du kan handsame forespurnaden i dashbordet til Dataporten på URLen nedanfor",
     "en": "You may handle the request in the Dataporten dashboard at the URL below",
 }
 
 CONNECTMSG = {
     "nb": "Les mer om Dataporten på",
+    "nn": "Les meir om Dataporten på",
     "en": "Read more about Dataporten at",
 }
 

@@ -10,7 +10,8 @@ class TestOrgMembershipName(unittest.TestCase):
     def test_he_faculty(self):
         assert org_membership_name(['member', 'employee', 'faculty'],
                                    ['higher_education']) == \
-            translatable(dict(nb='Akademisk ansatt'))
+            translatable(dict(nb='Akademisk ansatt',
+                              nn='Akademisk tilsett'))
 
     def test_go_student(self):
         assert org_membership_name(['student', 'member'],

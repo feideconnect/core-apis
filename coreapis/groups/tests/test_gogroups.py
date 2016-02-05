@@ -46,7 +46,8 @@ class TestGOGroups(unittest.TestCase):
 
         group = GOGroup(GROUP2)
         assert group.membership() == {
-            'displayName': translatable({'nb': 'Lærer'}),
+            'displayName': translatable(dict(nb='Lærer',
+                                             nn='Lærar')),
             'basic': 'admin',
             'affiliation': 'faculty'
         }

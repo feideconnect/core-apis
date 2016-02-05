@@ -72,12 +72,14 @@ affiliation_names = {
     'he': {
         'faculty': translatable({
             'nb': 'Akademisk ansatt',
+            'nn': 'Akademisk tilsett',
         }),
         'staff': translatable({
             'nb': 'Stab',
         }),
         'employee': translatable({
             'nb': 'Ansatt',
+            'nn': 'Tilsett',
         }),
         'student': translatable({
             'nb': 'Student',
@@ -87,11 +89,13 @@ affiliation_names = {
         }),
         'affiliate': translatable({
             'nb': 'Tilknyttet',
+            'nn': 'Tilknytt',
         }),
 #        'library-walk-in': translatable({
 #        }),
         'member': translatable({
-            'nb': 'Annet'
+            'nb': 'Annet',
+            'nn': 'Anna',
         })
     }
 }
@@ -412,7 +416,8 @@ class LDAPBackend(BaseBackend):
                 "id": "fc:orgunit",
                 "displayName": translatable({
                     "en": "Organizational Unit",
-                    "nb": "Organisasjonenhet"
+                    "nb": "Organisasjonsenhet",
+                    "nn": "Organisasjonseining"
                 })
             },
         ]

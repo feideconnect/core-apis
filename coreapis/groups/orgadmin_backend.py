@@ -18,7 +18,7 @@ ROLE_NB = {
 ORGADMIN_DISPLAYNAMES = {
     'fallback': 'Administratorer for {}',
     'nb': 'Administratorer for {}',
-    'nn': 'Administratorer for {}',
+    'nn': 'Administratorar for {}',
     'en': 'Administrators for {}',
 }
 

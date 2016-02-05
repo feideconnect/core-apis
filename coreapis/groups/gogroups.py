@@ -18,12 +18,14 @@ go_types = {
 affiliation_names = {
     'faculty': translatable({
         'nb': 'Lærer',
+        'nn': 'Lærar',
     }),
     'staff': translatable({
         'nb': 'Stab',
     }),
     'employee': translatable({
         'nb': 'Ansatt',
+        'nn': 'Tilsett',
     }),
     'student': translatable({
         'nb': 'Elev',
@@ -37,6 +39,7 @@ affiliation_names = {
     #        }),
     'member': translatable({
         'nb': 'Annet',
+        'nn': 'Anna',
     })
 }
 GOGROUP_PREFIX = 'urn:mace:feide.no:go:group:'
