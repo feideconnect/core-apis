@@ -301,6 +301,10 @@ def get_feideid(user):
     return feideid
 
 
+def get_id_providers(user):
+    return set((id.split(':', 1)[0] for id in user['userid_sec']))
+
+
 def get_payload(request):
     try:
         return request.json_body
