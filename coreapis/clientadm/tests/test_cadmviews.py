@@ -21,10 +21,14 @@ from coreapis.clientadm.tests.helper import (
 PLATFORMADMIN = 'admin@example.com'
 
 
-def make_user(feideid):
+def make_user(source, userid):
     return {
-        'userid_sec': ['feide:' + str(feideid)]
+        'userid_sec': ['{}:{}'.format(source, userid)]
     }
+
+
+def make_feide_user(feideid):
+        return make_user('feide', feideid)
 
 
 class ClientAdmTests(unittest.TestCase):
@@ -83,7 +87,7 @@ class ClientAdmTests(unittest.TestCase):
         res = self._test_get_client_not_owner(headers, 200)
         assert is_public_client(res.json)
 
-    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_get_client_platform_admin(self, get_user):
         headers = {'Authorization': 'Bearer user_token'}
         res = self._test_get_client_not_owner(headers, 200)
@@ -121,7 +125,7 @@ class ClientAdmTests(unittest.TestCase):
     def test_list_clients_by_org_not_admin(self):
         self._test_list_clients_by_org_as_admin(False, 403)
 
-    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_list_clients_by_org_platform_admin(self, get_user):
         res = self._test_list_clients_by_org_as_admin(False, 200)
         assert is_full_client(res.json[0])
@@ -162,12 +166,15 @@ class ClientAdmTests(unittest.TestCase):
         assert out[0]['organization']['id'] == 'fc:org:example.com'
         assert out[0]['organization']['name'] == 'testorg'
 
-    def test_post_client_minimal(self):
+    def _test_post_client_minimal(self, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.side_effect = KeyError
         self.session.insert_client = mock.MagicMock()
         path = '/clientadm/clients/'
-        res = self.testapp.post_json(path, post_body_minimal, status=201, headers=headers)
+        return self.testapp.post_json(path, post_body_minimal, status=httpstat, headers=headers)
+
+    def test_post_client_minimal(self):
+        res = self._test_post_client_minimal(201)
         out = res.json
         assert out['name'] == 'per'
         assert out['organization'] is None
@@ -183,6 +190,11 @@ class ClientAdmTests(unittest.TestCase):
         assert out['organization'] is None
         assert out['orgauthorization'] is None
 
+    @mock.patch('coreapis.clientadm.views.get_user',
+                return_value=make_user('linkbook', '12345'))
+    def test_post_client_not_feide(self, get_user):
+        self._test_post_client_minimal(403)
+
     def _test_post_client_other_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.side_effect = KeyError
@@ -195,7 +207,7 @@ class ClientAdmTests(unittest.TestCase):
         self._test_post_client_other_owner()
 
     # Or should platformadmin be allowed to set another user as owner?
-    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_post_client_other_owner_platform_admin(self, get_user):
         self._test_post_client_other_owner()
 
@@ -219,7 +231,7 @@ class ClientAdmTests(unittest.TestCase):
         self._test_post_client_scope_given()
 
     # Or should platformadmin be allowed to set scope?
-    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_post_client_scope_given_platform_admin(self, get_user):
         self._test_post_client_scope_given()
 
@@ -249,7 +261,7 @@ class ClientAdmTests(unittest.TestCase):
     def test_post_client_organization_not_orgadmin(self):
         self._test_post_client_organization(False, 403)
 
-    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_post_client_organization_platform_admin(self, get_user):
         res = self._test_post_client_organization(False, 201)
         assert res.json['organization'] == 'fc:org:example.com'
@@ -360,7 +372,7 @@ class ClientAdmTests(unittest.TestCase):
         assert flag not in res.json['status']
 
     # Or should platformadmin be allowed to set arbitrary status?
-    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_post_client_status_not_permitted_platform_admin(self, get_user):
         flag = reservedstatus
         res = self._test_post_client_status_permitted(flag)
@@ -448,7 +460,7 @@ class ClientAdmTests(unittest.TestCase):
     def test_delete_client_not_owner_org_admin_(self):
         self._test_delete_client_not_owner(True, 204)
 
-    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_delete_client_not_owner_platform_admin_(self, get_user):
         self._test_delete_client_not_owner(False, 204)
 
@@ -465,7 +477,7 @@ class ClientAdmTests(unittest.TestCase):
     def test_delete_missing_client_org_admin_(self):
         self._test_delete_missing_client(True)
 
-    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_delete_missing_client_platform_admin_(self, get_user):
         self._test_delete_missing_client(False)
 
@@ -521,8 +533,8 @@ class ClientAdmTests(unittest.TestCase):
         res = self._test_update_client_not_owner(True, 200)
         assert res.json['descr'] == 'blue'
 
-    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_user(PLATFORMADMIN))
-    def test_update_client_not_owner_platform_admin(self, make_user):
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
+    def test_update_client_not_owner_platform_admin(self, get_user):
         res = self._test_update_client_not_owner(False, 200)
         assert res.json['descr'] == 'blue'
 
@@ -886,7 +898,7 @@ class ClientAdmTests(unittest.TestCase):
         res = self._test_post_client_logo_not_owner(True, 200)
         assert res.json == 'OK'
 
-    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_post_client_logo_platform_admin(self, get_user):
         res = self._test_post_client_logo_not_owner(False, 200)
         assert res.json == 'OK'
@@ -926,7 +938,7 @@ class ClientAdmTests(unittest.TestCase):
         res = self._test_get_orgauth_not_owner(True, 200)
         assert res.json[0] == testgk
 
-    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_get_orgauth_platform_admin(self, get_user):
         res = self._test_get_orgauth_not_owner(False, 200)
         assert res.json[0] == testgk
@@ -959,7 +971,7 @@ class ClientAdmTests(unittest.TestCase):
     def test_update_orgauth_not_realm_admin(self):
         self._test_update_orgauthorization(False, 403)
 
-    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_update_orgauthorization_platform_admin(self, get_user):
         res = self._test_update_orgauthorization(False, 200)
         assert res.json == [testgk]
@@ -994,7 +1006,7 @@ class ClientAdmTests(unittest.TestCase):
     def test_delete_orgauthorization_stranger(self):
         self._test_delete_orgauthorization(userid_other, False, 403)
 
-    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_delete_orgauthorization_platform_admin(self, get_user):
         self._test_delete_orgauthorization(userid_other, False, 204)
 
