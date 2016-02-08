@@ -111,18 +111,18 @@ def allowed_attrs(attrs, operation):
 def add_client(request):
     userid = get_userid(request)
     payload = get_payload(request)
+    user = get_user(request)
+    attrs = allowed_attrs(payload, 'add')
+    if 'organization' in attrs:
+        if not request.cadm_controller.is_admin(user, attrs['organization']):
+            raise HTTPForbidden('Not administrator for organization')
     try:
-        attrs = allowed_attrs(payload, 'add')
-        if 'organization' in attrs:
-            user = get_user(request)
-            if not request.cadm_controller.is_admin(user, attrs['organization']):
-                raise HTTPForbidden('Not administrator for organization')
         client = request.cadm_controller.add(attrs, userid)
-        request.response.status = '201 Created'
-        request.response.location = "{}{}".format(request.url, client['id'])
-        return client
     except AlreadyExistsError:
         raise HTTPConflict("client with this id already exists")
+    request.response.status = '201 Created'
+    request.response.location = "{}{}".format(request.url, client['id'])
+    return client
 
 
 @view_config(route_name='delete_client', renderer='json', permission='scope_clientadmin')
