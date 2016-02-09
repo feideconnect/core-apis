@@ -63,7 +63,7 @@ class CorsMiddleware(object):
         def wrapped(status, headers):
             myheaders = [
                 ('Access-Control-Allow-Origin', '*'),
-                ('Access-Control-Allow-Methods', 'HEAD, GET, OPTIONS, POST, PATCH, DELETE'),
+                ('Access-Control-Allow-Methods', 'HEAD, GET, OPTIONS, PUT, POST, PATCH, DELETE'),
                 ('Access-Control-Allow-Headers', 'Authorization, X-Requested-With, Origin, Accept, Content-Type'),
                 ('Access-Control-Expose-Headers', 'Authorization, X-Requested-With, Origin'),
             ]
