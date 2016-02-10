@@ -105,12 +105,14 @@ def check(request, needs_realm, needs_platform_admin):
     orgid = request.matchdict['id']
     user = get_user(request)
     try:
-        if not request.org_controller.has_permission(user, orgid, needs_realm,
-                                                     needs_platform_admin):
-            raise HTTPForbidden('Insufficient privileges')
-        return orgid
+        org = request.org_controller.get(orgid)
     except KeyError:
         raise HTTPNotFound()
+    if needs_realm and not org['realm']:
+        raise HTTPNotFound('Org lacks realm')
+    if not request.org_controller.has_permission(user, org, needs_platform_admin):
+        raise HTTPForbidden('Insufficient privileges')
+    return orgid
 
 
 @view_config(route_name='org_mandatory_clients', request_method="GET",

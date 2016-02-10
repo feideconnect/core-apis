@@ -181,7 +181,7 @@ class OrgViewTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.is_org_admin.return_value = True
         self.session.get_org.return_value = testorg2
-        self.testapp.get('/orgs/{}/mandatory_clients/'.format(testorg2_id), status=403,
+        self.testapp.get('/orgs/{}/mandatory_clients/'.format(testorg2_id), status=404,
                          headers=headers)
 
     def _test_add_mandatory_client(self, clientid, orgadmin, httpstat):

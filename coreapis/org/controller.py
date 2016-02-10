@@ -129,11 +129,8 @@ class OrgController(CrudControllerBase):
         services.add(service)
         self.session.del_services(orgid, services)
 
-    def has_permission(self, user, orgid, needs_realm, needs_platform_admin):
-        if user is None or not self.is_admin(user, orgid):
-            return False
-        org = self.session.get_org(orgid)
-        if needs_realm and not org['realm']:
+    def has_permission(self, user, org, needs_platform_admin):
+        if user is None or not self.is_admin(user, org['id']):
             return False
         if needs_platform_admin and not self.is_platform_admin(user):
             return False
