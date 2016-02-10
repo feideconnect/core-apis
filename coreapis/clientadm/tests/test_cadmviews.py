@@ -127,7 +127,6 @@ class ClientAdmTests(unittest.TestCase):
         assert is_full_client(res.json[0])
 
     def test_list_public_clients(self):
-        headers = {'Authorization': 'Bearer user_token'}
         org_client = deepcopy(retrieved_client)
         org_client['organization'] = 'fc:org:example.com'
         self.session.get_user_by_id.return_value = retrieved_user
@@ -135,7 +134,7 @@ class ClientAdmTests(unittest.TestCase):
                                              'name': translatable({'en': 'testorg'})}
         for ver in ['', '/v1']:
             self.session.get_clients.return_value = iter(deepcopy([retrieved_client, org_client]))
-            res = self.testapp.get('/clientadm{}/public/'.format(ver), status=200, headers=headers)
+            res = self.testapp.get('/clientadm{}/public/'.format(ver), status=200)
             out = res.json
             assert out[0]['name'] == 'per'
             assert all(is_public_client(c) for c in out)
@@ -143,14 +142,12 @@ class ClientAdmTests(unittest.TestCase):
             assert out[1]['organization']['name'] == 'testorg'
 
     def test_list_public_clients_bogus_user(self):
-        headers = {'Authorization': 'Bearer user_token'}
         self.session.get_clients.return_value = iter(deepcopy([retrieved_client]))
         self.session.get_user_by_id.side_effect = KeyError
-        res = self.testapp.get('/clientadm/public/', status=200, headers=headers)
+        res = self.testapp.get('/clientadm/public/', status=200)
         assert res.json[0] is None
 
     def test_list_public_clients_orgauth(self):
-        headers = {'Authorization': 'Bearer user_token'}
         org_client = deepcopy(retrieved_gk_clients[3])
         org_client['organization'] = 'fc:org:example.com'
         self.session.get_clients.return_value = iter([org_client])
@@ -158,7 +155,7 @@ class ClientAdmTests(unittest.TestCase):
         self.session.get_org.return_value = {'id': 'fc:org:example.com',
                                              'name': translatable({'en': 'testorg'})}
         path = '/clientadm/public/?orgauthorization={}'.format(testrealm)
-        res = self.testapp.get(path, status=200, headers=headers)
+        res = self.testapp.get(path, status=200)
         out = res.json
         assert out[0]['name'] == 'per'
         assert 'scopes' not in out[0]

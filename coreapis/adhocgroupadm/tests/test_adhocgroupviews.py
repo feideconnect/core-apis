@@ -568,11 +568,10 @@ class AdHocGroupAdmTests(unittest.TestCase):
                                status=409, headers=headers)
 
     def test_get_adhocgroup_logo(self):
-        headers = {'Authorization': 'Bearer user_token'}
         self.session().get_group_logo.return_value = (b'mylittlelogo', now())
         for ver in ['', '/v1']:
             path = '/adhocgroups{}/{}/logo'.format(ver, groupid1)
-            res = self.testapp.get(path, status=200, headers=headers)
+            res = self.testapp.get(path, status=200)
             assert res.content_type == 'image/png'
             out = res.body
             assert b'mylittlelogo' in out

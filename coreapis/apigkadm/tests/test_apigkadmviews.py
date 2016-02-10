@@ -402,11 +402,10 @@ class APIGKAdmTests(unittest.TestCase):
         self._test_apigk_get_org_clients(False, 200)
 
     def test_get_apigk_logo(self):
-        headers = {'Authorization': 'Bearer user_token'}
         self.session().get_apigk_logo.return_value = (b'mylittlelogo', now())
         for ver in ['', '/v1']:
             path = '/apigkadm{}/apigks/{}/logo'.format(ver, uuid.uuid4())
-            res = self.testapp.get(path, status=200, headers=headers)
+            res = self.testapp.get(path, status=200)
             assert res.content_type == 'image/png'
             out = res.body
             assert b'mylittlelogo' in out
