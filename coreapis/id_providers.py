@@ -1,4 +1,6 @@
-APPROVED_ID_PROVIDERS = dict(add_client=['feide'])
+APPROVED_ID_PROVIDERS = dict(
+    add_client=['feide'],
+    add_apigk=['feide'])
 
 
 def get_feideids(user):
