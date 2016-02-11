@@ -94,18 +94,18 @@ def apigk_exists(request):
 def add_apigk(request):
     userid = get_userid(request)
     payload = get_payload(request)
+    attrs = allowed_attrs(payload, 'add')
+    if 'organization' in attrs:
+        user = get_user(request)
+        if not request.gkadm_controller.is_admin(user, attrs['organization']):
+            raise HTTPForbidden('Not administrator for organization')
     try:
-        attrs = allowed_attrs(payload, 'add')
-        if 'organization' in attrs:
-            user = get_user(request)
-            if not request.gkadm_controller.is_admin(user, attrs['organization']):
-                raise HTTPForbidden('Not administrator for organization')
         apigk = request.gkadm_controller.add(attrs, userid)
-        request.response.status = 201
-        request.response.location = "{}{}".format(request.url, apigk['id'])
-        return apigk
     except AlreadyExistsError:
         raise HTTPConflict("apigk with this id already exists")
+    request.response.status = 201
+    request.response.location = "{}{}".format(request.url, apigk['id'])
+    return apigk
 
 
 @view_config(route_name='delete_apigk', renderer='json', permission='scope_apigkadmin')
