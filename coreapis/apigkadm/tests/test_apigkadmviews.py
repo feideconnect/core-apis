@@ -11,10 +11,14 @@ from coreapis.apigkadm.tests.data import post_body_minimal, post_body_maximal, p
 PLATFORMADMIN = 'admin@example.com'
 
 
-def make_user(feideid):
+def make_user(source, userid):
     return {
-        'userid_sec': ['feide:' + str(feideid)]
+        'userid_sec': ['{}:{}'.format(source, userid)]
     }
+
+
+def make_feide_user(feideid):
+        return make_user('feide', feideid)
 
 
 class APIGKAdmTests(unittest.TestCase):
@@ -54,7 +58,7 @@ class APIGKAdmTests(unittest.TestCase):
     def test_get_apigk_not_owner(self):
         self._test_get_apigk_not_owner(403)
 
-    @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_get_apigk_platform_admin(self, get_user):
         self._test_get_apigk_not_owner(200)
 
@@ -93,7 +97,7 @@ class APIGKAdmTests(unittest.TestCase):
     def test_list_apigks_by_org_not_admin(self):
         self._test_list_apigks_by_org(False, 403)
 
-    @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_list_apigks_by_org_admin_for_platform_not_for_org(self, get_user):
         self._test_list_apigks_by_org(False, 200)
 
@@ -124,14 +128,22 @@ class APIGKAdmTests(unittest.TestCase):
         out = res.json
         assert out['owner'] == '00000000-0000-0000-0000-000000000001'
 
-    def test_post_apigk_maximal(self):
+    def _test_post_apigk_minimal(self, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().insert_apigk = mock.MagicMock()
-        self.session().get_apigk.side_effect = KeyError()
-        res = self.testapp.post_json('/apigkadm/apigks/', post_body_maximal, status=201, headers=headers)
+        self.session().get_apigk = mock.MagicMock(side_effect=KeyError)
+        path = '/apigkadm/apigks/'
+        return self.testapp.post_json(path, post_body_minimal, status=httpstat, headers=headers)
+
+    def test_post_apigk_maximal(self):
+        res = self._test_post_apigk_minimal(201)
         out = res.json
         assert out['owner'] == '00000000-0000-0000-0000-000000000001'
         assert out['organization'] is None
+
+    @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_user('linkbook', '12345'))
+    def test_post_apigk_not_feide(self, get_user):
+        self._test_post_apigk_minimal(403)
 
     def test_post_apigk_path(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -158,7 +170,7 @@ class APIGKAdmTests(unittest.TestCase):
     def test_post_apigk_org_not_admin(self):
         self._test_post_apigk(False, 403)
 
-    @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_post_apigk_admin_for_platform_not_for_org(self, get_user):
         self._test_post_apigk(False, 201)
 
@@ -258,7 +270,7 @@ class APIGKAdmTests(unittest.TestCase):
     def test_delete_apigk_not_owner(self):
         self._test_delete_apigk('00000000-0000-0000-0000-000000000002', 403)
 
-    @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_delete_apigk_platform_admin(self, get_user):
         self._test_delete_apigk('00000000-0000-0000-0000-000000000002', 204)
 
@@ -272,7 +284,7 @@ class APIGKAdmTests(unittest.TestCase):
     def test_delete_unknown_apigk_orgadmin(self):
         self._test_delete_unknown_apigk(True)
 
-    @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_delete_unknown_apigk_platform_admin(self, get_user):
         self._test_delete_unknown_apigk(True)
 
@@ -332,7 +344,7 @@ class APIGKAdmTests(unittest.TestCase):
     def test_update_not_owner(self):
         self._test_update_not_owner(403)
 
-    @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_update_as_platform_admin(self, get_user):
         self._test_update_not_owner(200)
 
@@ -397,7 +409,7 @@ class APIGKAdmTests(unittest.TestCase):
     def test_apigk_get_org_clients_not_admin(self):
         self._test_apigk_get_org_clients(False, 403)
 
-    @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_apigk_get_org_clients_admin_for_platform_not_for_org(self, get_user):
         self._test_apigk_get_org_clients(False, 200)
 
