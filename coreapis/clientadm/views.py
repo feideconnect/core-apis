@@ -9,7 +9,7 @@ from .controller import ClientAdmController
 from coreapis.utils import (
     AlreadyExistsError, ForbiddenError, get_userid, get_payload, get_user, translation,
     get_logo_bytes)
-from coreapis.id_providers import APPROVED_ID_PROVIDERS, get_id_providers
+from coreapis.id_providers import individual_has_permission
 
 
 def get_clientid(request):
@@ -106,11 +106,6 @@ def allowed_attrs(attrs, operation):
     return {k: v for k, v in attrs.items() if k not in protected_keys}
 
 
-def individual_can_add_client(user):
-    providers = get_id_providers(user)
-    return providers & APPROVED_ID_PROVIDERS['add_as_individual']
-
-
 @view_config(route_name='add_client', renderer='json', request_method='POST',
              permission='scope_clientadmin')
 @translation
@@ -122,7 +117,7 @@ def add_client(request):
     if 'organization' in attrs:
         if not request.cadm_controller.is_admin(user, attrs['organization']):
             raise HTTPForbidden('Not administrator for organization')
-    elif not individual_can_add_client(user):
+    elif not individual_has_permission(user, 'add_client'):
         raise HTTPForbidden('Not authenticated by approved entity')
     try:
         client = request.cadm_controller.add(attrs, userid)

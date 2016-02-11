@@ -1,4 +1,4 @@
-APPROVED_ID_PROVIDERS = dict(add_as_individual=set(['feide']))
+APPROVED_ID_PROVIDERS = dict(add_client=['feide'])
 
 
 def get_feideids(user):
@@ -16,4 +16,9 @@ def get_feideid(user):
 
 
 def get_id_providers(user):
-    return set((id.split(':', 1)[0] for id in user['userid_sec']))
+    return (id.split(':', 1)[0] for id in user['userid_sec'])
+
+
+def individual_has_permission(user, operation):
+    providers = get_id_providers(user)
+    return set(providers) & set(APPROVED_ID_PROVIDERS[operation])
