@@ -4,7 +4,8 @@ import ssl
 import ldap3
 #import ldap3.ssl
 
-from coreapis.utils import LogWrapper, get_feideid, get_platform_admins
+from coreapis.utils import LogWrapper, get_platform_admins
+from coreapis.id_providers import get_feideid
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.clientadm.controller import ClientAdmController

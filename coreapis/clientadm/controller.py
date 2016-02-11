@@ -12,8 +12,8 @@ from coreapis.crud_base import CrudControllerBase
 from coreapis.scopes import is_gkscopename, has_gkscope_match
 from coreapis.scopes.manager import ScopesManager
 from coreapis.utils import (
-    LogWrapper, timestamp_adapter, ForbiddenError, valid_url,
-    get_feideids, get_platform_admins)
+    LogWrapper, timestamp_adapter, ForbiddenError, valid_url, get_platform_admins)
+from coreapis.id_providers import get_feideids
 
 
 USER_SETTABLE_STATUS_FLAGS = {'Public'}

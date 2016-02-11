@@ -1,5 +1,6 @@
 from coreapis import cassandra_client, feide
-from coreapis.utils import LogWrapper, get_feideid
+from coreapis.utils import LogWrapper
+from coreapis.id_providers import get_feideid
 
 USER_INFO_ATTRIBUTES_FEIDE = {
     "profile": [

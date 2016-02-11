@@ -4,7 +4,9 @@ import uuid
 import valideer as V
 from PIL import Image
 
-from coreapis.utils import now, ValidationError, AlreadyExistsError, LogWrapper, get_feideids, public_userinfo, public_orginfo
+from coreapis.utils import (
+    now, ValidationError, AlreadyExistsError, LogWrapper, public_userinfo, public_orginfo)
+from coreapis.id_providers import get_feideids
 
 LOGO_SIZE = 128, 128
 

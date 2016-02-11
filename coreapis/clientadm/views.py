@@ -7,11 +7,9 @@ from pyramid.response import Response
 
 from .controller import ClientAdmController
 from coreapis.utils import (
-    AlreadyExistsError, ForbiddenError, get_userid, get_payload, get_user, get_id_providers,
-    translation, get_logo_bytes)
-
-
-APPROVED_ID_PROVIDERS = dict(add_as_individual=set(['feide']))
+    AlreadyExistsError, ForbiddenError, get_userid, get_payload, get_user, translation,
+    get_logo_bytes)
+from coreapis.id_providers import APPROVED_ID_PROVIDERS, get_id_providers
 
 
 def get_clientid(request):

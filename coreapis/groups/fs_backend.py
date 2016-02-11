@@ -4,7 +4,8 @@ import eventlet
 from eventlet.greenpool import GreenPool
 requests = eventlet.import_patched('requests')
 
-from coreapis.utils import LogWrapper, get_feideids, failsafe, translatable, parse_datetime
+from coreapis.utils import LogWrapper, failsafe, translatable, parse_datetime
+from coreapis.id_providers import get_feideids
 from coreapis.cache import Cache
 from coreapis import cassandra_client
 from . import BaseBackend

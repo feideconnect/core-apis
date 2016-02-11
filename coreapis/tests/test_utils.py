@@ -1,8 +1,6 @@
 from unittest import TestCase
 import uuid
 from coreapis import utils
-import py.test
-from pyramid.testing import DummyRequest
 from webob import Request
 
 
@@ -24,54 +22,6 @@ class TestMisc(TestCase):
             'id': 'p:00000000-0000-0000-0000-000000000001',
         }
         assert utils.public_userinfo(input) == output
-
-
-class TestGetFeideids(TestCase):
-    def test_ok(self):
-        user = {
-            'userid_sec': ['feide:test@example.org', 'test:1234', 'feide:test@example.com'],
-            'userid': uuid.uuid4(),
-        }
-        assert utils.get_feideids(user) == set(('test@example.org', 'test@example.com'))
-
-    def test_no_feideid(self):
-        user = {
-            'userid_sec': ['test:1234', 'mail:test@example.com'],
-            'userid': uuid.uuid4(),
-        }
-        assert utils.get_feideids(user) == set()
-
-    def test_malformed_feideid(self):
-        user = {
-            'userid_sec': ['test:1234', 'feide:foo'],
-            'userid': uuid.uuid4(),
-        }
-        assert utils.get_feideids(user) == set()
-
-
-class TestGetFeideid(TestCase):
-    def test_ok(self):
-        user = {
-            'userid_sec': ['test:1234', 'feide:test@example.com'],
-            'userid': uuid.uuid4(),
-        }
-        assert utils.get_feideid(user) == 'test@example.com'
-
-    def test_no_feideid(self):
-        user = {
-            'userid_sec': ['test:1234', 'mail:test@example.com'],
-            'userid': uuid.uuid4(),
-        }
-        with py.test.raises(RuntimeError):
-            utils.get_feideid(user)
-
-    def test_malformed_feideid(self):
-        user = {
-            'userid_sec': ['test:1234', 'feide:foo'],
-            'userid': uuid.uuid4(),
-        }
-        with py.test.raises(RuntimeError):
-            utils.get_feideid(user)
 
 
 class TestTranslatable(TestCase):
