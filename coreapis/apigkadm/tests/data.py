@@ -1,3 +1,4 @@
+from copy import deepcopy
 from coreapis.utils import parse_datetime
 import uuid
 
@@ -64,3 +65,20 @@ pre_update = {
     "scopes": ['userinfo'],
     "scopes_requested": ['userinfo'],
 }
+
+mock_apigks = [deepcopy(pre_update) for i in range(2)]
+mock_apigks[0]['owner'] = uuid.uuid4()
+num_mock_apigks = len(mock_apigks)
+
+
+def mock_get_apigks(selectors, values, maxrows):
+    print(selectors)
+    print(values)
+    if selectors:
+        key = selectors[0].split()[0]
+        print(key)
+    res = (apigk for apigk in mock_apigks
+           if not selectors or values[0] == apigk[key])
+    print(list(res))
+    return [apigk for apigk in mock_apigks
+            if not selectors or values[0] == apigk[key]]

@@ -6,7 +6,8 @@ from webtest import TestApp
 from pyramid import testing
 from coreapis import main, middleware
 from coreapis.utils import (json_normalize, now)
-from coreapis.apigkadm.tests.data import post_body_minimal, post_body_maximal, pre_update
+from coreapis.apigkadm.tests.data import (
+    post_body_minimal, post_body_maximal, pre_update, mock_get_apigks, num_mock_apigks)
 
 PLATFORMADMIN = 'admin@example.com'
 
@@ -69,10 +70,20 @@ class APIGKAdmTests(unittest.TestCase):
 
     def test_list_apigks(self):
         headers = {'Authorization': 'Bearer user_token'}
-        self.session().get_apigks.return_value = [pre_update]
+        self.session().get_apigks.side_effect = mock_get_apigks
         res = self.testapp.get('/apigkadm/apigks/', status=200, headers=headers)
         out = res.json
-        assert out[0]['id'] == 'updateable'
+        assert 'trust' in out[0]
+        assert len(out) < num_mock_apigks
+
+    @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
+    def test_list_apigks_platform_admin(self, get_user):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().get_apigks.side_effect = mock_get_apigks
+        res = self.testapp.get('/apigkadm/apigks/', status=200, headers=headers)
+        out = res.json
+        assert 'trust' in out[0]
+        assert len(out) == num_mock_apigks
 
     def test_list_apigks_by_owner(self):
         headers = {'Authorization': 'Bearer user_token'}

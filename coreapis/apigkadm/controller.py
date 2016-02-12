@@ -121,6 +121,9 @@ class APIGKAdmController(CrudControllerBase):
         values = [organization]
         return self.session.get_apigks(selectors, values, self.maxrows)
 
+    def list_all(self, scope=None):
+        return self.session.get_apigks([], [], self.maxrows)
+
     # Used both for add and update.
     # By default CQL does not distinguish between INSERT and UPDATE
     def _insert(self, apigk):
