@@ -108,6 +108,9 @@ class ClientAdmController(CrudControllerBase):
         values = [organization]
         return self._list(selectors, values, scope)
 
+    def list_all(self, scope=None):
+        return self._list([], [], scope)
+
     def public_clients(self, orgauthorization):
         selectors = []
         values = []

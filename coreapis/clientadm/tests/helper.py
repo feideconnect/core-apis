@@ -114,7 +114,7 @@ retrieved_gk_clients[2].update({
 
 retrieved_gk_clients[3].update({
     'id': '00000000-0000-0000-0000-000000000006',
-    'owner': uuid.UUID(userid_own),
+    'owner': uuid.UUID(userid_other),
     'scopes': [testgk, testgk_foo],
     'scopes_requested': [testgk, testgk_foo, othergk],
     'orgauthorization': {testrealm: json.dumps([testgk, testgk_foo])}
@@ -150,6 +150,13 @@ def mock_get_apigk(gkid):
 
 
 retrieved_apigks = iter([mock_get_apigk(id) for id in apigks])
+
+
+def mock_get_clients(selectors, values, maxrows):
+    if selectors:
+        key = selectors[0].split()[0]
+    return (client for client in retrieved_gk_clients
+            if not selectors or values[0] == client[key])
 
 
 def mock_get_clients_by_scope(scope):
