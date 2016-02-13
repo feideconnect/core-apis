@@ -31,7 +31,7 @@ class TestController(TestCase):
     @mock.patch('coreapis.middleware.cassandra_client.Client')
     def setUp(self, Client):
         self.session = Client()
-        self.controller = controller.GkController([], 'keyspace')
+        self.controller = controller.GkController([], 'keyspace', None)
 
     def basic_asserts(self, headers):
         assert 'endpoint' in headers

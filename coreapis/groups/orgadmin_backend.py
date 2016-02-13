@@ -83,7 +83,8 @@ class OrgAdminBackend(BaseBackend):
         self.timer = settings.get('timer')
         contact_points = settings.get('cassandra_contact_points')
         keyspace = settings.get('cassandra_keyspace')
-        self.session = cassandra_client.Client(contact_points, keyspace, True)
+        authz = settings.get('cassandra_authz')
+        self.session = cassandra_client.Client(contact_points, keyspace, True, authz=authz)
         self.scopes_needed = SCOPES_NEEDED
 
     def get_members(self, user, groupid, show_all, include_member_ids):

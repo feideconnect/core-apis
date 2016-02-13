@@ -6,7 +6,9 @@ from aniso8601 import parse_datetime
 from eventlet.pools import Pool as EventletPool
 
 from . import cassandra_client
-from .utils import LogWrapper, Timer, RateLimiter, now, www_authenticate, init_request_id, request_id, ResourcePool, log_token
+from .utils import (
+    LogWrapper, Timer, RateLimiter, now, www_authenticate, init_request_id, request_id,
+    ResourcePool, log_token, get_cassandra_authz)
 
 NULL_USER = uuid.UUID('00000000-0000-0000-0000-000000000000')
 
@@ -27,6 +29,7 @@ def cassandra_main(app, config, client_max_share, client_max_rate, client_max_bu
                    cls=None):
     contact_points = config['cassandra_contact_points'].split(', ')
     keyspace = config['cassandra_keyspace']
+    authz = get_cassandra_authz(config)
     log_timings = config.get('log_timings', 'false').lower() == 'true'
     if config.get('use_eventlets', '') == 'true':
         pool = EventletPool
@@ -44,7 +47,7 @@ def cassandra_main(app, config, client_max_share, client_max_rate, client_max_bu
     if cls is None:
         cls = CassandraMiddleware
     return cls(app, config['oauth_realm'], contact_points,
-               keyspace, timer, ratelimiter, use_eventlets)
+               keyspace, timer, ratelimiter, use_eventlets, authz)
 
 
 def gk_main(app, config, client_max_share, client_max_rate, client_max_burst_size):
@@ -206,11 +209,11 @@ class GKMockAuthMiddleware(MockAuthMiddleware):
 
 
 class CassandraMiddleware(AuthMiddleware):
-    def __init__(self, app, realm, contact_points, keyspace, timer, ratelimiter, use_eventlet):
+    def __init__(self, app, realm, contact_points, keyspace, timer, ratelimiter, use_eventlet, authz):
         super(CassandraMiddleware, self).__init__(app, realm)
         self.timer = timer
         self.ratelimiter = ratelimiter
-        self.session = cassandra_client.Client(contact_points, keyspace, use_eventlet)
+        self.session = cassandra_client.Client(contact_points, keyspace, use_eventlet, authz=authz)
         self.session.timer = timer
 
     def __call__(self, environ, start_response):

@@ -7,7 +7,7 @@ from cassandra.cluster import Cluster
 import ldap3
 from PIL import Image
 
-from coreapis.utils import ValidationError, LogWrapper, now
+from coreapis.utils import ValidationError, LogWrapper, now, get_cassandra_cluster_args
 from .tokens import crypt_token, decrypt_token
 from coreapis.cassandra_client import datetime_hack_dict_factory
 from coreapis.ldap.controller import validate_query
@@ -38,10 +38,9 @@ def in_org(user, org):
 
 
 class CassandraCache(object):
-    def __init__(self, contact_points, keyspace):
-        cluster = Cluster(
-            contact_points=contact_points
-        )
+    def __init__(self, contact_points, keyspace, authz):
+        cluster_args = get_cassandra_cluster_args(contact_points, None, authz)
+        cluster = Cluster(**cluster_args)
         self.session = cluster.connect(keyspace)
         self.session.row_factory = datetime_hack_dict_factory
         self.s_lookup = self.session.prepare('SELECT * from profile_image_cache where user=?')
@@ -63,6 +62,7 @@ class PeopleSearchController(object):
     def __init__(self, ldap_controller, settings):
         key = base64.b64decode(settings.get('profile_token_secret'))
         contact_points = settings.get('cassandra_contact_points')
+        authz = settings.get('cassandra_authz')
         cache_keyspace = settings.get('peoplesearch.cache_keyspace')
         cache_update_seconds = int(settings.get('peoplesearch.cache_update_seconds', 3600))
         timer = settings.get('timer')
@@ -72,7 +72,7 @@ class PeopleSearchController(object):
         self.ldap = ldap_controller
         self.image_cache = dict()
         self.log = LogWrapper('peoplesearch.PeopleSearchController')
-        self.db = CassandraCache(contact_points, cache_keyspace)
+        self.db = CassandraCache(contact_points, cache_keyspace, authz)
         self.cache_update_age = datetime.timedelta(seconds=cache_update_seconds)
         self.search_max_replies = 50
 

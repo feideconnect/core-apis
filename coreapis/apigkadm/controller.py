@@ -47,9 +47,10 @@ class APIGKAdmController(CrudControllerBase):
     def __init__(self, settings):
         contact_points = settings.get('cassandra_contact_points')
         keyspace = settings.get('cassandra_keyspace')
+        authz = settings.get('cassandra_authz')
         maxrows = int(settings.get('apigkadm_maxrows') or 300)
         super(APIGKAdmController, self).__init__(maxrows)
-        self.session = cassandra_client.Client(contact_points, keyspace)
+        self.session = cassandra_client.Client(contact_points, keyspace, authz=authz)
         platformadmins_file = settings.get('platformadmins_file')
         self.platformadmins = get_platform_admins(platformadmins_file)
         self.log = LogWrapper('apigkadm.APIGKAdmController')

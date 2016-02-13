@@ -21,7 +21,8 @@ class FsBackend(BaseBackend):
         self.fs_pass = settings.get('fs_password')
         contact_points = settings.get('cassandra_contact_points')
         keyspace = settings.get('cassandra_keyspace')
-        self.session = cassandra_client.Client(contact_points, keyspace, True)
+        authz = settings.get('cassandra_authz')
+        self.session = cassandra_client.Client(contact_points, keyspace, True, authz=authz)
         self.org_enabled = Cache(300)
 
     def is_org_enabled(self, realm):

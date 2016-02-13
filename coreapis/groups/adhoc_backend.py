@@ -40,8 +40,9 @@ class AdHocGroupBackend(BaseBackend):
         super(AdHocGroupBackend, self).__init__(prefix, maxrows, settings)
         contact_points = settings.get('cassandra_contact_points')
         keyspace = settings.get('cassandra_keyspace')
+        authz = settings.get('cassandra_authz')
         self.timer = settings.get('timer')
-        self.session = cassandra_client.Client(contact_points, keyspace, True)
+        self.session = cassandra_client.Client(contact_points, keyspace, True, authz=authz)
         self.session.timer = self.timer
         self.log = LogWrapper('groups.adhocgroupbackend')
 

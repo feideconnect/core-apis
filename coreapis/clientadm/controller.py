@@ -66,9 +66,10 @@ class ClientAdmController(CrudControllerBase):
     def __init__(self, settings):
         contact_points = settings.get('cassandra_contact_points')
         keyspace = settings.get('cassandra_keyspace')
+        authz = settings.get('cassandra_authz')
         maxrows = settings.get('clientadm_maxrows')
         super(ClientAdmController, self).__init__(maxrows, 'client')
-        self.session = cassandra_client.Client(contact_points, keyspace)
+        self.session = cassandra_client.Client(contact_points, keyspace, authz=authz)
         platformadmins_file = settings.get('platformadmins_file')
         self.platformadmins = get_platform_admins(platformadmins_file)
         self.scopemgr = ScopesManager(settings, self.session, self.get_public_info, False)

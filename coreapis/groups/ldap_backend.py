@@ -165,7 +165,8 @@ class LDAPBackend(BaseBackend):
         eventlet.greenthread.spawn(self.ldap.health_check_thread)
         contact_points = settings.get('cassandra_contact_points')
         keyspace = settings.get('cassandra_keyspace')
-        self.session = cassandra_client.Client(contact_points, keyspace, True)
+        authz = settings.get('cassandra_authz')
+        self.session = cassandra_client.Client(contact_points, keyspace, True, authz=authz)
         self.org_types = Cache(3600)
 
     def _get_org_type_real(self, realm):

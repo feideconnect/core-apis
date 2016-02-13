@@ -25,8 +25,8 @@ def auth_header(trust):
 
 
 class GkController(object):
-    def __init__(self, contact_points, keyspace):
-        self.session = cassandra_client.Client(contact_points, keyspace)
+    def __init__(self, contact_points, keyspace, authz):
+        self.session = cassandra_client.Client(contact_points, keyspace, authz=authz)
         self.log = LogWrapper('gk.GkController')
         self._allowed_dn = Cache(1800)
 

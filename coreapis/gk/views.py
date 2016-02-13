@@ -9,7 +9,8 @@ from .controller import GkController
 def configure(config):
     contact_points = config.get_settings().get('cassandra_contact_points')
     keyspace = config.get_settings().get('cassandra_keyspace')
-    gk_controller = GkController(contact_points, keyspace)
+    authz = config.get_settings().get('cassandra_authz')
+    gk_controller = GkController(contact_points, keyspace, authz)
     config.add_settings(gk_controller=gk_controller)
     config.add_request_method(lambda r: r.registry.settings.gk_controller, 'gk_controller',
                               reify=True)

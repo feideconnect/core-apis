@@ -7,7 +7,8 @@ class AuthorizationController(object):
     def __init__(self, settings):
         contact_points = settings.get('cassandra_contact_points')
         keyspace = settings.get('cassandra_keyspace')
-        self.session = cassandra_client.Client(contact_points, keyspace)
+        authz = settings.get('cassandra_authz')
+        self.session = cassandra_client.Client(contact_points, keyspace, authz=authz)
         self.log = LogWrapper('authorizations.AuthorizationController')
 
     def delete(self, userid, clientid):

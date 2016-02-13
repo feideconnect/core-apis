@@ -8,7 +8,7 @@ import cassandra
 from cassandra.query import dict_factory
 import pytz
 
-from coreapis.utils import LogWrapper, now, translatable
+from coreapis.utils import LogWrapper, now, translatable, get_cassandra_cluster_args
 
 
 def parse_apigk(obj):
@@ -39,17 +39,15 @@ class DummyTimer(object):
 
 
 class Client(object):
-    def __init__(self, contact_points, keyspace, use_eventlets=False):
+    def __init__(self, contact_points, keyspace, use_eventlets=False, authz=None):
         self.log = LogWrapper('coreapis.cassandraclient')
         connection_class = None
         if use_eventlets:
             from cassandra.io.eventletreactor import EventletConnection
             connection_class = EventletConnection
             self.log.info("Using eventlet based cassandra connection")
-        cluster = Cluster(
-            contact_points=contact_points,
-            connection_class=connection_class,
-        )
+        cluster_args = get_cassandra_cluster_args(contact_points, connection_class, authz)
+        cluster = Cluster(**cluster_args)
         self.prepared = {}
         self.default_columns = {
             'clients': [

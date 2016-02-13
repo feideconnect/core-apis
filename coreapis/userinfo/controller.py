@@ -95,8 +95,9 @@ class UserInfoController(object):
     def __init__(self, settings):
         contact_points = settings.get('cassandra_contact_points')
         keyspace = settings.get('cassandra_keyspace')
+        authz = settings.get('cassandra_authz')
         ldap_controller = settings.get('ldap_controller')
-        self.session = cassandra_client.Client(contact_points, keyspace)
+        self.session = cassandra_client.Client(contact_points, keyspace, authz=authz)
         self.log = LogWrapper('userinfo.UserInfoController')
         self.ldap = ldap_controller
 

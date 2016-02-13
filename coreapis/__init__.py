@@ -13,7 +13,7 @@ import statsd
 
 from .aaa import TokenAuthenticationPolicy, TokenAuthorizationPolicy
 import coreapis.utils
-from .utils import Timer, format_datetime, ResourcePool, LogWrapper
+from .utils import Timer, format_datetime, ResourcePool, LogWrapper, get_cassandra_authz
 
 
 def options(request):
@@ -46,6 +46,7 @@ def main(global_config, **settings):
     config.add_renderer('logo', 'coreapis.utils.LogoRenderer')
     config.add_settings(cassandra_contact_points=global_config['cassandra_contact_points'].split(', '))
     config.add_settings(cassandra_keyspace=global_config['cassandra_keyspace'])
+    config.add_settings(cassandra_authz=get_cassandra_authz(global_config))
     config.add_settings(timer=timer)
     config.add_settings(log_timings=log_timings)
 

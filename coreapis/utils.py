@@ -14,9 +14,11 @@ from threading import Lock
 import time
 from urllib.parse import urlparse
 import uuid
+import ssl
 
 import blist
 import cassandra.util
+from cassandra.auth import PlainTextAuthProvider
 import statsd
 import pytz
 from aniso8601 import parse_datetime
@@ -530,3 +532,30 @@ def valid_url(value):
     if url.username or url.password:
         return False
     return True
+
+
+def get_cassandra_authz(config):
+    authkeys = ['cassandra_username', 'cassandra_password', 'cassandra_cacerts']
+    authz = {key: config[key] for key in authkeys if key in config}
+    if len(authz) == len(authkeys):
+        return authz
+    elif len(authz) > 0:
+        missing_authz = set(authkeys) - set(authz.keys())
+        raise ValidationError('Missing ' + ', '.join(missing_authz))
+    else:
+        return None
+
+
+def get_cassandra_cluster_args(contact_points, connection_class, authz):
+    cluster_args = dict(contact_points=contact_points,
+                        connection_class=connection_class)
+    if authz:
+        username = authz['cassandra_username']
+        password = authz['cassandra_password']
+        ca_certs = authz['cassandra_cacerts']
+        cluster_args.update(
+            ssl_options=dict(ca_certs=ca_certs, cert_reqs=ssl.CERT_REQUIRED,
+                             ssl_version=ssl.PROTOCOL_TLSv1),
+            auth_provider=PlainTextAuthProvider(username=username, password=password)
+        )
+    return cluster_args
