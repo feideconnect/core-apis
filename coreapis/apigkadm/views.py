@@ -27,17 +27,6 @@ def configure(config):
     config.scan(__name__)
 
 
-def allowed_attrs(attrs, operation):
-    protected_keys = ['created', 'owner', 'scopes', 'updated']
-    if operation != 'add':
-        protected_keys.append('id')
-        protected_keys.append('organization')
-    try:
-        return {k: v for k, v in attrs.items() if k not in protected_keys}
-    except AttributeError:
-        raise ValidationError('payload must be a json object')
-
-
 def check(request):
     user = get_user(request)
     gkid = request.matchdict['id']
@@ -101,7 +90,7 @@ def add_apigk(request):
     userid = get_userid(request)
     payload = get_payload(request)
     user = get_user(request)
-    attrs = allowed_attrs(payload, 'add')
+    attrs = request.gkadm_controller.allowed_attrs(payload, 'add')
     if 'organization' in attrs:
         if not request.gkadm_controller.is_admin(user, attrs['organization']):
             raise HTTPForbidden('Not administrator for organization')
@@ -128,7 +117,7 @@ def delete_apigk(request):
 def update_apigk(request):
     gk = check(request)
     payload = get_payload(request)
-    attrs = allowed_attrs(payload, 'update')
+    attrs = request.gkadm_controller.allowed_attrs(payload, 'update')
     apigk = request.gkadm_controller.update(gk['id'], attrs)
     return apigk
 

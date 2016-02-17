@@ -100,17 +100,6 @@ def get_client(request):
     return client
 
 
-def allowed_attrs(attrs, operation):
-    protected_keys = ['created', 'owner', 'scopes', 'updated', 'orgauthorization']
-    if operation != 'add':
-        protected_keys.append('id')
-        protected_keys.append('organization')
-    try:
-        return {k: v for k, v in attrs.items() if k not in protected_keys}
-    except AttributeError:
-        raise ValidationError('payload must be a json object')
-
-
 @view_config(route_name='add_client', renderer='json', request_method='POST',
              permission='scope_clientadmin')
 @translation
@@ -118,7 +107,7 @@ def add_client(request):
     userid = get_userid(request)
     payload = get_payload(request)
     user = get_user(request)
-    attrs = allowed_attrs(payload, 'add')
+    attrs = request.cadm_controller.allowed_attrs(payload, 'add')
     if 'organization' in attrs:
         if not request.cadm_controller.is_admin(user, attrs['organization']):
             raise HTTPForbidden('Not administrator for organization')
@@ -145,7 +134,7 @@ def delete_client(request):
 def update_client(request):
     client = check(request)
     payload = get_payload(request)
-    attrs = allowed_attrs(payload, 'update')
+    attrs = request.cadm_controller.allowed_attrs(payload, 'update')
     client = request.cadm_controller.update(client['id'], attrs)
     return client
 

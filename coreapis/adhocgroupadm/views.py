@@ -28,14 +28,6 @@ def configure(config):
     config.scan(__name__)
 
 
-def allowed_attrs(attrs, operation):
-    protected_keys = ['created', 'owner', 'scopes', 'updated', 'id']
-    try:
-        return {k: v for k, v in attrs.items() if k not in protected_keys}
-    except AttributeError:
-        raise ValidationError('payload must be a json object')
-
-
 def get_groupid(request):
     groupid = request.matchdict['id']
     try:
@@ -94,7 +86,7 @@ def get_group_details(request):
 def add_group(request):
     userid = get_userid(request)
     payload = get_payload(request)
-    attrs = allowed_attrs(payload, 'add')
+    attrs = request.ahgroupadm_controller.allowed_attrs(payload, 'add')
     group = request.ahgroupadm_controller.add(attrs, userid)
     request.response.status = 201
     request.response.location = "{}{}".format(request.url, group['id'])
@@ -112,7 +104,7 @@ def delete_group(request):
 def update_group(request):
     group = check(request, "update")
     payload = get_payload(request)
-    attrs = allowed_attrs(payload, 'update')
+    attrs = request.ahgroupadm_controller.allowed_attrs(payload, 'update')
     group = request.ahgroupadm_controller.update(group['id'], attrs)
     return group
 

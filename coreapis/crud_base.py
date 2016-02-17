@@ -27,6 +27,15 @@ class CrudControllerBase(object):
         self.log = LogWrapper('crud_base')
         self.objtype = objtype
 
+    def allowed_attrs(self, attrs, operation):
+        protected_attrs = list(self.protected_attrs)
+        if operation != 'add':
+            protected_attrs += self.protected_attrs_update
+        try:
+            return {k: v for k, v in attrs.items() if k not in protected_attrs}
+        except AttributeError:
+            raise ValidationError('payload must be a json object')
+
     def validate(self, item):
         validator = V.parse(self.schema, additional_properties=False)
         try:

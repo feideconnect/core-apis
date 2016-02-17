@@ -62,6 +62,8 @@ class ClientAdmController(CrudControllerBase):
     public_attrs = ['id', 'name', 'descr', 'redirect_uri', 'owner', 'organization', 'authproviders',
                     'systemdescr', 'privacypolicyurl', 'homepageurl', 'loginurl', 'supporturl']
     scope_attrs = ['scopes', 'scopes_requested']
+    protected_attrs = ['created', 'owner', 'scopes', 'updated', 'orgauthorization']
+    protected_attrs_update = ['id', 'organization']
 
     def __init__(self, settings):
         contact_points = settings.get('cassandra_contact_points')
