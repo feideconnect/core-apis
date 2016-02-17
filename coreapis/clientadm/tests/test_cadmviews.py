@@ -327,6 +327,11 @@ class ClientAdmTests(unittest.TestCase):
         body = 'foo'
         self.testapp.post('/clientadm/clients/', body, status=400, headers=headers)
 
+    def test_post_client_not_json_object(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        body = '"foo"'
+        self.testapp.post('/clientadm/clients/', body, status=400, headers=headers)
+
     def test_post_client_invalid_uuid(self):
         headers = {'Authorization': 'Bearer user_token'}
         body = deepcopy(post_body_minimal)

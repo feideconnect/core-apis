@@ -146,6 +146,11 @@ class AdHocGroupAdmTests(unittest.TestCase):
         body = 'foo'
         self.testapp.post('/adhocgroups/', body, status=400, headers=headers)
 
+    def test_post_group_not_json_object(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        body = '"foo"'
+        self.testapp.post('/adhocgroups/', body, status=400, headers=headers)
+
     def test_post_group_other_user(self):
         headers = {'Authorization': 'Bearer user_token'}
         body = deepcopy(post_body_minimal)

@@ -203,6 +203,11 @@ class APIGKAdmTests(unittest.TestCase):
         body = 'foo'
         self.testapp.post('/apigkadm/apigks/', body, status=400, headers=headers)
 
+    def test_post_apigk_not_json_object(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        body = '"foo"'
+        self.testapp.post('/apigkadm/apigks/', body, status=400, headers=headers)
+
     def test_post_apigk_other_user(self):
         headers = {'Authorization': 'Bearer user_token'}
         body = deepcopy(post_body_minimal)
