@@ -7,8 +7,8 @@ from pyramid.response import Response
 
 from .controller import ClientAdmController
 from coreapis.utils import (
-    AlreadyExistsError, ForbiddenError, ValidationError, get_userid, get_payload, get_user,
-    translation, get_logo_bytes)
+    AlreadyExistsError, ForbiddenError, get_userid, get_payload, get_user, translation,
+    get_logo_bytes)
 from coreapis.id_providers import individual_has_permission
 
 

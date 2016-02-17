@@ -3,7 +3,7 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPConflict, HTTPForbidden
 from pyramid.response import Response
 from .controller import APIGKAdmController
 from coreapis.utils import (AlreadyExistsError, get_userid, get_payload, get_user, get_logo_bytes,
-                            get_max_replies, translation, ValidationError)
+                            get_max_replies, translation)
 from coreapis.id_providers import individual_has_permission
 
 

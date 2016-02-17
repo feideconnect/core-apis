@@ -5,8 +5,7 @@ from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPForbidden, 
 from pyramid.response import Response
 
 from .controller import AdHocGroupAdmController
-from coreapis.utils import (get_user, get_userid, get_payload, get_logo_bytes, ResourceError,
-                            ValidationError)
+from coreapis.utils import get_user, get_userid, get_payload, get_logo_bytes, ResourceError
 
 
 def configure(config):
