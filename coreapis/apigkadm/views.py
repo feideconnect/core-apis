@@ -3,7 +3,7 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPConflict, HTTPForbidden
 from pyramid.response import Response
 from .controller import APIGKAdmController
 from coreapis.utils import (AlreadyExistsError, get_userid, get_payload, get_user, get_logo_bytes,
-                            get_max_replies, translation)
+                            get_max_replies, translation, ValidationError)
 from coreapis.id_providers import individual_has_permission
 
 
@@ -32,7 +32,10 @@ def allowed_attrs(attrs, operation):
     if operation != 'add':
         protected_keys.append('id')
         protected_keys.append('organization')
-    return {k: v for k, v in attrs.items() if k not in protected_keys}
+    try:
+        return {k: v for k, v in attrs.items() if k not in protected_keys}
+    except AttributeError:
+        raise ValidationError('payload must be a json object')
 
 
 def check(request):

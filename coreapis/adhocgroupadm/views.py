@@ -5,7 +5,8 @@ from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPForbidden, 
 from pyramid.response import Response
 
 from .controller import AdHocGroupAdmController
-from coreapis.utils import get_user, get_userid, get_payload, get_logo_bytes, ResourceError
+from coreapis.utils import (get_user, get_userid, get_payload, get_logo_bytes, ResourceError,
+                            ValidationError)
 
 
 def configure(config):
@@ -29,7 +30,10 @@ def configure(config):
 
 def allowed_attrs(attrs, operation):
     protected_keys = ['created', 'owner', 'scopes', 'updated', 'id']
-    return {k: v for k, v in attrs.items() if k not in protected_keys}
+    try:
+        return {k: v for k, v in attrs.items() if k not in protected_keys}
+    except AttributeError:
+        raise ValidationError('payload must be a json object')
 
 
 def get_groupid(request):
