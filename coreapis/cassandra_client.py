@@ -72,7 +72,8 @@ class Client(object):
         }
         self.json_columns = {
             'clients': ['authoptions'],
-            'apigk': ['scopedef', 'trust']
+            'apigk': ['scopedef', 'trust'],
+            'organizations': ['uiinfo']
         }
         self.session = cluster.connect(keyspace)
         self.session.row_factory = datetime_hack_dict_factory
@@ -382,6 +383,9 @@ class Client(object):
             if 'name' in a and a['name'] is not None:
                 a['name'] = translatable(a['name'])
             yield a
+
+    def insert_org(self, org):
+        self.insert_generic(org, 'organizations')
 
     def get_org_logo(self, orgid):
         res = self._get('organizations', orgid, ['logo', 'logo_updated'])

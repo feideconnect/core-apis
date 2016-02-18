@@ -1,11 +1,12 @@
 import uuid
 
 from pyramid.view import view_config
-from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
+from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden, HTTPConflict
 from pyramid.response import Response
 
 from .controller import OrgController
-from coreapis.utils import now, get_user, ValidationError, translation, get_logo_bytes
+from coreapis.utils import (now, get_user, ValidationError, AlreadyExistsError, translation,
+                            get_payload, get_logo_bytes)
 
 
 def valid_service(service):
@@ -78,6 +79,22 @@ def list_org_v1(request):
 @view_config(route_name='orgs', request_method='GET', renderer='json')
 def list_org(request):
     return list_org_v1(request)
+
+
+@view_config(route_name='orgs', request_method='POST', permission='scope_orgadmin', renderer='json')
+def add_org(request):
+    user = get_user(request)
+    if not request.org_controller.is_platform_admin(user):
+        raise HTTPForbidden('Insufficient privileges')
+    payload = get_payload(request)
+    attrs = request.org_controller.allowed_attrs(payload, 'add')
+    try:
+        org = request.org_controller.add_org(user, attrs)
+    except AlreadyExistsError:
+        raise HTTPConflict("client with this id already exists")
+    request.response.status = '201 Created'
+    request.response.location = "{}{}".format(request.url, org['id'])
+    return org
 
 
 @view_config(route_name='org_logo_v1', renderer='logo')

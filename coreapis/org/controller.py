@@ -2,12 +2,17 @@ import json
 import ssl
 
 import ldap3
+import valideer as V
 
-from coreapis.utils import LogWrapper, get_platform_admins
+from coreapis.utils import LogWrapper, get_platform_admins, AlreadyExistsError
 from coreapis.id_providers import get_feideid
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.clientadm.controller import ClientAdmController
+
+
+def not_empty(thing):
+    return len(thing) > 0
 
 
 def ldap_exception_argument(ex):
@@ -17,6 +22,27 @@ def ldap_exception_argument(ex):
 
 
 class OrgController(CrudControllerBase):
+    schema = {
+        # Required
+        '+id': 'string',
+        '+name': V.AllOf(V.Mapping(key_schema=V.String(min_length=2, max_length=3),
+                                   value_schema='string'),
+                         not_empty),  # Just len works, but who would understand the message?
+        # Other attributes
+        'fs_groups': '?boolean',
+        'realm': '?string',
+        'type': V.Nullable(['string']),
+        'organization_number': '?string',
+        'uiinfo': V.Nullable({}),
+        'services': V.Nullable(['string']),
+        # Virtual attributes - not stored in database
+        'has_ldapgroups': '?boolean',
+        'has_peoplesearch': '?boolean',
+        'peoplesearch': V.Nullable({})
+    }
+    protected_attrs = ['has_ldapgroups', 'has_peoplesearch', 'peoplesearch']
+    protected_attrs_update = ['id']
+
     def __init__(self, settings):
         contact_points = settings.get('cassandra_contact_points')
         keyspace = settings.get('cassandra_keyspace')
@@ -75,6 +101,16 @@ class OrgController(CrudControllerBase):
                 if want_peoplesearch == org['has_peoplesearch']:
                     res.append(org)
         return res
+
+    def add_org(self, user, org):
+        org = self.validate(org)
+        if self.exists(org['id']):
+            raise AlreadyExistsError('item already exists')
+        self.log.info('adding organization',
+                      audit=True, orgid=org['id'],
+                      user=get_feideid(user))
+        self.session.insert_org(org)
+        return org
 
     def get_logo(self, orgid):
         logo, updated = self.session.get_org_logo(orgid)

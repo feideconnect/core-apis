@@ -367,24 +367,10 @@ class CassandraClientTests(unittest.TestCase):
             self.cclient.insert_grep_code(code)
         return codes
 
-    def insert_org(self, org):
-        self.cclient.default_columns['organizations'] = [
-            'id',
-            'fs_groups',
-            'realm',
-            'type',
-            'organization_number',
-            'name',
-            'uiinfo',
-            'services',
-        ]
-        self.cclient.json_columns['organizations'] = []
-        self.cclient.insert_generic(org, 'organizations')
-
     def insert_orgs(self, nrecs):
         orgs = [make_org() for i in range(nrecs)]
         for org in orgs:
-            self.insert_org(org)
+            self.cclient.insert_org(org)
         return orgs
 
     def insert_role(self, role):
@@ -740,7 +726,7 @@ class CassandraClientTests(unittest.TestCase):
         savedorg = orgs[self.nrecs - 2]
         savedorg['fs_groups'] = True
         for org in orgs:
-            self.insert_org(org)
+            self.cclient.insert_org(org)
         res = self.cclient.org_use_fs_groups(savedorg['realm'])
         assert res
         savedorg = orgs[0]

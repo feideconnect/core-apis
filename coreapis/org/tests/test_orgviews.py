@@ -1,6 +1,7 @@
 import unittest
 import mock
 import uuid
+from copy import deepcopy
 from webtest import TestApp
 from pyramid import testing
 from coreapis import main, middleware
@@ -40,6 +41,10 @@ def make_user(feideid):
     }
 
 
+def orgs_match(raw, formatted):
+    return all(formatted[key] == raw[key] for key in raw)
+
+
 class OrgViewTests(unittest.TestCase):
     @mock.patch('coreapis.org.controller.get_platform_admins')
     @mock.patch('coreapis.middleware.cassandra_client.Client')
@@ -61,7 +66,7 @@ class OrgViewTests(unittest.TestCase):
         testing.tearDown()
 
     def test_get_org(self):
-        self.session.get_org.return_value = testorg
+        self.session.get_org.return_value = deepcopy(testorg)
         for ver in ['', '/v1']:
             res = self.testapp.get('/orgs{}/{}'.format(ver, testorg_id), status=200)
             out = res.json
@@ -73,7 +78,7 @@ class OrgViewTests(unittest.TestCase):
 
     def test_list_orgs(self):
         for ver in ['', '/v1']:
-            self.session.list_orgs.return_value = iter([testorg, testorg2])
+            self.session.list_orgs.return_value = (deepcopy(org) for org in [testorg, testorg2])
             res = self.testapp.get('/orgs{}/'.format(ver), status=200)
             out = res.json
             assert len(out) == 2
@@ -81,24 +86,64 @@ class OrgViewTests(unittest.TestCase):
             assert out[1]['id'] == testorg2_id
 
     def test_list_orgs_with_peoplesearch(self):
-        self.session.list_orgs.return_value = iter([testorg, testorg2])
+        self.session.list_orgs.return_value = (deepcopy(org) for org in [testorg, testorg2])
         res = self.testapp.get('/orgs/?peoplesearch=true', status=200)
         out = res.json
         assert len(out) == 1
         assert out[0]['id'] == testorg_id
 
     def test_list_orgs_without_peoplesearch(self):
-        self.session.list_orgs.return_value = iter([testorg, testorg2])
+        self.session.list_orgs.return_value = (deepcopy(org) for org in [testorg, testorg2])
         res = self.testapp.get('/orgs/?peoplesearch=false', status=200)
         out = res.json
         assert len(out) == 1
         assert out[0]['id'] == testorg2_id
 
     def test_list_orgs_invalid_param(self):
-        self.session.list_orgs.return_value = iter([testorg, testorg2])
+        self.session.list_orgs.return_value = (deepcopy(org) for org in [testorg, testorg2])
         res = self.testapp.get('/orgs/?peoplesearch=ugle', status=200)
         out = res.json
         assert len(out) == 2
+
+    def _test_post_org(self, httpstat, body):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_org.side_effect = KeyError()
+        return self.testapp.post_json('/orgs/', body,
+                                      status=httpstat, headers=headers)
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_post_org(self, get_user):
+        res = self._test_post_org(201, body=testorg)
+        assert orgs_match(testorg, res.json)
+
+    def test_post_org_no_access(self):
+        self._test_post_org(403, testorg)
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_post_org_duplicate(self, get_user):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_org.return_value = {'foo': 'bar'}
+        self.testapp.post_json('/orgs/', testorg, status=409, headers=headers)
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_post_org_invalid_json(self, get_user):
+        self._test_post_org(400, body='foo')
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_post_org_not_json_object(self, get_user):
+        self._test_post_org(400, body='"foo"')
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_post_org_empty_name(self, get_user):
+        org = deepcopy(testorg)
+        org['name'] = {}
+        self._test_post_org(400, body=org)
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_post_org_too_long_language_in_name(self, get_user):
+        org = deepcopy(testorg)
+        org['name'].update(dict(nynorsk='testorganisasjon'))
+        self._test_post_org(400, body=org)
 
     def test_get_org_logo_default(self):
         self.session.get_org_logo.return_value = (None, None)
@@ -155,7 +200,7 @@ class OrgViewTests(unittest.TestCase):
         self.session.is_org_admin.return_value = orgadmin
         self.session.get_mandatory_clients.return_value = iter([testclient_id])
         self.session.get_client_by_id.return_value = retrieved_client
-        self.session.get_org.return_value = testorg
+        self.session.get_org.return_value = deepcopy(testorg)
         with mock.patch('coreapis.crud_base.public_userinfo') as pui:
             pui.return_value = {'foo': 'bar'}
             with mock.patch('coreapis.crud_base.public_orginfo') as poi:
@@ -187,7 +232,7 @@ class OrgViewTests(unittest.TestCase):
     def _test_add_mandatory_client(self, clientid, orgadmin, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.is_org_admin.return_value = orgadmin
-        self.session.get_org.return_value = testorg
+        self.session.get_org.return_value = deepcopy(testorg)
         self.testapp.put('/orgs/{}/mandatory_clients/{}'.format(testorg_id, clientid),
                          status=httpstat, headers=headers)
 
@@ -209,7 +254,7 @@ class OrgViewTests(unittest.TestCase):
     def test_add_mandatory_client_malformed(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.is_org_admin.return_value = True
-        self.session.get_org.return_value = testorg
+        self.session.get_org.return_value = deepcopy(testorg)
         clientid = "malformed uuid"
         self.testapp.put('/orgs/{}/mandatory_clients/{}'.format(testorg_id, clientid),
                          status=400, headers=headers)
@@ -225,7 +270,7 @@ class OrgViewTests(unittest.TestCase):
     def _test_del_mandatory_client(self, clientid, orgadmin, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.is_org_admin.return_value = orgadmin
-        self.session.get_org.return_value = testorg
+        self.session.get_org.return_value = deepcopy(testorg)
         self.testapp.delete('/orgs/{}/mandatory_clients/{}'.format(testorg_id, clientid),
                             status=httpstat, headers=headers)
 
@@ -247,7 +292,7 @@ class OrgViewTests(unittest.TestCase):
     def test_del_mandatory_client_malformed(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.is_org_admin.return_value = True
-        self.session.get_org.return_value = testorg
+        self.session.get_org.return_value = deepcopy(testorg)
         clientid = "foo"
         self.testapp.delete('/orgs/{}/mandatory_clients/{}'.format(testorg_id, clientid),
                             status=404, headers=headers)
