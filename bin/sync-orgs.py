@@ -27,7 +27,7 @@ SUBSPATH = 'sp/2021732/full'
 class CassandraClient(object):
     def __init__(self, log, contact_points, keyspace, config):
         self.log = log
-        if 'cassandra_username' in config:
+        if config['cassandra_username']:
             options = get_cassandra_cluster_args(contact_points, None, config)
         else:
             options = dict(contact_points=contact_points)
