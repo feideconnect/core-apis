@@ -10,7 +10,7 @@ import requests
 import valideer as V
 from cassandra.cluster import Cluster
 import cassandra
-from coreapis.utils import LogWrapper
+from coreapis.utils import LogWrapper, get_cassandra_cluster_args
 
 DESCRIPTION = """Sync organizations from Feide API to Dataporten.
 Input can be from a file or a URL. One of these must be given.
@@ -25,9 +25,13 @@ SUBSPATH = 'sp/2021732/full'
 
 
 class CassandraClient(object):
-    def __init__(self, log, contact_points, keyspace):
+    def __init__(self, log, contact_points, keyspace, config):
         self.log = log
-        cluster = Cluster(contact_points)
+        if 'cassandra_username' in config:
+            options = get_cassandra_cluster_args(contact_points, None, config)
+        else:
+            options = dict(contact_points=contact_points)
+        cluster = Cluster(**options)
         self.session = cluster.connect(keyspace)
         self.session.default_consistency_level = cassandra.ConsistencyLevel.LOCAL_QUORUM
         stmt = """
@@ -294,6 +298,8 @@ def parse_config(filename):
         'contact_points': parser['DEFAULT']['cassandra_contact_points'].split(', '),
         'keyspace': parser['DEFAULT']['cassandra_keyspace'],
         'sync_exclude': parser['DEFAULT'].get('feideapi_sync_exclude', '').split(','),
+        'cassandra_cacerts': parser['DEFAULT'].get('cassandra_cacerts', None),
+        'cassandra_username': parser['DEFAULT'].get('cassandra_username', None),
     }
 
 
@@ -306,6 +312,8 @@ def parse_args():
                         help='Feide API URL')
     parser.add_argument('-x', '--feideapi-token-secret',
                         help='Feide API token secret')
+    parser.add_argument('-p', '--cassandra-password',
+                        help='Cassandra password')
     parser.add_argument('-i', '--infile', type=argparse.FileType('r'),
                         help='Input file with organization data')
     parser.add_argument('-s', '--subsfile', type=argparse.FileType('r'),
@@ -332,7 +340,8 @@ def main():
         log.l.setLevel(logging.INFO)
         logging.basicConfig(level=logging.CRITICAL)
     log.info("Sync started")
-    session = CassandraClient(log, config['contact_points'], config['keyspace'])
+    config['cassandra_password'] = args.cassandra_password
+    session = CassandraClient(log, config['contact_points'], config['keyspace'], config)
     syncer = Syncer(log, session, sync_exclude=config['sync_exclude'])
     if args.infile:
         feideorgs = json.load(args.infile)
