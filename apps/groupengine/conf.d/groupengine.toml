@@ -8,6 +8,8 @@ keys = [
     "/fc/oauth/realm",
     "/fc/cassandra/contactpoints",
     "/fc/cassandra/keyspace",
+    "/fc/cassandra/username",
+    "/fc/cassandra/password",
     "/fc/logtimings",
     "/fc/ratelimit/maxshare",
     "/fc/ratelimit/maxrate",

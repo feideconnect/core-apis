@@ -9,6 +9,9 @@ statsd_prefix = {{getv "/fc/statsd/prefix"}}
 oauth_realm = {{getv "/fc/oauth/realm"}}
 cassandra_contact_points = {{getv "/fc/cassandra/contactpoints"}}
 cassandra_keyspace = {{getv "/fc/cassandra/keyspace"}}
+cassandra_username = {{getv "/fc/cassandra/username"}}
+cassandra_password = {{getv "/fc/cassandra/password"}}
+cassandra_cacerts = /conf/cassandraca.pem
 log_timings = {{getv "/fc/logtimings"}}
 
 [app:coreapis]
