@@ -41,7 +41,6 @@ def my_groups_v1(request):
 
 
 @view_config(route_name='my_groups', renderer='json', permission='scope_groups')
-@translation
 def my_groups(request):
     return my_groups_v1(request)
 
@@ -61,7 +60,6 @@ def get_membership_v1(request):
 
 
 @view_config(route_name='my_membership', renderer='json', permission='scope_groups')
-@translation
 def get_membership(request):
     return get_membership_v1(request)
 
@@ -79,7 +77,6 @@ def get_group_v1(request):
 
 
 @view_config(route_name='group', renderer='json', permission='scope_groups')
-@translation
 def get_group(request):
     return get_group_v1(request)
 
@@ -132,7 +129,6 @@ def list_groups_v1(request):
 
 
 @view_config(route_name='groups', renderer='json', permission='scope_groups')
-@translation
 def list_groups(request):
     return list_groups_v1(request)
 
@@ -144,6 +140,5 @@ def grouptypes_v1(request):
 
 
 @view_config(route_name='grouptypes', renderer='json', permission='scope_groups')
-@translation
 def grouptypes(request):
     return grouptypes_v1(request)

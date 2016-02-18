@@ -80,7 +80,6 @@ def public_clients_v1(request):
 
 
 @view_config(route_name='public_clients', renderer='json')
-@translation
 def public_clients(request):
     return public_clients_v1(request)
 

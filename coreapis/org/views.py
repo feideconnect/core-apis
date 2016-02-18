@@ -43,7 +43,6 @@ def get_org_v1(request):
 
 
 @view_config(route_name='org', request_method='GET', renderer='json')
-@translation
 def get_org(request):
     return get_org_v1(request)
 

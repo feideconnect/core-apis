@@ -63,7 +63,6 @@ def list_public_apigks_v1(request):
 
 
 @view_config(route_name='list_public_apigks', renderer='json')
-@translation
 def list_public_apigks(request):
     return list_public_apigks_v1(request)
 
