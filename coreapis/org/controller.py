@@ -2,7 +2,6 @@ import json
 import ssl
 
 import ldap3
-#import ldap3.ssl
 
 from coreapis.utils import LogWrapper, get_platform_admins
 from coreapis.id_providers import get_feideid
@@ -141,7 +140,7 @@ class OrgController(CrudControllerBase):
     def ldap_status(self, user, orgid):
         org = self.session.get_org(orgid)
         realm = org.get('realm', None)
-        if not realm or not realm in self.ldap_config:
+        if not realm or realm not in self.ldap_config:
             return {'error': 'Missing configuration for realm {}'.format(realm)}
         orgconfig = self.ldap_config[realm]
         feideid = get_feideid(user)
