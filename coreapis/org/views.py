@@ -32,13 +32,26 @@ def configure(config):
     config.scan(__name__)
 
 
-@view_config(route_name='org_v1', request_method='GET', renderer='json')
-@translation
-def get_org_v1(request):
+def get_untranslated_org(request):
     orgid = request.matchdict['id']
+    return request.org_controller.show_org(orgid)
+
+
+@translation
+def get_translated_org(request):
+    return get_untranslated_org(request)
+
+
+@view_config(route_name='org_v1', request_method='GET', renderer='json')
+def get_org_v1(request):
+    user = get_user(request)
     try:
-        return request.org_controller.show_org(orgid)
+        if request.org_controller.is_platform_admin(user):
+            return get_untranslated_org(request)
+        else:
+            return get_translated_org(request)
     except KeyError:
+        orgid = request.matchdict['id']
         raise HTTPNotFound('No org with id {} was found'.format(orgid))
 
 
@@ -63,7 +76,6 @@ def list_org_v1(request):
 
 
 @view_config(route_name='orgs', request_method='GET', renderer='json')
-@translation
 def list_org(request):
     return list_org_v1(request)
 
