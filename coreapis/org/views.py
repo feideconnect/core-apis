@@ -102,6 +102,15 @@ def update_org(request):
     return org
 
 
+@view_config(route_name='org', request_method='DELETE', renderer='json',
+             permission='scope_orgadmin')
+def delete_org(request):
+    user = get_user(request)
+    orgid = check(request, needs_realm=False, needs_platform_admin=True)
+    request.org_controller.delete_org(user, orgid)
+    return Response(status='204 No Content', content_type=False)
+
+
 @view_config(route_name='org_logo_v1', renderer='logo')
 def org_logo_v1(request):
     orgid = request.matchdict['id']

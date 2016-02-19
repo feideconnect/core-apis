@@ -128,6 +128,14 @@ class OrgController(CrudControllerBase):
         self.session.insert_org(org)
         return org
 
+    def delete_org(self, user, orgid):
+        if self.list_mandatory_clients(orgid):
+            raise ValidationError('org {} has mandatory clients'.format(orgid))
+        self.log.info('delete organization',
+                      audit=True, orgid=orgid,
+                      user=get_feideid(user))
+        self.session.delete_org(orgid)
+
     def get_logo(self, orgid):
         logo, updated = self.session.get_org_logo(orgid)
         if logo is None or updated is None:
@@ -139,7 +147,9 @@ class OrgController(CrudControllerBase):
 
     def list_mandatory_clients(self, orgid):
         org = self.session.get_org(orgid)
-        clientids = self.session.get_mandatory_clients(org['realm'])
+        clientids = []
+        if org.get('realm'):
+            clientids = self.session.get_mandatory_clients(org['realm'])
         cadm = self.cadm_controller
         return [cadm.get_public_info(cadm.get(clientid)) for clientid in clientids]
 

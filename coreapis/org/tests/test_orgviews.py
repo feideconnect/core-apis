@@ -190,6 +190,28 @@ class OrgViewTests(unittest.TestCase):
         body = 'foo'
         self._test_update_org(400, body)
 
+    def _test_delete_org(self, httpstat):
+        headers = {'Authorization': 'Bearer user_token'}
+        path = '/orgs/{}'.format(testorg_id)
+        return self.testapp.delete(path, status=httpstat, headers=headers)
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_delete_org(self, get_user):
+        self._test_delete_org(204)
+
+    def test_delete_org_no_access(self):
+        self._test_delete_org(403)
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_delete_missing_org(self, get_user):
+        self.session.get_org.side_effect = KeyError
+        self._test_delete_org(404)
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_delete_org_mandatory_clients(self, get_user):
+        self.session.get_mandatory_clients.return_value = iter([1])
+        self._test_delete_org(400)
+
     def test_get_org_logo_default(self):
         self.session.get_org_logo.return_value = (None, None)
         for ver in ['', '/v1']:

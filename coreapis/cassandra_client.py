@@ -387,6 +387,10 @@ class Client(object):
     def insert_org(self, org):
         self.insert_generic(org, 'organizations')
 
+    def delete_org(self, orgid):
+        prep = self._prepare('DELETE FROM organizations WHERE id = ?')
+        self.session.execute(prep.bind([orgid]))
+
     def get_org_logo(self, orgid):
         res = self._get('organizations', orgid, ['logo', 'logo_updated'])
         return res['logo'], res['logo_updated']
