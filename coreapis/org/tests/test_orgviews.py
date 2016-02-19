@@ -63,13 +63,13 @@ class OrgViewTests(unittest.TestCase):
     def test_get_org(self):
         self.session.get_org.return_value = testorg
         for ver in ['', '/v1']:
-            res = self.testapp.get('/orgs{}/{}'.format(ver, testorg), status=200)
+            res = self.testapp.get('/orgs{}/{}'.format(ver, testorg_id), status=200)
             out = res.json
             assert out['realm'] == testorg_realm
 
     def test_get_org_not_found(self):
         self.session.get_org.side_effect = KeyError
-        self.testapp.get('/orgs/{}'.format(testorg), status=404)
+        self.testapp.get('/orgs/{}'.format(testorg_id), status=404)
 
     def test_list_orgs(self):
         for ver in ['', '/v1']:
@@ -103,20 +103,20 @@ class OrgViewTests(unittest.TestCase):
     def test_get_org_logo_default(self):
         self.session.get_org_logo.return_value = (None, None)
         for ver in ['', '/v1']:
-            path = '/orgs{}/{}/logo'.format(ver, testorg)
+            path = '/orgs{}/{}/logo'.format(ver, testorg_id)
             res = self.testapp.get(path, status=200)
             out = res.body
             assert b'PNG' == out[1:4]
 
     def test_get_org_logo(self):
         self.session.get_org_logo.return_value = (b"A logo", now())
-        res = self.testapp.get('/orgs/{}/logo'.format(testorg), status=200)
+        res = self.testapp.get('/orgs/{}/logo'.format(testorg_id), status=200)
         out = res.body
         assert out == b"A logo"
 
     def test_get_org_logo_no_org(self):
         self.session.get_org_logo.side_effect = KeyError
-        self.testapp.get('/orgs/{}/logo'.format(testorg), status=404)
+        self.testapp.get('/orgs/{}/logo'.format(testorg_id), status=404)
 
     def _test_post_org_logo_body(self, ver, orgadmin, httpstat):
         headers = {'Authorization': 'Bearer user_token', 'Content-Type': 'image/png'}
