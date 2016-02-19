@@ -9,11 +9,6 @@ from coreapis.utils import (now, get_user, ValidationError, AlreadyExistsError, 
                             get_payload, get_logo_bytes)
 
 
-def valid_service(service):
-    valid_services = ['auth', 'avtale', 'pilot']
-    return service in valid_services
-
-
 def configure(config):
     org_controller = OrgController(config.get_settings())
     config.add_settings(org_controller=org_controller)
@@ -200,8 +195,6 @@ def add_service(request):
     user = get_user(request)
     orgid = check(request, needs_realm=False, needs_platform_admin=True)
     service = request.matchdict['service']
-    if not valid_service(service):
-        raise ValidationError('payload must be a valid service')
     request.org_controller.add_service(user, orgid, service)
     return Response(status='204 No Content', content_type=False)
 
@@ -212,8 +205,6 @@ def del_service(request):
     user = get_user(request)
     orgid = check(request, needs_realm=False, needs_platform_admin=True)
     service = request.matchdict['service']
-    if not valid_service(service):
-        raise ValidationError('not a valid service')
     request.org_controller.del_service(user, orgid, service)
     return Response(status='204 No Content', content_type=False)
 

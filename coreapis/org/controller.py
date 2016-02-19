@@ -4,15 +4,21 @@ import ssl
 import ldap3
 import valideer as V
 
-from coreapis.utils import LogWrapper, get_platform_admins, AlreadyExistsError
+from coreapis.utils import LogWrapper, get_platform_admins, AlreadyExistsError, ValidationError
 from coreapis.id_providers import get_feideid
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.clientadm.controller import ClientAdmController
 
+VALID_SERVICES = ['auth', 'avtale', 'pilot']
+
 
 def not_empty(thing):
     return len(thing) > 0
+
+
+def valid_service(service):
+    return service in VALID_SERVICES
 
 
 def ldap_exception_argument(ex):
@@ -34,7 +40,7 @@ class OrgController(CrudControllerBase):
         'type': V.Nullable(['string']),
         'organization_number': '?string',
         'uiinfo': V.Nullable({}),
-        'services': V.Nullable(['string']),
+        'services': V.Nullable([valid_service]),
         # Virtual attributes - not stored in database
         'has_ldapgroups': '?boolean',
         'has_peoplesearch': '?boolean',
@@ -161,6 +167,8 @@ class OrgController(CrudControllerBase):
         return list(services)
 
     def add_service(self, user, orgid, service):
+        if not valid_service(service):
+            raise ValidationError('payload must be a valid service')
         self.log.info('enabling service for organization',
                       audit=True, orgid=orgid, service=service,
                       user=get_feideid(user))
@@ -169,6 +177,8 @@ class OrgController(CrudControllerBase):
         self.session.add_services(orgid, services)
 
     def del_service(self, user, orgid, service):
+        if not valid_service(service):
+            raise ValidationError('not a valid service')
         self.log.info('disabling service for organization',
                       audit=True, orgid=orgid, service=service,
                       user=get_feideid(user))
