@@ -1,6 +1,7 @@
 import unittest
 import mock
 import uuid
+import json
 from copy import deepcopy
 from webtest import TestApp
 from pyramid import testing
@@ -30,6 +31,7 @@ testorg2 = {
     'services': ['auth'],
 }
 testservice = 'pilot'
+eg7 = dict(lat=63.4201, lon=18.969388)
 
 
 PLATFORMADMIN = 'admin@example.com'
@@ -66,11 +68,16 @@ class OrgViewTests(unittest.TestCase):
         testing.tearDown()
 
     def test_get_org(self):
-        self.session.get_org.return_value = deepcopy(testorg)
+        org = deepcopy(testorg)
+        org['uiinfo'] = dict(geo=[eg7])
+        body = deepcopy(org)
+        body['uiinfo'] = json.dumps(org['uiinfo'])
         for ver in ['', '/v1']:
+            self.session.get_org.return_value = deepcopy(body)
             res = self.testapp.get('/orgs{}/{}'.format(ver, testorg_id), status=200)
             out = res.json
             assert out['realm'] == testorg_realm
+            assert out['uiinfo'] == org['uiinfo']
 
     def test_get_org_not_found(self):
         self.session.get_org.side_effect = KeyError
