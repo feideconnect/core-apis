@@ -112,6 +112,16 @@ class OrgController(CrudControllerBase):
         self.session.insert_org(org)
         return org
 
+    def update_org(self, user, orgid, attrs):
+        org = self.show_org(orgid)
+        org.update(attrs)
+        org = self.validate(org)
+        self.log.info('updating organization',
+                      audit=True, orgid=orgid,
+                      user=get_feideid(user))
+        self.session.insert_org(org)
+        return org
+
     def get_logo(self, orgid):
         logo, updated = self.session.get_org_logo(orgid)
         if logo is None or updated is None:

@@ -97,6 +97,16 @@ def add_org(request):
     return org
 
 
+@view_config(route_name='org', request_method='PATCH', permission='scope_orgadmin', renderer='json')
+def update_org(request):
+    user = get_user(request)
+    orgid = check(request, needs_realm=False, needs_platform_admin=True)
+    payload = get_payload(request)
+    attrs = request.org_controller.allowed_attrs(payload, 'update')
+    org = request.org_controller.update_org(user, orgid, attrs)
+    return org
+
+
 @view_config(route_name='org_logo_v1', renderer='logo')
 def org_logo_v1(request):
     orgid = request.matchdict['id']

@@ -152,6 +152,44 @@ class OrgViewTests(unittest.TestCase):
         org['name'].update(dict(nynorsk='testorganisasjon'))
         self._test_post_org(400, body=org)
 
+    def _test_update_org(self, httpstat, body):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_org.return_value = deepcopy(testorg)
+        path = '/orgs/{}'.format(testorg_id)
+        return self.testapp.patch_json(path, body, status=httpstat, headers=headers)
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_update_org_no_change(self, get_user):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_org.return_value = deepcopy(testorg)
+        path = '/orgs/{}'.format(testorg_id)
+        body = self.testapp.get(path, status=200, headers=headers).json
+        res = self.testapp.patch_json(path, body, status=200, headers=headers)
+        assert orgs_match(testorg, res.json)
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_update_org(self, get_user):
+        body = dict(uiinfo=dict(geo=[eg7]))
+        res = self._test_update_org(200, body)
+        updated = res.json
+        assert updated['uiinfo'] == body['uiinfo']
+        assert 'type' in updated
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_update_org_change_id(self, get_user):
+        body = dict(id='fc:org:uixyz.no')
+        res = self._test_update_org(200, body)
+        assert res.json['id'] != body['id']
+
+    def test_update_org_no_access(self):
+        body = deepcopy(testorg)
+        self._test_update_org(403, body)
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_update_org_invalid_json(self, get_user):
+        body = 'foo'
+        self._test_update_org(400, body)
+
     def test_get_org_logo_default(self):
         self.session.get_org_logo.return_value = (None, None)
         for ver in ['', '/v1']:
