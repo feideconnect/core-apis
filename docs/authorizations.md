@@ -1,4 +1,4 @@
-# API Gatekeeper Administration API for Feide Connect
+# API Gatekeeper Administration API for Dataporten
 
 To test the API, obtain an authentication token and
 
@@ -6,7 +6,7 @@ To test the API, obtain an authentication token and
 
 ## Listing all authorizations for current user
 
-    $ curl -H "Authorization: Bearer $token" https://api.feideconnect.no/authorizations/
+    $ curl -H "Authorization: Bearer $token" https://api.dataporten.no/authorizations/
 
     [
       {
@@ -28,7 +28,7 @@ To test the API, obtain an authentication token and
 ## Delete an authorization
 
     $ curl -X DELETE -H "Authorization: Bearer $token" \
-        https://api.feideconnect.no/authorizations/<client id>
+        https://api.dataporten.no/authorizations/<client id>
 
 ### Parameters
 

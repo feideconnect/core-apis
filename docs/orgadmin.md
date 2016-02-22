@@ -1,4 +1,4 @@
-# Organization API for Feide Connect
+# Organization API for Dataporten
 
 To test the API, obtain an authentication token and
 
@@ -6,7 +6,7 @@ To test the API, obtain an authentication token and
 
 ## List mandatory clients for an organization
 
-    curl -H "Authorization: Bearer $TOKEN" 'https://api.feideconnect.no/orgs/<org-id>/mandatory_clients/'
+    curl -H "Authorization: Bearer $TOKEN" 'https://api.dataporten.no/orgs/<org-id>/mandatory_clients/'
 
     [{"id": "8aa931b4-f3da-4bdb-9675-fe02b899b6ed",
       "redirect_uri": ["http://localhost:8001"],
@@ -117,7 +117,7 @@ Only for platform administrators
 
 ## Mark a client as mandatory for an organization
 
-    curl -H "Authorization: Bearer $TOKEN" -X PUT 'https://api.feideconnect.no/orgs/<org-id>/mandatory_clients/<client-id>'
+    curl -H "Authorization: Bearer $TOKEN" -X PUT 'https://api.dataporten.no/orgs/<org-id>/mandatory_clients/<client-id>'
 
 ### Parameters
 
@@ -127,7 +127,7 @@ Only for platform administrators
 
 ## Make a client no longer mandatory for an organization
 
-    curl -H "Authorization: Bearer $TOKEN" 'https://api.feideconnect.no/orgs/<org-id>/mandatory_clients/<client-id>' -X DELETE
+    curl -H "Authorization: Bearer $TOKEN" 'https://api.dataporten.no/orgs/<org-id>/mandatory_clients/<client-id>' -X DELETE
 
 ### Description
 
@@ -137,7 +137,7 @@ url. Returns `204 No Content` on success.
 
 ## List services for an organization
 
-    curl -H "Authorization: Bearer $TOKEN" 'https://api.feideconnect.no/orgs/<org-id>/services/'
+    curl -H "Authorization: Bearer $TOKEN" 'https://api.dataporten.no/orgs/<org-id>/services/'
 
 	[
 		"auth",
@@ -151,7 +151,7 @@ enabled for the given `org-id`
 
 ## Enable a service for an organization
 
-    curl -H "Authorization: Bearer $TOKEN" -X PUT 'https://api.feideconnect.no/orgs/<org-id>/services/<service>'
+    curl -H "Authorization: Bearer $TOKEN" -X PUT 'https://api.dataporten.no/orgs/<org-id>/services/<service>'
 
 ### Parameters
 
@@ -171,7 +171,7 @@ Only for platform administrators
 
 ## Disable a service for an organization
 
-    curl -H "Authorization: Bearer $TOKEN" 'https://api.feideconnect.no/orgs/<org-id>/services/<service>' -X DELETE
+    curl -H "Authorization: Bearer $TOKEN" 'https://api.dataporten.no/orgs/<org-id>/services/<service>' -X DELETE
 
 ### Description
 

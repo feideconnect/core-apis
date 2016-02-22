@@ -1,4 +1,4 @@
-# Userinfo API for Feide Connect
+# Userinfo API for Dataporten
 
 API to retrieve information about current user. To test the API, obtain an authentication token and
 
@@ -6,7 +6,7 @@ API to retrieve information about current user. To test the API, obtain an authe
 
 ## Retrieving information about current user
 
-    $ curl -H "Authorization: Bearer $TOKEN" https://api.feideconnect.no/userinfo/v1/userinfo
+    $ curl -H "Authorization: Bearer $TOKEN" https://api.dataporten.no/userinfo/v1/userinfo
 
     {
        "displayName": "Per Spellmann",
@@ -86,11 +86,11 @@ The returned information depends on the scopes held by the caller:
 
 ## Retrieving profile photo of a user
 
-    $ curl https://api.feideconnect.no/userinfo/v1/user/media/<userid_sec>
+    $ curl https://api.dataporten.no/userinfo/v1/user/media/<userid_sec>
 
 e.g
 
-    $ curl https://api.feideconnect.no/userinfo/v1/user/media/p:497ff70b-4b73-47a9-b9f4-8a87d844a410
+    $ curl https://api.dataporten.no/userinfo/v1/user/media/p:497ff70b-4b73-47a9-b9f4-8a87d844a410
 
 userid_sec must be of the form `p:<uuid>`. Authentication is not required.
 

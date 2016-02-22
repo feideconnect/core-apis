@@ -1,4 +1,4 @@
-# Ad Hoc Group Administration API for Feide Connect
+# Ad Hoc Group Administration API for Dataporten
 
 To test the API, obtain an authentication token and
 
@@ -11,7 +11,7 @@ To test the API, obtain an authentication token and
     "name": "my group",
     "public": true,
     }' \
-    'https://api.feideconnect.no/adhocgroups/'
+    'https://api.dataporten.no/adhocgroups/'
 
 ### Required parameters
 
@@ -35,7 +35,7 @@ To test the API, obtain an authentication token and
     "name": "my group",
     "public": true,
     }' \
-    'https://api.feideconnect.no/adhocgroups/<group id>'
+    'https://api.dataporten.no/adhocgroups/<group id>'
 
 ### Optional parameters
 
@@ -52,7 +52,7 @@ To test the API, obtain an authentication token and
 ## Deleting a group
 
     $ curl -v -X DELETE -H "Authorization: Bearer $TOKEN" \
-    'https://api.feideconnect.no/adhocgroups/<group id>'
+    'https://api.dataporten.no/adhocgroups/<group id>'
 
 ### Return values
 
@@ -63,7 +63,7 @@ To test the API, obtain an authentication token and
 ## View group information
 
     $ curl -H "Authorization: Bearer $TOKEN" \
-    'https://api.feideconnect.no/adhocgroups/<group id>'
+    'https://api.dataporten.no/adhocgroups/<group id>'
 
 ### Optional query parameters
 
@@ -78,7 +78,7 @@ To test the API, obtain an authentication token and
 ## View group details
 
     $ curl -H "Authorization: Bearer $TOKEN" \
-    'https://api.feideconnect.no/adhocgroups/<group id>/details'
+    'https://api.dataporten.no/adhocgroups/<group id>/details'
 
 ### Permissions
 
@@ -92,7 +92,7 @@ Returns all information about a group, including invitation_token
 ## Get group members
 
     $ curl -H "Authorization: Bearer $TOKEN" \
-    'https://api.feideconnect.no/adhocgroups/<group id>/members'
+    'https://api.dataporten.no/adhocgroups/<group id>/members'
 
 ### Permissions
 
@@ -110,7 +110,7 @@ Returns all information about a group, including invitation_token
     "id": <id from membership list>,
     "type": <membership type>
     }]' \
-    'https://api.feideconnect.no/adhocgroups/<group id>/members'
+    'https://api.dataporten.no/adhocgroups/<group id>/members'
 
 ### Permissions
 
@@ -128,7 +128,7 @@ Input is a list of objects. Each object has a `type` field which can be either `
     <id from membership list>,
     ...
     ]' \
-    'https://api.feideconnect.no/adhocgroups/<group id>/members'
+    'https://api.dataporten.no/adhocgroups/<group id>/members'
 
 ### Permissions
 
@@ -138,7 +138,7 @@ Input is a list of objects. Each object has a `type` field which can be either `
 ## List memberships
 
     $ curl -H "Authorization: Bearer $TOKEN" \
-    'https://api.feideconnect.no/adhocgroups/memberships'
+    'https://api.dataporten.no/adhocgroups/memberships'
 
 ### Description
 
@@ -151,7 +151,7 @@ Returns information about all groups current user is a member of, and informatio
     <group id>,
     ...
     ]' \
-    'https://api.feideconnect.no/adhocgroups/memberships'
+    'https://api.dataporten.no/adhocgroups/memberships'
 
 ### Description
 
@@ -164,7 +164,7 @@ Remove current user from member lists if the groups indicated.
     <group id>,
     ...
     ]' \
-    'https://api.feideconnect.no/adhocgroups/memberships'
+    'https://api.dataporten.no/adhocgroups/memberships'
 
 ### Description
 
@@ -178,7 +178,7 @@ of groups can be confirmed in one call.
     $ curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{
     "invitation_token": <invitation_token>
     }' \
-    'https://api.feideconnect.no/adhocgroups/<group id>/invitation'
+    'https://api.dataporten.no/adhocgroups/<group id>/invitation'
 
 ### Description
 
@@ -188,7 +188,7 @@ and distribute it with the group id to people they want to invite.
 
 ## Getting the group logo logo
 
-    $ curl https://api.feideconnect.no/adhocgroups/<groupid>/logo|display
+    $ curl https://api.dataporten.no/adhocgroups/<groupid>/logo|display
 
 ### Return values
 
@@ -199,13 +199,13 @@ and distribute it with the group id to people they want to invite.
 ## Uploading a new group logo
 
     $ curl -v -H "Authorization: Bearer $TOKEN" -F 'logo=@new_logo.png' \
-    'https://api.feideconnect.no/adhocgroups/<group id>/logo'
+    'https://api.dataporten.no/adhocgroups/<group id>/logo'
 
 or:
 
     $ curl -v -H "Authorization: Bearer $TOKEN" -H 'Content-Type: image/png' \
     --data-binary '@new_logo.png' \
-    'https://api.feideconnect.no/adhocgroups/<group id>/logo'
+    'https://api.dataporten.no/adhocgroups/<group id>/logo'
 
 - `200 OK`: On success
 - `400 Bad Request`: The image data uploaded is not in a recognized format
