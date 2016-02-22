@@ -52,6 +52,9 @@ setup(name='core-apis',
       install_requires=requires,
       tests_require=requires,
       test_suite="coreapis",
+      dependency_links=[
+          'git+https://github.com/feideconnect/python-driver.git@3.0.0-patched#egg=cassandra-driver-3.0.0',
+          ],
       entry_points="""\
       [paste.app_factory]
       main = coreapis:main
