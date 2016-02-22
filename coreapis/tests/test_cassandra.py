@@ -708,6 +708,14 @@ class CassandraClientTests(unittest.TestCase):
         self._test_get_rec(self.insert_orgs, self.cclient.get_org_by_realm, 'realm',
                            orgs_match)
 
+    def test_delete_org(self):
+        orgs = self.insert_orgs(self.nrecs)
+        org = orgs[self.nrecs - 2]
+        orgid = org['id']
+        self.cclient.delete_org(orgid)
+        with self.assertRaises(KeyError):
+            self.cclient.get_org(orgid)
+
     def test_list_orgs(self):
         self.cclient.session.execute('TRUNCATE organizations')
         self._test_get_recs(self.insert_orgs, self.cclient.list_orgs, 'id')
