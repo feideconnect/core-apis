@@ -13,7 +13,8 @@ RUN RUNLEVEL=1 DEBIAN_FRONTEND=noninteractive apt-get install -y \
   python3 \
   python3-dev \
   python3-setuptools \
-  zlib1g-dev
+  zlib1g-dev \
+  git
 # Install confd
 RUN wget -O /usr/local/bin/confd https://github.com/kelseyhightower/confd/releases/download/v0.9.0/confd-0.9.0-linux-amd64 && chmod 0755 /usr/local/bin/confd
 # Install app
