@@ -64,6 +64,7 @@ Returns a list of objects representing clients that are currently marked as mand
 
   - `avtale`
   - `auth`
+  - `idporten`
   - `pilot`
 
 ### Return values

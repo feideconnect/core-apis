@@ -11,7 +11,7 @@ from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.clientadm.controller import ClientAdmController
 
-VALID_SERVICES = ['auth', 'avtale', 'pilot']
+VALID_SERVICES = ['auth', 'avtale', 'idporten', 'pilot']
 
 
 def not_empty(thing):
