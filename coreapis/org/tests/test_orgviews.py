@@ -5,8 +5,9 @@ import json
 from copy import deepcopy
 from webtest import TestApp
 from pyramid import testing
+from cassandra.util import SortedSet
 from coreapis import main, middleware
-from coreapis.utils import now
+from coreapis.utils import now, json_normalize
 from coreapis.clientadm.tests.helper import retrieved_client
 from coreapis.clientadm.tests.helper import clientid as testclient_id
 
@@ -15,7 +16,7 @@ testorg_realm = 'realm1.example.com'
 testorg = {
     'id': testorg_id,
     'organization_number': 'NO00000001',
-    'type': ['service_provider'],
+    'type': SortedSet(['service_provider']),
     'realm': testorg_realm,
     'name': {'nb': 'testorganisasjon',
              'en': 'test organization', },
@@ -24,7 +25,7 @@ testorg2_id = 'fc:org:example.org'
 testorg2 = {
     'id': testorg2_id,
     'organization_number': 'NO00000002',
-    'type': ['service_provider'],
+    'type': SortedSet(['service_provider']),
     'realm': None,
     'name': {'nb': 'testorganisasjon 2',
              'en': 'test organization 2', },
@@ -120,17 +121,17 @@ class OrgViewTests(unittest.TestCase):
 
     @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_post_org(self, get_user):
-        res = self._test_post_org(201, body=testorg)
+        res = self._test_post_org(201, body=json_normalize(testorg))
         assert orgs_match(testorg, res.json)
 
     def test_post_org_no_access(self):
-        self._test_post_org(403, testorg)
+        self._test_post_org(403, json_normalize(testorg))
 
     @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_post_org_duplicate(self, get_user):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_org.return_value = {'foo': 'bar'}
-        self.testapp.post_json('/orgs/', testorg, status=409, headers=headers)
+        self.testapp.post_json('/orgs/', json_normalize(testorg), status=409, headers=headers)
 
     @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_post_org_invalid_json(self, get_user):
@@ -142,13 +143,13 @@ class OrgViewTests(unittest.TestCase):
 
     @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_post_org_empty_name(self, get_user):
-        org = deepcopy(testorg)
+        org = json_normalize(testorg)
         org['name'] = {}
         self._test_post_org(400, body=org)
 
     @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_post_org_too_long_language_in_name(self, get_user):
-        org = deepcopy(testorg)
+        org = json_normalize(testorg)
         org['name'].update(dict(nynorsk='testorganisasjon'))
         self._test_post_org(400, body=org)
 
@@ -176,13 +177,20 @@ class OrgViewTests(unittest.TestCase):
         assert 'type' in updated
 
     @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_update_org_add_type(self, get_user):
+        body = dict(type=["higher_education", "home_organization"])
+        res = self._test_update_org(200, body)
+        updated = res.json
+        assert updated['type'] == body['type']
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_update_org_change_id(self, get_user):
         body = dict(id='fc:org:uixyz.no')
         res = self._test_update_org(200, body)
         assert res.json['id'] != body['id']
 
     def test_update_org_no_access(self):
-        body = deepcopy(testorg)
+        body = json_normalize(testorg)
         self._test_update_org(403, body)
 
     @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))

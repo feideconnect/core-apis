@@ -4,7 +4,8 @@ import ssl
 import ldap3
 import valideer as V
 
-from coreapis.utils import LogWrapper, get_platform_admins, AlreadyExistsError, ValidationError
+from coreapis.utils import (
+    LogWrapper, get_platform_admins, AlreadyExistsError, ValidationError, json_normalize)
 from coreapis.id_providers import get_feideid
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
@@ -119,7 +120,7 @@ class OrgController(CrudControllerBase):
         return org
 
     def update_org(self, user, orgid, attrs):
-        org = self.show_org(orgid)
+        org = json_normalize(self.show_org(orgid))
         org.update(attrs)
         org = self.validate(org)
         self.log.info('updating organization',
