@@ -23,7 +23,7 @@ WORKDIR /app
 RUN python3 setup.py install
 ARG GIT_COMMIT
 ENV GIT_COMMIT ${GIT_COMMIT}
-ARG JENKINS_BUILD
-ENV JENKINS_BUILD ${JENKINS_BUILD}
+ARG JENKINS_BUILD_NUMBER
+ENV JENKINS_BUILD_NUMBER ${JENKINS_BUILD_NUMBER}
 LABEL no.uninett.dataporten.git_commit="${GIT_COMMIT}"
-LABEL no.uninett.dataporten.jenkins_build="${JENKINS_BUILD}"
+LABEL no.uninett.dataporten.jenkins_build="${JENKINS_BUILD_NUMBER}"
