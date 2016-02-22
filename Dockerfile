@@ -21,3 +21,9 @@ RUN wget -O /usr/local/bin/confd https://github.com/kelseyhightower/confd/releas
 ADD . /app
 WORKDIR /app
 RUN python3 setup.py install
+ARG GIT_COMMIT
+ENV GIT_COMMIT ${GIT_COMMIT}
+ARG JENKINS_BUILD
+ENV JENKINS_BUILD ${JENKINS_BUILD}
+LABEL no.uninett.dataporten.git_commit="${GIT_COMMIT}"
+LABEL no.uninett.dataporten.jenkins_build="${JENKINS_BUILD}"

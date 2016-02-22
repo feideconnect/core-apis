@@ -1,13 +1,11 @@
 #! /bin/sh
 set -e
 base_name=uninett-docker-uninett.bintray.io/dataporten/core-apis
-docker build -t ${base_name}-base:$GIT_COMMIT .
-docker tag -f ${base_name}-base:$GIT_COMMIT ${base_name}-base:latest
+docker build -t ${base_name}-base:latest --build-arg GIT_COMMIT="${GIT_COMMIT}" --build-arg JENKINS_BUILD="${JENKINS_BUILD}" .
 base_dir=$(pwd)
 for app in api-gatekeeper core-apis groupengine
 do
     cd "${base_dir}/apps/${app}"
     image="${base_name}-${app}"
-    docker build -t ${image}:$GIT_COMMIT .
-    docker tag -f ${image}:$GIT_COMMIT ${image}:latest
+    docker build -t ${image}:latest .
 done
