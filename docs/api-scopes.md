@@ -144,6 +144,11 @@ Prefix: /orgs
 - /{id}/services/ GET
 - /{id}/services/{service} PUT, DELETE
 
+### [Platform administrators only](orgadmin.md)
+
+- / POST
+- /{id} PATCH, DELETE
+
 
 Peoplesearch
 ------------
