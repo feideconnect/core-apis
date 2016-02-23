@@ -11,6 +11,7 @@ from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.scopes import is_gkscopename, has_gkscope_match
 from coreapis.scopes.manager import ScopesManager
+from coreapis.authproviders import AuthProvidersManager
 from coreapis.utils import (
     LogWrapper, timestamp_adapter, ForbiddenError, valid_url, get_platform_admins)
 from coreapis.id_providers import get_feideids
@@ -75,6 +76,7 @@ class ClientAdmController(CrudControllerBase):
         platformadmins_file = settings.get('platformadmins_file')
         self.platformadmins = get_platform_admins(platformadmins_file)
         self.scopemgr = ScopesManager(settings, self.session, self.get_public_info, False)
+        self.authprovmgr = AuthProvidersManager(self.session)
         self.log = LogWrapper('clientadm.ClientAdmController')
 
     @staticmethod
@@ -152,6 +154,7 @@ class ClientAdmController(CrudControllerBase):
     # By default CQL does not distinguish between INSERT and UPDATE
     def _insert(self, client):
         self.scopemgr.handle_update(client)
+        self.authprovmgr.handle_update(client)
         self.insert_client(client)
         self.scopemgr.notify_moderators(client)
         return client

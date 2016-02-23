@@ -816,6 +816,35 @@ class ClientAdmTests(unittest.TestCase):
         out = res.json
         assert out['authoptions'] == {'foo': 'bar'}
 
+    def _test_update_idporten(self, provider_name, orgid, httpstat):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        client.update(organization=orgid)
+        self.session.get_client_by_id.return_value = client
+        self.session.insert_client = mock.MagicMock()
+        path = '/clientadm/clients/{}'.format(clientid)
+        attrs = {'authproviders': [provider_name]}
+        return self.testapp.patch_json(path, attrs, status=httpstat, headers=headers)
+
+    def test_update_client_authproviders_idporten_no_org(self):
+        self._test_update_idporten('idporten', None, 400)
+
+    def test_update_client_authproviders_idporten_no_such_org(self):
+        self.session.get_org.side_effect = KeyError
+        self._test_update_idporten('idporten', 'foo', 400)
+
+    def test_update_client_authproviders_idporten_not_in_services(self):
+        self.session.get_org.return_value = dict(services=[])
+        self._test_update_idporten('idporten', 'foo', 400)
+
+    def test_update_client_authproviders_idporten_in_services(self):
+        self.session.get_org.return_value = dict(services=['idporten'])
+        self._test_update_idporten('idporten', 'foo', 200)
+
+    def test_update_client_authproviders_unknown_provider(self):
+        self.session.get_org.return_value = dict(services=['idporten'])
+        self._test_update_idporten('iqporten', 'foo', 200)
+
     def test_get_client_logo(self):
         updated = parse_datetime(date_created)
         date_older = updated - timedelta(minutes=1)
