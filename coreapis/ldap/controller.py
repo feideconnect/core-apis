@@ -63,6 +63,7 @@ class LDAPController(object):
                                                                      timeouts, self.host_statsd)
         self.health_check_interval = 10
         self.statsd = statsd
+        settings.get('status_methods', {})['ldap'] = self.status
 
     def get_ldap_config(self):
         return self.config
@@ -116,3 +117,12 @@ class LDAPController(object):
             for org, orgpool in self.orgpools.items():
                 self.host_statsd.gauge(self._org_statsd_key(org, 'alive_servers'),
                                        len(orgpool.alive_servers()))
+
+    def status(self):
+        status = {}
+        for org, orgpool in self.orgpools.items():
+            status[org] = {
+                'servers': len(orgpool.servers),
+                'alive_servers': len(orgpool.alive_servers()),
+            }
+        return status
