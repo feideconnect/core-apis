@@ -62,10 +62,7 @@ def list_clients(request):
     user = get_user(request)
     organization = request.params.get('organization', None)
     scope = request.params.get('scope', None)
-    if request.params.get('showAll', 'false').lower() == 'true':
-        show_all = True
-    else:
-        show_all = False
+    show_all = request.params.get('showAll', 'false').lower() == 'true'
     if organization:
         if request.cadm_controller.is_admin(user, organization):
             return request.cadm_controller.list_by_organization(organization, scope)

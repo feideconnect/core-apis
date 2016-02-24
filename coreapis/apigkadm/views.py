@@ -43,10 +43,7 @@ def check(request):
 def list_apigks(request):
     user = get_user(request)
     organization = request.params.get('organization', None)
-    if request.params.get('showAll', 'false').lower() == 'true':
-        show_all = True
-    else:
-        show_all = False
+    show_all = request.params.get('showAll', 'false').lower() == 'true'
     if organization:
         if request.gkadm_controller.is_admin(user, organization):
             return request.gkadm_controller.list_by_organization(organization)

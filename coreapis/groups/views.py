@@ -32,10 +32,7 @@ def my_groups_v1(request):
     user = get_user(request)
     if not user:
         raise HTTPForbidden('This resource requires a personal token')
-    if request.params.get('showAll', 'false').lower() == 'true':
-        show_all = True
-    else:
-        show_all = False
+    show_all = request.params.get('showAll', 'false').lower() == 'true'
     return request.groups_controller.get_member_groups(user, show_all,
                                                        request.has_permission)
 
@@ -102,10 +99,7 @@ def group_logo(request):
 def group_members_v1(request):
     user = get_user(request)
     groupid = request.matchdict['groupid']
-    if request.params.get('showAll', 'false').lower() == 'true':
-        show_all = True
-    else:
-        show_all = False
+    show_all = request.params.get('showAll', 'false').lower() == 'true'
     try:
         return request.groups_controller.get_members(user, groupid, show_all,
                                                      request.has_permission)
