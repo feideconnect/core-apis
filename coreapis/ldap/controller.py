@@ -115,7 +115,7 @@ class LDAPController(object):
         return self.search(org, base_dn, search_filter, scope, attributes, size_limit)
 
     def lookup_feideid(self, feideid, attributes):
-        if not '@' in feideid:
+        if '@' not in feideid:
             raise ValidationError('feide id must contain @')
         _, realm = feideid.split('@', 1)
         validate_query(feideid)

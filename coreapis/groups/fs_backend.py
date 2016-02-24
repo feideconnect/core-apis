@@ -72,7 +72,7 @@ class FsBackend(BaseBackend):
         response.raise_for_status()
         result = []
         for group in response.json():
-            if not 'membership' in group:
+            if 'membership' not in group:
                 continue
             if not group.get('id', '').startswith('fc:'):
                 self.log.debug('Received invalid id from fs', id=group.get('id', '<field missing>'))

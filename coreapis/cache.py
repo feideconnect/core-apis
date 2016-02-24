@@ -16,7 +16,7 @@ class Cache(object):
         return self._set(key, getter())
 
     def get(self, key, getter):
-        if not key in self.data:
+        if key not in self.data:
             self.log.debug('cache miss', key=key)
             return self._update(key, getter)
         ts, cached = self.data.get(key)

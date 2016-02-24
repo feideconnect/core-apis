@@ -37,7 +37,7 @@ class GroupsController(object):
             raise KeyError('Malformed group id')
         prefix, grouptype, subid = parts
         handler = '{}:{}'.format(prefix, grouptype)
-        if not handler in self.id_handlers:
+        if handler not in self.id_handlers:
             raise KeyError('bad group id')
         res = self.id_handlers[handler]
         if not res.permissions_ok(perm_checker):
