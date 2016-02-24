@@ -10,3 +10,5 @@ SINGLE_VALUED_ATTRIBUTES = set([
     'preferredLanguage',
     'schacHomeOrganization',
 ])
+
+TEST_REALM = 'spusers.feide.no'

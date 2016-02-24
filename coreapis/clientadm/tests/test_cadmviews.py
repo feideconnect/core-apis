@@ -19,6 +19,7 @@ from coreapis.clientadm.tests.helper import (
 
 
 PLATFORMADMIN = 'admin@example.com'
+FEIDETESTER = 'asbjorn_elevg@spusers.feide.no'
 
 
 def make_user(source, userid):
@@ -214,6 +215,11 @@ class ClientAdmTests(unittest.TestCase):
     @mock.patch('coreapis.clientadm.views.get_user',
                 return_value=make_user('linkbook', '12345'))
     def test_post_client_not_feide(self, get_user):
+        self._test_post_client_minimal(403)
+
+    @mock.patch('coreapis.clientadm.views.get_user',
+                return_value=make_feide_user(FEIDETESTER))
+    def test_post_client_feide_tester(self, get_user):
         self._test_post_client_minimal(403)
 
     def _test_post_client_other_owner(self):

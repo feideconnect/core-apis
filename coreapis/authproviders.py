@@ -1,3 +1,4 @@
+from coreapis import feide
 from coreapis.utils import ValidationError
 
 REGISTER_APIGK = 'register_apigk'
@@ -9,7 +10,11 @@ class FeideProvider(object):
     ops_supported = [REGISTER_APIGK, REGISTER_CLIENT]
 
     def has_user_permission(self, user_key, operation):
-        return operation in self.ops_supported
+        if operation not in self.ops_supported:
+            return False
+        else:
+            _, _, realm = user_key.partition('@')
+            return realm != feide.TEST_REALM
 
     def check_client_update(self, session, client):
         pass

@@ -1,9 +1,4 @@
-from coreapis.authproviders import REGISTER_APIGK, REGISTER_CLIENT
-
-APPROVED_ID_PROVIDERS = {
-    REGISTER_CLIENT: ['feide'],
-    REGISTER_APIGK: ['feide']
-}
+from coreapis.authproviders import AuthProvidersManager
 
 
 def get_feideids(user):
@@ -20,10 +15,7 @@ def get_feideid(user):
     return feideid
 
 
-def get_id_providers(user):
-    return (id.split(':', 1)[0] for id in user['userid_sec'])
-
-
 def individual_has_permission(user, operation):
-    providers = get_id_providers(user)
-    return bool(set(providers) & set(APPROVED_ID_PROVIDERS[operation]))
+    authprovmgr = AuthProvidersManager()
+    return any(authprovmgr.has_user_permission(id_sec, operation)
+               for id_sec in user['userid_sec'])
