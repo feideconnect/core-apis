@@ -4,7 +4,8 @@ from pyramid.response import Response
 from .controller import APIGKAdmController
 from coreapis.utils import (AlreadyExistsError, get_userid, get_payload, get_user, get_logo_bytes,
                             get_max_replies, translation)
-from coreapis.id_providers import individual_has_permission, REGISTER_APIGK
+from coreapis.id_providers import individual_has_permission
+from coreapis.authproviders import REGISTER_APIGK
 
 
 def configure(config):

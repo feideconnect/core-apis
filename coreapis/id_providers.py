@@ -1,5 +1,4 @@
-REGISTER_CLIENT = 'register_client'
-REGISTER_APIGK = 'register_apigk'
+from coreapis.authproviders import REGISTER_APIGK, REGISTER_CLIENT
 
 APPROVED_ID_PROVIDERS = {
     REGISTER_CLIENT: ['feide'],

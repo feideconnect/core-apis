@@ -1,20 +1,34 @@
 from coreapis.utils import ValidationError
 
+REGISTER_APIGK = 'register_apigk'
+REGISTER_CLIENT = 'register_client'
+
+
+class FeideProvider(object):
+    provider_name = 'feide'
+    ops_supported = [REGISTER_APIGK, REGISTER_CLIENT]
+
+    def has_user_permission(self, user_key, operation):
+        return operation in self.ops_supported
+
+    def check_client_update(self, session, client):
+        pass
+
 
 class IdportenProvider(object):
     provider_name = 'idporten'
 
-    def __init__(self, session):
-        self.session = session
+    def has_user_permission(self, user, operation):
+        return False
 
-    def check(self, client):
+    def check_client_update(self, session, client):
         clientid = client['id']
         orgid = client.get('organization')
         if not orgid:
             fmt = '{} requested by client {} and no organization'
             raise ValidationError(fmt.format(self.provider_name, clientid))
         try:
-            org = self.session.get_org(orgid)
+            org = session.get_org(orgid)
         except KeyError:
             raise ValidationError('No such organization: {}'.format(orgid))
         services = org.get('services')
@@ -24,13 +38,19 @@ class IdportenProvider(object):
 
 
 class AuthProvidersManager(object):
-    providers = {klass.provider_name: klass for klass in [IdportenProvider]}
+    providers = {klass.provider_name: klass
+                 for klass in [FeideProvider, IdportenProvider]}
 
-    def __init__(self, session):
-        self.session = session
+    def has_user_permission(self, id_sec, operation):
+        provider_name, _, user_key = id_sec.partition(':')
+        provider = self.providers.get(provider_name)
+        if provider:
+            return provider().has_user_permission(user_key, operation)
+        else:
+            return False
 
-    def handle_update(self, client):
+    def check_client_update(self, session, client):
         for provider_name in client.get('authproviders'):
             provider = self.providers.get(provider_name)
             if provider:
-                provider(self.session).check(client)
+                provider().check_client_update(session, client)

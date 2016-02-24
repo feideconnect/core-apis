@@ -9,7 +9,8 @@ from .controller import ClientAdmController
 from coreapis.utils import (
     AlreadyExistsError, ForbiddenError, get_userid, get_payload, get_user, translation,
     get_logo_bytes)
-from coreapis.id_providers import individual_has_permission, REGISTER_CLIENT
+from coreapis.id_providers import individual_has_permission
+from coreapis.authproviders import REGISTER_CLIENT
 
 
 def get_clientid(request):
