@@ -106,13 +106,25 @@ class ClientAdmTests(unittest.TestCase):
         assert is_full_client(res.json[0])
         assert len(res.json) < len(retrieved_gk_clients)
 
-    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
-    def test_list_clients_platform_admin(self, get_user):
+    def _test_list_clients_show_all(self, val, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_clients.side_effect = mock_get_clients
-        res = self.testapp.get('/clientadm/clients/', status=200, headers=headers)
+        path = '/clientadm/clients/?showAll={}'.format(val)
+        return self.testapp.get(path, status=httpstat, headers=headers)
+
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
+    def test_list_clients_show_all_platform_admin(self, get_user):
+        res = self._test_list_clients_show_all('true', 200)
         assert is_full_client(res.json[0])
         assert len(res.json) == len(retrieved_gk_clients)
+
+    def test_list_clients_show_all_normal_user(self):
+        self._test_list_clients_show_all('true', 403)
+
+    def test_list_clients_show_all_param_not_true(self):
+        res = self._test_list_clients_show_all('1', 200)
+        assert is_full_client(res.json[0])
+        assert len(res.json) < len(retrieved_gk_clients)
 
     def test_list_clients_by_scope(self):
         headers = {'Authorization': 'Bearer user_token'}

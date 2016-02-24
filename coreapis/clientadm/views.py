@@ -62,13 +62,20 @@ def list_clients(request):
     user = get_user(request)
     organization = request.params.get('organization', None)
     scope = request.params.get('scope', None)
+    if request.params.get('showAll', 'false').lower() == 'true':
+        show_all = True
+    else:
+        show_all = False
     if organization:
         if request.cadm_controller.is_admin(user, organization):
             return request.cadm_controller.list_by_organization(organization, scope)
         else:
             raise HTTPForbidden('user is not admin for given organization')
-    elif request.cadm_controller.is_platform_admin(user):
-        return request.cadm_controller.list_all(scope)
+    elif show_all:
+        if request.cadm_controller.is_platform_admin(user):
+            return request.cadm_controller.list_all(scope)
+        else:
+            raise HTTPForbidden('user is not a platform administrator')
     else:
         return request.cadm_controller.list_by_owner(user['userid'], scope)
 

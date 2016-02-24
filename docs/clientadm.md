@@ -149,6 +149,27 @@ Returns `200 OK`, and list of clients as json in body. Status is `200 OK`
 even if resulting list is empty. Returns `403 Forbidden` if user is not admin
 of the requested organization
 
+## Listing clients for all owners
+
+    $ curl -X GET -H "Authorization: Bearer $TOKEN" \
+    'https://api.dataporten.no/clientadm/clients/?showAll=true'
+
+    [{"name": "per","redirect_uri": ["http://example.org"],
+      "id": "9dd084a3-c497-4d4c-9832-a5096371a4c9",
+      "owner": "ce5e8798-df69-4b87-a2e7-9678ab9a2820", "updated": "2015-01-22T11:03:29.983000",
+      "scopes": null, "scopes_requested": ["clientadmin"], "descr": "test",
+      "created": "2015-01-22T10:59:03.585000"},
+     {"type": "client", "name": "test_clientadm", "status": ["production"],
+      "client_secret": "88c7cdbf-d2bd-4d1b-825d-683770cd4bd3",
+      "redirect_uri": ["http://example.org"], "id": "f3f043db-9fd6-4c5a-b0bc-61992bea9eca",
+      "owner": "ce5e8798-df69-4b87-a2e7-9678ab9a2820", "updated": "2015-01-12T13:05:16.884000",
+      "scopes": ["clientadmin"], "scopes_requested": ["clientadmin"],
+      "descr": "Test client for client admin api", "created": "2015-01-12T13:05:16.884000"}]
+
+Returns `200 OK`, and list of clients as json in body. Status is `200 OK`
+even if resulting list is empty. Returns `403 Forbidden` if user is not a platform
+administrator.
+
 ## Filtering list of clients by scope
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
