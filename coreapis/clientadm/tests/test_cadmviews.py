@@ -1062,3 +1062,18 @@ class ClientAdmTests(unittest.TestCase):
         path = '/clientadm/realmclients/targetrealm/{}/'.format(testrealm)
         res = self.testapp.get(path, status=200, headers=headers)
         assert res.json[0]['scopeauthorizations'][testgk_foo] is True
+
+    def _test_policy(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        path = '/clientadm/policy'
+        return self.testapp.get(path, status=200, headers=headers)
+
+    def test_policy_can_register(self):
+        res = self._test_policy()
+        assert res.json.get('register')
+
+    @mock.patch('coreapis.clientadm.views.get_user',
+                return_value=make_user('linkbook', '12345'))
+    def test_policy_cannot_register(self, get_user):
+        res = self._test_policy()
+        assert 'register' in res.json and not res.json['register']

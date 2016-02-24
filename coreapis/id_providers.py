@@ -23,4 +23,4 @@ def get_id_providers(user):
 
 def individual_has_permission(user, operation):
     providers = get_id_providers(user)
-    return set(providers) & set(APPROVED_ID_PROVIDERS[operation])
+    return bool(set(providers) & set(APPROVED_ID_PROVIDERS[operation]))

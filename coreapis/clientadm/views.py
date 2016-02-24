@@ -40,6 +40,7 @@ def configure(config):
     config.add_route('orgauthorization', '/clients/{id}/orgauthorization/{realm}')
     config.add_route('realmclients', '/realmclients/targetrealm/{realm}/', request_method='GET')
     config.add_route('mandatory_clients_v1', '/v1/mandatory/', request_method='GET')
+    config.add_route('policy', '/policy', request_method='GET')
     config.scan(__name__)
 
 
@@ -250,3 +251,10 @@ def get_realmclients(request):
 def mandatory_clients(request):
     user = get_user(request)
     return request.cadm_controller.get_mandatory_clients(user)
+
+
+@view_config(route_name='policy', request_method="GET",
+             permission='scope_clientadmin', renderer="json")
+def policy(request):
+    user = get_user(request)
+    return request.cadm_controller.get_policy(user)

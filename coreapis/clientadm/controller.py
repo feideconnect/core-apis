@@ -14,7 +14,7 @@ from coreapis.scopes.manager import ScopesManager
 from coreapis.authproviders import AuthProvidersManager
 from coreapis.utils import (
     LogWrapper, timestamp_adapter, ForbiddenError, valid_url, get_platform_admins)
-from coreapis.id_providers import get_feideids
+from coreapis.id_providers import get_feideids, individual_has_permission
 
 
 USER_SETTABLE_STATUS_FLAGS = {'Public'}
@@ -338,3 +338,6 @@ class ClientAdmController(CrudControllerBase):
             for clientid in self.session.get_mandatory_clients(realm):
                 by_id[clientid] = self.session.get_client_by_id(clientid)
         return [self.get_public_info(c) for c in by_id.values()]
+
+    def get_policy(self, user):
+        return dict(register=individual_has_permission(user, 'add_client'))
