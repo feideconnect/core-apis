@@ -11,10 +11,10 @@ from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.scopes import is_gkscopename, has_gkscope_match
 from coreapis.scopes.manager import ScopesManager
-from coreapis.authproviders import AuthProvidersManager, REGISTER_CLIENT
+from coreapis.authproviders import authprovmgr, REGISTER_CLIENT
 from coreapis.utils import (
     LogWrapper, timestamp_adapter, ForbiddenError, valid_url, get_platform_admins)
-from coreapis.id_providers import get_feideids, individual_has_permission
+from coreapis.id_providers import get_feideids
 
 
 USER_SETTABLE_STATUS_FLAGS = {'Public'}
@@ -76,7 +76,6 @@ class ClientAdmController(CrudControllerBase):
         platformadmins_file = settings.get('platformadmins_file')
         self.platformadmins = get_platform_admins(platformadmins_file)
         self.scopemgr = ScopesManager(settings, self.session, self.get_public_info, False)
-        self.authprovmgr = AuthProvidersManager()
         self.log = LogWrapper('clientadm.ClientAdmController')
 
     @staticmethod
@@ -154,7 +153,7 @@ class ClientAdmController(CrudControllerBase):
     # By default CQL does not distinguish between INSERT and UPDATE
     def _insert(self, client):
         self.scopemgr.handle_update(client)
-        self.authprovmgr.check_client_update(self.session, client)
+        authprovmgr.check_client_update(self.session, client)
         self.insert_client(client)
         self.scopemgr.notify_moderators(client)
         return client
@@ -293,7 +292,7 @@ class ClientAdmController(CrudControllerBase):
 
     def add_gkscopes(self, client, user, scopes_add):
         for scope in [scope for scope in scopes_add if scope not in client['scopes']]:
-            if not scope in client['scopes_requested']:
+            if scope not in client['scopes_requested']:
                 raise ForbiddenError('Client owner has not requested scope {}'.format(scope))
             self.validate_gkscope(user, scope)
             client['scopes'].append(scope)
@@ -340,4 +339,5 @@ class ClientAdmController(CrudControllerBase):
         return [self.get_public_info(c) for c in by_id.values()]
 
     def get_policy(self, user):
-        return dict(register=individual_has_permission(user, REGISTER_CLIENT))
+        approved = authprovmgr.has_user_permission(user, REGISTER_CLIENT)
+        return dict(register=approved)

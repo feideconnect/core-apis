@@ -46,16 +46,23 @@ class AuthProvidersManager(object):
     providers = {klass.provider_name: klass
                  for klass in [FeideProvider, IdportenProvider]}
 
-    def has_user_permission(self, id_sec, operation):
-        provider_name, _, user_key = id_sec.partition(':')
+    def has_identity_permission(self, identity, operation):
+        provider_name, _, user_key = identity.partition(':')
         provider = self.providers.get(provider_name)
         if provider:
             return provider().has_user_permission(user_key, operation)
         else:
             return False
 
+    def has_user_permission(self, user, operation):
+        return any(self.has_identity_permission(identity, operation)
+                   for identity in user['userid_sec'])
+
     def check_client_update(self, session, client):
         for provider_name in client.get('authproviders'):
             provider = self.providers.get(provider_name)
             if provider:
                 provider().check_client_update(session, client)
+
+
+authprovmgr = AuthProvidersManager()
