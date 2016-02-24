@@ -6,8 +6,7 @@ import eventlet.greenthread
 from eventlet.greenpool import GreenPool
 ldap3 = eventlet.import_patched('ldap3')
 
-from coreapis.utils import LogWrapper, translatable, failsafe
-from coreapis.id_providers import get_feideids
+from coreapis.utils import LogWrapper,  get_feideids, translatable, failsafe
 from coreapis.cache import Cache
 from . import BaseBackend, IDHandler
 ldapcontroller = eventlet.import_patched('coreapis.ldap.controller')

@@ -13,8 +13,8 @@ from coreapis.scopes import is_gkscopename, has_gkscope_match
 from coreapis.scopes.manager import ScopesManager
 from coreapis.authproviders import authprovmgr, REGISTER_CLIENT
 from coreapis.utils import (
-    LogWrapper, timestamp_adapter, ForbiddenError, valid_url, get_platform_admins)
-from coreapis.id_providers import get_feideids
+    LogWrapper, timestamp_adapter, ForbiddenError, valid_url,
+    get_feideids, get_platform_admins)
 
 
 USER_SETTABLE_STATUS_FLAGS = {'Public'}

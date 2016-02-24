@@ -1,5 +1,4 @@
-from coreapis.utils import (LogWrapper, translatable, get_platform_admins)
-from coreapis.id_providers import get_feideids
+from coreapis.utils import (LogWrapper,  get_feideids, translatable, get_platform_admins)
 from . import BaseBackend
 
 PLATFORMADMIN_TYPE = 'fc:platformadmin'

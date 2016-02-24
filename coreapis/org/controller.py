@@ -5,8 +5,8 @@ import ldap3
 import valideer as V
 
 from coreapis.utils import (
-    LogWrapper, get_platform_admins, AlreadyExistsError, ValidationError, json_normalize)
-from coreapis.id_providers import get_feideid
+    LogWrapper, get_feideid, get_platform_admins, AlreadyExistsError, ValidationError,
+    json_normalize)
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.clientadm.controller import ClientAdmController

@@ -2,8 +2,7 @@ import functools
 
 from eventlet.greenpool import GreenPool
 
-from coreapis.utils import LogWrapper, failsafe, translatable
-from coreapis.id_providers import get_feideids
+from coreapis.utils import LogWrapper,  get_feideids, failsafe, translatable
 from . import BaseBackend
 from coreapis import cassandra_client
 
