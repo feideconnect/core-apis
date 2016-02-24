@@ -222,6 +222,11 @@ class ClientAdmTests(unittest.TestCase):
     def test_post_client_feide_tester(self, get_user):
         self._test_post_client_minimal(403)
 
+    @mock.patch('coreapis.clientadm.views.get_user',
+                return_value=make_user('nin', '10108012345'))
+    def test_post_client_idporten(self, get_user):
+        self._test_post_client_minimal(403)
+
     def _test_post_client_other_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.side_effect = KeyError
