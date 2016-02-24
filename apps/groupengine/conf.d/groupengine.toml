@@ -2,6 +2,7 @@
 src = "groupengine.ini.tmpl"
 dest = "/etc/groupengine.ini"
 keys = [
+    "/fc/status_token",
     "/fc/statsd/server",
     "/fc/statsd/port",
     "/fc/statsd/prefix",

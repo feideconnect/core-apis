@@ -22,7 +22,7 @@ pyramid.debug_notfound = false
 pyramid.debug_routematch = false
 pyramid.default_locale_name = en
 pyramid.includes =
-enabled_components = peoplesearch,clientadm,apigkadm,authorizations,adhocgroupadm,org,userinfo
+enabled_components = peoplesearch,clientadm,apigkadm,authorizations,adhocgroupadm,org,userinfo,status
 profile_token_secret = {{getv "/fc/profiletokensecret"}}
 peoplesearch.cache_keyspace = {{getv "/fc/ps/cachekeyspace"}}
 apigkadm_maxrows = {{getv "/fc/apigkadm/maxrows"}}
@@ -36,6 +36,7 @@ clientadm_system_moderator = {{getv "/fc/clientadm/system/moderator"}}
 notifications.email.enabled = {{getv "/fc/notifications/email/enabled"}}
 notifications.email.sender = {{getv "/fc/notifications/email/sender"}}
 notifications.email.mta = {{getv "/fc/notifications/email/mta"}}
+status_token = {{getv "/fc/status_token"}}
 
 [pipeline:main]
 pipeline =

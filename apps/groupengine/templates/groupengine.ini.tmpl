@@ -22,7 +22,7 @@ pyramid.debug_notfound = false
 pyramid.debug_routematch = false
 pyramid.default_locale_name = en
 pyramid.includes =
-enabled_components = groups
+enabled_components = groups,status
 ldap_config_file = /conf/ldap-config.json
 ldap_ca_certs = /conf/ldap_certs.txt
 groups_timeout_backend = {{getv "/fc/groups/timeout"}}
@@ -35,6 +35,7 @@ platformadmins_file = /conf/platformadmins.json
 fs_base_url = {{getv "/fc/fs/baseurl"}}
 fs_username = {{getv "/fc/fs/username"}}
 fs_password = {{getv "/fc/fs/password"}}
+status_token = {{getv "/fc/status_token"}}
 
 
 [pipeline:main]

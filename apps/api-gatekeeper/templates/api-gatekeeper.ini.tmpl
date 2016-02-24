@@ -22,8 +22,9 @@ pyramid.debug_notfound = false
 pyramid.debug_routematch = false
 pyramid.default_locale_name = en
 pyramid.includes =
-enabled_components = gk
+enabled_components = gk,status
 gk_header_prefix = {{getv "/fc/gk/header_prefix"}}
+status_token = {{getv "/fc/status_token"}}
 
 [pipeline:main]
 pipeline =

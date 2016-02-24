@@ -2,6 +2,7 @@
 src = "api-gatekeeper.ini.tmpl"
 dest = "/etc/api-gatekeeper.ini"
 keys = [
+    "/fc/status_token",
     "/fc/statsd/server",
     "/fc/statsd/port",
     "/fc/statsd/prefix",
