@@ -67,25 +67,29 @@ def main(global_config, **settings):
     else:
         all_enabled = True
         enabled_components = set()
-    if all_enabled or 'testing' in enabled_components:
+
+    def enabled(component):
+        return all_enabled or component in enabled_components
+
+    if enabled('testing'):
         config.include('coreapis.testing_views.configure', route_prefix='test')
-    if all_enabled or 'peoplesearch' in enabled_components:
+    if enabled('peoplesearch'):
         config.include('coreapis.peoplesearch.views.configure', route_prefix='peoplesearch')
-    if all_enabled or 'clientadm' in enabled_components:
+    if enabled('clientadm'):
         config.include('coreapis.clientadm.views.configure', route_prefix='clientadm')
-    if all_enabled or 'apigkadm' in enabled_components:
+    if enabled('apigkadm'):
         config.include('coreapis.apigkadm.views.configure', route_prefix='apigkadm')
-    if all_enabled or 'gk' in enabled_components:
+    if enabled('gk'):
         config.include('coreapis.gk.views.configure', route_prefix='gk')
-    if all_enabled or 'authorizations' in enabled_components:
+    if enabled('authorizations'):
         config.include('coreapis.authorizations.views.configure', route_prefix='authorizations')
-    if all_enabled or 'adhocgroupadm' in enabled_components:
+    if enabled('adhocgroupadm'):
         config.include('coreapis.adhocgroupadm.views.configure', route_prefix='adhocgroups')
-    if all_enabled or 'groups' in enabled_components:
+    if enabled('groups'):
         config.include('coreapis.groups.views.configure', route_prefix='groups')
-    if all_enabled or 'org' in enabled_components:
+    if enabled('org'):
         config.include('coreapis.org.views.configure', route_prefix='orgs')
-    if all_enabled or 'userinfo' in enabled_components:
+    if enabled('userinfo'):
         config.include('coreapis.userinfo.views.configure', route_prefix='userinfo')
     config.scan('coreapis.error_views')
     config.add_settings(realm=global_config['oauth_realm'])
