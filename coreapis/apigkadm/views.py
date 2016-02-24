@@ -4,7 +4,7 @@ from pyramid.response import Response
 from .controller import APIGKAdmController
 from coreapis.utils import (AlreadyExistsError, get_userid, get_payload, get_user, get_logo_bytes,
                             get_max_replies, translation)
-from coreapis.id_providers import individual_has_permission
+from coreapis.id_providers import individual_has_permission, REGISTER_APIGK
 
 
 def configure(config):
@@ -93,7 +93,7 @@ def add_apigk(request):
     if 'organization' in attrs:
         if not request.gkadm_controller.is_admin(user, attrs['organization']):
             raise HTTPForbidden('Not administrator for organization')
-    elif not individual_has_permission(user, 'add_apigk'):
+    elif not individual_has_permission(user, REGISTER_APIGK):
         raise HTTPForbidden('Not authenticated by approved entity')
     try:
         apigk = request.gkadm_controller.add(attrs, userid)

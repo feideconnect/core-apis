@@ -1,6 +1,10 @@
-APPROVED_ID_PROVIDERS = dict(
-    add_client=['feide'],
-    add_apigk=['feide'])
+REGISTER_CLIENT = 'register_client'
+REGISTER_APIGK = 'register_apigk'
+
+APPROVED_ID_PROVIDERS = {
+    REGISTER_CLIENT: ['feide'],
+    REGISTER_APIGK: ['feide']
+}
 
 
 def get_feideids(user):
