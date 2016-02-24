@@ -58,6 +58,7 @@ def main(global_config, **settings):
     statsd_host_prefix = "{}.{}".format(statsd_prefix, statsd_hostid)
     config.add_settings(statsd_host_factory=lambda: statsd.StatsClient(statsd_server, statsd_port,
                                                                        prefix=statsd_host_prefix))
+    config.add_settings(status_data=dict(), status_methods=dict())
 
     config.add_route('pre_flight', pattern='/*path', request_method='OPTIONS')
     config.add_view(options, route_name='pre_flight')
@@ -71,6 +72,8 @@ def main(global_config, **settings):
     def enabled(component):
         return all_enabled or component in enabled_components
 
+    if enabled('status'):
+        config.include('coreapis.status.views.configure', route_prefix='status')
     if enabled('testing'):
         config.include('coreapis.testing_views.configure', route_prefix='test')
     if enabled('peoplesearch'):
@@ -103,4 +106,8 @@ def main(global_config, **settings):
     docker_env = {x.lower(): y for x, y in os.environ.items() if x.startswith("DOCKER_")}
     if docker_env:
         LogWrapper.add_defaults(**docker_env)
+        config.get_settings().status_data.update(docker_env)
+    for var in 'GIT_COMMIT', 'JENKINS_BUILD_NUMBER':
+        if var in os.environ:
+            config.get_settings().status_data[var] = os.environ[var]
     return config.make_wsgi_app()
