@@ -23,10 +23,11 @@ def options(request):
     if not request.gk_controller.allowed_dn(request.headers['Gate-Keeper-Dn']):
         raise HTTPForbidden('client certificate not authorized')
     backend = request.matchdict['backend']
+    prefix = request.registry.settings.gk_header_prefix
     try:
         headers = request.gk_controller.options(backend)
         for header, value in headers.items():
-            request.response.headers['X-FeideConnect-' + header] = value
+            request.response.headers[prefix + header] = value
         return ''
     except KeyError:
         raise HTTPNotFound()
@@ -37,8 +38,9 @@ def info(request):
     if not request.gk_controller.allowed_dn(request.headers['Gate-Keeper-Dn']):
         raise HTTPForbidden('client certificate not authorized')
     backend = request.matchdict['backend']
+    prefix = request.registry.settings.gk_header_prefix
     if not request.has_permission('scope_gk_{}'.format(backend)):
-        logging.debug('not authorized')
+        logging.debug('provided token misses scopes to access this api')
         raise HTTPForbidden('Unauthorized: scope_gk_{} failed permission check'.format(backend))
     client = request.environ['FC_CLIENT']
     user = request.environ.get('FC_USER', None)
@@ -49,7 +51,7 @@ def info(request):
         if headers is None:
             raise HTTPForbidden('token with user required')
         for header, value in headers.items():
-            request.response.headers['X-FeideConnect-' + header] = value
+            request.response.headers[prefix + header] = value
         return ''
     except KeyError:
         raise HTTPNotFound()
