@@ -43,13 +43,20 @@ def check(request):
 def list_apigks(request):
     user = get_user(request)
     organization = request.params.get('organization', None)
+    if request.params.get('showAll', 'false').lower() == 'true':
+        show_all = True
+    else:
+        show_all = False
     if organization:
         if request.gkadm_controller.is_admin(user, organization):
             return request.gkadm_controller.list_by_organization(organization)
         else:
             raise HTTPForbidden('user is not admin for given organization')
-    elif request.gkadm_controller.is_platform_admin(user):
-        return request.gkadm_controller.list_all()
+    elif show_all:
+        if request.gkadm_controller.is_platform_admin(user):
+            return request.gkadm_controller.list_all()
+        else:
+            raise HTTPForbidden('user is not a platform administrator')
     else:
         return request.gkadm_controller.list_by_owner(user['userid'])
 

@@ -70,7 +70,7 @@ These attributes are returned from queries, and will be ignored in updates and w
 - `400 Bad Request`: Returned if required parameters are missing or some parameter is malformed
 - `403 Forbidden`: User is not admin of the organization mentioned in `organization`
 
-## Updating a client
+## Updating an apigk
 
     $ curl -X PATCH  -H "Authorization: Bearer $TOKEN" \
      -H "Content-Type: application/json" -d '{"name": "New gatekeeper name"}' \
@@ -124,8 +124,30 @@ All parameters have the same meaning as when creating, but none are mandatory an
     
 ### Return values
 
-Returns `200 OK`, and list of clients as json in body. Status is `200 OK`
+Returns `200 OK`, and list of api gatekeepers as json in body. Status is `200 OK`
 even if resulting list is empty.
+
+## Listing all gatekeepers for all owners
+
+    $ curl -X GET -H "Authorization: Bearer $TOKEN" \
+    'https://api.dataporten.no/apigkadm/apigks/?showAll=true'
+
+    [{"scopedef": null, "expose": {"userid": false, "scopes": false, "clientid": false},
+      "trust": {"type": "bearer", "token": "adsfSFDsdfasdfa"},"status": null,
+      "endpoints": ["https://api.feide.no"], "httpscertpinned": null, "name": "feide api",
+      "descr": "The feide api", "id": "feideapi", "owner": "52a55f50-3b1f-4d25-8b14-d34ca715c30e",
+      "updated": "2015-01-26T16:05:59Z", "requireuser": false, "created": "2015-01-23T13:50:09Z"},
+     {"scopedef": null, "expose": {"clientid": false, "userid": false, "scopes": true},
+      "trust": {"type": "bearer", "token": "absd"}, "status": null,
+       "endpoints": ["https://testgk.uninett.no"], "httpscertpinned": null, "name": "testgk",
+       "descr": "sigmund tester", "id": "testgk", "owner": "52a55f50-3b1f-4d25-8b14-d34ca715c30e",
+       "updated": "2015-01-26T12:43:31Z", "requireuser": true, "created": "2015-01-26T12:43:31Z"}]
+
+### Return values
+
+Returns `200 OK`, and list of api gatekeepers as json in body. Status is `200 OK`
+even if resulting list is empty. Returns `403 Forbidden` if user is not a platform
+administrator
 
 ## Listing all gatekeepers owned by an organization
 
@@ -145,7 +167,7 @@ even if resulting list is empty.
 
 ### Return values
 
-Returns `200 OK`, and list of clients as json in body. Status is `200 OK`
+Returns `200 OK`, and list of api gatekeepers as json in body. Status is `200 OK`
 even if resulting list is empty. Returns `403 Forbidden` if user is not admin for the specified organization
 
 ## Deleting a gatekeeper

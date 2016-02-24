@@ -76,14 +76,27 @@ class APIGKAdmTests(unittest.TestCase):
         assert 'trust' in out[0]
         assert len(out) < num_mock_apigks
 
-    @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
-    def test_list_apigks_platform_admin(self, get_user):
+    def _test_list_apigks_show_all(self, val, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_apigks.side_effect = mock_get_apigks
-        res = self.testapp.get('/apigkadm/apigks/', status=200, headers=headers)
+        path = '/apigkadm/apigks/?showAll={}'.format(val)
+        return self.testapp.get(path, status=httpstat, headers=headers)
+
+    @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
+    def test_list_apigks_show_all_platform_admin(self, get_user):
+        res = self._test_list_apigks_show_all('true', 200)
         out = res.json
         assert 'trust' in out[0]
         assert len(out) == num_mock_apigks
+
+    def test_list_apigks_show_all_normal_user(self):
+        self._test_list_apigks_show_all('true', 403)
+
+    def test_list_apigks_show_all_param_not_true(self):
+        res = self._test_list_apigks_show_all('1', 200)
+        out = res.json
+        assert 'trust' in out[0]
+        assert len(out) < num_mock_apigks
 
     def test_list_apigks_by_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
