@@ -15,5 +15,5 @@ keys = [
     "/fc/ratelimit/maxshare",
     "/fc/ratelimit/maxrate",
     "/fc/ratelimit/maxburstsize",
-    "/fc/gk/header_prefix",
+    "/fc/gk/header/prefix",
 ]
