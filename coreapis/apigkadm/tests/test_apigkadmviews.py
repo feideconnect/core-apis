@@ -1,7 +1,8 @@
+# pylint: disable=invalid-name
 import unittest
-import mock
 import uuid
 from copy import deepcopy
+import mock
 from webtest import TestApp
 from pyramid import testing
 from coreapis import main, middleware
@@ -19,7 +20,7 @@ def make_user(source, userid):
 
 
 def make_feide_user(feideid):
-        return make_user('feide', feideid)
+    return make_user('feide', feideid)
 
 
 class APIGKAdmTests(unittest.TestCase):
@@ -27,14 +28,18 @@ class APIGKAdmTests(unittest.TestCase):
     @mock.patch('coreapis.middleware.cassandra_client.Client')
     def setUp(self, Client, gpa):
         gpa.return_value = [PLATFORMADMIN]
-        app = main({
-            'statsd_server': 'localhost',
-            'statsd_port': '8125',
-            'statsd_prefix': 'dataporten.tests',
-            'oauth_realm': 'test realm',
-            'cassandra_contact_points': '',
-            'cassandra_keyspace': 'notused',
-        }, enabled_components='apigkadm', apigkadm_maxrows=100, clientadm_scopedefs_file='testdata/scopedefs_testing.json',)
+        app = main(
+            {
+                'statsd_server': 'localhost',
+                'statsd_port': '8125',
+                'statsd_prefix': 'dataporten.tests',
+                'oauth_realm': 'test realm',
+                'cassandra_contact_points': '',
+                'cassandra_keyspace': 'notused',
+            },
+            enabled_components='apigkadm',
+            apigkadm_maxrows=100,
+            clientadm_scopedefs_file='testdata/scopedefs_testing.json')
         mw = middleware.MockAuthMiddleware(app, 'test realm')
         self.session = Client
         self.testapp = TestApp(mw)
@@ -45,7 +50,8 @@ class APIGKAdmTests(unittest.TestCase):
     def test_get_apigk(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_apigk.return_value = pre_update
-        res = self.testapp.get('/apigkadm/apigks/{}'.format(uuid.uuid4()), status=200, headers=headers)
+        path = '/apigkadm/apigks/{}'.format(uuid.uuid4())
+        res = self.testapp.get(path, status=200, headers=headers)
         out = res.json
         assert out['id'] == 'updateable'
 
@@ -54,13 +60,14 @@ class APIGKAdmTests(unittest.TestCase):
         other_owner = deepcopy(pre_update)
         other_owner['owner'] = uuid.uuid4()
         self.session().get_apigk.return_value = other_owner
-        self.testapp.get('/apigkadm/apigks/{}'.format(uuid.uuid4()), status=httpstat, headers=headers)
+        path = '/apigkadm/apigks/{}'.format(uuid.uuid4())
+        self.testapp.get(path, status=httpstat, headers=headers)
 
     def test_get_apigk_not_owner(self):
         self._test_get_apigk_not_owner(403)
 
     @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
-    def test_get_apigk_platform_admin(self, get_user):
+    def test_get_apigk_platform_admin(self, _):
         self._test_get_apigk_not_owner(200)
 
     def test_missing_apigk(self):
@@ -83,7 +90,7 @@ class APIGKAdmTests(unittest.TestCase):
         return self.testapp.get(path, status=httpstat, headers=headers)
 
     @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
-    def test_list_apigks_show_all_platform_admin(self, get_user):
+    def test_list_apigks_show_all_platform_admin(self, _):
         res = self._test_list_apigks_show_all('true', 200)
         out = res.json
         assert 'trust' in out[0]
@@ -101,8 +108,8 @@ class APIGKAdmTests(unittest.TestCase):
     def test_list_apigks_by_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_apigks.return_value = [pre_update]
-        res = self.testapp.get('/apigkadm/apigks/?owner={}'.format('00000000-0000-0000-0000-000000000001'),
-                               status=200, headers=headers)
+        path = '/apigkadm/apigks/?owner={}'.format('00000000-0000-0000-0000-000000000001')
+        res = self.testapp.get(path, status=200, headers=headers)
         out = res.json
         assert out[0]['id'] == 'updateable'
 
@@ -110,8 +117,8 @@ class APIGKAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_apigks.return_value = [pre_update]
         self.session().is_org_admin.return_value = orgadmin
-        return self.testapp.get('/apigkadm/apigks/?organization={}'.format('fc:org:example.com'),
-                                status=httpstat, headers=headers)
+        path = '/apigkadm/apigks/?organization={}'.format('fc:org:example.com')
+        return self.testapp.get(path, status=httpstat, headers=headers)
 
     def test_list_apigks_by_org(self):
         res = self._test_list_apigks_by_org(True, 200)
@@ -122,7 +129,7 @@ class APIGKAdmTests(unittest.TestCase):
         self._test_list_apigks_by_org(False, 403)
 
     @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
-    def test_list_apigks_by_org_admin_for_platform_not_for_org(self, get_user):
+    def test_list_apigks_by_org_admin_for_platform_not_for_org(self, _):
         self._test_list_apigks_by_org(False, 200)
 
     def test_list_public_apigks(self):
@@ -148,7 +155,8 @@ class APIGKAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().insert_apigk = mock.MagicMock()
         self.session().get_apigk = mock.MagicMock(side_effect=KeyError)
-        res = self.testapp.post_json('/apigkadm/apigks/', post_body_minimal, status=201, headers=headers)
+        res = self.testapp.post_json('/apigkadm/apigks/', post_body_minimal,
+                                     status=201, headers=headers)
         out = res.json
         assert out['owner'] == '00000000-0000-0000-0000-000000000001'
 
@@ -166,7 +174,7 @@ class APIGKAdmTests(unittest.TestCase):
         assert out['organization'] is None
 
     @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_user('linkbook', '12345'))
-    def test_post_apigk_not_feide(self, get_user):
+    def test_post_apigk_not_feide(self, _):
         self._test_post_apigk_minimal(403)
 
     def test_post_apigk_path(self):
@@ -195,7 +203,7 @@ class APIGKAdmTests(unittest.TestCase):
         self._test_post_apigk(False, 403)
 
     @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
-    def test_post_apigk_admin_for_platform_not_for_org(self, get_user):
+    def test_post_apigk_admin_for_platform_not_for_org(self, _):
         self._test_post_apigk(False, 201)
 
     def test_post_apigk_duplicate(self):
@@ -285,8 +293,8 @@ class APIGKAdmTests(unittest.TestCase):
 
     def _test_delete_apigk(self, owner, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
-        id = 'testapi'
-        self.session().get_apigk.return_value = {'owner': uuid.UUID(owner), 'id': id}
+        gkid = 'testapi'
+        self.session().get_apigk.return_value = {'owner': uuid.UUID(owner), 'id': gkid}
         self.testapp.delete('/apigkadm/apigks/{}'.format(id), status=httpstat, headers=headers)
 
     def test_delete_apigk(self):
@@ -300,28 +308,29 @@ class APIGKAdmTests(unittest.TestCase):
         self._test_delete_apigk('00000000-0000-0000-0000-000000000002', 403)
 
     @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
-    def test_delete_apigk_platform_admin(self, get_user):
+    def test_delete_apigk_platform_admin(self, _):
         self._test_delete_apigk('00000000-0000-0000-0000-000000000002', 204)
 
     def _test_delete_unknown_apigk(self, orgadmin):
         headers = {'Authorization': 'Bearer user_token'}
-        id = 'testapi'
+        gkid = 'testapi'
         self.session().get_apigk.side_effect = KeyError
         self.session().is_org_admin.return_value = orgadmin
-        self.testapp.delete('/apigkadm/apigks/{}'.format(id), status=404, headers=headers)
+        self.testapp.delete('/apigkadm/apigks/{}'.format(gkid), status=404, headers=headers)
 
     def test_delete_unknown_apigk_orgadmin(self):
         self._test_delete_unknown_apigk(True)
 
     @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
-    def test_delete_unknown_apigk_platform_admin(self, get_user):
+    def test_delete_unknown_apigk_platform_admin(self, _):
         self._test_delete_unknown_apigk(True)
 
     def test_update_no_change(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_apigk.return_value = deepcopy(pre_update)
         val = self.testapp.get('/apigkadm/apigks/updatable', status=200, headers=headers).json
-        res = self.testapp.patch_json('/apigkadm/apigks/updatable', val, status=200, headers=headers)
+        res = self.testapp.patch_json('/apigkadm/apigks/updatable', val,
+                                      status=200, headers=headers)
         updated = res.json
         expected = json_normalize(pre_update)
         assert updated['updated'] > expected['updated']
@@ -334,7 +343,8 @@ class APIGKAdmTests(unittest.TestCase):
         self.session().get_apigk.return_value = deepcopy(pre_update)
         val = self.testapp.get('/apigkadm/apigks/updatable', status=200, headers=headers).json
         val['scopes_requested'].append('openid')
-        res = self.testapp.patch_json('/apigkadm/apigks/updatable', val, status=200, headers=headers)
+        res = self.testapp.patch_json('/apigkadm/apigks/updatable', val,
+                                      status=200, headers=headers)
         updated = res.json
         expected = json_normalize(pre_update)
         assert updated['updated'] > expected['updated']
@@ -347,7 +357,8 @@ class APIGKAdmTests(unittest.TestCase):
         self.session().get_apigk.return_value = deepcopy(pre_update)
         val = self.testapp.get('/apigkadm/apigks/updatable', status=200, headers=headers).json
         val['scopes_requested'].append('gk_someapi')
-        res = self.testapp.patch_json('/apigkadm/apigks/updatable', val, status=200, headers=headers)
+        res = self.testapp.patch_json('/apigkadm/apigks/updatable',
+                                      val, status=200, headers=headers)
         updated = res.json
         expected = json_normalize(pre_update)
         assert updated['updated'] > expected['updated']
@@ -374,7 +385,7 @@ class APIGKAdmTests(unittest.TestCase):
         self._test_update_not_owner(403)
 
     @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
-    def test_update_as_platform_admin(self, get_user):
+    def test_update_as_platform_admin(self, _):
         self._test_update_not_owner(200)
 
     def test_apigk_exists(self):
@@ -439,7 +450,7 @@ class APIGKAdmTests(unittest.TestCase):
         self._test_apigk_get_org_clients(False, 403)
 
     @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
-    def test_apigk_get_org_clients_admin_for_platform_not_for_org(self, get_user):
+    def test_apigk_get_org_clients_admin_for_platform_not_for_org(self, _):
         self._test_apigk_get_org_clients(False, 200)
 
     def test_get_apigk_logo(self):

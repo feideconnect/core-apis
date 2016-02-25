@@ -274,7 +274,7 @@ class ClientAdmController(CrudControllerBase):
         for gkscope in gkscopes:
             for client in (itertools.chain(self.session.get_clients_by_scope(gkscope),
                                            self.session.get_clients_by_scope_requested(gkscope))):
-                if not client['id'] in clientdict:
+                if client['id'] not in clientdict:
                     clientdict[client['id']] = self.get_gkscope_client(client, gkscopes,
                                                                        users, orgs)
         return list(clientdict.values())

@@ -72,19 +72,20 @@ class APIGKAdmController(CrudControllerBase):
                 return True
             return False
 
-    def get(self, id):
-        self.log.debug('Get apigk', id=id)
-        apigk = self.session.get_apigk(id)
+    def get(self, gkid):
+        self.log.debug('Get apigk', gkid=gkid)
+        apigk = self.session.get_apigk(gkid)
         return apigk
 
     def delete(self, gk, user):
-        id = gk['id']
-        mainscope = 'gk_' + id
-        subscopes = ['{}_{}'.format(mainscope, s) for s in gk.get('scopedef', {}).get('subscopes', {}).keys()]
+        gkid = gk['id']
+        mainscope = 'gk_' + gkid
+        subscopes = ['{}_{}'.format(mainscope, s)
+                     for s in gk.get('scopedef', {}).get('subscopes', {}).keys()]
         gk_scopes = [mainscope] + subscopes
-        self.log.debug('Delete apigk', id=id, scopes=gk_scopes)
+        self.log.debug('Delete apigk', gkid=gkid, scopes=gk_scopes)
         # Delete scopes from all clients
-        clients = self.cadm_controller.get_gkscope_clients(['gk_' + id])
+        clients = self.cadm_controller.get_gkscope_clients(['gk_' + gkid])
         for client in clients:
             scopes = set(client['scopes_requested']) | set(client['scopes'])
             self.log.debug('removing scopes from client', client=client['id'],
@@ -93,7 +94,10 @@ class APIGKAdmController(CrudControllerBase):
         # Delete scopes from all oauth_authorizations
         authorizations = {}
         for scope in gk_scopes:
-            authorizations.update({(a['userid'], a['clientid']): a for a in self.session.get_oauth_authorizations_by_scope(scope)})
+            authorizations.update({
+                (a['userid'], a['clientid']): a
+                for a in self.session.get_oauth_authorizations_by_scope(scope)
+            })
         for auth in authorizations.values():
             scopes = auth['scopes']
             auth['scopes'] = [scope for scope in scopes if scope not in gk_scopes]
@@ -111,7 +115,7 @@ class APIGKAdmController(CrudControllerBase):
             self.log.debug('removing scopes from oauth_token', accesstoken=log_token(tokenid),
                            scopes_removed=list(set(scopes).difference(token['scope'])))
             self.session.update_token_scopes(tokenid, token['scope'])
-        self.session.delete_apigk(id)
+        self.session.delete_apigk(gkid)
 
     def list_by_owner(self, owner):
         selectors = ['owner = ?']
@@ -124,7 +128,7 @@ class APIGKAdmController(CrudControllerBase):
         values = [organization]
         return self.session.get_apigks(selectors, values, self.maxrows)
 
-    def list_all(self, scope=None):
+    def list_all(self):
         return self.session.get_apigks([], [], self.maxrows)
 
     # Used both for add and update.

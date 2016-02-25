@@ -1,11 +1,12 @@
+# pylint: disable=invalid-name
 import unittest
-import mock
-from cassandra.util import SortedSet
 import json
 import uuid
-from aniso8601 import parse_datetime
 from datetime import timedelta
 from copy import deepcopy
+import mock
+from cassandra.util import SortedSet
+from aniso8601 import parse_datetime
 from webtest import TestApp
 from pyramid import testing
 from coreapis import main, middleware
@@ -29,7 +30,7 @@ def make_user(source, userid):
 
 
 def make_feide_user(feideid):
-        return make_user('feide', feideid)
+    return make_user('feide', feideid)
 
 
 class ClientAdmTests(unittest.TestCase):
@@ -37,14 +38,16 @@ class ClientAdmTests(unittest.TestCase):
     @mock.patch('coreapis.middleware.cassandra_client.Client')
     def setUp(self, Client, gpa):
         gpa.return_value = [PLATFORMADMIN]
-        app = main({
-            'statsd_server': 'localhost',
-            'statsd_port': '8125',
-            'statsd_prefix': 'dataporten.tests',
-            'oauth_realm': 'test realm',
-            'cassandra_contact_points': '',
-            'cassandra_keyspace': 'notused',
-        }, enabled_components='clientadm',
+        app = main(
+            {
+                'statsd_server': 'localhost',
+                'statsd_port': '8125',
+                'statsd_prefix': 'dataporten.tests',
+                'oauth_realm': 'test realm',
+                'cassandra_contact_points': '',
+                'cassandra_keyspace': 'notused',
+            },
+            enabled_components='clientadm',
             clientadm_scopedefs_file='testdata/scopedefs_testing.json',
             clientadm_maxrows=100)
         mw = middleware.MockAuthMiddleware(app, 'test realm')
@@ -89,7 +92,7 @@ class ClientAdmTests(unittest.TestCase):
         assert is_public_client(res.json)
 
     @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
-    def test_get_client_platform_admin(self, get_user):
+    def test_get_client_platform_admin(self, _):
         headers = {'Authorization': 'Bearer user_token'}
         res = self._test_get_client_not_owner(headers, 200)
         assert is_full_client(res.json)
@@ -114,7 +117,7 @@ class ClientAdmTests(unittest.TestCase):
         return self.testapp.get(path, status=httpstat, headers=headers)
 
     @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
-    def test_list_clients_show_all_platform_admin(self, get_user):
+    def test_list_clients_show_all_platform_admin(self, _):
         res = self._test_list_clients_show_all('true', 200)
         assert is_full_client(res.json[0])
         assert len(res.json) == len(retrieved_gk_clients)
@@ -148,7 +151,7 @@ class ClientAdmTests(unittest.TestCase):
         self._test_list_clients_by_org_as_admin(False, 403)
 
     @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
-    def test_list_clients_by_org_platform_admin(self, get_user):
+    def test_list_clients_by_org_platform_admin(self, _):
         res = self._test_list_clients_by_org_as_admin(False, 200)
         assert is_full_client(res.json[0])
 
@@ -214,17 +217,17 @@ class ClientAdmTests(unittest.TestCase):
 
     @mock.patch('coreapis.clientadm.views.get_user',
                 return_value=make_user('linkbook', '12345'))
-    def test_post_client_not_feide(self, get_user):
+    def test_post_client_not_feide(self, _):
         self._test_post_client_minimal(403)
 
     @mock.patch('coreapis.clientadm.views.get_user',
                 return_value=make_feide_user(FEIDETESTER))
-    def test_post_client_feide_tester(self, get_user):
+    def test_post_client_feide_tester(self, _):
         self._test_post_client_minimal(403)
 
     @mock.patch('coreapis.clientadm.views.get_user',
                 return_value=make_user('nin', '10108012345'))
-    def test_post_client_idporten(self, get_user):
+    def test_post_client_idporten(self, _):
         self._test_post_client_minimal(403)
 
     def _test_post_client_other_owner(self):
@@ -240,7 +243,7 @@ class ClientAdmTests(unittest.TestCase):
 
     # Or should platformadmin be allowed to set another user as owner?
     @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
-    def test_post_client_other_owner_platform_admin(self, get_user):
+    def test_post_client_other_owner_platform_admin(self, _):
         self._test_post_client_other_owner()
 
     def test_post_client_duplicate(self):
@@ -264,7 +267,7 @@ class ClientAdmTests(unittest.TestCase):
 
     # Or should platformadmin be allowed to set scope?
     @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
-    def test_post_client_scope_given_platform_admin(self, get_user):
+    def test_post_client_scope_given_platform_admin(self, _):
         self._test_post_client_scope_given()
 
     def test_post_client_autoscope_requested(self):
@@ -294,7 +297,7 @@ class ClientAdmTests(unittest.TestCase):
         self._test_post_client_organization(False, 403)
 
     @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
-    def test_post_client_organization_platform_admin(self, get_user):
+    def test_post_client_organization_platform_admin(self, _):
         res = self._test_post_client_organization(False, 201)
         assert res.json['organization'] == 'fc:org:example.com'
 
@@ -410,7 +413,7 @@ class ClientAdmTests(unittest.TestCase):
 
     # Or should platformadmin be allowed to set arbitrary status?
     @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
-    def test_post_client_status_not_permitted_platform_admin(self, get_user):
+    def test_post_client_status_not_permitted_platform_admin(self, _):
         flag = reservedstatus
         res = self._test_post_client_status_permitted(flag)
         assert flag not in res.json['status']
@@ -498,7 +501,7 @@ class ClientAdmTests(unittest.TestCase):
         self._test_delete_client_not_owner(True, 204)
 
     @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
-    def test_delete_client_not_owner_platform_admin_(self, get_user):
+    def test_delete_client_not_owner_platform_admin_(self, _):
         self._test_delete_client_not_owner(False, 204)
 
     def _test_delete_missing_client(self, orgadmin):
@@ -515,7 +518,7 @@ class ClientAdmTests(unittest.TestCase):
         self._test_delete_missing_client(True)
 
     @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
-    def test_delete_missing_client_platform_admin_(self, get_user):
+    def test_delete_missing_client_platform_admin_(self, _):
         self._test_delete_missing_client(False)
 
     def test_update_client(self):
@@ -571,7 +574,7 @@ class ClientAdmTests(unittest.TestCase):
         assert res.json['descr'] == 'blue'
 
     @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
-    def test_update_client_not_owner_platform_admin(self, get_user):
+    def test_update_client_not_owner_platform_admin(self, _):
         res = self._test_update_client_not_owner(False, 200)
         assert res.json['descr'] == 'blue'
 
@@ -887,7 +890,7 @@ class ClientAdmTests(unittest.TestCase):
         path = '/clientadm/clients/{}/logo'.format(uuid.UUID(clientid))
         res = self.testapp.get(path, status=200, headers=headers)
         out = res.body
-        assert b'PNG' == out[1:4]
+        assert out[1:4] == b'PNG'
 
     def test_get_client_logo_not_modified(self):
         updated = parse_datetime(date_created)
@@ -965,7 +968,7 @@ class ClientAdmTests(unittest.TestCase):
         assert res.json == 'OK'
 
     @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
-    def test_post_client_logo_platform_admin(self, get_user):
+    def test_post_client_logo_platform_admin(self, _):
         res = self._test_post_client_logo_not_owner(False, 200)
         assert res.json == 'OK'
 
@@ -1005,7 +1008,7 @@ class ClientAdmTests(unittest.TestCase):
         assert res.json[0] == testgk
 
     @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
-    def test_get_orgauth_platform_admin(self, get_user):
+    def test_get_orgauth_platform_admin(self, _):
         res = self._test_get_orgauth_not_owner(False, 200)
         assert res.json[0] == testgk
 
@@ -1038,7 +1041,7 @@ class ClientAdmTests(unittest.TestCase):
         self._test_update_orgauthorization(False, 403)
 
     @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
-    def test_update_orgauthorization_platform_admin(self, get_user):
+    def test_update_orgauthorization_platform_admin(self, _):
         res = self._test_update_orgauthorization(False, 200)
         assert res.json == [testgk]
 
@@ -1073,7 +1076,7 @@ class ClientAdmTests(unittest.TestCase):
         self._test_delete_orgauthorization(userid_other, False, 403)
 
     @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
-    def test_delete_orgauthorization_platform_admin(self, get_user):
+    def test_delete_orgauthorization_platform_admin(self, _):
         self._test_delete_orgauthorization(userid_other, False, 204)
 
     def test_list_targetrealm(self):
@@ -1097,6 +1100,6 @@ class ClientAdmTests(unittest.TestCase):
 
     @mock.patch('coreapis.clientadm.views.get_user',
                 return_value=make_user('linkbook', '12345'))
-    def test_policy_cannot_register(self, get_user):
+    def test_policy_cannot_register(self, _):
         res = self._test_policy()
         assert 'register' in res.json and not res.json['register']

@@ -86,7 +86,7 @@ class AdHocGroupAdmController(CrudControllerBase):
         memberships = self.session.get_group_memberships(userid, "admin", "normal", self.maxrows)
         for mem in memberships:
             groupid = mem['groupid']
-            if not groupid in seen_groups:
+            if groupid not in seen_groups:
                 groups.append(self.get(groupid))
                 seen_groups.add(groupid)
         return groups
