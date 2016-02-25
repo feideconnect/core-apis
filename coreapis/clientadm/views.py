@@ -116,7 +116,7 @@ def add_client(request):
         if not request.cadm_controller.is_admin(user, attrs['organization']):
             raise HTTPForbidden('Not administrator for organization')
     elif not authprovmgr.has_user_permission(user, REGISTER_CLIENT):
-        raise HTTPForbidden('Not authenticated by approved entity')
+        raise HTTPForbidden('Insufficient permissions')
     try:
         client = request.cadm_controller.add(attrs, userid)
     except AlreadyExistsError:

@@ -98,7 +98,7 @@ def add_apigk(request):
         if not request.gkadm_controller.is_admin(user, attrs['organization']):
             raise HTTPForbidden('Not administrator for organization')
     elif not authprovmgr.has_user_permission(user, REGISTER_APIGK):
-        raise HTTPForbidden('Not authenticated by approved entity')
+        raise HTTPForbidden('Insufficient permissions')
     try:
         apigk = request.gkadm_controller.add(attrs, userid)
     except AlreadyExistsError:
