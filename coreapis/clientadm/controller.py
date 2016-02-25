@@ -151,8 +151,8 @@ class ClientAdmController(CrudControllerBase):
 
     # Used both for add and update.
     # By default CQL does not distinguish between INSERT and UPDATE
-    def _insert(self, client):
-        self.scopemgr.handle_update(client)
+    def _insert(self, client, privileges):
+        self.scopemgr.handle_update(client, privileges)
         authprovmgr.check_client_update(self.session, client)
         self.insert_client(client)
         self.scopemgr.notify_moderators(client)
@@ -171,15 +171,15 @@ class ClientAdmController(CrudControllerBase):
         status_allowed = {flag for flag in status_requested if flag in USER_SETTABLE_STATUS_FLAGS}
         attrs_new['status'] = list(status_old.union(status_allowed))
 
-    def add(self, item, userid):
+    def add(self, item, userid, privileges):
         self.filter_client_status(item, {})
-        return super(ClientAdmController, self).add(item, userid)
+        return super(ClientAdmController, self).add(item, userid, privileges)
 
-    def update(self, itemid, attrs):
+    def update(self, itemid, attrs, privileges):
         client = self.get(itemid)
         self.filter_client_status(attrs, client)
         client = self.validate_update(itemid, attrs)
-        return self._insert(client)
+        return self._insert(client, privileges)
 
     def delete(self, clientid):
         self.log.debug('Delete client', clientid=clientid)

@@ -133,8 +133,8 @@ class APIGKAdmController(CrudControllerBase):
 
     # Used both for add and update.
     # By default CQL does not distinguish between INSERT and UPDATE
-    def _insert(self, apigk):
-        self.scopemgr.handle_update(apigk)
+    def _insert(self, apigk, privileges):
+        self.scopemgr.handle_update(apigk, privileges)
         self.session.insert_apigk(apigk)
         self.scopemgr.notify_moderators(apigk)
         return apigk

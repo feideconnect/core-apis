@@ -91,12 +91,12 @@ class AdHocGroupAdmController(CrudControllerBase):
                 seen_groups.add(groupid)
         return groups
 
-    def add(self, item, userid):
-        res = super(AdHocGroupAdmController, self).add(item, userid)
+    def add(self, item, userid, privileges):
+        res = super(AdHocGroupAdmController, self).add(item, userid, privileges)
         self.add_member(res['id'], userid, 'admin', 'normal', None)
         return res
 
-    def _insert(self, group):
+    def _insert(self, group, privileges):
         if not group.get('invitation_token', None):
             group['invitation_token'] = str(uuid.uuid4())
         return self.session.insert_group(group)

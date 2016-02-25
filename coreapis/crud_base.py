@@ -6,7 +6,7 @@ from PIL import Image
 
 from coreapis.utils import (
     now, ValidationError, AlreadyExistsError, LogWrapper, get_feideids, public_userinfo,
-    public_orginfo)
+    public_orginfo, PRIV_PLATFORM_ADMIN)
 
 LOGO_SIZE = 128, 128
 
@@ -61,7 +61,7 @@ class CrudControllerBase(object):
         except:
             return None
 
-    def add(self, item, userid):
+    def add(self, item, userid, privileges):
         self.log.debug('add item', userid=userid)
         try:
             item = self.validate(item)
@@ -81,7 +81,7 @@ class CrudControllerBase(object):
         ts_now = now()
         item['created'] = ts_now
         item['updated'] = ts_now
-        self._insert(item)
+        self._insert(item, privileges)
         return item
 
     def validate_update(self, itemid, attrs):
@@ -98,10 +98,10 @@ class CrudControllerBase(object):
         item['updated'] = now()
         return item
 
-    def update(self, itemid, attrs):
+    def update(self, itemid, attrs, privileges):
         self.log.debug('update item', itemid=itemid)
         item = self.validate_update(itemid, attrs)
-        self._insert(item)
+        self._insert(item, privileges)
         return item
 
     def update_logo(self, itemid, data):
@@ -134,6 +134,12 @@ class CrudControllerBase(object):
 
     def is_admin(self, user, org):
         return self.is_platform_admin(user) or self.is_org_admin(user, org)
+
+    def get_privileges(self, user):
+        privileges = list()
+        if self.is_platform_admin(user):
+            privileges.append(PRIV_PLATFORM_ADMIN)
+        return privileges
 
     def get_public_info(self, target, users=None, orgs=None):
         if users is None:

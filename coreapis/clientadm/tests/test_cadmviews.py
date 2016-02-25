@@ -259,16 +259,16 @@ class ClientAdmTests(unittest.TestCase):
         body = deepcopy(post_body_minimal)
         body['scopes'] = [testscope]
         self.session.insert_client = mock.MagicMock()
-        res = self.testapp.post_json('/clientadm/clients/', body, status=201, headers=headers)
-        assert res.json['scopes'] == []
+        return self.testapp.post_json('/clientadm/clients/', body, status=201, headers=headers)
 
     def test_post_client_scope_given(self):
-        self._test_post_client_scope_given()
+        res = self._test_post_client_scope_given()
+        assert testscope not in res.json['scopes']
 
-    # Or should platformadmin be allowed to set scope?
     @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_post_client_scope_given_platform_admin(self, _):
-        self._test_post_client_scope_given()
+        res = self._test_post_client_scope_given()
+        assert testscope in res.json['scopes']
 
     def test_post_client_autoscope_requested(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -610,6 +610,27 @@ class ClientAdmTests(unittest.TestCase):
         res = self.testapp.patch_json(path, attrs, status=200, headers=headers)
         out = res.json
         assert out['scopes'] == [testscope]
+
+    def _test_update_client_change_scopes_not_auto(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        client['scopes'] = [otherscope]
+        self.session.get_client_by_id.return_value = client
+        self.session.insert_client = mock.MagicMock()
+        path = '/clientadm/clients/{}'.format(clientid)
+        attrs = {'scopes': [testscope]}
+        return self.testapp.patch_json(path, attrs, status=200, headers=headers)
+
+    def test_update_client_change_scopes_not_auto(self):
+        res = self._test_update_client_change_scopes_not_auto()
+        out = res.json
+        assert testscope not in out['scopes']
+
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
+    def test_update_client_change_scopes_platform_admin(self, _):
+        res = self._test_update_client_change_scopes_not_auto()
+        out = res.json
+        assert testscope in out['scopes']
 
     def test_update_client_owner_of_gk_and_client_changes_scopes(self):
         headers = {'Authorization': 'Bearer user_token'}

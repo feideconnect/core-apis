@@ -100,7 +100,8 @@ def add_apigk(request):
     elif not authprovmgr.has_user_permission(user, REGISTER_APIGK):
         raise HTTPForbidden('Insufficient permissions')
     try:
-        apigk = request.gkadm_controller.add(attrs, userid)
+        privileges = []
+        apigk = request.gkadm_controller.add(attrs, userid, privileges)
     except AlreadyExistsError:
         raise HTTPConflict("apigk with this id already exists")
     request.response.status = 201
@@ -121,7 +122,8 @@ def update_apigk(request):
     gk = check(request)
     payload = get_payload(request)
     attrs = request.gkadm_controller.allowed_attrs(payload, 'update')
-    apigk = request.gkadm_controller.update(gk['id'], attrs)
+    privileges = []
+    apigk = request.gkadm_controller.update(gk['id'], attrs, privileges)
     return apigk
 
 

@@ -1,4 +1,5 @@
-from coreapis.utils import EmailNotifier, json_load, LogWrapper, ValidationError
+from coreapis.utils import (
+    EmailNotifier, json_load, LogWrapper, ValidationError, PRIV_PLATFORM_ADMIN)
 from .scope_request_notification import ScopeRequestNotification
 from coreapis.scopes import filter_missing_mainscope, gk_mainscope, is_gkscopename
 
@@ -26,28 +27,28 @@ class ScopesManager(object):
         })
         self.for_apigk = for_apigk
 
-    def _add_scope_if_approved(self, target, scopedef, scope):
+    def _add_scope_if_approved(self, target, scopedef, scope, privileges):
         try:
-            if scopedef['policy']['auto']:
+            if PRIV_PLATFORM_ADMIN in privileges or scopedef['policy']['auto']:
                 self.log.debug('Accept scope', scope=scope)
                 target['scopes'].append(scope)
         except KeyError:
             pass
 
-    def _handle_gksubscope_request(self, target, scope, subname, subscopes):
+    def _handle_gksubscope_request(self, target, scope, subname, subscopes, privileges):
         try:
             scopedef = subscopes[subname]
         except:
             raise ValidationError('invalid scope: {}'.format(scope))
-        self._add_scope_if_approved(target, scopedef, scope)
+        self._add_scope_if_approved(target, scopedef, scope, privileges)
 
-    def _handle_scope_request(self, target, scope):
+    def _handle_scope_request(self, target, scope, privileges):
         if is_gkscopename(scope):
-            self._handle_gkscope_request(target, scope)
+            self._handle_gkscope_request(target, scope, privileges)
         elif scope not in self.scopedefs:
             raise ValidationError('invalid scope: {}'.format(scope))
         else:
-            self._add_scope_if_approved(target, self.scopedefs[scope], scope)
+            self._add_scope_if_approved(target, self.scopedefs[scope], scope, privileges)
 
     def _get_gk_moderator(self, scope):
         apigk = self.scope_to_gk(scope)
@@ -90,7 +91,7 @@ class ScopesManager(object):
         self.log.debug('notify_moderator', moderator=moderator, subject=subject)
         EmailNotifier(self.email_notification_settings).notify(moderator, subject, body)
 
-    def _handle_gkscope_request(self, target, scope):
+    def _handle_gkscope_request(self, target, scope, privileges):
         nameparts = scope.split('_')
         gkname = nameparts[1]
         try:
@@ -105,11 +106,12 @@ class ScopesManager(object):
         elif len(nameparts) > 2:
             if 'subscopes' in scopedef:
                 subname = nameparts[2]
-                self._handle_gksubscope_request(target, scope, subname, scopedef['subscopes'])
+                self._handle_gksubscope_request(target, scope, subname,
+                                                scopedef['subscopes'], privileges)
             else:
                 raise ValidationError('invalid scope: {}'.format(scope))
         else:
-            self._add_scope_if_approved(target, scopedef, scope)
+            self._add_scope_if_approved(target, scopedef, scope, privileges)
 
     def _scope_allowed_for_apigk(self, scope):
         if is_gkscopename(scope):
@@ -136,7 +138,7 @@ class ScopesManager(object):
     def list_public_scopes(self):
         return {k: v for k, v in self.scopedefs.items() if v.get('public', False)}
 
-    def handle_update(self, target):
+    def handle_update(self, target, privileges):
         if self.for_apigk:
             target['scopes_requested'] = [scope for scope in target['scopes_requested']
                                           if self._scope_allowed_for_apigk(scope)]
@@ -144,4 +146,4 @@ class ScopesManager(object):
             target['scopes_requested'] = filter_missing_mainscope(target['scopes_requested'])
         target['scopes'] = list(set(target['scopes']).intersection(set(target['scopes_requested'])))
         for scope in set(target['scopes_requested']).difference(set(target['scopes'])):
-            self._handle_scope_request(target, scope)
+            self._handle_scope_request(target, scope, privileges)

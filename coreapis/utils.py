@@ -27,6 +27,9 @@ from pyramid.httpexceptions import HTTPBadRequest, HTTPNotModified
 __local = threading.local()
 
 
+PRIV_PLATFORM_ADMIN = "priv_platform_admin"
+
+
 def init_request_id():
     __local.log_request_id = uuid.uuid4()
 

@@ -55,7 +55,7 @@ class TestController(TestCase):
         post_body['owner'] = userid_own
         self.session.get_client_by_id.side_effect = KeyError
         self.session.insert_client = mock.MagicMock()
-        res = self.controller.add(post_body, testuid)
+        res = self.controller.add(post_body, testuid, [])
         assert res['owner'] == testuid
 
     def test_add_with_malformed_scopedefs(self):
@@ -64,14 +64,14 @@ class TestController(TestCase):
         self.controller.scopedefs = {testscope: {}}
         self.session.get_client_by_id.side_effect = KeyError
         self.session.insert_client = mock.MagicMock()
-        res = self.controller.add(post_body, testuid)
+        res = self.controller.add(post_body, testuid, [])
         assert res['scopes'] == []
 
     def test_add_with_only_subscope(self):
         testuid = uuid.UUID(userid_own)
         post_body = deepcopy(post_body_minimal)
         post_body['scopes_requested'] = ['gk_foo_bar']
-        res = self.controller.add(post_body, testuid)
+        res = self.controller.add(post_body, testuid, [])
         assert 'gk_foo_bar' not in res['scopes_requested']
 
     def test_update_with_ts(self):
@@ -79,7 +79,7 @@ class TestController(TestCase):
         self.session.get_client_by_id.return_value = deepcopy(retrieved_gk_client)
         self.session.insert_client = mock.MagicMock()
         attrs = {'created': '2000-01-01T00:00:00+01:00'}
-        res = self.controller.update(id, attrs)
+        res = self.controller.update(id, attrs, [])
         assert res['created'] == parse_datetime(date_created)
 
     def test_get_gkscope_clients(self):
