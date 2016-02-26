@@ -1,4 +1,5 @@
 import json
+import os
 import time
 
 import ldap3
@@ -29,6 +30,7 @@ class LDAPController(object):
         statsd = settings.get('statsd_factory')()
         self.host_statsd = settings.get('statsd_host_factory')()
         self.config = None
+        self.config_mtime = 0
         self.servers = {}
         self.orgpools = {}
         self.parse_ldap_config()
@@ -37,6 +39,11 @@ class LDAPController(object):
         settings.get('status_methods', {})['ldap'] = self.status
 
     def parse_ldap_config(self):
+        mtime = os.stat(self.ldap_config).st_mtime
+        if mtime == self.config_mtime:
+            return False
+
+        self.log.debug("Reading ldap config")
         with open(self.ldap_config) as fh:
             config = json.load(fh)
         servers = {}
@@ -57,18 +64,29 @@ class LDAPController(object):
                 else:
                     host, port = server, None
                 server_key = (host, port, user, password)
-                if not server_key in servers:
+                if server_key in servers:
+                    pass
+                elif server_key in self.servers:
+                    servers[server_key] = self.servers[server_key]
+                else:
+                    self.log.debug("Found new ldap server: {}:{} - {}".format(host, port, user))
                     cp = ConnectionPool(host, port, user, password,
                                         self.max_idle, self.max_connections,
                                         self.timeouts, self.ca_certs,
                                         self.host_statsd)
                     servers[server_key] = cp
                 org_connection_pools.append(servers[server_key])
-            orgpool = RetryPool(org_connection_pools, org, self.host_statsd)
-            orgpools[org] = orgpool
+            if org in self.orgpools:
+                orgpools[org] = self.orgpools[org]
+                orgpools[org].servers = org_connection_pools
+            else:
+                orgpool = RetryPool(org_connection_pools, org, self.host_statsd)
+                orgpools[org] = orgpool
         self.config = config
+        self.config_mtime = mtime
         self.servers = servers
         self.orgpools = orgpools
+        return True
 
     def get_ldap_config(self):
         return self.config
@@ -117,9 +135,12 @@ class LDAPController(object):
             servers = list(self.servers.values())
             sleeptime = self.health_check_interval / len(servers)
             for server in servers:
+                if self.parse_ldap_config():
+                    break
                 server.check_connection()
                 time.sleep(sleeptime)
-            for org, orgpool in self.orgpools.items():
+            orgpools = self.orgpools.items()
+            for org, orgpool in orgpools:
                 self.host_statsd.gauge(self._org_statsd_key(org, 'alive_servers'),
                                        len(orgpool.alive_servers()))
 
