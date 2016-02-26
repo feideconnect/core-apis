@@ -13,36 +13,6 @@ def validate_query(string):
             raise ValidationError('Bad character in request')
 
 
-def parse_ldap_config(filename, ca_certs, max_idle, max_connections, timeouts, statsd):
-    with open(filename) as fh:
-        config = json.load(fh)
-    servers = {}
-    orgpools = {}
-    for org in config:
-        orgconf = config[org]
-        org_connection_pools = []
-        for server in orgconf['servers']:
-            if 'bind_user' in orgconf:
-                user = orgconf['bind_user']['dn']
-                password = orgconf['bind_user']['password']
-            else:
-                user = None
-                password = None
-            if ':' in server:
-                host, port = server.split(':', 1)
-                port = int(port)
-            else:
-                host, port = server, None
-            if not (host, port, user) in servers:
-                cp = ConnectionPool(host, port, user, password,
-                                    max_idle, max_connections, timeouts, ca_certs, statsd)
-                servers[(host, port, user)] = cp
-            org_connection_pools.append(servers[(host, port, user)])
-        orgpool = RetryPool(org_connection_pools, org, statsd)
-        orgpools[org] = orgpool
-    return config, servers, orgpools
-
-
 class LDAPController(object):
     def __init__(self, settings):
         timer = settings.get('timer')
@@ -58,12 +28,47 @@ class LDAPController(object):
         self.log = LogWrapper('peoplesearch.LDAPController')
         statsd = settings.get('statsd_factory')()
         self.host_statsd = settings.get('statsd_host_factory')()
-        self.config, self.servers, self.orgpools = parse_ldap_config(ldap_config, ca_certs,
-                                                                     max_idle, max_connections,
-                                                                     timeouts, self.host_statsd)
+        self.config = None
+        self.servers = {}
+        self.orgpools = {}
+        self.parse_ldap_config(ldap_config, ca_certs, max_idle,
+                               max_connections, timeouts)
         self.health_check_interval = 10
         self.statsd = statsd
         settings.get('status_methods', {})['ldap'] = self.status
+
+    def parse_ldap_config(self, filename, ca_certs, max_idle, max_connections, timeouts):
+        with open(filename) as fh:
+            config = json.load(fh)
+        servers = {}
+        orgpools = {}
+        for org in config:
+            orgconf = config[org]
+            org_connection_pools = []
+            for server in orgconf['servers']:
+                if 'bind_user' in orgconf:
+                    user = orgconf['bind_user']['dn']
+                    password = orgconf['bind_user']['password']
+                else:
+                    user = None
+                    password = None
+                if ':' in server:
+                    host, port = server.split(':', 1)
+                    port = int(port)
+                else:
+                    host, port = server, None
+                if not (host, port, user) in servers:
+                    cp = ConnectionPool(host, port, user, password,
+                                        max_idle, max_connections,
+                                        timeouts, ca_certs,
+                                        self.host_statsd)
+                    servers[(host, port, user)] = cp
+                org_connection_pools.append(servers[(host, port, user)])
+            orgpool = RetryPool(org_connection_pools, org, self.host_statsd)
+            orgpools[org] = orgpool
+        self.config = config
+        self.servers = servers
+        self.orgpools = orgpools
 
     def get_ldap_config(self):
         return self.config
