@@ -16,11 +16,11 @@ def validate_query(string):
 class LDAPController(object):
     def __init__(self, settings):
         timer = settings.get('timer')
-        ldap_config = settings.get('ldap_config_file', 'ldap-config.json')
-        ca_certs = settings.get('ldap_ca_certs', None)
-        max_idle = int(settings.get('ldap_max_idle_connections', '4'))
-        max_connections = int(settings.get('ldap_max_connections', '10'))
-        timeouts = {
+        self.ldap_config = settings.get('ldap_config_file', 'ldap-config.json')
+        self.ca_certs = settings.get('ldap_ca_certs', None)
+        self.max_idle = int(settings.get('ldap_max_idle_connections', '4'))
+        self.max_connections = int(settings.get('ldap_max_connections', '10'))
+        self.timeouts = {
             'connect': int(settings.get('ldap_connect_timeout', '1')),
             'connection_wait': int(settings.get('ldap_max_connection_pool_wait', '1')),
         }
@@ -31,14 +31,13 @@ class LDAPController(object):
         self.config = None
         self.servers = {}
         self.orgpools = {}
-        self.parse_ldap_config(ldap_config, ca_certs, max_idle,
-                               max_connections, timeouts)
+        self.parse_ldap_config()
         self.health_check_interval = 10
         self.statsd = statsd
         settings.get('status_methods', {})['ldap'] = self.status
 
-    def parse_ldap_config(self, filename, ca_certs, max_idle, max_connections, timeouts):
-        with open(filename) as fh:
+    def parse_ldap_config(self):
+        with open(self.ldap_config) as fh:
             config = json.load(fh)
         servers = {}
         orgpools = {}
@@ -59,8 +58,8 @@ class LDAPController(object):
                     host, port = server, None
                 if not (host, port, user) in servers:
                     cp = ConnectionPool(host, port, user, password,
-                                        max_idle, max_connections,
-                                        timeouts, ca_certs,
+                                        self.max_idle, self.max_connections,
+                                        self.timeouts, self.ca_certs,
                                         self.host_statsd)
                     servers[(host, port, user)] = cp
                 org_connection_pools.append(servers[(host, port, user)])
