@@ -85,9 +85,10 @@ def get_group_details(request):
 def add_group(request):
     userid = get_userid(request)
     payload = get_payload(request)
-    attrs = request.ahgroupadm_controller.allowed_attrs(payload, 'add')
-    privileges = []
-    group = request.ahgroupadm_controller.add(attrs, userid, privileges)
+    controller = request.ahgroupadm_controller
+    attrs = controller.allowed_attrs(payload, 'add')
+    privileges = controller.get_privileges(get_user(request))
+    group = controller.add(attrs, userid, privileges)
     request.response.status = 201
     request.response.location = "{}{}".format(request.url, group['id'])
     return group
@@ -104,9 +105,10 @@ def delete_group(request):
 def update_group(request):
     group = check(request, "update")
     payload = get_payload(request)
-    attrs = request.ahgroupadm_controller.allowed_attrs(payload, 'update')
-    privileges = []
-    group = request.ahgroupadm_controller.update(group['id'], attrs, privileges)
+    controller = request.ahgroupadm_controller
+    attrs = controller.allowed_attrs(payload, 'update')
+    privileges = controller.get_privileges(get_user(request))
+    group = controller.update(group['id'], attrs, privileges)
     return group
 
 
