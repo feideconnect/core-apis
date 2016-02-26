@@ -14,10 +14,11 @@ from coreapis.scopes.manager import ScopesManager
 from coreapis.authproviders import authprovmgr, REGISTER_CLIENT
 from coreapis.utils import (
     LogWrapper, timestamp_adapter, ForbiddenError, valid_url,
-    get_feideids, get_platform_admins)
+    get_feideids, get_platform_admins, PRIV_PLATFORM_ADMIN)
 
 
 USER_SETTABLE_STATUS_FLAGS = {'Public'}
+PLATFORM_ADMIN_STATUS_FLAGS = {'Mandatory'}
 INVALID_URISCHEMES = {'data', 'javascript', 'file', 'about'}
 FEIDE_REALM_PREFIX = 'feide|realm|'
 
@@ -31,6 +32,26 @@ def is_valid_uri(uri):
         return len(parsed.netloc) > 0
     else:
         return True
+
+
+def flags_allowed(privileges):
+    flags = set(USER_SETTABLE_STATUS_FLAGS)
+    if PRIV_PLATFORM_ADMIN in privileges:
+        flags |= PLATFORM_ADMIN_STATUS_FLAGS
+    return flags
+
+
+def filter_client_status(attrs_new, attrs_old, privileges):
+    try:
+        status_old = set(attrs_old['status'])
+    except (KeyError, TypeError):
+        status_old = set()
+    try:
+        status_requested = set(attrs_new['status'])
+    except (KeyError, TypeError):
+        status_requested = set()
+    status_allowed = {flag for flag in status_requested if flag in flags_allowed(privileges)}
+    attrs_new['status'] = list(status_old.union(status_allowed))
 
 
 class ClientAdmController(CrudControllerBase):
@@ -158,26 +179,13 @@ class ClientAdmController(CrudControllerBase):
         self.scopemgr.notify_moderators(client)
         return client
 
-    @staticmethod
-    def filter_client_status(attrs_new, attrs_old):
-        try:
-            status_old = set(attrs_old['status'])
-        except (KeyError, TypeError):
-            status_old = set()
-        try:
-            status_requested = set(attrs_new['status'])
-        except (KeyError, TypeError):
-            status_requested = set()
-        status_allowed = {flag for flag in status_requested if flag in USER_SETTABLE_STATUS_FLAGS}
-        attrs_new['status'] = list(status_old.union(status_allowed))
-
     def add(self, item, userid, privileges):
-        self.filter_client_status(item, {})
+        filter_client_status(item, {}, privileges)
         return super(ClientAdmController, self).add(item, userid, privileges)
 
     def update(self, itemid, attrs, privileges):
         client = self.get(itemid)
-        self.filter_client_status(attrs, client)
+        filter_client_status(attrs, client, privileges)
         client = self.validate_update(itemid, attrs)
         return self._insert(client, privileges)
 

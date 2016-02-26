@@ -393,7 +393,7 @@ class ClientAdmTests(unittest.TestCase):
         self.session.insert_client = mock.MagicMock()
         self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
 
-    def _test_post_client_status_permitted(self, flag):
+    def _test_post_client_statusflag(self, flag):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.side_effect = KeyError
         body = deepcopy(post_body_minimal)
@@ -401,22 +401,21 @@ class ClientAdmTests(unittest.TestCase):
         self.session.insert_client = mock.MagicMock()
         return self.testapp.post_json('/clientadm/clients/', body, status=201, headers=headers)
 
-    def test_post_client_status_permitted(self):
+    def test_post_client_userstatus(self):
         flag = userstatus
-        res = self._test_post_client_status_permitted(flag)
+        res = self._test_post_client_statusflag(flag)
         assert flag in res.json['status']
 
-    def test_post_client_status_not_permitted(self):
+    def test_post_client_status_reservedstatus(self):
         flag = reservedstatus
-        res = self._test_post_client_status_permitted(flag)
+        res = self._test_post_client_statusflag(flag)
         assert flag not in res.json['status']
 
-    # Or should platformadmin be allowed to set arbitrary status?
     @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
-    def test_post_client_status_not_permitted_platform_admin(self, _):
+    def test_post_client_status_reservedstatus_platform_admin(self, _):
         flag = reservedstatus
-        res = self._test_post_client_status_permitted(flag)
-        assert flag not in res.json['status']
+        res = self._test_post_client_statusflag(flag)
+        assert flag in res.json['status']
 
     def test_post_client_status_null(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -828,17 +827,27 @@ class ClientAdmTests(unittest.TestCase):
         out = res.json
         assert flag in out['status']
 
-    def test_update_client_change_reservedstatus(self):
+    def _test_update_client_change_statusflag(self, flag):
         headers = {'Authorization': 'Bearer user_token'}
         client = deepcopy(retrieved_client)
         self.session.get_client_by_id.return_value = client
         self.session.insert_client = mock.MagicMock()
-        flag = reservedstatus
         path = '/clientadm/clients/{}'.format(clientid)
         attrs = {'status': [flag]}
-        res = self.testapp.patch_json(path, attrs, status=200, headers=headers)
+        return self.testapp.patch_json(path, attrs, status=200, headers=headers)
+
+    def test_update_client_change_reservedstatus(self):
+        flag = reservedstatus
+        res = self._test_update_client_change_statusflag(flag)
         out = res.json
         assert flag not in out['status']
+
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
+    def test_update_client_change_reservedstatus_platform_admin(self, _):
+        flag = reservedstatus
+        res = self._test_update_client_change_statusflag(flag)
+        out = res.json
+        assert flag in out['status']
 
     def test_update_client_change_authoptions(self):
         headers = {'Authorization': 'Bearer user_token'}
