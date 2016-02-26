@@ -56,13 +56,14 @@ class LDAPController(object):
                     port = int(port)
                 else:
                     host, port = server, None
-                if not (host, port, user) in servers:
+                server_key = (host, port, user, password)
+                if not server_key in servers:
                     cp = ConnectionPool(host, port, user, password,
                                         self.max_idle, self.max_connections,
                                         self.timeouts, self.ca_certs,
                                         self.host_statsd)
-                    servers[(host, port, user)] = cp
-                org_connection_pools.append(servers[(host, port, user)])
+                    servers[server_key] = cp
+                org_connection_pools.append(servers[server_key])
             orgpool = RetryPool(org_connection_pools, org, self.host_statsd)
             orgpools[org] = orgpool
         self.config = config
