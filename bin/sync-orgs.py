@@ -21,7 +21,7 @@ config file.
 """
 URL = 'https://api.feide.no/2/'
 ORGPATH = 'org/all/full'
-SUBSPATH = 'sp/2021732/full'
+SUBSPATH = 'sp/{}/full'
 
 
 class CassandraClient(object):
@@ -322,6 +322,7 @@ def parse_args():
                         help='Delete organizations from Dataporten when missing from Feide API')
     parser.add_argument("-v", "--verbose", help="increase output verbosity",
                         action="store_true")
+    parser.add_argument('--sp-id', type=int, help="Kind id of service provider of the install to sync with")
     return parser.parse_args()
 
 
@@ -349,7 +350,7 @@ def main():
     elif args.url:
         if args.feideapi_token_secret:
             orgurl = args.url + ORGPATH
-            subsurl = args.url + SUBSPATH
+            subsurl = args.url + SUBSPATH.format(args.sp_id)
             feideorgs = get_json_from_url(orgurl, args.feideapi_token_secret)
             feidesubs = get_json_from_url(subsurl, args.feideapi_token_secret)
         else:
