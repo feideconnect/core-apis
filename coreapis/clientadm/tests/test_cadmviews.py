@@ -241,7 +241,6 @@ class ClientAdmTests(unittest.TestCase):
         res = self._test_post_client_other_owner()
         assert res.json['owner'] == userid_own
 
-    # Or should platformadmin be allowed to set another user as owner?
     @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_post_client_other_owner_platform_admin(self, _):
         res = self._test_post_client_other_owner()
