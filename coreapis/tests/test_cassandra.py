@@ -373,14 +373,10 @@ class CassandraClientTests(unittest.TestCase):
             self.cclient.insert_org(org)
         return orgs
 
-    def insert_role(self, role):
-        self.cclient.json_columns['roles'] = []
-        self.cclient.insert_generic(role, 'roles')
-
     def insert_roles(self, nrecs):
         roles = [make_role() for i in range(nrecs)]
         for role in roles:
-            self.insert_role(role)
+            self.cclient.insert_role(role)
         return roles
 
     def insert_mandatory_clients(self, nrecs):
@@ -748,7 +744,7 @@ class CassandraClientTests(unittest.TestCase):
         savedrole = roles[self.nrecs - 2]
         savedrole['role'] = set(['admin'])
         for role in roles:
-            self.insert_role(role)
+            self.cclient.insert_role(role)
         feideid = savedrole['feideid']
         orgid = savedrole['orgid']
         res = self.cclient.is_org_admin(feideid, orgid)
@@ -761,6 +757,15 @@ class CassandraClientTests(unittest.TestCase):
         role = roles[self.nrecs - 2]
         res = self.cclient.get_roles(['feideid = ?'], [role['feideid']], self.maxrows)
         assert roles_match(res[0], role)
+
+    def test_del_role(self):
+        roles = self.insert_roles(self.nrecs)
+        role = roles[self.nrecs - 2]
+        orgid = role['orgid']
+        feideid = role['feideid']
+        self.cclient.del_role(orgid, feideid)
+        res = self.cclient.get_roles(['feideid = ?'], [feideid], self.maxrows)
+        assert len(list(res)) == 0
 
     def test_get_mandatory_clients(self):
         mcs = self.insert_mandatory_clients(self.nrecs)

@@ -25,6 +25,8 @@ def configure(config):
     config.add_route('org_services', '/{id}/services/')
     config.add_route('org_service', '/{id}/services/{service}')
     config.add_route('org_ldap_status', '/{id}/ldap_status')
+    config.add_route('org_roles', '/{id}/roles/')
+    config.add_route('org_role', '/{id}/roles/{feideid}')
     config.scan(__name__)
 
 
@@ -207,6 +209,34 @@ def del_service(request):
     orgid = check(request, needs_realm=False, needs_platform_admin=True)
     service = request.matchdict['service']
     request.org_controller.del_service(user, orgid, service)
+    return Response(status='204 No Content', content_type=False)
+
+
+@view_config(route_name='org_roles', request_method='GET',
+             permission='scope_orgadmin', renderer="json")
+def list_org_roles(request):
+    orgid = check(request, needs_realm=False, needs_platform_admin=True)
+    return request.org_controller.list_org_roles(orgid)
+
+
+@view_config(route_name='org_role', request_method='PUT',
+             permission='scope_orgadmin', renderer="json")
+def add_org_role(request):
+    user = get_user(request)
+    orgid = check(request, needs_realm=False, needs_platform_admin=True)
+    feideid = request.matchdict['feideid']
+    rolenames = get_payload(request)
+    request.org_controller.add_org_role(user, orgid, feideid, rolenames)
+    return Response(status='204 No Content', content_type=False)
+
+
+@view_config(route_name='org_role', request_method='DELETE',
+             permission='scope_orgadmin', renderer="json")
+def del_org_role(request):
+    user = get_user(request)
+    orgid = check(request, needs_realm=False, needs_platform_admin=True)
+    feideid = request.matchdict['feideid']
+    request.org_controller.del_org_role(user, orgid, feideid)
     return Response(status='204 No Content', content_type=False)
 
 

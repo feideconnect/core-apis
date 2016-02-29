@@ -1,4 +1,5 @@
 import json
+import re
 import ssl
 
 import ldap3
@@ -12,6 +13,7 @@ from coreapis.crud_base import CrudControllerBase
 from coreapis.clientadm.controller import ClientAdmController
 
 VALID_SERVICES = ['auth', 'avtale', 'idporten', 'pilot']
+VALID_ROLENAMES = ['admin', 'mercantile', 'technical']
 
 
 def not_empty(thing):
@@ -20,6 +22,18 @@ def not_empty(thing):
 
 def valid_service(service):
     return service in VALID_SERVICES
+
+
+def valid_feideid(feideid):
+    pattern = r'[a-zA-Z0-9.-_]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)'
+    return re.match(pattern, feideid)
+
+
+def valid_rolenames(rolenames):
+    try:
+        return all(name in VALID_ROLENAMES for name in rolenames)
+    except TypeError:
+        return False
 
 
 def ldap_exception_argument(ex):
@@ -198,6 +212,29 @@ class OrgController(CrudControllerBase):
         services = set()
         services.add(service)
         self.session.del_services(orgid, services)
+
+    def list_org_roles(self, orgid):
+        roles = self.session.get_roles(['orgid = ?'], [orgid], self.maxrows)
+        return [dict(feideid=role['feideid'], role=role['role']) for role in roles]
+
+    def add_org_role(self, user, orgid, feideid, rolenames):
+        if not valid_feideid(feideid):
+            raise ValidationError('{} is not a valid Feide ID'.format(feideid))
+        if not valid_rolenames(rolenames):
+            raise ValidationError('{} is not a list of valid role names'.format(rolenames))
+        self.log.info('enabling role for organization',
+                      audit=True, orgid=orgid, feideid=feideid, rolenames=rolenames,
+                      user=get_feideid(user))
+        role = dict(orgid=orgid, feideid=feideid, role=rolenames)
+        self.session.insert_role(role)
+
+    def del_org_role(self, user, orgid, feideid):
+        if not valid_feideid(feideid):
+            raise ValidationError('not a valid Feide ID')
+        self.log.info('disabling role for organization',
+                      audit=True, orgid=orgid, feideid=feideid,
+                      user=get_feideid(user))
+        self.session.del_role(orgid, feideid)
 
     def has_permission(self, user, org, needs_platform_admin):
         if user is None or not self.is_admin(user, org['id']):

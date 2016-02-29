@@ -31,6 +31,10 @@ testorg2 = {
              'en': 'test organization 2', },
     'services': ['auth'],
 }
+testfeideid = 'foo@bar.no'
+testrole = {'orgid': testorg_id,
+            'feideid':  testfeideid,
+            'role': 'admin'}
 testservice = 'pilot'
 eg7 = dict(lat=63.4201, lon=18.969388)
 
@@ -227,6 +231,77 @@ class OrgViewTests(unittest.TestCase):
             res = self.testapp.get(path, status=200)
             out = res.body
             assert b'PNG' == out[1:4]
+
+    def _test_get_org_roles(self, httpstat):
+        headers = {'Authorization': 'Bearer user_token'}
+        path = '/orgs/{}/roles/'.format(testorg_id)
+        self.session.get_roles.return_value = [testrole]
+        return self.testapp.get(path, status=httpstat, headers=headers)
+
+    def test_get_org_roles(self):
+        self._test_get_org_roles(403)
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_get_org_roles_platform_admin(self, _):
+        res = self._test_get_org_roles(200)
+        assert 'admin' in res.json[0]['role']
+
+    def test_get_org_roles_bad_orgid(self):
+        self.session.get_org.side_effect = KeyError
+        self._test_get_org_roles(404)
+
+    def _test_add_org_role(self, httpstat, feideid, rolenames):
+        headers = {'Authorization': 'Bearer user_token'}
+        path = '/orgs/{}/roles/{}'.format(testorg_id, feideid)
+        self.session.get_roles.return_value = [testrole]
+        return self.testapp.put_json(path, rolenames, status=httpstat, headers=headers)
+
+    def test_add_org_role(self):
+        self._test_add_org_role(403, testfeideid, ['admin'])
+
+    def test_add_org_role_bad_orgid(self):
+        self.session.get_org.side_effect = KeyError
+        self._test_add_org_role(404, testfeideid, ['admin'])
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_add_org_role_platform_admin(self, _):
+        self._test_add_org_role(204, testfeideid, ['admin'])
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_add_org_role_bad_feideid(self, _):
+        self._test_add_org_role(400, 'hello', ['admin'])
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_add_org_role_malformed_feideid(self, _):
+        self._test_add_org_role(400, dict(feideid=testfeideid), ['admin'])
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_add_org_role_bad_rolename(self, _):
+        self._test_add_org_role(400, testfeideid, ['amin'])
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_add_org_role_malformed_body(self, _):
+        self._test_add_org_role(400, testfeideid, 3)
+
+    def _test_del_org_role(self, httpstat, feideid):
+        headers = {'Authorization': 'Bearer user_token'}
+        path = '/orgs/{}/roles/{}'.format(testorg_id, feideid)
+        return self.testapp.delete(path, status=httpstat, headers=headers)
+
+    def test_del_org_role(self):
+        self._test_del_org_role(403, testfeideid)
+
+    def test_del_org_role_bad_orgid(self):
+        self.session.get_org.side_effect = KeyError
+        self._test_del_org_role(404, testfeideid)
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_del_org_role_platform_admin(self, _):
+        self._test_del_org_role(204, testfeideid)
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_del_org_role_bad_feideid(self, _):
+        self._test_del_org_role(400, 'hello')
 
     def test_get_org_logo(self):
         self.session.get_org_logo.return_value = (b"A logo", now())

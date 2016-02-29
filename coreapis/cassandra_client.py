@@ -73,7 +73,8 @@ class Client(object):
         self.json_columns = {
             'clients': ['authoptions'],
             'apigk': ['scopedef', 'trust'],
-            'organizations': ['uiinfo']
+            'organizations': ['uiinfo'],
+            'roles': []
         }
         self.session = cluster.connect(keyspace)
         self.session.row_factory = datetime_hack_dict_factory
@@ -442,6 +443,13 @@ class Client(object):
 
     def get_roles(self, selectors, values, maxrows):
         return self.get_generic('roles', selectors, values, maxrows)
+
+    def insert_role(self, role):
+        self.insert_generic(role, 'roles')
+
+    def del_role(self, orgid, feideid):
+        prep = self._prepare('DELETE FROM roles WHERE orgid = ? AND feideid = ?')
+        self.session.execute(prep.bind([orgid, feideid]))
 
     def apigk_allowed_dn(self, dn):
         prep = self._prepare('SELECT dn from remote_apigatekeepers WHERE dn = ?')
