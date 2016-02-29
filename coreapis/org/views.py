@@ -67,12 +67,14 @@ def list_org(request):
 @view_config(route_name='orgs', request_method='POST', permission='scope_orgadmin', renderer='json')
 def add_org(request):
     user = get_user(request)
-    if not request.org_controller.is_platform_admin(user):
+    controller = request.org_controller
+    privileges = controller.get_privileges(user)
+    if not controller.is_platform_admin(user):
         raise HTTPForbidden('Insufficient privileges')
     payload = get_payload(request)
-    attrs = request.org_controller.allowed_attrs(payload, 'add')
+    attrs = controller.allowed_attrs(payload, 'add', privileges)
     try:
-        org = request.org_controller.add_org(user, attrs)
+        org = controller.add_org(user, attrs)
     except AlreadyExistsError:
         raise HTTPConflict("client with this id already exists")
     request.response.status = '201 Created'
@@ -85,8 +87,10 @@ def update_org(request):
     user = get_user(request)
     orgid = check(request, needs_realm=False, needs_platform_admin=True)
     payload = get_payload(request)
-    attrs = request.org_controller.allowed_attrs(payload, 'update')
-    org = request.org_controller.update_org(user, orgid, attrs)
+    controller = request.org_controller
+    privileges = controller.get_privileges(user)
+    attrs = request.org_controller.allowed_attrs(payload, 'update', privileges)
+    org = controller.update_org(user, orgid, attrs)
     return org
 
 

@@ -41,7 +41,9 @@ class AdHocGroupAdmController(CrudControllerBase):
         'type': valid_member_type,
     }]
     del_member_schema = [valid_member_id]
-    protected_attrs = ['created', 'owner', 'scopes', 'updated', 'id']
+    platformadmin_attrs = ['owner', 'scopes']
+    platformadmin_attrs_update = []
+    protected_attrs = ['created', 'updated', 'id']
     protected_attrs_update = []
 
     def __init__(self, settings):

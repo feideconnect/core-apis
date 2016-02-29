@@ -86,8 +86,8 @@ def add_group(request):
     userid = get_userid(request)
     payload = get_payload(request)
     controller = request.ahgroupadm_controller
-    attrs = controller.allowed_attrs(payload, 'add')
     privileges = controller.get_privileges(get_user(request))
+    attrs = controller.allowed_attrs(payload, 'add', privileges)
     group = controller.add(attrs, userid, privileges)
     request.response.status = 201
     request.response.location = "{}{}".format(request.url, group['id'])
@@ -106,8 +106,8 @@ def update_group(request):
     group = check(request, "update")
     payload = get_payload(request)
     controller = request.ahgroupadm_controller
-    attrs = controller.allowed_attrs(payload, 'update')
     privileges = controller.get_privileges(get_user(request))
+    attrs = controller.allowed_attrs(payload, 'update', privileges)
     group = controller.update(group['id'], attrs, privileges)
     return group
 

@@ -235,16 +235,17 @@ class ClientAdmTests(unittest.TestCase):
         self.session.get_client_by_id.side_effect = KeyError
         self.session.insert_client = mock.MagicMock()
         path = '/clientadm/clients/'
-        res = self.testapp.post_json(path, post_body_other_owner, status=201, headers=headers)
-        assert res.json['owner'] == userid_own
+        return self.testapp.post_json(path, post_body_other_owner, status=201, headers=headers)
 
     def test_post_client_other_owner(self):
-        self._test_post_client_other_owner()
+        res = self._test_post_client_other_owner()
+        assert res.json['owner'] == userid_own
 
     # Or should platformadmin be allowed to set another user as owner?
     @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_post_client_other_owner_platform_admin(self, _):
-        self._test_post_client_other_owner()
+        res = self._test_post_client_other_owner()
+        assert res.json['owner'] == userid_other
 
     def test_post_client_duplicate(self):
         headers = {'Authorization': 'Bearer user_token'}

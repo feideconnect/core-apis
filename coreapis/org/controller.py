@@ -47,6 +47,8 @@ class OrgController(CrudControllerBase):
         'has_peoplesearch': '?boolean',
         'peoplesearch': V.Nullable({})
     }
+    platformadmin_attrs = []
+    platformadmin_attrs_update = []
     protected_attrs = ['has_ldapgroups', 'has_peoplesearch', 'peoplesearch']
     protected_attrs_update = ['id']
 

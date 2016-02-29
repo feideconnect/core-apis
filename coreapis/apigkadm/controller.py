@@ -43,8 +43,10 @@ class APIGKAdmController(CrudControllerBase):
         'scopes': V.Nullable(['string'], lambda: list()),
     }
     public_attrs = ['id', 'name', 'descr', 'scopedef', 'systemdescr', 'privacypolicyurl', 'docurl']
-    protected_attrs = ['created', 'owner', 'scopes', 'updated']
-    protected_attrs_update = ['id', 'organization']
+    platformadmin_attrs = ['owner', 'scopes']
+    platformadmin_attrs_update = ['organization']
+    protected_attrs = ['created', 'updated']
+    protected_attrs_update = ['id']
 
     def __init__(self, settings):
         contact_points = settings.get('cassandra_contact_points')

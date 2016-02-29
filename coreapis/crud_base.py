@@ -27,10 +27,14 @@ class CrudControllerBase(object):
         self.log = LogWrapper('crud_base')
         self.objtype = objtype
 
-    def allowed_attrs(self, attrs, operation):
+    def allowed_attrs(self, attrs, operation, privileges):
         protected_attrs = list(self.protected_attrs)
+        if PRIV_PLATFORM_ADMIN not in privileges:
+            protected_attrs += self.platformadmin_attrs
         if operation != 'add':
             protected_attrs += self.protected_attrs_update
+            if PRIV_PLATFORM_ADMIN not in privileges:
+                protected_attrs += self.platformadmin_attrs_update
         try:
             return {k: v for k, v in attrs.items() if k not in protected_attrs}
         except AttributeError:

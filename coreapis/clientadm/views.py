@@ -112,14 +112,14 @@ def add_client(request):
     payload = get_payload(request)
     user = get_user(request)
     controller = request.cadm_controller
-    attrs = controller.allowed_attrs(payload, 'add')
+    privileges = controller.get_privileges(user)
+    attrs = controller.allowed_attrs(payload, 'add', privileges)
     if 'organization' in attrs:
         if not controller.is_admin(user, attrs['organization']):
             raise HTTPForbidden('Not administrator for organization')
     elif not authprovmgr.has_user_permission(user, REGISTER_CLIENT):
         raise HTTPForbidden('Insufficient permissions')
     try:
-        privileges = controller.get_privileges(user)
         client = controller.add(attrs, userid, privileges)
     except AlreadyExistsError:
         raise HTTPConflict("client with this id already exists")
@@ -141,8 +141,8 @@ def update_client(request):
     client = check(request)
     payload = get_payload(request)
     controller = request.cadm_controller
-    attrs = controller.allowed_attrs(payload, 'update')
     privileges = controller.get_privileges(get_user(request))
+    attrs = controller.allowed_attrs(payload, 'update', privileges)
     client = controller.update(client['id'], attrs, privileges)
     return client
 
