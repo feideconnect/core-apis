@@ -18,7 +18,6 @@ from coreapis.utils import (
 
 
 USER_SETTABLE_STATUS_FLAGS = {'Public'}
-PLATFORM_ADMIN_STATUS_FLAGS = {'Mandatory'}
 INVALID_URISCHEMES = {'data', 'javascript', 'file', 'about'}
 FEIDE_REALM_PREFIX = 'feide|realm|'
 
@@ -34,13 +33,6 @@ def is_valid_uri(uri):
         return True
 
 
-def flags_allowed(privileges):
-    flags = set(USER_SETTABLE_STATUS_FLAGS)
-    if PRIV_PLATFORM_ADMIN in privileges:
-        flags |= PLATFORM_ADMIN_STATUS_FLAGS
-    return flags
-
-
 def filter_client_status(attrs_new, attrs_old, privileges):
     try:
         status_old = set(attrs_old['status'])
@@ -50,7 +42,10 @@ def filter_client_status(attrs_new, attrs_old, privileges):
         status_requested = set(attrs_new['status'])
     except (KeyError, TypeError):
         status_requested = set()
-    status_allowed = {flag for flag in status_requested if flag in flags_allowed(privileges)}
+    if PRIV_PLATFORM_ADMIN in privileges:
+        status_allowed = status_requested
+    else:
+        status_allowed = status_requested.intersection(USER_SETTABLE_STATUS_FLAGS)
     attrs_new['status'] = list(status_old.union(status_allowed))
 
 
