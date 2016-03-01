@@ -148,6 +148,8 @@ class OrgController(CrudControllerBase):
     def delete_org(self, user, orgid):
         if self.list_mandatory_clients(orgid):
             raise ValidationError('org {} has mandatory clients'.format(orgid))
+        if self.list_org_roles(orgid):
+            raise ValidationError('org {} has roles'.format(orgid))
         self.log.info('delete organization',
                       audit=True, orgid=orgid,
                       user=get_feideid(user))
