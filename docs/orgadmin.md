@@ -116,6 +116,73 @@ Only for platform administrators
 Only for platform administrators
 
 
+## Register a role for an organization
+
+    curl -X PUT -H "Authorization: Bearer $TOKEN" -d '["admin", "technical"]' \
+    'https://api.dataporten.no/orgs/<org-id>/roles/<feide-id>'
+
+### Payload
+
+A json array of roles to enable. Valid values are `admin`,
+`mercantile` and `technical`.
+
+### Parameters
+
+- `org-id`: In the url. The id of the organization to work on.
+- `feide-id`: A single domain-qualified string in the url is the Feide
+  id of the user with the role
+
+### Return values
+
+- `204 No Content`: The role was successfully registered
+- `400 Bad Request`: The Feide id or payload is invalid
+- `403 Forbidden`: User is not a platform admin
+- `404 Not Found`: The provided organization id does not exist in database
+
+Only for platform administrators
+
+
+## List roles for an organization
+
+    curl -X DELETE -H "Authorization: Bearer $TOKEN" 'https://api.dataporten.no/orgs/<org-id>/roles/'
+
+    [{"feideid": "jk@ipadi.no",
+      "role": ["admin", "technical"]
+    }]
+
+### Parameters
+
+- `org-id`: In the url. The id of the organization to work on.
+
+### Return values
+
+- `200 OK`: When the request is successful this code is returned and the a json representation of the roles is returned
+- `403 Forbidden`: User is not a platform admin
+- `404 Not Found`: The provided organization id does not exist in database
+
+Only for platform administrators
+
+
+## Delete a role from an organization
+
+    curl -X DELETE -H "Authorization: Bearer $TOKEN" 'https://api.dataporten.no/orgs/<org-id>/roles/<feide-id>'
+
+### Parameters
+
+- `org-id`: In the url. The id of the organization to work on.
+- `feide-id`: A single domain-qualified string in the url is the Feide
+  id of the user with the role
+
+### Return values
+
+- `204 No Content`: The object was successfully deleted
+- `400 Bad Request`: The Feide id is invalid
+- `403 Forbidden`: User is not a platform admin
+- `404 Not Found`: The provided organization id does not exist in database
+
+Only for platform administrators
+
+
 ## Mark a client as mandatory for an organization
 
     curl -H "Authorization: Bearer $TOKEN" -X PUT 'https://api.dataporten.no/orgs/<org-id>/mandatory_clients/<client-id>'
