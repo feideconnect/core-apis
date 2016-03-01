@@ -208,6 +208,13 @@ class GKMockAuthMiddleware(MockAuthMiddleware):
         return data
 
 
+def get_client_address(environ):
+    try:
+        return environ['HTTP_X_FORWARDED_FOR'].split(',')[-1].strip()
+    except KeyError:
+        return environ['REMOTE_ADDR']
+
+
 class CassandraMiddleware(AuthMiddleware):
     def __init__(self, app, realm, contact_points, keyspace, timer, ratelimiter, use_eventlet, authz):
         super(CassandraMiddleware, self).__init__(app, realm)
@@ -217,7 +224,7 @@ class CassandraMiddleware(AuthMiddleware):
         self.session.timer = timer
 
     def __call__(self, environ, start_response):
-        if self.ratelimiter and not self.ratelimiter.check_rate(environ['REMOTE_ADDR']):
+        if self.ratelimiter and not self.ratelimiter.check_rate(get_client_address(environ)):
             headers = []
             start_response('429 Too many requests', headers)
             return ""
