@@ -40,12 +40,12 @@ Returns a list of objects representing clients that are currently marked as mand
         }' \
     https://api.dataporten.no/orgs/
 
-### Required parameters
+### Required attributes
 
 - `id`: Feide organizations have "fc:org:<realm>". String.
 - `name`: Object of key: language code and name: string.
 
-### Optional parameters
+### Optional attributes
 
 - `fs_groups`: Boolean. True if organization has group in the Norwegian common student system.
 - `realm`: Feide realm. String.
@@ -71,7 +71,7 @@ Returns a list of objects representing clients that are currently marked as mand
 
 - `201 Created`: When the request is successful this code is returned and a json representation of the created object is returned in the response body
 - `409 Conflict`: Returned if the selected `id` is already in use
-- `400 Bad Request`: Returned if required parameters are missing or some parameter is malformed
+- `400 Bad Request`: Returned if required attributes are missing or some attribute is malformed
 - `403 Forbidden`: User is not a platform admin
 
 Only for platform administrators
@@ -88,14 +88,14 @@ Only for platform administrators
         ]}' \
     'https://api.dataporten.no/orgs/<org id>'
 
-### Parameters
+### Attributes
 
-All parameters have the same meaning as when creating, but none are mandatory and `id` is read only (it's presence in a request will be ignored)
+All attributes have the same meaning as when creating, but none are mandatory and `id` is read only (it's presence in a request will be ignored)
 
 ### Return values
 
 - `200 OK`: When the request is successful this code is returned and the a json representation of the updated object is returned
-- `400 Bad Request`: Some parameter passed was invalid
+- `400 Bad Request`: Some attribute passed was invalid
 - `403 Forbidden`: User is not a platform admin
 
 Only for platform administrators
@@ -110,7 +110,7 @@ Only for platform administrators
 
 - `204 No Content`: The object was successfully deleted
 - `400 Bad Request`: Organization has mandatory clients
-- `403 Forbidden`: Current user does not own the object to be deleted
+- `403 Forbidden`: User is not a platform admin
 - `404 Not Found`: The provided organization id does not exist in database
 
 Only for platform administrators

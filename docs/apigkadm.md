@@ -32,14 +32,14 @@ To test the API, obtain an authentication token and
     }' \
     'https://api.dataporten.no/apigkadm/apigks/'
 
-### Required parameters
+### Required attributes
 
 - `id`: Only lower case characters, numbers and -. Must begin with a character. 3 to 15 characters long. This is the first part of the domain the gatekeeper will be accessible as. E.g a gatekeeper with id `testkeeper` will be accessible as `https://testkeeper.gk.dataporten.no`.
 - `name`: Descriptive name of the gatekeeper
 - `requireuser`: Boolean, whether clients can access this api without acting on behalf of a user
 - `endpoints`: Array of urls that this gatekeeper will forward the requests to. Must be http or https and may not contain a file path. E.g. `https://api.example.com` or `http://data.example.org:5001`
 
-### Optional parameters
+### Optional attributes
 
 - `descr`: Textual description of this gatekeeper
 - `expose`: Object describing what data is exposed to the api
@@ -56,7 +56,7 @@ To test the API, obtain an authentication token and
 - `scopedef`: To be defined
 - `organization`: When set the gatekeeper will be owned by the organization with this id. Token must be associated with a user that is org admin for the organization. When not set the gatekeeper will be personal.
 
-### Read only parameters
+### Read only attributes
 
 These attributes are returned from queries, and will be ignored in updates and when creating.
 - `owner`: User id of the owner. Will be set based on the current authorization token
@@ -67,7 +67,7 @@ These attributes are returned from queries, and will be ignored in updates and w
 
 - `201 Created`: When the request is successful this code is returned and a json representation of the created object is returned in the response body
 - `409 Conflict`: Returned if the selected `id` is already in use
-- `400 Bad Request`: Returned if required parameters are missing or some parameter is malformed
+- `400 Bad Request`: Returned if required attributes are missing or some attribute is malformed
 - `403 Forbidden`: User is not admin of the organization mentioned in `organization`
 
 ## Updating an apigk
@@ -76,14 +76,14 @@ These attributes are returned from queries, and will be ignored in updates and w
      -H "Content-Type: application/json" -d '{"name": "New gatekeeper name"}' \
     'https://api.dataporten.no/apigkadm/apigks/<gatekeeper id>'
 
-### Parameters
+### Attributes
 
-All parameters have the same meaning as when creating, but none are mandatory and `id` and `organization` is read only (it's presence in a request will be ignored)
+All attributes have the same meaning as when creating, but none are mandatory and `id` and `organization` is read only (it's presence in a request will be ignored)
 
 ### Return values
 
 - `200 OK`: When the request is successful this code is returned and the a json representation of the updated object is returned
-- `400 Bad Request`: Some parameter passed was invalid
+- `400 Bad Request`: Some attribute passed was invalid
 - `403 Forbidden`: Current user does not own the object to be updated
 
 ## Fetching a gatekeeper

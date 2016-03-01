@@ -13,12 +13,12 @@ To test the API, obtain an authentication token and
     }' \
     'https://api.dataporten.no/adhocgroups/'
 
-### Required parameters
+### Required attributes
 
 - `name`: The name of the new group
 - `public`: (boolean)Whether this group should be public or not
 
-### Optional parameters
+### Optional attributes
 
 - `descr`: A textual description of the group
 - `invitation_token`: A token for use in invitation mails etc. Should be properly random
@@ -26,7 +26,7 @@ To test the API, obtain an authentication token and
 ### Return values
 
 - `201 Created`: The group was created. More info about the group can be obtained from the url included in the `Location` header in the response
-- `400 Bad Request`: Some required parameter is missing or some passed parameter is invalid or malformed
+- `400 Bad Request`: Some required attribute is missing or some passed attribute is invalid or malformed
 
 ## Updating a group
 
@@ -37,7 +37,7 @@ To test the API, obtain an authentication token and
     }' \
     'https://api.dataporten.no/adhocgroups/<group id>'
 
-### Optional parameters
+### Optional attributes
 
 - `descr`: A textual description of the group
 - `invitation_token`: A token for use in invitation mails etc. Should be properly random
@@ -47,7 +47,7 @@ To test the API, obtain an authentication token and
 ### Return values
 
 - `201 Created`: The group was created. More info about the group can be obtained from the url included in the `Location` header in the response
-- `400 Bad Request`: Some required parameter is missing or some passed parameter is invalid or malformed
+- `400 Bad Request`: Some required attribute is missing or some passed attribute is invalid or malformed
 
 ## Deleting a group
 
