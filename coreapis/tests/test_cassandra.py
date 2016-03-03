@@ -728,7 +728,7 @@ class CassandraClientTests(unittest.TestCase):
     def test_org_use_fs_groups(self):
         orgs = [make_org() for i in range(self.nrecs)]
         savedorg = orgs[self.nrecs - 2]
-        savedorg['fs_groups'] = True
+        savedorg['services'].add('fsgroups')
         for org in orgs:
             self.cclient.insert_org(org)
         res = self.cclient.org_use_fs_groups(savedorg['realm'])
