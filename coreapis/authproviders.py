@@ -46,7 +46,7 @@ class AuthProvidersManager(object):
     providers = {klass.provider_name: klass
                  for klass in [FeideProvider, IdportenProvider]}
 
-    def has_identity_permission(self, identity, operation):
+    def _has_identity_permission(self, identity, operation):
         provider_name, _, user_key = identity.partition(':')
         provider = self.providers.get(provider_name)
         if provider:
@@ -54,10 +54,15 @@ class AuthProvidersManager(object):
         else:
             return False
 
+    # True if user - not acting in the capacity of an org admin - has
+    # permission to perform operation
     def has_user_permission(self, user, operation):
-        return any(self.has_identity_permission(identity, operation)
+        return any(self._has_identity_permission(identity, operation)
                    for identity in user['userid_sec'])
 
+    # For certain authentication providers, there are additional constraints
+    # that must be satisfied when inserting/updating a client.
+    # This method raises an exception if any constraint is not met.
     def check_client_update(self, session, client):
         for provider_name in client.get('authproviders'):
             provider = self.providers.get(provider_name)
