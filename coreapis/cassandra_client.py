@@ -402,14 +402,12 @@ class Client(object):
         self.session.execute(prep.bind([itemid, data, updated]))
 
     def org_use_fs_groups(self, realm):
-        prep = self._prepare('SELECT fs_groups FROM organizations WHERE realm = ?')
+        prep = self._prepare('SELECT id FROM organizations WHERE realm = ?'
+                             ' and services contains \'fsgroups\' ALLOW FILTERING')
         res = list(self.session.execute(prep.bind([realm])))
         if len(res) == 0:
             return False
-        row = res[0]
-        if row.get('fs_groups', False):
-            return True
-        return False
+        return True
 
     def is_org_admin(self, feideid, orgid):
         prep = self._prepare('SELECT role from roles where feideid = ? AND orgid = ?')
