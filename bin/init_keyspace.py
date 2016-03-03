@@ -30,10 +30,13 @@ class KeyspaceInitializer(object):
         except NoHostAvailable as e:
             self.error = e
 
-    def exec_cql(self, stmt, msg):
+    def exec_cql(self, stmt, msg, timeout=-1):
         if msg:
             print(msg, '... ', end='', flush=True)
-        res = self.session.execute(stmt)
+        if timeout > 0:
+            res = self.session.execute(stmt, timeout=timeout)
+        else:
+            res = self.session.execute(stmt)
         if msg:
             print('done')
         return res
@@ -43,7 +46,8 @@ class KeyspaceInitializer(object):
         return len(list(res)) > 0
 
     def drop_keyspace(self):
-        self.exec_cql(TPL_DROP.format(self.keyspace), 'dropping keyspace ' + self.keyspace)
+        self.exec_cql(TPL_DROP.format(self.keyspace), 'dropping keyspace ' + self.keyspace,
+                      timeout=30.)
 
     def create_keyspace(self):
         self.exec_cql(TPL_CREATE.format(self.keyspace, REPLICATION),
