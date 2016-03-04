@@ -29,6 +29,7 @@ import uuid
 import random
 import string
 import os
+from collections import Mapping, Sequence
 from cassandra.cluster import NoHostAvailable
 from coreapis.cassandra_client import Client
 from coreapis.utils import now
@@ -78,6 +79,10 @@ def random_bytes(length):
 
 def random_int():
     return random.randint(0, 2**30)
+
+
+def is_sequence(value):
+    return isinstance(value, Sequence) and not isinstance(value, str)
 
 
 def id_and_owner_match(a, b):
@@ -143,7 +148,7 @@ def make_client():
         loginurl='',
         supporturl='',
         authproviders=[],
-        authoptions='',
+        authoptions={},
         owner=uuid.uuid4(),
         organization='',
         created=ts_now,
@@ -182,19 +187,20 @@ def make_user():
 
 def make_apigk():
     ts_now = now()
+    scopes = random_string(10)
     return dict(
         id=random_string(16),
         name='',
         descr='',
         systemdescr='',
-        scopes=[],
-        scopes_requested=[random_string(10)],
+        scopes=[scopes],
+        scopes_requested=[scopes],
         endpoints=[],
-        trust=None,
-        scopedef='{}',
+        trust={},
+        scopedef={},
         requireuser=False,
         httpscertpinned='',
-        status=set(),
+        status=set([random_string(10)]),
         privacypolicyurl='',
         docurl='',
         owner=uuid.uuid4(),
@@ -255,7 +261,7 @@ def make_org():
         type=set(),
         organization_number=random_string(16),
         name={'nb': random_string(16)},
-        uiinfo=random_string(16),
+        uiinfo={},
         services=set()
     )
 
@@ -436,10 +442,12 @@ class CassandraClientTests(unittest.TestCase):
         recid = rec[key]
         res = getter(recid)
         assert matcher(res, rec)
+        return res
 
     def test_get_client_by_id(self):
-        self._test_get_rec(self.insert_clients, self.cclient.get_client_by_id, 'id',
-                           id_and_owner_match)
+        res = self._test_get_rec(self.insert_clients, self.cclient.get_client_by_id,
+                                 'id', id_and_owner_match)
+        assert isinstance(res['authoptions'], str)
 
     def _test_get_recs(self, seeder, getter, key):
         recs = seeder(self.nrecs)
@@ -562,7 +570,13 @@ class CassandraClientTests(unittest.TestCase):
         assert res == userid
 
     def test_get_apigk(self):
-        self._test_get_rec(self.insert_apigks, self.cclient.get_apigk, 'id', id_and_owner_match)
+        res = self._test_get_rec(self.insert_apigks, self.cclient.get_apigk,
+                                 'id', id_and_owner_match)
+        assert is_sequence(res['scopes'])
+        assert is_sequence(res['scopes_requested'])
+        assert is_sequence(res['status'])
+        assert isinstance(res['scopedef'], Mapping)
+        assert isinstance(res['trust'], Mapping)
 
     def test_get_apigks(self):
         def get_apigks():
@@ -697,8 +711,9 @@ class CassandraClientTests(unittest.TestCase):
             self.cclient.get_grep_code_by_code(code, greptype)
 
     def test_get_org(self):
-        self._test_get_rec(self.insert_orgs, self.cclient.get_org, 'id',
-                           orgs_match)
+        res = self._test_get_rec(self.insert_orgs, self.cclient.get_org, 'id',
+                                 orgs_match)
+        assert isinstance(res['uiinfo'], str)
 
     def test_get_org_by_realm(self):
         self._test_get_rec(self.insert_orgs, self.cclient.get_org_by_realm, 'realm',
