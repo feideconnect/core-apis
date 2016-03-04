@@ -16,7 +16,7 @@ def parse_apigk(obj):
         if key in obj:
             if obj[key]:
                 obj[key] = json.loads(obj[key])
-    for key in ('scopes', 'scopes_requested'):
+    for key in ('scopes', 'scopes_requested', 'status'):
         if key in obj:
             if obj[key]:
                 obj[key] = list(obj[key])
