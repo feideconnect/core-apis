@@ -12,7 +12,7 @@ from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.clientadm.controller import ClientAdmController
 
-VALID_SERVICES = ['auth', 'avtale', 'idporten', 'pilot']
+VALID_SERVICES = ['auth', 'avtale', 'idporten', 'pilot', 'fsgroups']
 VALID_ROLENAMES = ['admin', 'mercantile', 'technical']
 
 
