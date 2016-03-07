@@ -6,7 +6,7 @@ import valideer as V
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.utils import (LogWrapper, timestamp_adapter, ValidationError, public_userinfo,
-                            ResourceError, get_platform_admins)
+                            ResourceError, get_platform_admins, userinfo_for_log)
 from coreapis.peoplesearch.tokens import decrypt_token
 
 
@@ -76,8 +76,9 @@ class AdHocGroupAdmController(CrudControllerBase):
         group = self.session.get_group(id)
         return group
 
-    def delete(self, groupid):
-        self.log.debug('Delete group', id=groupid)
+    def delete(self, groupid, user):
+        self.log.info('delete adhoc group',
+                      audit=True, groupid=groupid, user=userinfo_for_log(user))
         for member in self.session.get_group_members(groupid):
             self.session.del_group_member(groupid, member['userid'])
         self.session.delete_group(groupid)
@@ -93,9 +94,19 @@ class AdHocGroupAdmController(CrudControllerBase):
                 seen_groups.add(groupid)
         return groups
 
-    def add(self, item, userid, privileges):
+    def add(self, item, user, privileges):
+        userid = user['userid']
         res = super(AdHocGroupAdmController, self).add(item, userid, privileges)
+        self.log.info('adding adhoc group',
+                      audit=True, groupid=res['id'], user=userinfo_for_log(user))
         self.add_member(res['id'], userid, 'admin', 'normal', None)
+        return res
+
+    def update(self, groupid, attrs, user, privileges):
+        res = super(AdHocGroupAdmController, self).update(groupid, attrs, privileges)
+        self.log.info('updating adhoc group',
+                      audit=True, groupid=res['id'], attrs=attrs,
+                      user=userinfo_for_log(user))
         return res
 
     def _insert(self, group, privileges):
@@ -199,7 +210,7 @@ class AdHocGroupAdmController(CrudControllerBase):
             raise ValidationError(str(ex))
         self.session.set_group_member_type(groupid, userid, mtype)
 
-    def add_members(self, groupid, data, callerid):
+    def add_members(self, groupid, data, user):
         validator = V.parse(self.member_schema, additional_properties=False)
         try:
             adapted = validator.validate(data)
@@ -209,6 +220,9 @@ class AdHocGroupAdmController(CrudControllerBase):
         to_add = len([member for member in adapted if 'token' in member])
         if to_add > 0 and to_add + members > self.max_add_members:
             raise ResourceError("Can not add more than {} members".format(self.max_add_members))
+        callerid = user['userid']
+        self.log.info('adding group members',
+                      audit=True, groupid=groupid, data=data, user=userinfo_for_log(user))
         for member in adapted:
             if 'token' in member:
                 self.add_member_from_token(groupid, member['token'], member['type'], callerid)
@@ -217,12 +231,14 @@ class AdHocGroupAdmController(CrudControllerBase):
             else:
                 raise ValidationError('id or token must be given')
 
-    def del_members(self, groupid, data):
+    def del_members(self, groupid, data, user):
         validator = V.parse(self.del_member_schema, additional_properties=False)
         try:
             adapted = validator.validate(data)
         except V.ValidationError as ex:
             raise ValidationError(str(ex))
+        self.log.info('delete group members',
+                      audit=True, groupid=groupid, data=data, user=userinfo_for_log(user))
         for member in adapted:
             userid = self.session.get_userid_by_userid_sec(member)
             self.session.del_group_member(groupid, userid)
@@ -240,25 +256,32 @@ class AdHocGroupAdmController(CrudControllerBase):
                 pass
         return res
 
-    def leave_groups(self, userid, data):
+    def leave_groups(self, user, data):
         try:
             groups = V.parse([V.AdaptTo(uuid.UUID)]).validate(data)
         except V.ValidationError as ex:
             raise ValidationError(str(ex))
+        self.log.info('leave groups',
+                      audit=True, data=data, user=userinfo_for_log(user))
+        userid = user['userid']
         for groupid in groups:
             self.session.del_group_member(groupid, userid)
 
-    def confirm_groups(self, userid, data):
+    def confirm_groups(self, user, data):
         try:
             groups = V.parse([V.AdaptTo(uuid.UUID)]).validate(data)
         except V.ValidationError as ex:
             raise ValidationError(str(ex))
+        self.log.info('confirm groups',
+                      audit=True, data=data, user=userinfo_for_log(user))
+        userid = user['userid']
         for groupid in groups:
             self.session.get_membership_data(groupid, userid)  # Raises KeyError if not member
         for groupid in groups:
             self.session.set_group_member_status(groupid, userid, 'normal')
 
-    def invitation_token(self, groupid, userid, token):
+    def invitation_token(self, groupid, user, token):
+        userid = user['userid']
         try:
             self.session.get_membership_data(groupid, userid)
             return None
@@ -267,6 +290,9 @@ class AdHocGroupAdmController(CrudControllerBase):
         group = self.get(groupid)
         if group['invitation_token'] != token:
             return None
+        self.log.info('adding group member from invitation',
+                      audit=True, groupid=groupid, token=token,
+                      user=userinfo_for_log(user))
         self.add_member(groupid, userid, "member", "normal", None)
         return {
             'groupid': groupid,

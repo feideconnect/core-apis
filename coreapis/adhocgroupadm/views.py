@@ -83,12 +83,12 @@ def get_group_details(request):
 @view_config(route_name='add_group', renderer='json', request_method='POST',
              permission='scope_adhocgroupadmin')
 def add_group(request):
-    userid = get_userid(request)
+    user = get_user(request)
     payload = get_payload(request)
     controller = request.ahgroupadm_controller
-    privileges = controller.get_privileges(get_user(request))
+    privileges = controller.get_privileges(user)
     attrs = controller.allowed_attrs(payload, 'add', privileges)
-    group = controller.add(attrs, userid, privileges)
+    group = controller.add(attrs, user, privileges)
     request.response.status = 201
     request.response.location = "{}{}".format(request.url, group['id'])
     return group
@@ -97,18 +97,20 @@ def add_group(request):
 @view_config(route_name='delete_group', renderer='json', permission='scope_adhocgroupadmin')
 def delete_group(request):
     group = check(request, "delete")
-    request.ahgroupadm_controller.delete(group['id'])
+    user = get_user(request)
+    request.ahgroupadm_controller.delete(group['id'], user)
     return Response(status=204, content_type=False)
 
 
 @view_config(route_name='update_group', renderer='json', permission='scope_adhocgroupadmin')
 def update_group(request):
     group = check(request, "update")
+    user = get_user(request)
     payload = get_payload(request)
     controller = request.ahgroupadm_controller
-    privileges = controller.get_privileges(get_user(request))
+    privileges = controller.get_privileges(user)
     attrs = controller.allowed_attrs(payload, 'update', privileges)
-    group = controller.update(group['id'], attrs, privileges)
+    group = controller.update(group['id'], attrs, user, privileges)
     return group
 
 
@@ -153,10 +155,10 @@ def group_members(request):
              permission='scope_adhocgroupadmin', renderer="json")
 def add_group_members(request):
     group = check(request, "edit_members")
-    userid = get_userid(request)
+    user = get_user(request)
     payload = get_payload(request)
     try:
-        return request.ahgroupadm_controller.add_members(group['id'], payload, userid)
+        return request.ahgroupadm_controller.add_members(group['id'], payload, user)
     except ResourceError as ex:
         raise HTTPConflict(ex.message)
 
@@ -165,8 +167,9 @@ def add_group_members(request):
              permission='scope_adhocgroupadmin')
 def del_group_members(request):
     group = check(request, "edit_members")
+    user = get_user(request)
     payload = get_payload(request)
-    request.ahgroupadm_controller.del_members(group['id'], payload)
+    request.ahgroupadm_controller.del_members(group['id'], payload, user)
     return Response(status=204, content_type=False)
 
 
@@ -181,18 +184,18 @@ def get_group_memberships(request):
 @view_config(route_name='group_memberships', request_method="DELETE",
              permission='scope_adhocgroupadmin', renderer="json")
 def leave_groups(request):
-    userid = get_userid(request)
+    user = get_user(request)
     payload = get_payload(request)
-    return request.ahgroupadm_controller.leave_groups(userid, payload)
+    return request.ahgroupadm_controller.leave_groups(user, payload)
 
 
 @view_config(route_name='group_memberships', request_method="PATCH",
              permission='scope_adhocgroupadmin', renderer="json")
 def confirm_groups(request):
-    userid = get_userid(request)
+    user = get_user(request)
     payload = get_payload(request)
     try:
-        return request.ahgroupadm_controller.confirm_groups(userid, payload)
+        return request.ahgroupadm_controller.confirm_groups(user, payload)
     except KeyError:
         raise HTTPConflict('Not member of group')
 
@@ -200,13 +203,13 @@ def confirm_groups(request):
 @view_config(route_name='ahgroup_invitation', request_method='POST',
              permission='scope_adhocgroupadmin', renderer="json")
 def invitation_token(request):
-    userid = get_userid(request)
+    user = get_user(request)
     groupid = get_groupid(request)
     payload = get_payload(request)
     if 'invitation_token' not in payload:
         raise HTTPBadRequest('missing required field "invitation_token"')
     membership = request.ahgroupadm_controller.invitation_token(groupid,
-                                                                userid,
+                                                                user,
                                                                 payload['invitation_token'])
     if not membership:
         raise HTTPConflict('Already a member or incorrect invitation token')
