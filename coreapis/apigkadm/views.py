@@ -90,7 +90,6 @@ def apigk_exists(request):
 @view_config(route_name='add_apigk', renderer='json', request_method='POST',
              permission='scope_apigkadmin')
 def add_apigk(request):
-    userid = get_userid(request)
     payload = get_payload(request)
     user = get_user(request)
     controller = request.gkadm_controller
@@ -102,7 +101,7 @@ def add_apigk(request):
     elif not authprovmgr.has_user_permission(user, REGISTER_APIGK):
         raise HTTPForbidden('Insufficient permissions')
     try:
-        apigk = controller.add(attrs, userid, privileges)
+        apigk = controller.add(attrs, user, privileges)
     except AlreadyExistsError:
         raise HTTPConflict("apigk with this id already exists")
     request.response.status = 201
@@ -123,9 +122,10 @@ def update_apigk(request):
     gk = check(request)
     payload = get_payload(request)
     controller = request.gkadm_controller
-    privileges = controller.get_privileges(get_user(request))
+    user = get_user(request)
+    privileges = controller.get_privileges(user)
     attrs = controller.allowed_attrs(payload, 'update', privileges)
-    apigk = controller.update(gk['id'], attrs, privileges)
+    apigk = controller.update(gk['id'], attrs, user, privileges)
     return apigk
 
 

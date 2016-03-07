@@ -7,7 +7,8 @@ from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.clientadm.controller import ClientAdmController
 from coreapis.scopes.manager import ScopesManager
-from coreapis.utils import LogWrapper, timestamp_adapter, log_token, valid_url, get_platform_admins
+from coreapis.utils import (
+    LogWrapper, timestamp_adapter, log_token, valid_url, userinfo_for_log, get_platform_admins)
 
 
 def valid_gk_url(url):
@@ -85,7 +86,9 @@ class APIGKAdmController(CrudControllerBase):
         subscopes = ['{}_{}'.format(mainscope, s)
                      for s in gk.get('scopedef', {}).get('subscopes', {}).keys()]
         gk_scopes = [mainscope] + subscopes
-        self.log.debug('Delete apigk', gkid=gkid, scopes=gk_scopes)
+        self.log.info('delete apigk',
+                      audit=True, gikd=gkid, scopes=gk_scopes,
+                      user=userinfo_for_log(user))
         # Delete scopes from all clients
         clients = self.cadm_controller.get_gkscope_clients(['gk_' + gkid])
         for client in clients:
@@ -140,6 +143,18 @@ class APIGKAdmController(CrudControllerBase):
         self.session.insert_apigk(apigk)
         self.scopemgr.notify_moderators(apigk)
         return apigk
+
+    def add(self, apigk, user, privileges):
+        res = super(APIGKAdmController, self).add(apigk, user['userid'], privileges)
+        self.log.info('adding apigk',
+                      audit=True, gkid=res['id'], user=userinfo_for_log(user))
+        return res
+
+    def update(self, gkid, attrs, user, privileges):
+        res = super(APIGKAdmController, self).update(gkid, attrs, privileges)
+        self.log.info('updating apigk',
+                      audit=True, gkid=res['id'], attrs=attrs, user=userinfo_for_log(user))
+        return res
 
     def get_logo(self, gkid):
         return self.session.get_apigk_logo(gkid)
