@@ -16,15 +16,15 @@ from coreapis.clientadm.tests.helper import (
     post_body_minimal, post_body_other_owner, post_body_maximal, retrieved_client,
     retrieved_user, retrieved_gk_clients, testgk, testgk_foo, othergk, owngk, nullscopedefgk,
     httptime, mock_get_apigk, mock_get_clients, retrieved_apigks, userstatus, reservedstatus,
-    testrealm, is_full_client, is_public_client)
+    testrealm, is_full_client, is_public_client, FEIDETESTER)
 
 
 PLATFORMADMIN = 'admin@example.com'
-FEIDETESTER = 'asbjorn_elevg@spusers.feide.no'
 
 
 def make_user(source, userid):
     return {
+        'userid': uuid.uuid4(),
         'userid_sec': ['{}:{}'.format(source, userid)]
     }
 

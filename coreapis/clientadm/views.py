@@ -108,7 +108,6 @@ def get_client(request):
              permission='scope_clientadmin')
 @translation
 def add_client(request):
-    userid = get_userid(request)
     payload = get_payload(request)
     user = get_user(request)
     controller = request.cadm_controller
@@ -120,7 +119,7 @@ def add_client(request):
     elif not authprovmgr.has_user_permission(user, REGISTER_CLIENT):
         raise HTTPForbidden('Insufficient permissions')
     try:
-        client = controller.add(attrs, userid, privileges)
+        client = controller.add(attrs, user, privileges)
     except AlreadyExistsError:
         raise HTTPConflict("client with this id already exists")
     request.response.status = '201 Created'
@@ -131,7 +130,8 @@ def add_client(request):
 @view_config(route_name='delete_client', renderer='json', permission='scope_clientadmin')
 def delete_client(request):
     client = check(request)
-    request.cadm_controller.delete(client['id'])
+    user = get_user(request)
+    request.cadm_controller.delete(client['id'], user)
     return Response(status='204 No Content', content_type=False)
 
 
@@ -141,9 +141,10 @@ def update_client(request):
     client = check(request)
     payload = get_payload(request)
     controller = request.cadm_controller
-    privileges = controller.get_privileges(get_user(request))
+    user = get_user(request)
+    privileges = controller.get_privileges(user)
     attrs = controller.allowed_attrs(payload, 'update', privileges)
-    client = controller.update(client['id'], attrs, privileges)
+    client = controller.update(client['id'], attrs, user, privileges)
     return client
 
 
@@ -233,7 +234,8 @@ def update_orgauthorization(request):
     if not isinstance(scopes, list):
         raise HTTPBadRequest('Scopes must be a list')
     scopes = list(set(scopes))
-    request.cadm_controller.update_orgauthorization(client, realm, scopes)
+    user = get_user(request)
+    request.cadm_controller.update_orgauthorization(client, realm, scopes, user)
     return scopes
 
 
@@ -241,7 +243,8 @@ def update_orgauthorization(request):
              renderer="json")
 def delete_orgauthorization(request):
     client, realm = check_orgauthz_params(request)
-    request.cadm_controller.delete_orgauthorization(client, realm)
+    user = get_user(request)
+    request.cadm_controller.delete_orgauthorization(client, realm, user)
     return Response(status='204 No Content', content_type=False)
 
 

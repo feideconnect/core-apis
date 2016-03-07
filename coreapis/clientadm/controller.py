@@ -13,8 +13,8 @@ from coreapis.scopes import is_gkscopename, has_gkscope_match
 from coreapis.scopes.manager import ScopesManager
 from coreapis.authproviders import authprovmgr, REGISTER_CLIENT
 from coreapis.utils import (
-    LogWrapper, timestamp_adapter, ForbiddenError, valid_url,
-    get_feideids, get_platform_admins, PRIV_PLATFORM_ADMIN)
+    LogWrapper, timestamp_adapter, ForbiddenError, valid_url, get_feideids,
+    userinfo_for_log, get_platform_admins, PRIV_PLATFORM_ADMIN)
 
 
 USER_SETTABLE_STATUS_FLAGS = {'Public'}
@@ -176,18 +176,25 @@ class ClientAdmController(CrudControllerBase):
         self.scopemgr.notify_moderators(client)
         return client
 
-    def add(self, item, userid, privileges):
+    def add(self, item, user, privileges):
         filter_client_status(item, {}, privileges)
-        return super(ClientAdmController, self).add(item, userid, privileges)
+        res = super(ClientAdmController, self).add(item, user['userid'], privileges)
+        self.log.info('adding client',
+                      audit=True, clientid=res['id'], user=userinfo_for_log(user))
+        return res
 
-    def update(self, itemid, attrs, privileges):
+    def update(self, itemid, attrs, user, privileges):
         client = self.get(itemid)
         filter_client_status(attrs, client, privileges)
         client = self.validate_update(itemid, attrs)
-        return self._insert(client, privileges)
+        res = self._insert(client, privileges)
+        self.log.info('updating client',
+                      audit=True, clientid=res['id'], attrs=attrs, user=userinfo_for_log(user))
+        return res
 
-    def delete(self, clientid):
-        self.log.debug('Delete client', clientid=clientid)
+    def delete(self, clientid, user):
+        self.log.info('delete client',
+                      audit=True, clientid=clientid, user=userinfo_for_log(user))
         self.session.delete_client(clientid)
 
     def get_logo(self, clientid):
@@ -316,6 +323,10 @@ class ClientAdmController(CrudControllerBase):
         client = self.get(clientid)
         client = self.add_gkscopes(client, user, scopes_add)
         client = self.remove_gkscopes(client, user, scopes_remove)
+        self.log.info('updating gkscopes for client',
+                      audit=True, clientid=clientid,
+                      scopes_add=scopes_add, scopes_remove=scopes_remove,
+                      user=userinfo_for_log(user))
         self.insert_client(client)
 
     def has_realm_permission(self, realm, user):
@@ -326,11 +337,18 @@ class ClientAdmController(CrudControllerBase):
     def get_orgauthorization(client, realm):
         return client['orgauthorization'].get(realm, [])
 
-    def update_orgauthorization(self, client, realm, scopes):
-        self.session.insert_orgauthorization(client['id'], realm, json.dumps(scopes))
+    def update_orgauthorization(self, client, realm, scopes, user):
+        clientid = client['id']
+        self.log.info('updating orgauthorization for client',
+                      audit=True, clientid=clientid, realm=realm, scopes=scopes,
+                      user=userinfo_for_log(user))
+        self.session.insert_orgauthorization(clientid, realm, json.dumps(scopes))
 
-    def delete_orgauthorization(self, client, realm):
-        self.session.delete_orgauthorization(client['id'], realm)
+    def delete_orgauthorization(self, client, realm, user):
+        clientid = client['id']
+        self.log.info('deleting orgauthorization for client',
+                      audit=True, clientid=clientid, realm=realm, user=userinfo_for_log(user))
+        self.session.delete_orgauthorization(clientid, realm)
 
     def get_mandatory_clients(self, user):
         selectors = ['status contains ?']

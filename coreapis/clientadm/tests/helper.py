@@ -4,6 +4,7 @@ import json
 from copy import deepcopy
 from aniso8601 import parse_datetime
 
+FEIDETESTER = 'asbjorn_elevg@spusers.feide.no'
 userid_own = '00000000-0000-0000-0000-000000000001'
 userid_other = '00000000-0000-0000-0000-000000000002'
 userid_third = '00000000-0000-0000-0000-000000000003'
@@ -79,7 +80,7 @@ retrieved_client = {
 }
 
 retrieved_user = {
-    'userid_sec': ['p:foo'],
+    'userid_sec': ['p:foo', 'feide:' + FEIDETESTER],
     'selectedsource': 'us',
     'name': {'us': 'foo'},
     'userid': uuid.UUID(userid_own),
