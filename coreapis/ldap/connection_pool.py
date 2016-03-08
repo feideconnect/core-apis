@@ -161,7 +161,7 @@ class RetryPool(object):
         self.statsd = statsd
 
     def search(self, base_dn, search_filter, scope, attributes, size_limit=None):
-        exception = None
+        exception = RuntimeError('No servers alive')
         alive_servers = self.alive_servers()
         if not alive_servers:
             alive_servers = self.servers
