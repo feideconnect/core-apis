@@ -245,4 +245,4 @@ def del_org_role(request):
 def ldap_status(request):
     user = get_user(request)
     orgid = check(request, needs_realm=True, needs_platform_admin=False)
-    return(request.org_controller.ldap_status(user, orgid))
+    return request.org_controller.ldap_status(user, orgid)

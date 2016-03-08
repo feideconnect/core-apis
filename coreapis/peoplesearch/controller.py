@@ -103,16 +103,16 @@ class PeopleSearchController(object):
         }
         orgconf = self.ldap.get_ldap_config().get(org, {})
         psconf = orgconf.get('peoplesearch', {})
-        for k, v in psconf.items():
-            if k in {"employees", "others"}:
-                res[k] = v
+        for key, val in psconf.items():
+            if key in {"employees", "others"}:
+                res[key] = val
         return res
 
     def authorized_search_access(self, user, org):
         res = set()
-        for k, v in self.org_authorization_policy(org).items():
-            if v == 'all' or v == 'sameOrg' and in_org(user, org):
-                res.add(k)
+        for key, val in self.org_authorization_policy(org).items():
+            if val == 'all' or val == 'sameOrg' and in_org(user, org):
+                res.add(key)
         return res
 
     def search(self, org, query, user, max_replies=None):
@@ -147,7 +147,7 @@ class PeopleSearchController(object):
             attributes = self.ldap.lookup_feideid(user, ['jpegPhoto'])
         except KeyError:
             return None, None, None
-        if not 'jpegPhoto' in attributes:
+        if 'jpegPhoto' not in attributes:
             self.log.debug('User %s has no jpegPhoto' % user)
             return None, None, None
         data = attributes['jpegPhoto'][0]
@@ -163,7 +163,7 @@ class PeopleSearchController(object):
             return data, etag, now()
 
     def _fetch_profile_image(self, user):
-        if not ':' in user:
+        if ':' not in user:
             raise ValidationError('user id must contain ":"')
         idtype, user = user.split(':', 1)
         if idtype == 'feide':

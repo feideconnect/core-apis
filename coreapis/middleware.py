@@ -67,7 +67,8 @@ class CorsMiddleware(object):
             myheaders = [
                 ('Access-Control-Allow-Origin', '*'),
                 ('Access-Control-Allow-Methods', 'HEAD, GET, OPTIONS, PUT, POST, PATCH, DELETE'),
-                ('Access-Control-Allow-Headers', 'Authorization, X-Requested-With, Origin, Accept, Content-Type'),
+                ('Access-Control-Allow-Headers',
+                 'Authorization, X-Requested-With, Origin, Accept, Content-Type'),
                 ('Access-Control-Expose-Headers', 'Authorization, X-Requested-With, Origin'),
             ]
             myheaders.extend(headers)
@@ -84,8 +85,8 @@ class LogMiddleware(object):
         init_request_id()
 
         def replace_start_response(status, headers):
-            req_uri = urllib.parse.quote(environ.get('SCRIPT_NAME', '')
-                                         + environ.get('PATH_INFO', ''))
+            req_uri = urllib.parse.quote(environ.get('SCRIPT_NAME', '') +
+                                         environ.get('PATH_INFO', ''))
             if environ.get('QUERY_STRING'):
                 req_uri += '?'+environ['QUERY_STRING']
             method = environ['REQUEST_METHOD']
@@ -110,7 +111,8 @@ class AuthMiddleware(object):
                 user = environ["FC_USER"]
                 client = environ["FC_CLIENT"]
                 scopes = environ["FC_SCOPES"]
-                self.log.debug('successfully looked up token', user=user['userid'] if user else None,
+                self.log.debug('successfully looked up token',
+                               user=user['userid'] if user else None,
                                client=client['id'], scopes=scopes, accesstoken=log_token(token))
             except KeyError as ex:
                 # Invalid token passed. Perhaps return 402?
@@ -216,7 +218,8 @@ def get_client_address(environ):
 
 
 class CassandraMiddleware(AuthMiddleware):
-    def __init__(self, app, realm, contact_points, keyspace, timer, ratelimiter, use_eventlet, authz):
+    def __init__(self, app, realm, contact_points, keyspace, timer, ratelimiter,
+                 use_eventlet, authz):
         super(CassandraMiddleware, self).__init__(app, realm)
         self.timer = timer
         self.ratelimiter = ratelimiter
@@ -272,7 +275,7 @@ class CassandraMiddleware(AuthMiddleware):
 class GKMiddleware(CassandraMiddleware):
     def lookup_token(self, token_string):
         token, client, user = self._lookup_token(token_string)
-        if not 'subtokens' in token or not token['subtokens']:
+        if 'subtokens' not in token or not token['subtokens']:
             raise KeyError("Token is invalid")
         return {
             'FC_USER': user,

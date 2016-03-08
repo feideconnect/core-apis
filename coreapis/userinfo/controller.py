@@ -72,20 +72,20 @@ def flatten(user, single_val_attrs):
 
 
 def normalize(user, single_val_attrs):
-    for k, v in user.items():
+    for key, val in user.items():
         # Choose just one for attributes with options, e.g. 'title;lang-no-no'
-        parts = k.split(';')
+        parts = key.split(';')
         if len(parts) > 1:
-            user[parts[0]] = v
-            del user[k]
+            user[parts[0]] = val
+            del user[key]
     flatten(user, single_val_attrs)
 
 
 def allowed_attributes(attributes, perm_checker):
     res = []
-    for k, v in attributes.items():
-        if perm_checker('scope_{}'.format(k)):
-            res += v
+    for key, val in attributes.items():
+        if perm_checker('scope_{}'.format(key)):
+            res += val
     return list(set(res))
 
 

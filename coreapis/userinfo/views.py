@@ -24,8 +24,9 @@ def get_userinfo_v1(request):
 @view_config(route_name='get_userinfo_profilephoto_v1', request_method="GET",
              renderer="logo")
 def get_profilephoto_v1(request):
+    userid_sec = request.matchdict['userid_sec']
     try:
-        profilephoto, updated = request.userinfo_controller.get_profilephoto(request.matchdict['userid_sec'])
+        profilephoto, updated = request.userinfo_controller.get_profilephoto(userid_sec)
         return profilephoto, updated, 'data/default-profile.jpg', 'image/jpeg'
     except KeyError:
         raise HTTPNotFound

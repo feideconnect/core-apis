@@ -129,8 +129,8 @@ def group_logo(request):
     return group_logo_v1(request)
 
 
-@view_config(route_name='ahgroup_logo_v1', request_method="POST", permission='scope_adhocgroupadmin',
-             renderer="json")
+@view_config(route_name='ahgroup_logo_v1', request_method="POST",
+             permission='scope_adhocgroupadmin', renderer="json")
 def upload_logo_v1(request):
     group = check(request, "update")
     data = get_logo_bytes(request)

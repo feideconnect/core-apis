@@ -25,10 +25,10 @@ def parse_apigk(obj):
 
 def datetime_hack_dict_factory(colnames, rows):
     res = dict_factory(colnames, rows)
-    for el in res:
-        for key, val in el.items():
+    for elt in res:
+        for key, val in elt.items():
             if isinstance(val, datetime.datetime):
-                el[key] = val.replace(tzinfo=pytz.UTC)
+                elt[key] = val.replace(tzinfo=pytz.UTC)
     return res
 
 
@@ -133,7 +133,8 @@ class Client(object):
         if len(selectors) == 0:
             stmt = 'SELECT {} from {} LIMIT {}'.format(cols, table, maxrows)
         else:
-            stmt = 'SELECT {} from {} WHERE {} LIMIT {} ALLOW FILTERING'.format(cols, table, ' and '.join(selectors), maxrows)
+            tmpl = 'SELECT {} from {} WHERE {} LIMIT {} ALLOW FILTERING'
+            stmt = tmpl.format(cols, table, ' and '.join(selectors), maxrows)
         with self.timer.time('cassandra.get_generic.{}'.format(table)):
             prep = self._prepare(stmt)
             res = self.session.execute(prep.bind(values))
@@ -189,12 +190,14 @@ class Client(object):
 
     def get_user_by_id(self, userid):
         return self._get('users', userid,
-                                 ['userid', 'aboveagelimit', 'created', 'email', 'name', 'selectedsource', 'updated', 'usageterms', 'userid_sec', 'userid_sec_seen'],
-                                 'userid')
+                         ['userid', 'aboveagelimit', 'created', 'email', 'name',
+                          'selectedsource', 'updated', 'usageterms',
+                          'userid_sec', 'userid_sec_seen'],
+                         'userid')
 
     def get_user_profilephoto(self, userid):
         userinfo = self._get('users', userid,
-                                     ['selectedsource', 'profilephoto', 'updated'], 'userid')
+                             ['selectedsource', 'profilephoto', 'updated'], 'userid')
         selectedsource = userinfo['selectedsource']
         profilephoto = userinfo['profilephoto']
         updated = userinfo['updated']
@@ -204,22 +207,22 @@ class Client(object):
 
     def insert_user(self, userid, email, name, profilephoto,
                     profilephotohash, selectedsource, userid_sec):
-        ts = now()
+        tstamp = now()
         sec_prep = self._prepare('INSERT INTO userid_sec (userid_sec, userid) VALUES (?, ?)')
         for sec in userid_sec:
             self.session.execute(sec_prep.bind([sec, userid]))
 
-        userid_sec_seen = {sec: ts for sec in userid_sec}
+        userid_sec_seen = {sec: tstamp for sec in userid_sec}
         prep = self._prepare('INSERT INTO users (userid, created, email, name, profilephoto, profilephotohash, selectedsource, updated, userid_sec, userid_sec_seen) VALUES (?,?,?,?,?,?,?,?,?,?)')
         self.session.execute(prep.bind([
             userid,
-            ts,
+            tstamp,
             email,
             name,
             profilephoto,
             profilephotohash,
             selectedsource,
-            ts,
+            tstamp,
             userid_sec,
             userid_sec_seen
         ]))
@@ -233,15 +236,15 @@ class Client(object):
     def get_userid_by_userid_sec(self, sec):
         return self._get('userid_sec', sec, ['userid'], 'userid_sec')['userid']
 
-    def get_apigk(self, id):
-        return parse_apigk(self._get('apigk', id))
+    def get_apigk(self, gkid):
+        return parse_apigk(self._get('apigk', gkid))
 
     def get_apigks(self, selectors, values, maxrows):
         return [parse_apigk(gk) for gk in self.get_generic('apigk', selectors, values, maxrows)]
 
-    def delete_apigk(self, id):
+    def delete_apigk(self, gkid):
         prep = self._prepare('DELETE FROM apigk WHERE id = ?')
-        self.session.execute(prep.bind([id]))
+        self.session.execute(prep.bind([gkid]))
 
     def insert_apigk(self, apigk):
         self.insert_generic(apigk, 'apigk')
@@ -270,7 +273,8 @@ class Client(object):
         self.session.execute(prep.bind([token]))
 
     def delete_authorization(self, userid, clientid):
-        prep_del_auth = self._prepare('DELETE FROM oauth_authorizations WHERE userid = ? AND clientid = ?')
+        stmt = 'DELETE FROM oauth_authorizations WHERE userid = ? AND clientid = ?'
+        prep_del_auth = self._prepare(stmt)
         prep_del_auth.consistency_level = cassandra.ConsistencyLevel.ALL
         self.session.execute(prep_del_auth.bind([userid, clientid]))
         prep_find_tokens = self._prepare('SELECT access_token FROM oauth_tokens WHERE userid = ? AND clientid = ? ALLOW FILTERING')
@@ -340,10 +344,10 @@ class Client(object):
     def get_group_memberships(self, userid, mtype, status, maxrows):
         selectors = ['userid = ?']
         values = [userid]
-        if not mtype is None:
+        if mtype is not None:
             selectors.append('type = ?')
             values.append(mtype)
-        if not status is None:
+        if status is not None:
             selectors.append('status = ?')
             values.append(status)
         return self.get_generic('group_members', selectors, values, maxrows)
@@ -380,10 +384,10 @@ class Client(object):
         stmt = 'SELECT {} from {}'.format(','.join(self.default_columns[tbl]), tbl)
         prep = self._prepare(stmt)
         data = self.session.execute(prep)
-        for a in data:
-            if 'name' in a and a['name'] is not None:
-                a['name'] = translatable(a['name'])
-            yield a
+        for item in data:
+            if 'name' in item and item['name'] is not None:
+                item['name'] = translatable(item['name'])
+            yield item
 
     def insert_org(self, org):
         self.insert_generic(org, 'organizations')

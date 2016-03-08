@@ -18,16 +18,16 @@ class AuthorizationController(object):
     def list(self, userid):
         res = []
         for authz in self.session.get_authorizations(userid):
-            el = authz.copy()
-            del el['clientid']
+            elt = authz.copy()
+            del elt['clientid']
             try:
                 client = self.session.get_client_by_id(authz['clientid'])
             except KeyError:
                 continue
-            el['client'] = dict(id=client['id'], name=client['name'])
-            if 'apigk_scopes' in el and el['apigk_scopes']:
-                el['apigk_scopes'] = dict(el['apigk_scopes'])
-            res.append(el)
+            elt['client'] = dict(id=client['id'], name=client['name'])
+            if 'apigk_scopes' in elt and elt['apigk_scopes']:
+                elt['apigk_scopes'] = dict(elt['apigk_scopes'])
+            res.append(elt)
         return res
 
     def resources_owned(self, userid):

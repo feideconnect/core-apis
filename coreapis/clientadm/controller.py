@@ -99,17 +99,17 @@ class ClientAdmController(CrudControllerBase):
     @staticmethod
     def adapt_client(client):
         adapted = deepcopy(client)
-        for k, v in adapted.items():
-            if k == 'orgauthorization':
-                adapted[k] = {}
-                if v:
-                    adapted[k] = {k2: json.loads(v2) for k2, v2 in v.items()}
-            elif k == 'authoptions':
-                adapted[k] = {}
-                if v:
-                    adapted[k] = json.loads(v)
-            elif isinstance(v, cassandra.util.SortedSet):
-                adapted[k] = list(v)
+        for key, val in adapted.items():
+            if key == 'orgauthorization':
+                adapted[key] = {}
+                if val:
+                    adapted[key] = {k2: json.loads(v2) for k2, v2 in val.items()}
+            elif key == 'authoptions':
+                adapted[key] = {}
+                if val:
+                    adapted[key] = json.loads(val)
+            elif isinstance(val, cassandra.util.SortedSet):
+                adapted[key] = list(val)
         return adapted
 
     def _list(self, selectors, values, scope):
@@ -163,8 +163,8 @@ class ClientAdmController(CrudControllerBase):
         sessclient = deepcopy(client)
         orgauthz = sessclient.get('orgauthorization', None)
         if orgauthz:
-            for k, v in orgauthz.items():
-                orgauthz[k] = json.dumps(v)
+            for key, val in orgauthz.items():
+                orgauthz[key] = json.dumps(val)
         self.session.insert_client(sessclient)
 
     # Used both for add and update.
@@ -262,14 +262,14 @@ class ClientAdmController(CrudControllerBase):
         return pubclient
 
     def get_realmclients(self, realm):
-        return [self.get_realmclient(realm, k, v)
-                for k, v in self.get_realmclient_scopes(realm).items()]
+        return [self.get_realmclient(realm, key, val)
+                for key, val in self.get_realmclient_scopes(realm).items()]
 
     def get_gkscope_client(self, client, gkscopes, users=None, orgs=None):
         gkclient = self.get_public_info(client, users, orgs)
         orgauthz = client['orgauthorization']
         if orgauthz:
-            orgauthz = {k: json.loads(v) for k, v in orgauthz.items()}
+            orgauthz = {key: json.loads(val) for key, val in orgauthz.items()}
         gkclient.update({'orgauthorization': orgauthz})
         gkclient.update({attr: [] for attr in self.scope_attrs})
         for attr in self.scope_attrs:

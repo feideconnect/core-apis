@@ -94,8 +94,8 @@ class OrgController(CrudControllerBase):
             realmconf = self.ldap_config[realm]
             psconf = realmconf.get('peoplesearch')
             if psconf:
-                for v in psconf.values():
-                    if v != "none":
+                for val in psconf.values():
+                    if val != "none":
                         has_peoplesearch = True
                         break
         org['has_ldapgroups'] = has_ldapgroups

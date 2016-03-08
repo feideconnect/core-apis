@@ -1,5 +1,3 @@
-import logging
-
 from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPForbidden
 
@@ -15,5 +13,6 @@ def status(request):
         raise HTTPForbidden('No access')
     return {
         'info': request.registry.settings.status_data,
-        'components': {key: value() for key, value in request.registry.settings.status_methods.items()},
+        'components': {key: value()
+                       for key, value in request.registry.settings.status_methods.items()},
     }

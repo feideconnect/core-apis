@@ -36,7 +36,7 @@ class CrudControllerBase(object):
             if PRIV_PLATFORM_ADMIN not in privileges:
                 protected_attrs += self.platformadmin_attrs_update
         try:
-            return {k: v for k, v in attrs.items() if k not in protected_attrs}
+            return {key: val for key, val in attrs.items() if key not in protected_attrs}
         except AttributeError:
             raise ValidationError('payload must be a json object')
 

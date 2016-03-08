@@ -70,7 +70,8 @@ class GkController(object):
                     headers['userid-sec'] = ",".join(exposed_sec_ids)
 
         scope_prefix = 'gk_{}_'.format(backend_id)
-        exposed_scopes = [scope[len(scope_prefix):] for scope in scopes if scope.startswith(scope_prefix)]
+        exposed_scopes = [scope[len(scope_prefix):]
+                          for scope in scopes if scope.startswith(scope_prefix)]
         headers['scopes'] = ','.join(exposed_scopes)
 
         headers['clientid'] = str(client['id'])
