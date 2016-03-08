@@ -7,7 +7,7 @@ import valideer as V
 
 from coreapis.utils import (
     LogWrapper, get_feideid, get_platform_admins, AlreadyExistsError, ValidationError,
-    json_normalize)
+    json_normalize, userinfo_for_log)
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.clientadm.controller import ClientAdmController
@@ -131,7 +131,7 @@ class OrgController(CrudControllerBase):
             raise AlreadyExistsError('item already exists')
         self.log.info('adding organization',
                       audit=True, orgid=org['id'],
-                      user=get_feideid(user))
+                      user=userinfo_for_log(user))
         self.session.insert_org(org)
         return org
 
@@ -141,7 +141,7 @@ class OrgController(CrudControllerBase):
         org = self.validate(org)
         self.log.info('updating organization',
                       audit=True, orgid=orgid,
-                      user=get_feideid(user))
+                      user=userinfo_for_log(user))
         self.session.insert_org(org)
         return org
 
@@ -152,7 +152,7 @@ class OrgController(CrudControllerBase):
             raise ValidationError('org {} has roles'.format(orgid))
         self.log.info('delete organization',
                       audit=True, orgid=orgid,
-                      user=get_feideid(user))
+                      user=userinfo_for_log(user))
         self.session.delete_org(orgid)
 
     def get_logo(self, orgid):
@@ -177,7 +177,7 @@ class OrgController(CrudControllerBase):
         realm = org['realm']
         self.log.info('making client mandatory for organization',
                       audit=True, orgid=orgid, clientid=clientid,
-                      user=get_feideid(user))
+                      user=userinfo_for_log(user))
         self.session.add_mandatory_client(realm, clientid)
 
     def del_mandatory_client(self, user, orgid, clientid):
@@ -185,7 +185,7 @@ class OrgController(CrudControllerBase):
         realm = org['realm']
         self.log.info('making client optional for organization',
                       audit=True, orgid=orgid, clientid=clientid,
-                      user=get_feideid(user))
+                      user=userinfo_for_log(user))
         self.session.del_mandatory_client(realm, clientid)
 
     def list_services(self, orgid):
@@ -200,7 +200,7 @@ class OrgController(CrudControllerBase):
             raise ValidationError('payload must be a valid service')
         self.log.info('enabling service for organization',
                       audit=True, orgid=orgid, service=service,
-                      user=get_feideid(user))
+                      user=userinfo_for_log(user))
         services = set()
         services.add(service)
         self.session.add_services(orgid, services)
@@ -210,7 +210,7 @@ class OrgController(CrudControllerBase):
             raise ValidationError('not a valid service')
         self.log.info('disabling service for organization',
                       audit=True, orgid=orgid, service=service,
-                      user=get_feideid(user))
+                      user=userinfo_for_log(user))
         services = set()
         services.add(service)
         self.session.del_services(orgid, services)
@@ -226,7 +226,7 @@ class OrgController(CrudControllerBase):
             raise ValidationError('{} is not a list of valid role names'.format(rolenames))
         self.log.info('enabling role for organization',
                       audit=True, orgid=orgid, feideid=feideid, rolenames=rolenames,
-                      user=get_feideid(user))
+                      user=userinfo_for_log(user))
         role = dict(orgid=orgid, feideid=feideid, role=rolenames)
         self.session.insert_role(role)
 
@@ -235,7 +235,7 @@ class OrgController(CrudControllerBase):
             raise ValidationError('not a valid Feide ID')
         self.log.info('disabling role for organization',
                       audit=True, orgid=orgid, feideid=feideid,
-                      user=get_feideid(user))
+                      user=userinfo_for_log(user))
         self.session.del_role(orgid, feideid)
 
     def has_permission(self, user, org, needs_platform_admin):
