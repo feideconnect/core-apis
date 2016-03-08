@@ -357,6 +357,13 @@ def json_normalize(data):
     return json.loads(json.dumps(data, cls=CustomEncoder))
 
 
+def userinfo_for_log(user):
+    try:
+        return get_feideid(user)
+    except RuntimeError:
+        return user['userid']
+
+
 # Raises exception if filename is given, but open fails
 def json_load(filename, fallback):
     if filename:
