@@ -145,13 +145,13 @@ class APIGKAdmController(CrudControllerBase):
         return apigk
 
     def add(self, apigk, user, privileges):
-        res = super(APIGKAdmController, self).add(apigk, user['userid'], privileges)
+        res = super(APIGKAdmController, self).add(apigk, user, privileges)
         self.log.info('adding apigk',
                       audit=True, gkid=res['id'], user=userinfo_for_log(user))
         return res
 
     def update(self, gkid, attrs, user, privileges):
-        res = super(APIGKAdmController, self).update(gkid, attrs, privileges)
+        res = super(APIGKAdmController, self).update(gkid, attrs, user, privileges)
         self.log.info('updating apigk',
                       audit=True, gkid=res['id'], attrs=attrs, user=userinfo_for_log(user))
         return res

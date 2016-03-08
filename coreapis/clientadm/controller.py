@@ -178,7 +178,7 @@ class ClientAdmController(CrudControllerBase):
 
     def add(self, item, user, privileges):
         filter_client_status(item, {}, privileges)
-        res = super(ClientAdmController, self).add(item, user['userid'], privileges)
+        res = super(ClientAdmController, self).add(item, user, privileges)
         self.log.info('adding client',
                       audit=True, clientid=res['id'], user=userinfo_for_log(user))
         return res

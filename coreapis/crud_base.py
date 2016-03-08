@@ -65,7 +65,8 @@ class CrudControllerBase(object):
         except:
             return None
 
-    def add(self, item, userid, privileges):
+    def add(self, item, user, privileges):
+        userid = user['userid']
         self.log.debug('add item', userid=userid)
         try:
             item = self.validate(item)
@@ -102,7 +103,7 @@ class CrudControllerBase(object):
         item['updated'] = now()
         return item
 
-    def update(self, itemid, attrs, privileges):
+    def update(self, itemid, attrs, user, privileges):
         self.log.debug('update item', itemid=itemid)
         item = self.validate_update(itemid, attrs)
         self._insert(item, privileges)

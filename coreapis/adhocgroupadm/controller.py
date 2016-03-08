@@ -96,14 +96,15 @@ class AdHocGroupAdmController(CrudControllerBase):
 
     def add(self, item, user, privileges):
         userid = user['userid']
-        res = super(AdHocGroupAdmController, self).add(item, userid, privileges)
+        res = super(AdHocGroupAdmController, self).add(item, user, privileges)
         self.log.info('adding adhoc group',
                       audit=True, groupid=res['id'], user=userinfo_for_log(user))
         self.add_member(res['id'], userid, 'admin', 'normal', None)
         return res
 
     def update(self, groupid, attrs, user, privileges):
-        res = super(AdHocGroupAdmController, self).update(groupid, attrs, privileges)
+        res = super(AdHocGroupAdmController, self).update(groupid, attrs,
+                                                          user, privileges)
         self.log.info('updating adhoc group',
                       audit=True, groupid=res['id'], attrs=attrs,
                       user=userinfo_for_log(user))
