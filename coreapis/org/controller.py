@@ -130,8 +130,7 @@ class OrgController(CrudControllerBase):
         if self.exists(org['id']):
             raise AlreadyExistsError('item already exists')
         self.log.info('adding organization',
-                      audit=True, orgid=org['id'],
-                      user=userinfo_for_log(user))
+                      audit=True, orgid=org['id'], user=userinfo_for_log(user))
         self.session.insert_org(org)
         return org
 
@@ -140,7 +139,7 @@ class OrgController(CrudControllerBase):
         org.update(attrs)
         org = self.validate(org)
         self.log.info('updating organization',
-                      audit=True, orgid=orgid,
+                      audit=True, orgid=orgid, attrs=attrs,
                       user=userinfo_for_log(user))
         self.session.insert_org(org)
         return org
@@ -151,8 +150,7 @@ class OrgController(CrudControllerBase):
         if self.list_org_roles(orgid):
             raise ValidationError('org {} has roles'.format(orgid))
         self.log.info('delete organization',
-                      audit=True, orgid=orgid,
-                      user=userinfo_for_log(user))
+                      audit=True, orgid=orgid, user=userinfo_for_log(user))
         self.session.delete_org(orgid)
 
     def get_logo(self, orgid):
