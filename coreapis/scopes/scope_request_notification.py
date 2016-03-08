@@ -40,7 +40,7 @@ CLIENT_TMPL = {"nb": CLIENT_TMPL_NB, "nn": CLIENT_TMPL_NN, "en": CLIENT_TMPL_EN}
 
 DASHBOARDMSG = {
     "nb": "Du kan behandle forespørselen i dashbordet til Dataporten på URLen nedenfor",
-    "nb": "Du kan handsame forespurnaden i dashbordet til Dataporten på URLen nedanfor",
+    "nn": "Du kan handsame forespurnaden i dashbordet til Dataporten på URLen nedanfor",
     "en": "You may handle the request in the Dataporten dashboard at the URL below",
 }
 
