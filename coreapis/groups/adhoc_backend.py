@@ -88,12 +88,13 @@ class AdHocGroupBackend(BaseBackend):
 
     def get_group(self, user, groupid):
         userid = user['userid']
-        group, membership = self._get(userid, groupid)
+        group, _ = self._get(userid, groupid)
         return self.format_group(group, None)
 
     def _handle_member(self, group, member):
         if member['status'] not in ('normal', 'unconfirmed'):
-            self.log.debug('skipping group with unhandled membership status {}'.format(member['status']))
+            tmpl = 'skipping group with unhandled membership status {}'
+            self.log.debug(tmpl.format(member['status']))
             return None
         user = self.session.get_user_by_id(member['userid'])
         return {

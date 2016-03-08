@@ -6,12 +6,13 @@ import eventlet.greenthread
 from eventlet.greenpool import GreenPool
 ldap3 = eventlet.import_patched('ldap3')
 
-from coreapis.utils import LogWrapper,  get_feideids, translatable, failsafe
+from coreapis.utils import LogWrapper, get_feideids, translatable, failsafe
 from coreapis.cache import Cache
 from . import BaseBackend, IDHandler
 ldapcontroller = eventlet.import_patched('coreapis.ldap.controller')
 from coreapis import cassandra_client, feide
-from coreapis.groups.gogroups import affiliation_names as go_affiliation_names, GOGroup, groupid_entitlement
+from coreapis.groups.gogroups import (
+    affiliation_names as go_affiliation_names, GOGroup, groupid_entitlement)
 
 org_attribute_names = {
     'eduOrgLegalName',

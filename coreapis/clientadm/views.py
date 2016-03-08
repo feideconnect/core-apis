@@ -7,7 +7,7 @@ from pyramid.response import Response
 
 from .controller import ClientAdmController
 from coreapis.utils import (
-    AlreadyExistsError, ForbiddenError, get_userid, get_payload, get_user, translation,
+    AlreadyExistsError, ForbiddenError, get_payload, get_user, translation,
     get_logo_bytes)
 from coreapis.authproviders import REGISTER_CLIENT, authprovmgr
 

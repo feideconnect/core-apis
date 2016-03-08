@@ -44,7 +44,8 @@ def main(global_config, **settings):
     config.add_settings(statsd_factory=lambda: statsd.StatsClient(statsd_server, statsd_port,
                                                                   prefix=statsd_prefix))
     config.add_renderer('logo', 'coreapis.utils.LogoRenderer')
-    config.add_settings(cassandra_contact_points=global_config['cassandra_contact_points'].split(', '))
+    contact_points = global_config['cassandra_contact_points'].split(', ')
+    config.add_settings(cassandra_contact_points=contact_points)
     config.add_settings(cassandra_keyspace=global_config['cassandra_keyspace'])
     config.add_settings(cassandra_authz=get_cassandra_authz(global_config))
     config.add_settings(timer=timer)

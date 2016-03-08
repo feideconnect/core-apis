@@ -19,7 +19,7 @@ def valid_member_type(mtype):
 def valid_member_id(mid):
     if not mid.startswith('p:'):
         return False
-    p, uid = mid.split(':', 1)
+    _, uid = mid.split(':', 1)
     uuid.UUID(uid)
     return True
 
@@ -71,9 +71,9 @@ class AdHocGroupAdmController(CrudControllerBase):
             del res['invitation_token']
         return res
 
-    def get(self, id):
-        self.log.debug('Get group', id=id)
-        group = self.session.get_group(id)
+    def get(self, groupid):
+        self.log.debug('Get group', groupid=groupid)
+        group = self.session.get_group(groupid)
         return group
 
     def delete(self, groupid, user):

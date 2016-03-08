@@ -35,7 +35,7 @@ class GroupsController(object):
             raise KeyError('This group does not belong to us')
         if len(parts) < 3:
             raise KeyError('Malformed group id')
-        prefix, grouptype, subid = parts
+        prefix, grouptype, _ = parts
         handler = '{}:{}'.format(prefix, grouptype)
         if handler not in self.id_handlers:
             raise KeyError('bad group id')

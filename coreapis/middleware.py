@@ -31,7 +31,8 @@ def cassandra_main(app, config, client_max_share, client_max_rate, client_max_bu
     keyspace = config['cassandra_keyspace']
     authz = get_cassandra_authz(config)
     log_timings = config.get('log_timings', 'false').lower() == 'true'
-    if config.get('use_eventlets', '') == 'true':
+    use_eventlets = (config.get('use_eventlets', '') == 'true')
+    if use_eventlets:
         pool = EventletPool
     else:
         pool = ResourcePool
@@ -40,10 +41,6 @@ def cassandra_main(app, config, client_max_share, client_max_rate, client_max_bu
     ratelimiter = RateLimiter(float(client_max_share),
                               int(client_max_burst_size),
                               float(client_max_rate))
-    if config.get('use_eventlets', '') == 'true':
-        use_eventlets = True
-    else:
-        use_eventlets = False
     if cls is None:
         cls = CassandraMiddleware
     return cls(app, config['oauth_realm'], contact_points,
