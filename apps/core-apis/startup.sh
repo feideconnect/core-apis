@@ -1,3 +1,3 @@
 #! /bin/sh
 confd -onetime -backend env
-exec pserve /etc/core-apis.ini
+exec gunicorn --workers "${FC_WORKERS}" --threads "${FC_THREADS}" --paste /etc/core-apis.ini
