@@ -19,7 +19,7 @@ To test the API, obtain an authentication token and
     curl -H "Authorization: Bearer $TOKEN" \
 	'https://api.dataporten.no/clientadm/clients/<client-id>/logins_stats/?end_date=2016-03-15'
 
-curl -H "Authorization: Bearer $TOKEN" \
+    curl -H "Authorization: Bearer $TOKEN" \
 	'https://api.dataporten.no/clientadm/clients/<client-id>/logins_stats/?num_days=2'
 
     curl -H "Authorization: Bearer $TOKEN" \
