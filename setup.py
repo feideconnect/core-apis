@@ -24,7 +24,7 @@ requires = [
     'pillow',
     'pyramid',
     'pytest',
-    'python3-ldap',
+    'ldap3',
     'pytz',
     'requests',
     'statsd',
