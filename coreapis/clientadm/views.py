@@ -41,6 +41,7 @@ def configure(config):
     config.add_route('realmclients', '/realmclients/targetrealm/{realm}/', request_method='GET')
     config.add_route('mandatory_clients_v1', '/v1/mandatory/', request_method='GET')
     config.add_route('policy', '/policy', request_method='GET')
+    config.add_route('logins_stats', '/clients/{id}/logins_stats/', request_method='GET')
     config.scan(__name__)
 
 
@@ -269,3 +270,13 @@ def mandatory_clients(request):
 def policy(request):
     user = get_user(request)
     return request.cadm_controller.get_policy(user)
+
+
+@view_config(route_name='logins_stats', request_method="GET",
+             permission='scope_clientadmin', renderer="json")
+def logins_stats(request):
+    client = check(request)
+    end_date = request.params.get('end_date', None)
+    num_days = request.params.get('num_days', 1)
+    authsource = request.params.get('authsource', None)
+    return request.cadm_controller.get_logins_stats(client['id'], end_date, num_days, authsource)

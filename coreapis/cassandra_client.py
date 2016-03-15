@@ -457,3 +457,19 @@ class Client(object):
         prep = self._prepare('SELECT dn from remote_apigatekeepers WHERE dn = ?')
         res = list(self.session.execute(prep.bind([dn])))
         return len(res) > 0
+
+    def get_logins_stats(self, clientid, dates, authsource, maxrows):
+        cols = 'date, authsource, timeslot, login_count'
+        tmpl = 'SELECT {} FROM logins_stats WHERE clientid = ? AND date in ({})'
+        dateslots = (','.join(['?']*len(dates)))  # e.g. (?,?,?)
+        stmt = tmpl.format(cols, dateslots)
+        bindvals = [clientid]
+        bindvals += (str(date) for date in dates)
+        limit = ' LIMIT {}'.format(maxrows)
+        if authsource:
+            stmt += ' AND authsource = ?'
+            bindvals.append(authsource)
+            limit += ' ALLOW FILTERING'
+        stmt += limit
+        prep = self._prepare(stmt)
+        return self.session.execute(prep.bind(bindvals))

@@ -1133,3 +1133,54 @@ class ClientAdmTests(unittest.TestCase):
     def test_policy_cannot_register(self, _):
         res = self._test_policy()
         assert 'register' in res.json and not res.json['register']
+
+    def _test_get_logins_stats(self, client, orgadmin, params, httpstat):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_by_id.return_value = client
+        self.session.get_logins_stats = mock.MagicMock()
+        self.session.is_org_admin.return_value = orgadmin
+        path = '/clientadm/clients/{}/logins_stats/{}'.format(uuid.UUID(clientid), params)
+        return self.testapp.get(path, status=httpstat, headers=headers)
+
+    def _test_get_logins_stats_owner(self, params, httpstat):
+        client = deepcopy(retrieved_client)
+        return self._test_get_logins_stats(client, False, params, httpstat)
+
+    def test_get_logins_stats_owner(self):
+        self._test_get_logins_stats_owner('', 200)
+
+    def _test_get_logins_stats_other_owner(self, orgadmin, httpstat):
+        client = deepcopy(retrieved_client)
+        client['owner'] = userid_other
+        client['organization'] = 'fc:org:example.com'
+        return self._test_get_logins_stats(client, orgadmin, '', httpstat)
+
+    def test_get_logins_stats_other_owner(self):
+        self._test_get_logins_stats_other_owner(False, 403)
+
+    def test_get_logins_stats_org_admin(self):
+        self._test_get_logins_stats_other_owner(True, 200)
+
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
+    def test_get_logins_stats_platform_admin(self, _):
+        self._test_get_logins_stats_other_owner(False, 200)
+
+    def _test_get_logins_stats_date(self, datestr, httpstat):
+        return self._test_get_logins_stats_owner('?end_date={}'.format(datestr), httpstat)
+
+    def test_get_logins_stats_date(self):
+        self._test_get_logins_stats_date('2016-01-02', 200)
+
+    def test_get_logins_stats_bad_date(self):
+        self._test_get_logins_stats_date('trettiende juli tusenogtretti', 400)
+
+    def _test_get_logins_stats_num_days(self, num_days, httpstat):
+        return self._test_get_logins_stats_owner('?num_days={}'.format(num_days), httpstat)
+
+    def test_get_logins_stats_num_days(self):
+        self._test_get_logins_stats_date('3', 200)
+
+    def test_get_logins_stats_bad_num_days(self):
+        self._test_get_logins_stats_num_days('pi', 400)
+        self._test_get_logins_stats_num_days(0, 400)
+        self._test_get_logins_stats_num_days(99, 400)

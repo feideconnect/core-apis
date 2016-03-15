@@ -4,7 +4,9 @@ import json
 from urllib.parse import urlsplit
 import uuid
 
+from aniso8601 import parse_date
 import cassandra.util
+import datetime
 import valideer as V
 
 from coreapis import cassandra_client
@@ -13,13 +15,15 @@ from coreapis.scopes import is_gkscopename, has_gkscope_match
 from coreapis.scopes.manager import ScopesManager
 from coreapis.authproviders import authprovmgr, REGISTER_CLIENT
 from coreapis.utils import (
-    LogWrapper, timestamp_adapter, ForbiddenError, valid_url, get_feideids,
-    userinfo_for_log, get_platform_admins, PRIV_PLATFORM_ADMIN)
+    LogWrapper, timestamp_adapter, ValidationError, ForbiddenError,
+    valid_url, get_feideids, userinfo_for_log, get_platform_admins,
+    PRIV_PLATFORM_ADMIN)
 
 
 USER_SETTABLE_STATUS_FLAGS = {'Public'}
 INVALID_URISCHEMES = {'data', 'javascript', 'file', 'about'}
 FEIDE_REALM_PREFIX = 'feide|realm|'
+MAX_DAYS = 4
 
 
 def is_valid_uri(uri):
@@ -364,3 +368,22 @@ class ClientAdmController(CrudControllerBase):
     def get_policy(self, user):
         approved = authprovmgr.has_user_permission(user, REGISTER_CLIENT)
         return dict(register=approved)
+
+    def get_logins_stats(self, clientid, end_date, num_days, authsource):
+        if end_date:
+            try:
+                end_date = parse_date(end_date)
+            except Exception:
+                raise ValidationError('end_date not a valid date: {}'.format(end_date))
+        else:
+            end_date = datetime.date.today()
+        try:
+            num_days = int(num_days)
+        except ValueError:
+            raise ValidationError('num_days not an integer: {}'.format(num_days))
+        if num_days < 1 or num_days > MAX_DAYS:
+            msg = 'num_days should be an integer: 1 <= num_days <= {}'.format(MAX_DAYS)
+            raise ValidationError(msg)
+        start_date = end_date - datetime.timedelta(num_days - 1)
+        dates = [start_date + datetime.timedelta(i) for i in range(num_days)]
+        return list(self.session.get_logins_stats(clientid, dates, authsource, self.maxrows))

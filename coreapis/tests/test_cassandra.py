@@ -29,6 +29,7 @@ import uuid
 import random
 import string
 import os
+import datetime
 from collections import Mapping, Sequence
 from cassandra.cluster import NoHostAvailable
 from coreapis.cassandra_client import Client
@@ -47,6 +48,7 @@ TABLES = [
     'roles',
     'mandatory_clients',
     'remote_apigatekeepers',
+    'logins_stats',
 ]
 
 db_node = os.environ.get('DP_CASSANDRA_TEST_NODE', 'cassandra-test-coreapis')
@@ -75,10 +77,6 @@ def random_string(length):
 
 def random_bytes(length):
     return random_string(length).encode('UTF-8')
-
-
-def random_int():
-    return random.randint(0, 2**30)
 
 
 def is_sequence(value):
@@ -287,6 +285,17 @@ def make_remgk():
     )
 
 
+def make_statsline():
+    ts_now = now()
+    return dict(
+        clientid=uuid.uuid4(),
+        date=str(datetime.datetime.date(ts_now)),
+        timeslot=ts_now,
+        authsource=random_string(16),
+        login_count=1
+    )
+
+
 class CassandraClientTests(unittest.TestCase):
     def setUp(self):
         self.cclient = cclient
@@ -401,6 +410,20 @@ class CassandraClientTests(unittest.TestCase):
         for remgk in remgks:
             self.insert_remgk(remgk)
         return remgks
+
+    def insert_statsline(self, statsline):
+        stmt = ('UPDATE logins_stats SET login_count = login_count + 1 WHERE ' +
+                'clientid = ? and date = ? and timeslot = ? and authsource = ?')
+        session = self.cclient.session
+        prep = session.prepare(stmt)
+        values = [statsline[col] for col in ['clientid', 'date', 'timeslot', 'authsource']]
+        self.cclient.session.execute(prep.bind(values))
+
+    def insert_statslines(self, nrecs):
+        statslines = [make_statsline() for i in range(nrecs)]
+        for statsline in statslines:
+            self.insert_statsline(statsline)
+        return statslines
 
     def authorize(self, userid, clientid, scopes):
         authz = [make_authorization() for i in range(self.nrecs)]
@@ -816,3 +839,13 @@ class CassandraClientTests(unittest.TestCase):
         assert res
         res = self.cclient.apigk_allowed_dn(random_string(16))
         assert not res
+
+    def test_get_logins_stats(self):
+        statlines = self.insert_statslines(self.nrecs)
+        statline = statlines[self.nrecs - 2]
+        clientid = statline['clientid']
+        date = statline['date']
+        for authsource in [None, statline['authsource']]:
+            res = list(self.cclient.get_logins_stats(clientid, [date], authsource, self.maxrows))
+            assert len(res) == 1
+            assert res[0]['authsource'] == statline['authsource'] and res[0]['login_count'] == 1
