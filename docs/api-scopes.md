@@ -94,7 +94,7 @@ Prefix: /clientadm
 - /clients/{id}/gkscopes PATCH
 - /clients/{id}/orgauthorization/{realm} GET, PATCH, DELETE
 - /realmclients/targetrealm/{realm}/ GET
-
+- /clients/{id}/logins_stats/ GET
 
 GK
 --
