@@ -97,6 +97,7 @@ class ScopeRequestNotification(object):
         except:
             orgname = ''
         descr = self.translate(self.client['descr'])
+        descr = descr.replace('\n', '\n| ')
         uris = ', '.join(self.client['redirect_uri'])
         return client_tmpl.format(name, orgname, uris, descr)
 
