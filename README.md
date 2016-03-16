@@ -1,9 +1,8 @@
+Core APIs is a component of the [UNINETT Dataporten Platform](http://dataporten.no).
 
-Core apis and authorization middleware for feide connect.
+## API Documentation
 
-Core APIs is a component of the [UNINETT Connect Platform](http://feideconnect.no).
-
-
+* [API Documentation](/docs/index.md)
 
 ## Running Core-APIs
 
