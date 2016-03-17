@@ -17,6 +17,11 @@ ORG_ATTRIBUTE_NAMES = {
     'street',
 }
 
+ORG_UNIT_ATTRIBUTE_NAMES = {
+    'norEduOrgUnitUniqueIdentifier',
+    'ou',
+}
+
 GROUP_PERSON_ATTRIBUTES = (
     'eduPersonOrgDN',
     'eduPersonOrgUnitDN',
@@ -30,3 +35,21 @@ PEOPLE_SEARCH_ATTRIBUTES = ['cn', 'displayName', 'eduPersonPrincipalName']
 
 
 PERSON_ATTRIBUTES = set(GROUP_PERSON_ATTRIBUTES) | set(PEOPLE_SEARCH_ATTRIBUTES)
+
+REQUIRED_PERSON_ATTRIBUTES = [
+    'eduPersonOrgDN',
+    'eduPersonOrgUnitDN',
+    'eduPersonAffiliation',
+    'eduPersonPrimaryAffiliation',
+    'displayName',
+    'eduPersonPrincipalName',
+]
+
+REQUIRED_ORG_ATTRIBUTES = [
+    'eduOrgLegalName',
+]
+
+REQUIRED_ORG_UNIT_ATTRIBUTES = [
+    'norEduOrgUnitUniqueIdentifier',
+    'ou',
+]

@@ -11,6 +11,20 @@ def ldap_exception_argument(ex):
     return ex.args[0]
 
 
+def check_object(con, dn, objtype, needed_attributes):
+    errors = []
+    con.search(dn, '(objectClass=*)', ldap3.SEARCH_SCOPE_BASE_OBJECT,
+               attributes=list(needed_attributes), size_limit=1)
+    if len(con.response) == 0:
+        errors.append("Could not lookup {} {}".format(objtype, dn))
+    else:
+        orgattributes = con.response[0]['attributes']
+        for attribute in needed_attributes:
+            if attribute not in orgattributes:
+                errors.append("Attribute {} missing on org".format(attribute))
+    return errors
+
+
 def ldap_status(realm, feideid, ldap_config, ldap_certs):
 
     if not realm or realm not in ldap_config:
@@ -42,7 +56,7 @@ def ldap_status(realm, feideid, ldap_config, ldap_certs):
                                    client_strategy=ldap3.STRATEGY_SYNC,
                                    check_names=True)
             con.search(base_dn, search_filter, ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
-                       attributes=list(coreapis.ldap.PERSON_ATTRIBUTES), size_limit=1)
+                       attributes=coreapis.ldap.REQUIRED_PERSON_ATTRIBUTES, size_limit=1)
             if len(con.response) == 0:
                 status[server] = {
                     'result': 'empty response looking up feideid',
@@ -50,12 +64,17 @@ def ldap_status(realm, feideid, ldap_config, ldap_certs):
                 continue
             errors = []
             attributes = con.response[0]['attributes']
-            print(attributes)
-            for attribute in coreapis.ldap.PERSON_ATTRIBUTES:
+            for attribute in coreapis.ldap.REQUIRED_PERSON_ATTRIBUTES:
                 if attribute not in attributes:
                     errors.append('Attribute {} missing on person'.format(attribute))
-#            if 'eduPersonOrgDN' in attributes:
-#                orgDN = attributes['eduPersonOrgDN'][0]
+            if 'eduPersonOrgDN' in attributes:
+                orgDN = attributes['eduPersonOrgDN'][0]
+                errors.extend(check_object(con, orgDN, 'organization',
+                                           coreapis.ldap.REQUIRED_ORG_ATTRIBUTES))
+            if 'eduPersonOrgUnitDN' in attributes:
+                orgUnitDN = attributes['eduPersonOrgUnitDN'][0]
+                errors.extend(check_object(con, orgUnitDN, 'organizational unit',
+                                           coreapis.ldap.REQUIRED_ORG_UNIT_ATTRIBUTES))
             if errors:
                 status[server] = {
                     'result': 'Data Error',
