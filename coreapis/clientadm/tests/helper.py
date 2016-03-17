@@ -84,6 +84,7 @@ retrieved_user = {
     'selectedsource': 'us',
     'name': {'us': 'foo'},
     'userid': uuid.UUID(userid_own),
+    'email': {'us': FEIDETESTER},
 }
 
 orgadmin_policy = {

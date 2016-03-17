@@ -320,6 +320,7 @@ class ClientAdmTests(unittest.TestCase):
     def test_post_client_gksubscope_given(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.side_effect = KeyError
+        self.session.get_user_by_id.return_value = retrieved_user
         body = deepcopy(post_body_minimal)
         body['scopes_requested'] = [testgk, testgk + '_foo']
         self.session.insert_client = mock.MagicMock()
@@ -647,6 +648,7 @@ class ClientAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         client = deepcopy(retrieved_client)
         self.session.get_client_by_id.return_value = client
+        self.session.get_user_by_id.return_value = retrieved_user
         self.session.insert_client = mock.MagicMock()
         path = '/clientadm/clients/{}'.format(clientid)
         attrs = {'scopes_requested': [nullscopedefgk]}
