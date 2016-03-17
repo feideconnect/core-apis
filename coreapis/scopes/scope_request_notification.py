@@ -76,7 +76,7 @@ class ScopeRequestNotification(object):
 
     def get_subject(self):
         firstscope = self.scopes[0]
-        name = self.client['name']
+        name = self.client.get('name', '')
         if self.apigk:
             base = firstscope.split('_')[1]
             subscopes = [scope.split('_')[2]
@@ -91,18 +91,19 @@ class ScopeRequestNotification(object):
 
     def get_client_info(self):
         client_tmpl = self.translate(translatable(CLIENT_TMPL))
-        name = self.client['owner']['name']
+        owner = self.client.get('owner', {})
+        name = owner.get('name', '')
         try:
             orgname = self.translate(self.client['organization']['name'])
         except:
             orgname = ''
-        descr = self.translate(self.client['descr'])
+        descr = self.translate(self.client.get('descr', ''))
         descr = descr.replace('\n', '\n| ')
-        uris = ', '.join(self.client['redirect_uri'])
+        uris = ', '.join(self.client.get('redirect_uri', []))
         return client_tmpl.format(name, orgname, uris, descr)
 
     def get_dashboard_url(self):
-        orgid = self.apigk['organization']
+        orgid = self.apigk.get('organization')
         if not orgid:
             orgid = '_'
         base = self.scopes[0].split('_')[1]
