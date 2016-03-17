@@ -1,0 +1,18 @@
+ORG_ATTRIBUTE_NAMES = {
+    'eduOrgLegalName',
+    'norEduOrgNIN',
+    'mail',
+    'telephoneNumber',
+    'postalAddress',
+    'eduOrgHomePageURI',
+    'eduOrgIdentityAuthNPolicyURI',
+    'eduOrgWhitePagesURI',
+    'facsimileTelephoneNumber',
+    'l',
+    'labeledURI',
+    'norEduOrgAcronym',
+    'norEduOrgUniqueIdentifier',
+    'postalCode',
+    'postOfficeBox',
+    'street',
+}

@@ -13,25 +13,8 @@ ldapcontroller = eventlet.import_patched('coreapis.ldap.controller')
 from coreapis import cassandra_client, feide
 from coreapis.groups.gogroups import (
     affiliation_names as go_affiliation_names, GOGroup, groupid_entitlement)
+from coreapis.ldap import ORG_ATTRIBUTE_NAMES
 
-ORG_ATTRIBUTE_NAMES = {
-    'eduOrgLegalName',
-    'norEduOrgNIN',
-    'mail',
-    'telephoneNumber',
-    'postalAddress',
-    'eduOrgHomePageURI',
-    'eduOrgIdentityAuthNPolicyURI',
-    'eduOrgWhitePagesURI',
-    'facsimileTelephoneNumber',
-    'l',
-    'labeledURI',
-    'norEduOrgAcronym',
-    'norEduOrgUniqueIdentifier',
-    'postalCode',
-    'postOfficeBox',
-    'street',
-}
 PERSON_ATTRIBUTES = (
     'eduPersonOrgDN',
     'eduPersonOrgUnitDN',
