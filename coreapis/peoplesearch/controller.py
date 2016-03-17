@@ -7,7 +7,8 @@ from cassandra.cluster import Cluster
 import ldap3
 from PIL import Image
 
-from coreapis.utils import ValidationError, LogWrapper, now, get_cassandra_cluster_args
+from coreapis.utils import ValidationError, LogWrapper, now, get_cassandra_cluster_args, \
+    get_platform_admins, get_feideids
 from .tokens import crypt_token, decrypt_token
 from coreapis.cassandra_client import datetime_hack_dict_factory
 from coreapis.ldap.controller import validate_query
@@ -75,6 +76,8 @@ class PeopleSearchController(object):
         self.db = CassandraCache(contact_points, cache_keyspace, authz)
         self.cache_update_age = datetime.timedelta(seconds=cache_update_seconds)
         self.search_max_replies = 50
+        platformadmins_file = settings.get('platformadmins_file')
+        self.platformadmins = get_platform_admins(platformadmins_file)
 
     def valid_org(self, org):
         return org in self.ldap.get_ldap_config()
@@ -115,8 +118,28 @@ class PeopleSearchController(object):
                 res.add(key)
         return res
 
+    def is_platform_admin(self, user):
+        if user is None:
+            return False
+        for feideid in get_feideids(user):
+            if feideid in self.platformadmins:
+                return True
+        return False
+
+    def admin_search(self, org, query, user, access_string, max_replies=None):
+        if access_string == 'both':
+            access = {'employees', 'others'}
+        elif access_string == 'none':
+            access = set()
+        else:
+            access = {access_string}
+        return self._search(org, query, user, max_replies, access)
+
     def search(self, org, query, user, max_replies=None):
         access = self.authorized_search_access(user, org)
+        return self._search(org, query, user, max_replies, access)
+
+    def _search(self, org, query, user, max_replies, access):
         if not ('employees' in access or 'others' in access):
             return []
         if max_replies is None or max_replies > self.search_max_replies:

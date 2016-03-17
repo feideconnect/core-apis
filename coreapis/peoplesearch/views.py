@@ -19,6 +19,7 @@ def configure(config):
                               reify=True)
     config.add_route('person_search_v1', '/v1/search/{org}/{name}')
     config.add_route('person_search', '/search/{org}/{name}')
+    config.add_route('admin_search', '/admin_search/{org}/{name}')
     config.add_route('list_realms_v1', '/v1/orgs')
     config.add_route('list_realms', '/orgs')
     config.add_route('profile_photo_v1', '/v1/people/profilephoto/{token}')
@@ -40,6 +41,28 @@ def person_search_v1(request):
     if not request.ps_controller.valid_org(org):
         raise HTTPNotFound('Unknown org')
     return request.ps_controller.search(org, search, user, max_replies)
+
+
+@view_config(route_name='admin_search', renderer='json', permission='scope_orgadmin')
+def admin_search(request):
+    user = get_user(request)
+    if not user:
+        raise HTTPForbidden('This resource requires a personal token')
+    if not request.ps_controller.is_platform_admin:
+        raise HTTPForbidden('Insufficient access')
+
+    org = request.matchdict['org']
+    search = request.matchdict['name']
+    max_replies = get_max_replies(request)
+    access = request.params.get('access', 'none')
+    if access not in ('both', 'none', 'employees', 'others'):
+        raise HTTPNotFount('bad access parameter')
+    validate_query(search)
+    if not org or not search:
+        raise HTTPNotFound('missing org or search term')
+    if not request.ps_controller.valid_org(org):
+        raise HTTPNotFound('Unknown org')
+    return request.ps_controller.admin_search(org, search, user, access, max_replies)
 
 
 @view_config(route_name='person_search', renderer='json', permission='scope_peoplesearch')
