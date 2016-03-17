@@ -28,9 +28,13 @@ def forbidden(context, request):
 
 
 @notfound_view_config(renderer='json')
-def notfound(request):
+def notfound(context, request):
+    if context and context.args and context.args[0]:
+        message = context.args[0]
+    else:
+        message = 'Requested resource was not found'
     request.response.status_code = 404
-    return {'message': 'Requested resource was not found'}
+    return {'message': message}
 
 
 @view_config(context=Exception, renderer='json')
