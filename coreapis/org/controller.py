@@ -6,7 +6,7 @@ import ldap3
 import valideer as V
 
 from coreapis.utils import (
-    LogWrapper, get_feideid, get_platform_admins, AlreadyExistsError, ValidationError,
+    LogWrapper, get_platform_admins, AlreadyExistsError, ValidationError,
     json_normalize, userinfo_for_log)
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
@@ -243,13 +243,12 @@ class OrgController(CrudControllerBase):
             return False
         return True
 
-    def ldap_status(self, user, orgid):
+    def ldap_status(self, user, orgid, feideid):
         org = self.session.get_org(orgid)
         realm = org.get('realm', None)
         if not realm or realm not in self.ldap_config:
             return {'error': 'Missing configuration for realm {}'.format(realm)}
         orgconfig = self.ldap_config[realm]
-        feideid = get_feideid(user)
 
         status = {}
         base_dn = orgconfig['base_dn']
