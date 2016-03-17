@@ -14,7 +14,7 @@ from coreapis import cassandra_client, feide
 from coreapis.groups.gogroups import (
     affiliation_names as go_affiliation_names, GOGroup, groupid_entitlement)
 
-org_attribute_names = {
+ORG_ATTRIBUTE_NAMES = {
     'eduOrgLegalName',
     'norEduOrgNIN',
     'mail',
@@ -205,7 +205,7 @@ class LDAPBackend(BaseBackend):
             'membership': org_membership(person, orgType),
             'orgType': orgType,
         }
-        for attribute in org_attribute_names:
+        for attribute in ORG_ATTRIBUTE_NAMES:
             if attribute in org_attributes:
                 res[attribute] = org_attributes[attribute][0]
         return res
