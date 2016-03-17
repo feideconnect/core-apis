@@ -2,6 +2,8 @@ import ssl
 
 import ldap3
 
+import coreapis.ldap
+
 
 def ldap_exception_argument(ex):
     if isinstance(ex.args[0], Exception):
@@ -18,7 +20,6 @@ def ldap_status(realm, feideid, ldap_config, ldap_certs):
     status = {}
     base_dn = orgconfig['base_dn']
     search_filter = '(eduPersonPrincipalName={})'.format(feideid)
-    attributes = ['eduPersonPrincipalName', 'eduPersonOrgDN']
     tls = ldap3.Tls(validate=ssl.CERT_REQUIRED,
                     ca_certs_file=ldap_certs)
     if 'bind_user' in orgconfig:
@@ -41,10 +42,24 @@ def ldap_status(realm, feideid, ldap_config, ldap_certs):
                                    client_strategy=ldap3.STRATEGY_SYNC,
                                    check_names=True)
             con.search(base_dn, search_filter, ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
-                       attributes=attributes, size_limit=1)
+                       attributes=list(coreapis.ldap.PERSON_ATTRIBUTES), size_limit=1)
             if len(con.response) == 0:
                 status[server] = {
-                    'result': 'empty response',
+                    'result': 'empty response looking up feideid',
+                }
+                continue
+            errors = []
+            attributes = con.response[0]['attributes']
+            print(attributes)
+            for attribute in coreapis.ldap.PERSON_ATTRIBUTES:
+                if attribute not in attributes:
+                    errors.append('Attribute {} missing on person'.format(attribute))
+#            if 'eduPersonOrgDN' in attributes:
+#                orgDN = attributes['eduPersonOrgDN'][0]
+            if errors:
+                status[server] = {
+                    'result': 'Data Error',
+                    'message': "\n".join(errors),
                 }
             else:
                 status[server] = {
