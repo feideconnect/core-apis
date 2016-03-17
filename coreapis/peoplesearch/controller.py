@@ -178,7 +178,7 @@ class PeopleSearchController(object):
             image.thumbnail(THUMB_SIZE)
             fake_output = io.BytesIO()
             image.save(fake_output, format='JPEG')
-            return fake_output.getbuffer(), etag, last_modified
+            return bytes(fake_output.getbuffer()), etag, last_modified
 
     def profile_image(self, user):
         cache = self.db.lookup(user)
