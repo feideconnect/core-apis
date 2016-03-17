@@ -25,3 +25,5 @@ GROUP_PERSON_ATTRIBUTES = (
     'eduPersonPrimaryAffiliation',
     'title',
 )
+
+PEOPLE_SEARCH_ATTRIBUTES = ['cn', 'displayName', 'eduPersonPrincipalName']

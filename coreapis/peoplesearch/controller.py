@@ -11,9 +11,9 @@ from coreapis.utils import ValidationError, LogWrapper, now, get_cassandra_clust
 from .tokens import crypt_token, decrypt_token
 from coreapis.cassandra_client import datetime_hack_dict_factory
 from coreapis.ldap.controller import validate_query
+from coreapis.ldap import PEOPLE_SEARCH_ATTRIBUTES
 
 THUMB_SIZE = 128, 128
-USER_INFO_ATTRIBUTES = ['cn', 'displayName', 'eduPersonPrincipalName']
 SINGLE_VALUED_ATTRIBUTES = ['cn', 'displayName', 'eduPersonPrincipalName']
 
 
@@ -134,7 +134,7 @@ class PeopleSearchController(object):
         elif 'employees' in access and 'others' not in access:
             search_filter = '(&{}(eduPersonAffiliation=employee))'.format(search_filter)
         res = self.ldap.ldap_search(org, search_filter, ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
-                                    attributes=USER_INFO_ATTRIBUTES, size_limit=max_replies)
+                                    attributes=PEOPLE_SEARCH_ATTRIBUTES, size_limit=max_replies)
         with self.t.time('ps.process_results'):
             result = [dict(r['attributes']) for r in res]
             new_result = []
