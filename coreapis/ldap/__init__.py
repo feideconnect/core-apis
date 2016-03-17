@@ -16,3 +16,12 @@ ORG_ATTRIBUTE_NAMES = {
     'postOfficeBox',
     'street',
 }
+
+GROUP_PERSON_ATTRIBUTES = (
+    'eduPersonOrgDN',
+    'eduPersonOrgUnitDN',
+    'eduPersonEntitlement',
+    'eduPersonAffiliation',
+    'eduPersonPrimaryAffiliation',
+    'title',
+)

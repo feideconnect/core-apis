@@ -13,16 +13,7 @@ ldapcontroller = eventlet.import_patched('coreapis.ldap.controller')
 from coreapis import cassandra_client, feide
 from coreapis.groups.gogroups import (
     affiliation_names as go_affiliation_names, GOGroup, groupid_entitlement)
-from coreapis.ldap import ORG_ATTRIBUTE_NAMES
-
-PERSON_ATTRIBUTES = (
-    'eduPersonOrgDN',
-    'eduPersonOrgUnitDN',
-    'eduPersonEntitlement',
-    'eduPersonAffiliation',
-    'eduPersonPrimaryAffiliation',
-    'title',
-)
+from coreapis.ldap import ORG_ATTRIBUTE_NAMES, GROUP_PERSON_ATTRIBUTES
 
 PERSON_ATTRIBUTE_MAPPING = {
     'eduPersonAffiliation': 'affiliation',
@@ -282,7 +273,7 @@ class LDAPBackend(BaseBackend):
             return []
         res = self.ldap.search(realm, base_dn, '(eduPersonPrincipalName={})'.format(feideid),
                                ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
-                               PERSON_ATTRIBUTES, 1)
+                               GROUP_PERSON_ATTRIBUTES, 1)
         if len(res) == 0:
             raise KeyError('could not find user in catalog')
         res = res[0]
