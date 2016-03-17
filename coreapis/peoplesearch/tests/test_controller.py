@@ -218,6 +218,7 @@ class TestFetchProfileImage(TestCase):
         self.controller._profile_image_feide = mock.MagicMock(return_value=(imgdata, 'etag', modified))
         image, etag, last_modified = self.controller._fetch_profile_image('feide:noone@example.com')
         assert image != imgdata
+        assert isinstance(image, bytes)
         assert etag == 'etag'
         assert last_modified == modified
         fake_file = io.BytesIO(image)
