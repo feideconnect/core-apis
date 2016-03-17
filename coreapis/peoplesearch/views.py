@@ -56,7 +56,7 @@ def admin_search(request):
     max_replies = get_max_replies(request)
     access = request.params.get('access', 'none')
     if access not in ('both', 'none', 'employees', 'others'):
-        raise HTTPNotFount('bad access parameter')
+        raise HTTPNotFound('bad access parameter')
     validate_query(search)
     if not org or not search:
         raise HTTPNotFound('missing org or search term')
