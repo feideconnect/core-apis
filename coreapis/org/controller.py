@@ -6,6 +6,7 @@ import valideer as V
 from coreapis.utils import (
     LogWrapper, get_platform_admins, AlreadyExistsError, ValidationError,
     json_normalize, userinfo_for_log)
+from coreapis.cache import Cache
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.clientadm.controller import ClientAdmController
@@ -72,10 +73,19 @@ class OrgController(CrudControllerBase):
         self.session = cassandra_client.Client(contact_points, keyspace, authz=authz)
         self.log.debug('org controller init', keyspace=keyspace)
         self.cadm_controller = ClientAdmController(settings)
-        self.ldap_config = json.load(open(ldap_config))
+        self.ldap_config_file = ldap_config
         self.ldap_certs = settings.get('ldap_ca_certs', None)
         platformadmins_file = settings.get('platformadmins_file')
         self.platformadmins = get_platform_admins(platformadmins_file)
+        self.ldap_config_cache = Cache(300, 'org.OrgController.ldap_config_cache')
+
+    def _get_ldap_config(self):
+        with open(self.ldap_config_file) as configfile:
+            return json.load(configfile)
+
+    @property
+    def ldap_config(self):
+        return self.ldap_config_cache.get('conf', self._get_ldap_config)
 
     def format_org(self, org):
         has_ldapgroups = False
