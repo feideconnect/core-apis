@@ -1,13 +1,21 @@
 {
 	"userinfo": {
 		"title": "Brukerinfo",
-		"descr": "Basisinformasjon om brukere. BrukerID, navn og profilbilde.",
-		"public": true,
+		"descr": "Basisinformasjon om brukere. BrukerID og navn.",
+		"public": false,
 		"policy": {
 			"auto": true
 		}
 	},
 	"userinfo-mail": {
+		"title": "E-post",
+		"descr": "Brukerens e-postadresse",
+		"public": false,
+		"policy": {
+			"auto": true
+		}
+	},
+	"email": {
 		"title": "E-post",
 		"descr": "Brukerens e-postadresse",
 		"public": true,
@@ -18,14 +26,78 @@
 	"userinfo-feide": {
 		"title": "Feide-navn",
 		"descr": "Brukerens identifikator i Feide. Tilsvarende eduPersonPrincipalName.",
+		"public": false,
+		"policy": {
+			"auto": true
+		}
+	},
+	"userid-feide": {
+		"title": "Feide-navn",
+		"descr": "Brukerens identifikator i Feide. Tilsvarende eduPersonPrincipalName.",
 		"public": true,
 		"policy": {
 			"auto": true
 		}
 	},
 	"userinfo-photo": {
-		"title": "Profile Photo",
-		"descr": "Tthe profile photo of the user.",
+		"title": "profilbilde",
+		"descr": "Brukerens profilbilde",
+		"public": false,
+		"policy": {
+			"auto": true
+		}
+	},
+	"userid": {
+		"title": "Bruker-ID",
+		"descr": "Brukerens ID i dataporten",
+		"public": true,
+		"policy": {
+			"auto": true
+		}
+	},
+	"userid-nin": {
+		"title": "Personnummer",
+		"descr": "Brukerens personnummer",
+		"public": false,
+		"policy": {
+			"auto": false
+		}
+	},
+	"userinfo-entitlement": {
+		"title": "Feide rettighet",
+		"descr": "rettighetsdata fra feide-katalogen",
+		"public": false,
+		"policy": {
+			"auto": false
+		}
+	},
+	"userinfo-extra": {
+		"title": "Annen informasjon fra feide-katalogen",
+		"descr": "Feide-attributtene eduPersonAssurance, eduPersonNickname, labeledURI, cn, norEduPersonBirthDate, norEduPersonLIN, norEduPersonLegalName og preferredLanguage",
+		"public": false,
+		"policy": {
+			"auto": false
+		}
+	},
+	"phone": {
+		"title": "Telefonnummer",
+		"descr": "Brukerens telefon, fax og mobilnummer",
+		"public": false,
+		"policy": {
+			"auto": false
+		}
+	},
+	"address": {
+		"title": "Adresse",
+		"descr": "Brukerens adresse, postnummer og lignende",
+		"public": false,
+		"policy": {
+			"auto": false
+		}
+	},
+	"profile": {
+		"title": "Profilinfo",
+		"descr": "Brukerens navn og profilbilde.",
 		"public": true,
 		"policy": {
 			"auto": true
@@ -33,7 +105,7 @@
 	},
 	"openid": {
 		"title": "OpenID Connect",
-		"descr": "Klienten vil få utstedt en id_token og kunne bruke OpenID Connect for autentisering.",
+		"descr": "Klienten vil få utstedt en id_token og kunne bruke OpenID Connect for autentisering. Klienten vil få tilgang til bruker-ID",
 		"public": true,
 		"policy": {
 			"auto": true
@@ -48,8 +120,8 @@
 		}
 	},
 	"peoplesearch": {
-		"title": "PeopleSearch",
-		"descr": "Search for users",
+		"title": "Personsøk",
+		"descr": "Tilgang til personsøk-funksjonaliteten",
 		"public": true,
 		"policy": {
 			"auto": true
@@ -63,9 +135,25 @@
 			"auto": true
 		}
 	},
+	"groups-memberids": {
+		"title": "Grupper - bruker-ID",
+		"descr": "Tilgang til bruker-ID for medlemmer av grupper",
+		"public": false,
+		"policy": {
+			"auto": false
+		}
+	},
+	"groups-orgadmin": {
+		"title": "Grupper - Org Admin",
+		"descr": "Tilgang til grupper for org- og plattformadministratorer",
+		"public": false,
+		"policy": {
+			"auto": false
+		}
+	},
 	"clientadmin": {
 		"title": "Klient Admin",
-		"descr": "Adminsitrer klienter",
+		"descr": "Administrer klienter",
 		"public": false,
 		"policy": {
 			"auto": false
@@ -81,14 +169,14 @@
 	},
 	"orgadmin": {
 		"title": "Org Admin",
-		"descr": "Manage mandatory clients for an organization",
+		"descr": "Styre obligatoriske klienter for en organisasjon",
 		"public": false,
 		"policy": {
 			"auto": false
 		}
 	},
 	"adhocgroupadmin": {
-		"title": "Håndtering av ad-hoc groupper",
+		"title": "Håndtering av ad-hoc grupper",
 		"descr": "Legge til, endre ad-hoc grupper, og kunne legge til og fjerne medlemmer.",
 		"public": false,
 		"policy": {
