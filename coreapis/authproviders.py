@@ -36,7 +36,7 @@ class IdportenProvider(object):
             org = session.get_org(orgid)
         except KeyError:
             raise ValidationError('No such organization: {}'.format(orgid))
-        services = org.get('services')
+        services = org.get('services', [])
         if self.provider_name not in services:
             fmt = 'Org {} not approved for {}, requested by client {}'
             raise ValidationError(fmt.format(orgid, self.provider_name, clientid))
@@ -64,7 +64,7 @@ class AuthProvidersManager(object):
     # that must be satisfied when inserting/updating a client.
     # This method raises an exception if any constraint is not met.
     def check_client_update(self, session, client):
-        for provider_name in client.get('authproviders'):
+        for provider_name in client.get('authproviders', []):
             provider = self.providers.get(provider_name)
             if provider:
                 provider().check_client_update(session, client)
