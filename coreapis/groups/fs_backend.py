@@ -22,7 +22,7 @@ class FsBackend(BaseBackend):
         keyspace = settings.get('cassandra_keyspace')
         authz = settings.get('cassandra_authz')
         self.session = cassandra_client.Client(contact_points, keyspace, True, authz=authz)
-        self.org_enabled = Cache(300)
+        self.org_enabled = Cache(300, 'groups.fs_backend.cache')
 
     def is_org_enabled(self, realm):
         return self.org_enabled.get(realm, functools.partial(self.session.org_use_fs_groups, realm))

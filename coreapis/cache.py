@@ -3,8 +3,8 @@ from coreapis.utils import LogWrapper
 
 
 class Cache(object):
-    def __init__(self, expiry):
-        self.log = LogWrapper('groups.fs_backend.cache')
+    def __init__(self, expiry, logname):
+        self.log = LogWrapper(logname)
         self.data = dict()
         self.expiry = expiry
 

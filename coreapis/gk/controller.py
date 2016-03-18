@@ -28,7 +28,7 @@ class GkController(object):
     def __init__(self, contact_points, keyspace, authz):
         self.session = cassandra_client.Client(contact_points, keyspace, authz=authz)
         self.log = LogWrapper('gk.GkController')
-        self._allowed_dn = Cache(1800)
+        self._allowed_dn = Cache(1800, 'gk.GkController.allowed_dn_cache')
 
     def allowed_dn(self, dn):
         return self._allowed_dn.get(dn, lambda: self.session.apigk_allowed_dn(dn))

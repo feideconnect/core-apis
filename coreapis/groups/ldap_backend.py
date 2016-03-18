@@ -141,7 +141,7 @@ class LDAPBackend(BaseBackend):
         keyspace = settings.get('cassandra_keyspace')
         authz = settings.get('cassandra_authz')
         self.session = cassandra_client.Client(contact_points, keyspace, True, authz=authz)
-        self.org_types = Cache(3600)
+        self.org_types = Cache(3600, 'groups.ldap_backend.cache')
 
     def _get_org_type_real(self, realm):
         org = self.session.get_org_by_realm(realm)
