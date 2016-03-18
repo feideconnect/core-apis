@@ -49,6 +49,7 @@ class ClientAdmTests(unittest.TestCase):
             },
             enabled_components='clientadm',
             clientadm_scopedefs_file='testdata/scopedefs_testing.json',
+            clientadm_system_moderator='noreply@uninett.no',
             clientadm_maxrows=100)
         mw = middleware.MockAuthMiddleware(app, 'test realm')
         self.session = Client()
@@ -656,6 +657,16 @@ class ClientAdmTests(unittest.TestCase):
         out = res.json
         assert out['scopes_requested'] == [nullscopedefgk]
 
+    def test_update_client_change_scopes_requested_not_auto(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        self.session.get_client_by_id.return_value = client
+        self.session.get_user_by_id.return_value = retrieved_user
+        self.session.insert_client = mock.MagicMock()
+        path = '/clientadm/clients/{}'.format(clientid)
+        attrs = {'scopes_requested': [testscope]}
+        self.testapp.patch_json(path, attrs, status=200, headers=headers)
+
     def test_update_client_stranger_changes_scopes(self):
         headers = {'Authorization': 'Bearer user_token'}
         client = deepcopy(retrieved_client)
@@ -896,11 +907,11 @@ class ClientAdmTests(unittest.TestCase):
         self._test_update_idporten('idporten', 'foo', 400)
 
     def test_update_client_authproviders_idporten_in_services(self):
-        self.session.get_org.return_value = dict(services=['idporten'])
+        self.session.get_org.return_value = dict(id='foo', name='foo', services=['idporten'])
         self._test_update_idporten('idporten', 'foo', 200)
 
     def test_update_client_authproviders_unknown_provider(self):
-        self.session.get_org.return_value = dict(services=['idporten'])
+        self.session.get_org.return_value = dict(id='foo', name='foo', services=['idporten'])
         self._test_update_idporten('iqporten', 'foo', 200)
 
     def test_get_client_logo(self):
