@@ -54,15 +54,17 @@ def admin_search(request):
     org = request.matchdict['org']
     search = request.matchdict['name']
     max_replies = get_max_replies(request)
-    access = request.params.get('access', 'none')
-    if access not in ('both', 'none', 'employees', 'others'):
-        raise HTTPNotFound('bad access parameter')
+    sameorg = request.params.get('sameorg', 'false')
+    if sameorg == 'true':
+        sameorg = True
+    else:
+        sameorg = False
     validate_query(search)
     if not org or not search:
         raise HTTPNotFound('missing org or search term')
     if not request.ps_controller.valid_org(org):
         raise HTTPNotFound('Unknown org')
-    return request.ps_controller.admin_search(org, search, user, access, max_replies)
+    return request.ps_controller.admin_search(org, search, user, sameorg, max_replies)
 
 
 @view_config(route_name='person_search', renderer='json', permission='scope_peoplesearch')

@@ -126,13 +126,11 @@ class PeopleSearchController(object):
                 return True
         return False
 
-    def admin_search(self, org, query, user, access_string, max_replies=None):
-        if access_string == 'both':
-            access = {'employees', 'others'}
-        elif access_string == 'none':
-            access = set()
-        else:
-            access = {access_string}
+    def admin_search(self, org, query, user, sameorg, max_replies=None):
+        access = set()
+        for key, val in self.org_authorization_policy(org).items():
+            if val == 'all' or val == 'sameOrg' and sameorg:
+                access.add(key)
         return self._search(org, query, user, max_replies, access)
 
     def search(self, org, query, user, max_replies=None):
