@@ -224,5 +224,5 @@ class PeopleSearchController(object):
         self.db.insert(user, now(), last_modified, etag, data)
 
     def get_user(self, feideid):
-        person = self.ldap.lookup_feideid(feideid, USER_INFO_ATTRIBUTES)
+        person = self.ldap.lookup_feideid(feideid, PEOPLE_SEARCH_ATTRIBUTES)
         return self._format_person(person)
