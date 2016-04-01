@@ -12,3 +12,4 @@ SINGLE_VALUED_ATTRIBUTES = set([
 ])
 
 TEST_REALM = 'spusers.feide.no'
+GUEST_USER_REALM = 'rnd.feide.no'

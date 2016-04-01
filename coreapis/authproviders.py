@@ -8,13 +8,14 @@ REGISTER_CLIENT = 'register_client'
 class FeideProvider(object):
     provider_name = 'feide'
     ops_supported = [REGISTER_APIGK, REGISTER_CLIENT]
+    special_realms = {feide.TEST_REALM, feide.GUEST_USER_REALM}
 
     def has_user_permission(self, user_key, operation):
         if operation not in self.ops_supported:
             return False
         else:
             _, _, realm = user_key.partition('@')
-            return realm != feide.TEST_REALM
+            return realm not in self.special_realms
 
     def check_client_update(self, session, client):
         pass
