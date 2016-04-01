@@ -13,6 +13,7 @@ RUN RUNLEVEL=1 DEBIAN_FRONTEND=noninteractive apt-get install -y \
   python3 \
   python3-dev \
   python3-setuptools \
+  python3-pip \
   zlib1g-dev \
   git
 # Install confd
@@ -20,6 +21,7 @@ RUN wget -O /usr/local/bin/confd https://github.com/kelseyhightower/confd/releas
 # Install app
 ADD . /app
 WORKDIR /app
+RUN pip3 install --upgrade setuptools
 RUN python3 setup.py install
 ARG GIT_COMMIT
 ENV GIT_COMMIT ${GIT_COMMIT}
