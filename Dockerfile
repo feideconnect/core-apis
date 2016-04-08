@@ -22,6 +22,7 @@ RUN wget -O /usr/local/bin/confd https://github.com/kelseyhightower/confd/releas
 ADD . /app
 WORKDIR /app
 RUN pip3 install --upgrade setuptools
+RUN apt-get remove -y python3-setuptools
 RUN python3 setup.py install
 ARG GIT_COMMIT
 ENV GIT_COMMIT ${GIT_COMMIT}
