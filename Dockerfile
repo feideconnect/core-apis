@@ -12,17 +12,14 @@ RUN RUNLEVEL=1 DEBIAN_FRONTEND=noninteractive apt-get install -y \
   libssl-dev \
   python3 \
   python3-dev \
-  python3-setuptools \
-  python3-pip \
   zlib1g-dev \
   git
+RUN RUNLEVEL=1 DEBIAN_FRONTEND=noninteractive apt-get install -y -t jessie-backports python3-setuptools
 # Install confd
 RUN wget -O /usr/local/bin/confd https://github.com/kelseyhightower/confd/releases/download/v0.9.0/confd-0.9.0-linux-amd64 && chmod 0755 /usr/local/bin/confd
 # Install app
 ADD . /app
 WORKDIR /app
-RUN pip3 install --upgrade setuptools
-RUN apt-get remove -y python3-setuptools
 RUN python3 setup.py install
 ARG GIT_COMMIT
 ENV GIT_COMMIT ${GIT_COMMIT}
