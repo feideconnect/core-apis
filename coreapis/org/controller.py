@@ -120,16 +120,12 @@ class OrgController(CrudControllerBase):
     def list_orgs(self, want_peoplesearch=None):
         res = []
         for org in self.session.list_orgs():
-            append = False
+            org = self.format_org(org)
             if want_peoplesearch is None:
-                append = True
+                res.append(org)
             else:
                 if want_peoplesearch == org['has_peoplesearch']:
-                    append = True
-            if append:
-                org = self.format_org(org)
-                res.append(org)
-
+                    res.append(org)
         return res
 
     def add_org(self, user, org):
