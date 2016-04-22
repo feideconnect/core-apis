@@ -23,5 +23,4 @@ class Cache(object):
         if ts + self.expiry < time.time():
             self.log.debug('cache expired', key=key)
             return self._update(key, getter)
-        self.log.debug('cache hit', key=key)
         return cached
