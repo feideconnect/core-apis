@@ -16,7 +16,7 @@ while ! docker-compose ps 2>/dev/null | grep -q 'dataportenschemas.*Exit'; do
 done
 echo "Done"
 
-export DP_CASSANDRA_TEST_NODE=$(docker-compose port cassandra 9042)
+export DP_CASSANDRA_TEST_NODE=localhost
 export DP_CASSANDRA_TEST_KEYSPACE=test_coreapis
 
 pip install pylint
