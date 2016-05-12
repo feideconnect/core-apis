@@ -1,14 +1,14 @@
 #!/bin/sh
 set -e
-COMPOSEFILE=compose-test-cassandra.yml
+export COMPOSE_FILE=compose-test-cassandra.yml
 KEYSPACE=test_coreapis
 
 # Set up cassandra test environment
-docker-compose -f $COMPOSEFILE pull
-docker-compose -f $COMPOSEFILE run -e DP_CASSANDRA_TEST_KEYSPACE=$KEYSPACE \
+docker-compose pull
+docker-compose run -e DP_CASSANDRA_TEST_KEYSPACE=$KEYSPACE \
     core-apis python3 bin/init_keyspace.py -fw
-docker-compose -f $COMPOSEFILE run -e CASSANDRA_KEYSPACE=$KEYSPACE dataportenschemas up
-DP_CASSANDRA_TEST_NODE=$(docker-compose -f $COMPOSEFILE run core-apis env \
+docker-compose run -e CASSANDRA_KEYSPACE=$KEYSPACE dataportenschemas up
+DP_CASSANDRA_TEST_NODE=$(docker-compose run core-apis env \
     | grep ^CASSANDRA_PORT_9042_TCP_ADDR | cut -d= -f2)
 export DP_CASSANDRA_TEST_NODE
 export DP_CASSANDRA_TEST_KEYSPACE=$KEYSPACE
@@ -24,5 +24,5 @@ coverage html --include 'coreapis/*'
 coverage xml --include 'coreapis/*'
 
 # Tear down cassandra test environment
-docker-compose -f $COMPOSEFILE kill cassandra
-docker-compose -f $COMPOSEFILE rm -fv cassandra
+docker-compose kill cassandra
+docker-compose rm -fv cassandra
