@@ -4,13 +4,14 @@ export COMPOSE_FILE=compose-test-cassandra.yml
 KEYSPACE=test_coreapis
 
 # Set up cassandra test environment
-docker-compose pull
-docker-compose run -e DP_CASSANDRA_TEST_KEYSPACE=$KEYSPACE \
-    core-apis python3 bin/init_keyspace.py -fw
-docker-compose run -e CASSANDRA_KEYSPACE=$KEYSPACE dataportenschemas up
-DP_CASSANDRA_TEST_NODE=$(docker-compose run core-apis env \
-    | grep ^CASSANDRA_PORT_9042_TCP_ADDR | cut -d= -f2)
-export DP_CASSANDRA_TEST_NODE
+docker-compose up -d
+echo "Waiting schema setup to complete"
+while ! docker-compose ps | grep -q 'dataportenschemas.*Exit'; do
+    sleep 0.1
+done
+echo "Done"
+
+export DP_CASSANDRA_TEST_NODE=$(docker-compose port cassandra 9042)
 export DP_CASSANDRA_TEST_KEYSPACE=$KEYSPACE
 
 pip install pylint
