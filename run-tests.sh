@@ -10,12 +10,6 @@ function clean-docker() {
 }
 trap clean-docker EXIT
 
-echo "Waiting schema setup to complete"
-while ! docker-compose ps 2>/dev/null | grep -q 'dataportenschemas.*Exit'; do
-    sleep 0.1
-done
-echo "Done"
-
 export DP_CASSANDRA_TEST_NODE=localhost
 export DP_CASSANDRA_TEST_KEYSPACE=test_coreapis
 
@@ -25,6 +19,14 @@ pip install --upgrade setuptools
 python setup.py develop
 pylint -f parseable coreapis >pylint.out || true
 echo "pylint returned $result"
+
+echo "Waiting schema setup to complete"
+while ! docker-compose ps 2>/dev/null | grep -q 'dataportenschemas.*Exit'; do
+    sleep 0.1
+done
+echo "Done"
+
+
 coverage run --branch -m py.test --junitxml=testresults.xml || true
 coverage html --include 'coreapis/*'
 coverage xml --include 'coreapis/*'
