@@ -83,8 +83,6 @@ class Client(object):
     def session(self):
         if self._session:
             return self._session
-        import traceback
-        traceback.print_stack()
         cluster = Cluster(**self.cluster_args)
         session = cluster.connect(self.keyspace)
         session.row_factory = datetime_hack_dict_factory
