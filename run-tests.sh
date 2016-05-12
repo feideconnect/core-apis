@@ -11,7 +11,7 @@ function clean-docker() {
 trap clean-docker EXIT
 
 echo "Waiting schema setup to complete"
-while ! docker-compose ps | grep -q 'dataportenschemas.*Exit'; do
+while ! docker-compose ps 2>/dev/null | grep -q 'dataportenschemas.*Exit'; do
     sleep 0.1
 done
 echo "Done"
