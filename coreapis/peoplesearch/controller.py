@@ -3,14 +3,13 @@ import datetime
 import hashlib
 import io
 
-from cassandra.cluster import Cluster
 import ldap3
 from PIL import Image
 
-from coreapis.utils import ValidationError, LogWrapper, now, get_cassandra_cluster_args, \
+from coreapis.utils import ValidationError, LogWrapper, now, \
     get_platform_admins, get_feideids
 from .tokens import crypt_token, decrypt_token
-from coreapis.cassandra_client import datetime_hack_dict_factory
+import coreapis.cassandra_client
 from coreapis.ldap.controller import validate_query
 from coreapis.ldap import PEOPLE_SEARCH_ATTRIBUTES
 
@@ -38,24 +37,21 @@ def in_org(user, org):
     return False
 
 
-class CassandraCache(object):
+class CassandraCache(coreapis.cassandra_client.Client):
     def __init__(self, contact_points, keyspace, authz):
-        cluster_args = get_cassandra_cluster_args(contact_points, None, authz)
-        cluster = Cluster(**cluster_args)
-        self.session = cluster.connect(keyspace)
-        self.session.row_factory = datetime_hack_dict_factory
-        self.s_lookup = self.session.prepare('SELECT * from profile_image_cache where user=?')
-        self.s_insert = self.session.prepare('UPDATE profile_image_cache set last_modified=?, etag=?, last_updated=?, image=? WHERE user=?')
+        super(CassandraCache, self).__init__(contact_points, keyspace, False, authz)
 
     def lookup(self, user):
-        res = list(self.session.execute(self.s_lookup.bind([user])))
+        s_lookup = self._prepare('SELECT * from profile_image_cache where user=?')
+        res = list(self.session.execute(s_lookup.bind([user])))
         if len(res) == 0:
             return None
         entry = res[0]
         return entry
 
     def insert(self, user, last_updated, last_modified, etag, image):
-        self.session.execute(self.s_insert.bind([last_modified, etag, last_updated, image, user]))
+        s_insert = self._prepare('UPDATE profile_image_cache set last_modified=?, etag=?, last_updated=?, image=? WHERE user=?')
+        self.session.execute(s_insert.bind([last_modified, etag, last_updated, image, user]))
 
 
 class PeopleSearchController(object):
