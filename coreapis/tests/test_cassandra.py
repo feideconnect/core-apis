@@ -10,18 +10,9 @@ default 'test_coreapis'.
 
 The tests are skipped if no database is available.
 
-The tests are run by Jenkins, but here's how to set up a test environment
-manually:
+The tests are run by Jenkins, but you can also run them manually through
+the `run-tests.sh` script.
 
-    $ docker pull cassandra:2.1
-    $ docker pull \
-        uninett-docker-uninett.bintray.io/feideconnect/dataportenschemas
-    $ docker run -d -p 9042:9042 cassandra:2.1
-    $ DP_CASSANDRA_TEST_NODE=<ip_of_cassandra_container> \
-        python <coreapis/bin>/init_keyspace.py -fw
-    $ docker run -e CASSANDRA_NODE=<ip_of_cassandra_container> \
-        -e CASSANDRA_KEYSPACE=test_coreapis \
-        uninett-docker-uninett.bintray.io/feideconnect/dataportenschemas up
 '''
 
 import unittest
