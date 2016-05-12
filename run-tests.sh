@@ -1,10 +1,16 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 export COMPOSE_FILE=compose-test-cassandra.yml
 KEYSPACE=test_coreapis
 
 # Set up cassandra test environment
 docker-compose up -d
+function clean-docker() {
+    docker-compose kill
+    docker-compose rm --force --all
+}
+trap clean-docker EXIT
+
 echo "Waiting schema setup to complete"
 while ! docker-compose ps | grep -q 'dataportenschemas.*Exit'; do
     sleep 0.1
@@ -23,7 +29,3 @@ echo "pylint returned $result"
 coverage run --branch -m py.test --junitxml=testresults.xml || true
 coverage html --include 'coreapis/*'
 coverage xml --include 'coreapis/*'
-
-# Tear down cassandra test environment
-docker-compose kill cassandra
-docker-compose rm -fv cassandra
