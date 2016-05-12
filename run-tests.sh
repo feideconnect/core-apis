@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e
 export COMPOSE_FILE=compose-test-cassandra.yml
-KEYSPACE=test_coreapis
 
 # Set up cassandra test environment
 docker-compose up -d
@@ -18,7 +17,7 @@ done
 echo "Done"
 
 export DP_CASSANDRA_TEST_NODE=$(docker-compose port cassandra 9042)
-export DP_CASSANDRA_TEST_KEYSPACE=$KEYSPACE
+export DP_CASSANDRA_TEST_KEYSPACE=test_coreapis
 
 pip install pylint
 pip install coverage
