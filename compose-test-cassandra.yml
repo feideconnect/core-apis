@@ -10,3 +10,4 @@ dataportenschemas:
     - CASSANDRA_NODE=cassandra
     - CASSANDRA_KEYSPACE=test_coreapis
     - TESTDATA=true
+  command: up
