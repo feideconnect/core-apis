@@ -130,11 +130,13 @@ class LDAPController(object):
             self.log.warn('Multiple matches to eduPersonPrincipalName')
         return res[0]['attributes']
 
-    def health_check_thread(self):
+    def health_check_thread(self, parent=None):
         while True:
             servers = list(self.servers.values())
             sleeptime = self.health_check_interval / len(servers)
             for server in servers:
+                if parent and not parent.is_alive():
+                    return
                 if self.parse_ldap_config():
                     break
                 server.check_connection()

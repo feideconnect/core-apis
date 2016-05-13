@@ -10,7 +10,8 @@ from coreapis.ldap.controller import LDAPController
 def configure(config):
     settings = config.get_settings()
     ldap_controller = LDAPController(settings)
-    threading.Thread(target=ldap_controller.health_check_thread).start()
+    mainthread = threading.current_thread()
+    threading.Thread(target=lambda: ldap_controller.health_check_thread(mainthread)).start()
     ps_controller = PeopleSearchController(ldap_controller, settings)
     config.add_settings(ldap_controller=ldap_controller, ps_controller=ps_controller)
     config.add_request_method(lambda r: r.registry.settings.ldap_controller, 'ldap_controller',
