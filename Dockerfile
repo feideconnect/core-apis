@@ -20,7 +20,7 @@ RUN wget -O /usr/local/bin/confd https://github.com/kelseyhightower/confd/releas
 # Install app
 ADD . /app
 WORKDIR /app
-RUN python3 setup.py install
+RUN python3 setup.py develop
 ARG GIT_COMMIT
 ENV GIT_COMMIT ${GIT_COMMIT}
 ARG JENKINS_BUILD_NUMBER
