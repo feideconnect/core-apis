@@ -165,6 +165,9 @@ class CrudControllerBase(object):
         except KeyError:
             logdata = dict(userid=target['owner'])
             logdata[self.objtype + 'id'] = target['id']
-            self.log.warn('{} owner does not exist in users table', **logdata)
-            return None
+            self.log.warn('{} owner does not exist in users table'.format(self.objtype), **logdata)
+            pubtarget['owner'] = {
+                'id': '',
+                'name': 'Unknown user',
+            }
         return pubtarget
