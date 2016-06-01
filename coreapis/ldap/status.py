@@ -21,7 +21,7 @@ def check_object(con, dn, objtype, needed_attributes):
         orgattributes = con.response[0]['attributes']
         for attribute in needed_attributes:
             if attribute not in orgattributes:
-                errors.append("Attribute {} missing on org".format(attribute))
+                errors.append("Attribute {} missing on {} {}".format(attribute, objtype, dn))
     return errors
 
 
