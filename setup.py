@@ -17,7 +17,7 @@ requires = [
     'cassandra-driver',
     'cherrypy',
     'cryptography',
-    'eventlet',
+    'eventlet == 0.18.4',
     'futures < 3.0',
     'gunicorn',
     'mock == 1.0.1',
