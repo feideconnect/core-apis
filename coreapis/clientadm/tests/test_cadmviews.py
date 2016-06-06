@@ -175,7 +175,10 @@ class ClientAdmTests(unittest.TestCase):
         self.session.get_clients.return_value = iter(deepcopy([retrieved_client]))
         self.session.get_user_by_id.side_effect = KeyError
         res = self.testapp.get('/clientadm/public/', status=200)
-        assert res.json[0] is None
+        out = res.json
+        assert out[0]['name'] == 'per'
+        assert all(is_public_client(c) for c in out)
+        assert out[0]['owner'] == {'id': '', 'name': 'Unknown user'}
 
     def test_list_public_clients_orgauth(self):
         org_client = deepcopy(retrieved_gk_clients[3])
