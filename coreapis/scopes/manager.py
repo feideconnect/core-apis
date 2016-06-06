@@ -138,6 +138,9 @@ class ScopesManager(object):
     def list_public_scopes(self):
         return {k: v for k, v in self.scopedefs.items() if v.get('public', False)}
 
+    def list_scopes(self):
+        return {k: v for k, v in self.scopedefs.items()}
+
     def handle_update(self, target, privileges):
         if self.for_apigk:
             target['scopes_requested'] = [scope for scope in target['scopes_requested']

@@ -295,9 +295,9 @@ class ClientAdmController(CrudControllerBase):
                                                                        users, orgs)
         return list(clientdict.values())
 
-    def list_public_scopes(self):
-        self.log.debug('List public scopes')
-        return self.scopemgr.list_public_scopes()
+    def list_scopes(self):
+        self.log.debug('List scopes')
+        return self.scopemgr.list_scopes()
 
     def validate_gkscope(self, user, scope):
         if not is_gkscopename(scope):

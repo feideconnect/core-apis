@@ -195,7 +195,7 @@ def upload_logo(request):
 
 @view_config(route_name='list_scopes_v1', renderer="json")
 def list_scopes_v1(request):
-    return request.cadm_controller.list_public_scopes()
+    return request.cadm_controller.list_scopes()
 
 
 @view_config(route_name='list_scopes', renderer="json")
