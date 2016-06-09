@@ -258,8 +258,8 @@ class LDAPBackend(BaseBackend):
             if GOGroup.candidate(val):
                 try:
                     res.append(self._handle_gogroup(realm, val, show_all))
-                except KeyError:
-                    pass
+                except KeyError as ex:
+                    self.log.debug("GO Group ignored: {}".format(ex))
         return res
 
     def _get_member_groups(self, show_all, feideid):

@@ -71,12 +71,10 @@ class GOGroup(object):
     def __init__(self, group_string):
         self.log = LogWrapper('groups.ldapbackend.gogroups')
         if not group_string.startswith(GOGROUP_PREFIX):
-            self.log.warn("Found malformed group info: {}".format(group_string))
-            raise KeyError('invalid group info')
+            raise KeyError("Found malformed group info: {}".format(group_string))
         parts = go_split(group_string)
         if len(parts) != 13:
-            self.log.warn("Found malformed group info: {}".format(group_string))
-            raise KeyError('invalid group info')
+            raise KeyError("Found malformed group info: {}".format(group_string))
         group_type, grep_code, organization, _group_id, valid_from, valid_to, role, name = parts[5:]
         self.group_type = group_type
         self.grep_code = grep_code
