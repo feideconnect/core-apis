@@ -46,8 +46,8 @@ class Client(object):
             from cassandra.io.eventletreactor import EventletConnection
             connection_class = EventletConnection
             self.log.info("Using eventlet based cassandra connection")
-        self.cluster_args = get_cassandra_cluster_args(contact_points, connection_class, authz)
-        self.keyspace = keyspace
+        cluster_args = get_cassandra_cluster_args(contact_points, connection_class, authz)
+        cluster = Cluster(**cluster_args)
         self.prepared = {}
         self.default_columns = {
             'clients': [
@@ -76,19 +76,10 @@ class Client(object):
             'organizations': ['uiinfo'],
             'roles': []
         }
+        self.session = cluster.connect(keyspace)
+        self.session.row_factory = datetime_hack_dict_factory
+        self.session.default_consistency_level = cassandra.ConsistencyLevel.LOCAL_QUORUM
         self.timer = DummyTimer()
-        self._session = None
-
-    @property
-    def session(self):
-        if self._session:
-            return self._session
-        cluster = Cluster(**self.cluster_args)
-        session = cluster.connect(self.keyspace)
-        session.row_factory = datetime_hack_dict_factory
-        session.default_consistency_level = cassandra.ConsistencyLevel.LOCAL_QUORUM
-        self._session = session
-        return session
 
     def _prepare(self, query):
         if query in self.prepared:

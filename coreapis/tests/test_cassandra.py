@@ -52,7 +52,6 @@ def setUpModule():
     global cclient
     try:
         cclient = Client([db_node], db_keyspace)
-        cclient.session
     except NoHostAvailable:
         raise unittest.SkipTest('No database available')
     truncate_tables(cclient, TABLES)
