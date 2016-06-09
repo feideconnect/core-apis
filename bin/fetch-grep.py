@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 import requests
-from coreapis.utils import parse_datetime
+from coreapis.utils import parse_datetime, get_cassandra_authz
 from coreapis.cassandra_client import Client
 from configparser import SafeConfigParser
 import argparse
@@ -53,6 +53,8 @@ def parse_args():
     parser.add_argument('--config', default="production.ini",
                         help="Config file to use")
     parser.add_argument('--url', default=BASE_URL, help="Base url to fetch data from")
+    parser.add_argument('-p', '--cassandra-password',
+                        help='Cassandra password')
 
     return parser.parse_args()
 
@@ -63,13 +65,20 @@ def parse_config(filename):
     return {
         'contact_points': parser['DEFAULT']['cassandra_contact_points'].split(', '),
         'keyspace': parser['DEFAULT']['cassandra_keyspace'],
+        'sync_exclude': parser['DEFAULT'].get('feideapi_sync_exclude', '').split(','),
+        'cassandra_cacerts': parser['DEFAULT'].get('cassandra_cacerts', None),
+        'cassandra_username': parser['DEFAULT'].get('cassandra_username', None),
+        'cassandra_password': parser['DEFAULT'].get('cassandra_password', None),
     }
 
 
 def main():
     args = parse_args()
     config = parse_config(args.config)
-    session = Client(config['contact_points'], config['keyspace'])
+    if args.cassandra_password:
+        config['cassandra_password'] = args.cassandra_password
+    authz = get_cassandra_authz(config)
+    session = Client(config['contact_points'], config['keyspace'], authz=authz)
 
     for grep_type in TYPES:
         data = fetch(args.url, grep_type)
