@@ -140,9 +140,9 @@ class PeopleSearchController(object):
             max_replies = self.search_max_replies
         validate_query(query)
         if '@' in query:
-            search_filter = '(mail=*{}*)'.format(query)
+            search_filter = '(mail={})'.format(query)
         elif query.isnumeric():
-            search_filter = '(mobile=*{}*)'.format(query)
+            search_filter = '(mobile={})'.format(query)
         else:
             search_filter = '(displayName=*{}*)'.format(query)
         search_filter = '(&{}(objectClass=person))'.format(search_filter)
