@@ -167,7 +167,7 @@ class TestPeopleSearch(TestCase):
     def test_search_access_some(self):
         user = {'userid_sec': ['feide:jk@vg.no']}
         self.controller.ldap.ldap_search = mock.MagicMock(return_value=[
-            {'attributes': {'cn': ['Test User']}},
+            {'attributes': {'displayName': ['Test User']}},
             {'attributes': {}}
         ])
         res = self.controller.search('realm1.example.com', 'Test', user)
@@ -176,7 +176,7 @@ class TestPeopleSearch(TestCase):
     def test_search_access_none(self):
         user = {'userid_sec': ['feide:jk@vg.no']}
         self.controller.ldap.ldap_search = mock.MagicMock(return_value=[
-            {'attributes': {'cn': ['Test User']}},
+            {'attributes': {'displayName': ['Test User']}},
             {'attributes': {}}
         ])
         res = self.controller.search('realm2.example.org', 'Test', user)

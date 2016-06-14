@@ -31,7 +31,7 @@ GROUP_PERSON_ATTRIBUTES = (
     'title',
 )
 
-PEOPLE_SEARCH_ATTRIBUTES = ['cn', 'displayName', 'eduPersonPrincipalName']
+PEOPLE_SEARCH_ATTRIBUTES = ['displayName', 'eduPersonPrincipalName']
 
 
 PERSON_ATTRIBUTES = set(GROUP_PERSON_ATTRIBUTES) | set(PEOPLE_SEARCH_ATTRIBUTES)

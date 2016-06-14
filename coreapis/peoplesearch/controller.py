@@ -91,8 +91,8 @@ class PeopleSearchController(object):
             new_person['profile_image_token'] = crypt_token(person['id'], self.key)
         if 'displayName' in person:
             new_person['name'] = person['displayName']
-        elif 'cn' in person:
-            new_person['name'] = person['cn']
+        else:
+            raise KeyError()
         return new_person
 
     def org_authorization_policy(self, org):
@@ -156,7 +156,10 @@ class PeopleSearchController(object):
             result = [dict(r['attributes']) for r in res]
             new_result = []
             for person in result:
-                new_result.append(self._format_person(person))
+                try:
+                    new_result.append(self._format_person(person))
+                except KeyError:
+                    self.log.warn('Failed to read mandatory attribute for person in search')
             return new_result
 
     def _profile_image_feide(self, user):
