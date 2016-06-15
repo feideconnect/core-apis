@@ -12,7 +12,7 @@ from coreapis.crud_base import CrudControllerBase
 from coreapis.clientadm.controller import ClientAdmController
 from coreapis.ldap.status import ldap_status
 
-VALID_SERVICES = ['auth', 'avtale', 'idporten', 'pilot', 'fsgroups']
+VALID_SERVICES = ['auth', 'avtale', 'idporten', 'pilot', 'fsgroups', 'nostatus']
 VALID_ROLENAMES = ['admin', 'mercantile', 'technical']
 
 
