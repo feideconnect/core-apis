@@ -38,9 +38,7 @@ PERSON_ATTRIBUTES = set(GROUP_PERSON_ATTRIBUTES) | set(PEOPLE_SEARCH_ATTRIBUTES)
 
 REQUIRED_PERSON_ATTRIBUTES = [
     'eduPersonOrgDN',
-    'eduPersonOrgUnitDN',
     'eduPersonAffiliation',
-    'eduPersonPrimaryAffiliation',
     'displayName',
     'eduPersonPrincipalName',
 ]
