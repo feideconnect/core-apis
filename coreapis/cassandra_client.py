@@ -465,7 +465,10 @@ class Client(object):
         stmt = tmpl.format(cols, dateslots)
         bindvals = [clientid]
         bindvals += (str(date) for date in dates)
-        limit = ' LIMIT {}'.format(maxrows)
+        if maxrows:
+            limit = ' LIMIT {}'.format(maxrows)
+        else:
+            limit = ''
         if authsource:
             stmt += ' AND authsource = ?'
             bindvals.append(authsource)

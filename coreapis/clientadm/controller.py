@@ -386,4 +386,4 @@ class ClientAdmController(CrudControllerBase):
             raise ValidationError(msg)
         start_date = end_date - datetime.timedelta(num_days - 1)
         dates = [start_date + datetime.timedelta(i) for i in range(num_days)]
-        return list(self.session.get_logins_stats(clientid, dates, authsource, self.maxrows))
+        return list(self.session.get_logins_stats(clientid, dates, authsource, None))
