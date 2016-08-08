@@ -80,6 +80,7 @@ class LDAPController(object):
                 orgpools[org] = self.orgpools[org]
                 orgpools[org].servers = org_connection_pools
             else:
+                self.log.debug("Adding connection pool for organization {}".format(org))
                 orgpool = RetryPool(org_connection_pools, org, self.host_statsd)
                 orgpools[org] = orgpool
         self.config = config
