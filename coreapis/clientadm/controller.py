@@ -23,7 +23,7 @@ from coreapis.utils import (
 USER_SETTABLE_STATUS_FLAGS = {'Public'}
 INVALID_URISCHEMES = {'data', 'javascript', 'file', 'about'}
 FEIDE_REALM_PREFIX = 'feide|realm|'
-MAX_DAYS = 4
+MAX_DAYS = 14
 
 
 def is_valid_uri(uri):
