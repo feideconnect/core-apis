@@ -40,7 +40,7 @@ def info(request):
     backend = request.matchdict['backend']
     prefix = request.registry.settings.gk_header_prefix
     if not request.has_permission('scope_gk_{}'.format(backend)):
-        logging.debug('provided token misses scopes to access this api')
+        logging.debug('provided token misses scopes to access this api', backend=backend)
         raise HTTPForbidden('Unauthorized: scope_gk_{} failed permission check'.format(backend))
     client = request.environ['FC_CLIENT']
     user = request.environ.get('FC_USER', None)
