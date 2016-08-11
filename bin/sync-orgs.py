@@ -184,7 +184,7 @@ class Syncer(object):
                 contacts[feideid].add(apirole)
         for feideid, roles in contacts.items():
             yield {
-                'feideid': feideid,
+                'feideid': feideid.lower(),
                 'orgid': orgid,
                 'role': roles
             }
