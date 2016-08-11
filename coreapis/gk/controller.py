@@ -37,6 +37,7 @@ class GkController(object):
         backend = self.session.get_apigk(backend_id)
         headers = dict()
         headers['endpoint'] = random.choice(backend['endpoints'])
+        headers['gatekeeper'] = backend_id
         self.log.debug('Gatekeeping OPTIONS call',
                        gatekeeper=backend_id, endpoint=headers['endpoint'])
         return headers
@@ -75,6 +76,7 @@ class GkController(object):
         headers['scopes'] = ','.join(exposed_scopes)
 
         headers['clientid'] = str(client['id'])
+        headers['gatekeeper'] = backend_id
         headers['endpoint'] = random.choice(backend['endpoints'])
         header, value = auth_header(backend['trust'])
         headers[header] = value

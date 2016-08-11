@@ -40,6 +40,7 @@ class TestController(TestCase):
         assert 'Authorization' in headers
         assert 'clientid' in headers
         assert headers['clientid'] == 'b708800e-a9b9-4a2e-834d-a75c251c12f8'
+        assert headers['gatekeeper'] == 'testbackend'
 
     def test_require_user(self):
         backend = self.basic_backend.copy()
@@ -55,7 +56,7 @@ class TestController(TestCase):
             'scope': ['userid'],
         }
         headers = self.controller.info('testbackend', self.client, self.user, [], {})
-        assert len(headers) == 4
+        assert len(headers) == 5
         self.basic_asserts(headers)
 
     def test_no_user(self):
@@ -67,7 +68,7 @@ class TestController(TestCase):
         headers = self.controller.info('testbackend', self.client, None, [], {
             'testbackend': 'my secret',
         })
-        assert len(headers) == 5
+        assert len(headers) == 6
         self.basic_asserts(headers)
         assert 'userid' not in headers
         assert 'token' in headers
@@ -84,7 +85,7 @@ class TestController(TestCase):
                                        [], {
                                            'testbackend': 'my secret',
                                        })
-        assert len(headers) == 6
+        assert len(headers) == 7
         self.basic_asserts(headers)
         assert 'userid' in headers
         assert headers['userid'] == '0186bdb5-5f68-436a-8453-6efe4a66cf1e'
@@ -101,7 +102,7 @@ class TestController(TestCase):
         }
         headers = self.controller.info('testbackend', self.client, self.user,
                                        [], {'testbackend': 'my secret'})
-        assert len(headers) == 7
+        assert len(headers) == 8
         self.basic_asserts(headers)
         assert 'userid' in headers
         assert headers['userid'] == '0186bdb5-5f68-436a-8453-6efe4a66cf1e'
@@ -118,7 +119,7 @@ class TestController(TestCase):
         }
         headers = self.controller.info('testbackend', self.client, self.user,
                                        [], {'testbackend': 'my secret'})
-        assert len(headers) == 6
+        assert len(headers) == 7
         self.basic_asserts(headers)
         assert 'userid' not in headers
         assert 'userid-sec' in headers
