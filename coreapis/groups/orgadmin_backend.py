@@ -87,7 +87,7 @@ class OrgAdminBackend(BaseBackend):
         self.scopes_needed = SCOPES_NEEDED
 
     def get_members(self, user, groupid, show_all, include_member_ids):
-        feideids = get_feideids(user)
+        feideids = {u.lower() for u in get_feideids(user)}
         orgtag = get_orgtag(groupid)
         if not groupid.startswith("{}:".format(ORGADMIN_TYPE)):
             raise KeyError("Not an orgadmin group")
@@ -110,7 +110,7 @@ class OrgAdminBackend(BaseBackend):
 
     def _get_member_groups(self, pool, feideid):
         result = []
-        roles = list(self.session.get_roles(['feideid = ?'], [feideid],
+        roles = list(self.session.get_roles(['feideid = ?'], [feideid.lower()],
                                             self.maxrows))
         if len(roles) == 0:
             return []
