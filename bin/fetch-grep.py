@@ -42,7 +42,7 @@ def parse_entry(data, grep_type):
     return {
         'last_changed': parse_datetime(data['sist-endret']),
         'code': data['kode'],
-        'id': data['id'],
+        'id': data['psi'],
         'title': parse_multilang(data['tittel']),
         'type': grep_type,
     }
