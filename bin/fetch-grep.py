@@ -25,9 +25,13 @@ def parse_multilang(data):
     res = {}
     for entry in data:
         text = entry['verdi']
-        origlang = entry['noekkel']
+        origlang = entry['spraak']
         if '#' in origlang:
             lang = origlang.split('#', 1)[1]
+            if len(lang) != 3:
+                raise ValueError('unhandled language code: {}'.format(origlang))
+        elif '/' in origlang:
+            lang = origlang.split('/')[-1]
             if len(lang) != 3:
                 raise ValueError('unhandled language code: {}'.format(origlang))
         elif origlang == 'default':
