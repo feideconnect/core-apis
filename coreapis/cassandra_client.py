@@ -476,3 +476,13 @@ class Client(object):
         stmt += limit
         prep = self._prepare(stmt)
         return self.session.execute(prep.bind(bindvals))
+
+    def get_statistics(self, date, metric):
+        statement = 'SELECT * from statistics WHERE date=?'
+        if metric:
+            statement += " AND metric=?"
+        prep = self._prepare(statement)
+        params = [date]
+        if metric:
+            params.append(metric)
+        return self.session.execute(prep.bind(params))

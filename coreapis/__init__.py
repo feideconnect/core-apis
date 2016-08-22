@@ -95,6 +95,8 @@ def main(global_config, **settings):
         config.include('coreapis.org.views.configure', route_prefix='orgs')
     if enabled('userinfo'):
         config.include('coreapis.userinfo.views.configure', route_prefix='userinfo')
+    if enabled('statistics'):
+        config.include('coreapis.statistics.views.configure', route_prefix='statistics')
     config.scan('coreapis.error_views')
     config.add_settings(realm=global_config['oauth_realm'])
     config.add_tween('coreapis.utils.RequestTimingTween')
