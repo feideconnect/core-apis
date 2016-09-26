@@ -133,19 +133,23 @@ class LDAPController(object):
 
     def health_check_thread(self, parent=None):
         while True:
-            servers = list(self.servers.values())
-            sleeptime = self.health_check_interval / len(servers)
-            for server in servers:
-                if parent and not parent.is_alive():
-                    return
-                if self.parse_ldap_config():
-                    break
-                server.check_connection()
-                time.sleep(sleeptime)
-            orgpools = self.orgpools.items()
-            for org, orgpool in orgpools:
-                self.host_statsd.gauge(self._org_statsd_key(org, 'alive_servers'),
-                                       len(orgpool.alive_servers()))
+            try:
+                servers = list(self.servers.values())
+                sleeptime = self.health_check_interval / len(servers)
+                for server in servers:
+                    if parent and not parent.is_alive():
+                        return
+                    if self.parse_ldap_config():
+                        break
+                    server.check_connection()
+                    time.sleep(sleeptime)
+                orgpools = self.orgpools.items()
+                for org, orgpool in orgpools:
+                    self.host_statsd.gauge(self._org_statsd_key(org, 'alive_servers'),
+                                           len(orgpool.alive_servers()))
+            except Exception as ex:
+                self.log.warn('Exception in health check thread', exception=str(ex))
+                time.sleep(1)
 
     def status(self):
         status = {}

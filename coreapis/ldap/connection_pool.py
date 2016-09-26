@@ -162,10 +162,16 @@ class RetryPool(object):
 
     def search(self, base_dn, search_filter, scope, attributes, size_limit=None):
         exception = RuntimeError('No servers alive')
-        alive_servers = self.alive_servers()
-        if not alive_servers:
-            alive_servers = self.servers
-        for server in random.sample(alive_servers, len(alive_servers)):
+        candidate_servers = self.alive_servers()
+        if not candidate_servers:
+            candidate_servers = self.servers
+        if len(candidate_servers) == 1:
+            # If organization only has one server, retry operation on
+            # the same server in case connection has failed since last
+            # connection
+            s = candidate_servers.pop()
+            candidate_servers = [s, s]
+        for server in random.sample(candidate_servers, len(candidate_servers)):
             try:
                 with server.connection() as connection:
                     connection.search(base_dn, search_filter, scope, attributes=attributes,
