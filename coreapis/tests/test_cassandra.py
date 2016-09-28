@@ -36,7 +36,7 @@ TABLES = [
     'group_members',
     'grep_codes',
     'organizations',
-    'roles',
+    'orgroles',
     'mandatory_clients',
     'remote_apigatekeepers',
     'logins_stats',
@@ -108,7 +108,7 @@ def orgs_match(a, b):
 
 
 def roles_match(a, b):
-    return all([a['feideid'] == b['feideid'],
+    return all([a['identity'] == b['identity'],
                 a['orgid'] == b['orgid'],
                 a['role'] == b['role']])
 
@@ -258,7 +258,7 @@ def make_org():
 
 def make_role():
     return dict(
-        feideid=random_string(16),
+        identity=random_string(16),
         orgid=random_string(16),
         role=set([random_string(16)]),
     )
@@ -513,7 +513,7 @@ class CassandraClientTests(unittest.TestCase):
 
     def test_get_generic_bad_call(self):
         with self.assertRaises(KeyError):
-            self.cclient.get_generic('clients', ['feideid = ?'], [], self.maxrows)
+            self.cclient.get_generic('clients', ['identity = ?'], [], self.maxrows)
 
     def _test_orgauthorization(self, realm, scopes):
         clients = self.insert_clients(self.nrecs)
@@ -775,26 +775,26 @@ class CassandraClientTests(unittest.TestCase):
         savedrole['role'] = set(['admin'])
         for role in roles:
             self.cclient.insert_role(role)
-        feideid = savedrole['feideid']
+        identity = savedrole['identity']
         orgid = savedrole['orgid']
-        res = self.cclient.is_org_admin(feideid, orgid)
+        res = self.cclient.is_org_admin(identity, orgid)
         assert res
-        res = self.cclient.is_org_admin(feideid, random_string(16))
+        res = self.cclient.is_org_admin(identity, random_string(16))
         assert not res
 
     def test_get_roles(self):
         roles = self.insert_roles(self.nrecs)
         role = roles[self.nrecs - 2]
-        res = self.cclient.get_roles(['feideid = ?'], [role['feideid']], self.maxrows)
+        res = self.cclient.get_roles(['identity = ?'], [role['identity']], self.maxrows)
         assert roles_match(res[0], role)
 
     def test_del_role(self):
         roles = self.insert_roles(self.nrecs)
         role = roles[self.nrecs - 2]
         orgid = role['orgid']
-        feideid = role['feideid']
-        self.cclient.del_role(orgid, feideid)
-        res = self.cclient.get_roles(['feideid = ?'], [feideid], self.maxrows)
+        identity = role['identity']
+        self.cclient.del_role(orgid, identity)
+        res = self.cclient.get_roles(['identity = ?'], [identity], self.maxrows)
         assert len(list(res)) == 0
 
     def test_get_mandatory_clients(self):

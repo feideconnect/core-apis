@@ -68,13 +68,13 @@ class Client(object):
             'organizations': [
                 'organization_number', 'type', 'realm', 'id', 'name', 'fs_groups', 'services',
                 'uiinfo'],
-            'roles': ['feideid', 'orgid', 'role'],
+            'orgroles': ['identity', 'orgid', 'role'],
         }
         self.json_columns = {
             'clients': ['authoptions'],
             'apigk': ['scopedef', 'trust'],
             'organizations': ['uiinfo'],
-            'roles': []
+            'orgroles': []
         }
         self.session = cluster.connect(keyspace)
         self.session.row_factory = datetime_hack_dict_factory
@@ -413,9 +413,9 @@ class Client(object):
             return False
         return True
 
-    def is_org_admin(self, feideid, orgid):
-        prep = self._prepare('SELECT role from roles where feideid = ? AND orgid = ?')
-        res = list(self.session.execute(prep.bind([feideid, orgid])))
+    def is_org_admin(self, identity, orgid):
+        prep = self._prepare('SELECT role from orgroles where identity = ? AND orgid = ?')
+        res = list(self.session.execute(prep.bind([identity, orgid])))
         if len(res) == 0:
             return False
         return 'admin' in res[0]['role']
@@ -444,14 +444,14 @@ class Client(object):
         self.session.execute(prep.bind([services, org]))
 
     def get_roles(self, selectors, values, maxrows):
-        return self.get_generic('roles', selectors, values, maxrows)
+        return self.get_generic('orgroles', selectors, values, maxrows)
 
     def insert_role(self, role):
-        self.insert_generic(role, 'roles')
+        self.insert_generic(role, 'orgroles')
 
-    def del_role(self, orgid, feideid):
-        prep = self._prepare('DELETE FROM roles WHERE orgid = ? AND feideid = ?')
-        self.session.execute(prep.bind([orgid, feideid]))
+    def del_role(self, orgid, identity):
+        prep = self._prepare('DELETE FROM orgroles WHERE orgid = ? AND identity = ?')
+        self.session.execute(prep.bind([orgid, identity]))
 
     def apigk_allowed_dn(self, dn):
         prep = self._prepare('SELECT dn from remote_apigatekeepers WHERE dn = ?')
