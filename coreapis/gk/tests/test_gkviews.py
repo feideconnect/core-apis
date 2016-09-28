@@ -32,6 +32,15 @@ class GkViewTests(unittest.TestCase):
 
     def test_get_no_token(self):
         self.session.apigk_allowed_dn.return_value = True
+        self.session.get_apigk.return_value = {
+            'endpoints': ['ep.example.com'],
+            'requireuser': False,
+            'expose': {},
+            'trust': {
+                'type': 'bearer',
+                'token': 'foo',
+            },
+        }
         headers = {'Gate-Keeper-DN': '/C=NO/CN=foo.example.com'}
         self.testapp.get('/gk/info/no_access', status=401, headers=headers)
 
@@ -41,6 +50,15 @@ class GkViewTests(unittest.TestCase):
             'Gate-Keeper-DN': '/C=NO/CN=foo.example.com',
         }
         self.session.apigk_allowed_dn.return_value = True
+        self.session.get_apigk.return_value = {
+            'endpoints': ['ep.example.com'],
+            'requireuser': False,
+            'expose': {},
+            'trust': {
+                'type': 'bearer',
+                'token': 'foo',
+            },
+        }
         self.testapp.get('/gk/info/no_access', headers=headers, status=403)
 
     def test_get_ok(self):
