@@ -119,7 +119,7 @@ Only for platform administrators
 ## Register a role for an organization
 
     curl -X PUT -H "Authorization: Bearer $TOKEN" -d '["admin", "technical"]' \
-    'https://api.dataporten.no/orgs/<org-id>/roles/<feide-id>'
+    'https://api.dataporten.no/orgs/<org-id>/roles/<identity>'
 
 ### Payload
 
@@ -129,8 +129,7 @@ A json array of roles to enable. Valid values are `admin`,
 ### Parameters
 
 - `org-id`: In the url. The id of the organization to work on.
-- `feide-id`: A single domain-qualified string in the url is the Feide
-  id of the user with the role
+- `identity`: Id of the user with the role. For Feide users: `feide:<feideid>`, where feideid is a single domain-qualified string.
 
 ### Return values
 
@@ -146,7 +145,7 @@ Only for platform administrators
 
     curl -X DELETE -H "Authorization: Bearer $TOKEN" 'https://api.dataporten.no/orgs/<org-id>/roles/'
 
-    [{"feideid": "jk@ipadi.no",
+    [{"identity": "feide:jk@ipadi.no",
       "role": ["admin", "technical"]
     }]
 
@@ -165,13 +164,12 @@ Only for platform administrators
 
 ## Delete a role from an organization
 
-    curl -X DELETE -H "Authorization: Bearer $TOKEN" 'https://api.dataporten.no/orgs/<org-id>/roles/<feide-id>'
+    curl -X DELETE -H "Authorization: Bearer $TOKEN" 'https://api.dataporten.no/orgs/<org-id>/roles/<identity>'
 
 ### Parameters
 
 - `org-id`: In the url. The id of the organization to work on.
-- `feide-id`: A single domain-qualified string in the url is the Feide
-  id of the user with the role
+- `identity`: Id of the user with the role. For Feide users: `feide:<feideid>`, where feideid is a single domain-qualified string.
 
 ### Return values
 
