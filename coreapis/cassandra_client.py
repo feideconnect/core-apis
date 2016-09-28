@@ -60,7 +60,7 @@ class Client(object):
                 'id', 'requireuser', 'created', 'name', 'scopedef', 'httpscertpinned',
                 'status', 'descr', 'updated', 'trust', 'endpoints', 'owner',
                 'organization', 'systemdescr', 'privacypolicyurl', 'docurl',
-                'scopes', 'scopes_requested'],
+                'scopes', 'scopes_requested', 'allow_unauthenticated'],
             'groups': [
                 'id', 'created', 'descr', 'name', 'owner', 'public', 'updated',
                 'invitation_token'],

@@ -30,6 +30,7 @@ class APIGKAdmController(CrudControllerBase):
         'updated': V.AdaptBy(timestamp_adapter),
         '+endpoints': V.HomogeneousSequence(valid_gk_url, min_length=1),
         '+requireuser': 'boolean',
+        'allow_unauthenticated': V.Nullable('boolean'),
         'httpscertpinned': V.Nullable('string'),
         'scopedef': V.Nullable({}),
         '+trust': {
