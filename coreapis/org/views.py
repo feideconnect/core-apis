@@ -26,7 +26,7 @@ def configure(config):
     config.add_route('org_service', '/{id}/services/{service}')
     config.add_route('org_ldap_status', '/{id}/ldap_status')
     config.add_route('org_roles', '/{id}/roles/')
-    config.add_route('org_role', '/{id}/roles/{feideid}')
+    config.add_route('org_role', '/{id}/roles/{identity}')
     config.scan(__name__)
 
 
@@ -224,9 +224,9 @@ def list_org_roles(request):
 def add_org_role(request):
     user = get_user(request)
     orgid = check(request, needs_realm=False, needs_platform_admin=True)
-    feideid = request.matchdict['feideid']
+    identity = request.matchdict['identity']
     rolenames = get_payload(request)
-    request.org_controller.add_org_role(user, orgid, feideid, rolenames)
+    request.org_controller.add_org_role(user, orgid, identity, rolenames)
     return Response(status='204 No Content', content_type=False)
 
 
@@ -235,8 +235,8 @@ def add_org_role(request):
 def del_org_role(request):
     user = get_user(request)
     orgid = check(request, needs_realm=False, needs_platform_admin=True)
-    feideid = request.matchdict['feideid']
-    request.org_controller.del_org_role(user, orgid, feideid)
+    identity = request.matchdict['identity']
+    request.org_controller.del_org_role(user, orgid, identity)
     return Response(status='204 No Content', content_type=False)
 
 

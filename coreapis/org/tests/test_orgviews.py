@@ -31,9 +31,9 @@ testorg2 = {
              'en': 'test organization 2', },
     'services': ['auth'],
 }
-testfeideid = 'foo@bar.no'
+testidentity = 'feide:foo@bar.no'
 testrole = {'orgid': testorg_id,
-            'feideid':  testfeideid,
+            'identity':  testidentity,
             'role': 'admin'}
 testservice = 'pilot'
 eg7 = dict(lat=63.4201, lon=18.969388)
@@ -250,58 +250,58 @@ class OrgViewTests(unittest.TestCase):
         self.session.get_org.side_effect = KeyError
         self._test_get_org_roles(404)
 
-    def _test_add_org_role(self, httpstat, feideid, rolenames):
+    def _test_add_org_role(self, httpstat, identity, rolenames):
         headers = {'Authorization': 'Bearer user_token'}
-        path = '/orgs/{}/roles/{}'.format(testorg_id, feideid)
+        path = '/orgs/{}/roles/{}'.format(testorg_id, identity)
         self.session.get_roles.return_value = [testrole]
         return self.testapp.put_json(path, rolenames, status=httpstat, headers=headers)
 
     def test_add_org_role(self):
-        self._test_add_org_role(403, testfeideid, ['admin'])
+        self._test_add_org_role(403, testidentity, ['admin'])
 
     def test_add_org_role_bad_orgid(self):
         self.session.get_org.side_effect = KeyError
-        self._test_add_org_role(404, testfeideid, ['admin'])
+        self._test_add_org_role(404, testidentity, ['admin'])
 
     @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_add_org_role_platform_admin(self, _):
-        self._test_add_org_role(204, testfeideid, ['admin'])
+        self._test_add_org_role(204, testidentity, ['admin'])
 
     @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
-    def test_add_org_role_bad_feideid(self, _):
+    def test_add_org_role_bad_identity(self, _):
         self._test_add_org_role(400, 'hello', ['admin'])
 
     @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
-    def test_add_org_role_malformed_feideid(self, _):
-        self._test_add_org_role(400, dict(feideid=testfeideid), ['admin'])
+    def test_add_org_role_malformed_identity(self, _):
+        self._test_add_org_role(400, dict(identity=testidentity), ['admin'])
 
     @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_add_org_role_bad_rolename(self, _):
-        self._test_add_org_role(400, testfeideid, ['amin'])
+        self._test_add_org_role(400, testidentity, ['amin'])
 
     @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_add_org_role_malformed_body(self, _):
-        self._test_add_org_role(400, testfeideid, 3)
+        self._test_add_org_role(400, testidentity, 3)
 
-    def _test_del_org_role(self, httpstat, feideid):
+    def _test_del_org_role(self, httpstat, identity):
         headers = {'Authorization': 'Bearer user_token'}
-        path = '/orgs/{}/roles/{}'.format(testorg_id, feideid)
+        path = '/orgs/{}/roles/{}'.format(testorg_id, identity)
         return self.testapp.delete(path, status=httpstat, headers=headers)
 
     def test_del_org_role(self):
-        self._test_del_org_role(403, testfeideid)
+        self._test_del_org_role(403, testidentity)
 
     def test_del_org_role_bad_orgid(self):
         self.session.get_org.side_effect = KeyError
-        self._test_del_org_role(404, testfeideid)
+        self._test_del_org_role(404, testidentity)
 
     @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_del_org_role_platform_admin(self, _):
-        self._test_del_org_role(204, testfeideid)
+        self._test_del_org_role(204, testidentity)
 
     @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
-    def test_del_org_role_bad_feideid(self, _):
-        self._test_del_org_role(400, 'hello')
+    def test_del_org_role_bad_identity(self, _):
+        self._test_del_org_role(400, 'feide:hello')
 
     def test_get_org_logo(self):
         self.session.get_org_logo.return_value = (b"A logo", now())

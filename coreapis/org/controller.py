@@ -29,6 +29,14 @@ def valid_feideid(feideid):
     return re.match(pattern, feideid)
 
 
+def valid_identity(identity):
+    ret = False
+    feidepfx = 'feide:'
+    if identity.startswith(feidepfx):
+        ret = valid_feideid(identity[len(feidepfx):])
+    return ret
+
+
 def valid_rolenames(rolenames):
     try:
         return all(name in VALID_ROLENAMES for name in rolenames)
@@ -218,26 +226,26 @@ class OrgController(CrudControllerBase):
 
     def list_org_roles(self, orgid):
         roles = self.session.get_roles(['orgid = ?'], [orgid], self.maxrows)
-        return [dict(feideid=role['feideid'], role=role['role']) for role in roles]
+        return [dict(identity=role['identity'], role=role['role']) for role in roles]
 
-    def add_org_role(self, user, orgid, feideid, rolenames):
-        if not valid_feideid(feideid):
-            raise ValidationError('{} is not a valid Feide ID'.format(feideid))
+    def add_org_role(self, user, orgid, identity, rolenames):
+        if not valid_identity(identity):
+            raise ValidationError('{} is not a valid identity'.format(identity))
         if not valid_rolenames(rolenames):
             raise ValidationError('{} is not a list of valid role names'.format(rolenames))
         self.log.info('enabling role for organization',
-                      audit=True, orgid=orgid, feideid=feideid, rolenames=rolenames,
+                      audit=True, orgid=orgid, identity=identity, rolenames=rolenames,
                       user=userinfo_for_log(user))
-        role = dict(orgid=orgid, feideid=feideid, role=rolenames)
+        role = dict(orgid=orgid, identity=identity, role=rolenames)
         self.session.insert_role(role)
 
-    def del_org_role(self, user, orgid, feideid):
-        if not valid_feideid(feideid):
-            raise ValidationError('not a valid Feide ID')
+    def del_org_role(self, user, orgid, identity):
+        if not valid_identity(identity):
+            raise ValidationError('not a valid identity')
         self.log.info('disabling role for organization',
-                      audit=True, orgid=orgid, feideid=feideid,
+                      audit=True, orgid=orgid, identity=identity,
                       user=userinfo_for_log(user))
-        self.session.del_role(orgid, feideid)
+        self.session.del_role(orgid, identity)
 
     def has_permission(self, user, org, needs_platform_admin):
         if user is None or not self.is_admin(user, org['id']):
