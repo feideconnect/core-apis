@@ -46,7 +46,7 @@ class TestController(TestCase):
         backend = self.basic_backend.copy()
         backend['requireuser'] = True
         self.session.get_apigk.return_value = backend
-        headers = self.controller.info('testbackend', self.client, None, [], {})
+        headers = self.controller.info('testbackend', self.client, None, ['gk_testbackend'], {})
         assert headers is None
 
     def test_expose_nothing(self):
@@ -55,7 +55,7 @@ class TestController(TestCase):
             'access_token': 'my secret',
             'scope': ['userid'],
         }
-        headers = self.controller.info('testbackend', self.client, self.user, [], {})
+        headers = self.controller.info('testbackend', self.client, self.user, ['gk_testbackend'], {})
         assert len(headers) == 5
         self.basic_asserts(headers)
 
@@ -65,7 +65,7 @@ class TestController(TestCase):
             'access_token': 'my secret',
             'scope': ['userid'],
         }
-        headers = self.controller.info('testbackend', self.client, None, [], {
+        headers = self.controller.info('testbackend', self.client, None, ['gk_testbackend'], {
             'testbackend': 'my secret',
         })
         assert len(headers) == 6
@@ -82,7 +82,7 @@ class TestController(TestCase):
             'scope': ['userid'],
         }
         headers = self.controller.info('testbackend', self.client, self.user,
-                                       [], {
+                                       ['gk_testbackend'], {
                                            'testbackend': 'my secret',
                                        })
         assert len(headers) == 7
@@ -101,7 +101,7 @@ class TestController(TestCase):
             'scope': ['userid', 'userid-feide'],
         }
         headers = self.controller.info('testbackend', self.client, self.user,
-                                       [], {'testbackend': 'my secret'})
+                                       ['gk_testbackend'], {'testbackend': 'my secret'})
         assert len(headers) == 8
         self.basic_asserts(headers)
         assert 'userid' in headers
@@ -118,7 +118,7 @@ class TestController(TestCase):
             'scope': ['userid-nin'],
         }
         headers = self.controller.info('testbackend', self.client, self.user,
-                                       [], {'testbackend': 'my secret'})
+                                       ['gk_testbackend'], {'testbackend': 'my secret'})
         assert len(headers) == 7
         self.basic_asserts(headers)
         assert 'userid' not in headers
