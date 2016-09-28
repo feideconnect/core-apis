@@ -133,7 +133,7 @@ class CrudControllerBase(object):
         if user is None:
             return False
         for feideid in get_feideids(user):
-            if self.session.is_org_admin(feideid.lower(), org):
+            if self.session.is_org_admin('feide:{}'.format(feideid.lower()), org):
                 return True
         return False
 
