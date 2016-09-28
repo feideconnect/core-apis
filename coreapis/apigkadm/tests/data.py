@@ -41,6 +41,7 @@ post_body_maximal = {
 
 
 pre_update = {
+    "allow_unauthenticated": None,
     "httpscertpinned": None,
     "scopedef": None,
     "descr": None,
