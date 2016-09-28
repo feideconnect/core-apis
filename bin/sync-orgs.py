@@ -40,18 +40,18 @@ class CassandraClient(object):
         """
         self.s_insert_org = self.session.prepare(stmt)
         stmt = """
-            INSERT INTO "roles" (feideid, orgid, role)
+            INSERT INTO "orgroles" (identity, orgid, role)
             VALUES (?, ?, ?)
         """
         self.s_insert_role = self.session.prepare(stmt)
         self.s_get_orgs = 'SELECT "id", "kindid" from "organizations"'
         stmt = 'SELECT id from "organizations" WHERE kindid = ?'
         self.s_get_orgs_by_kindid = self.session.prepare(stmt)
-        stmt = 'SELECT * from "roles" WHERE orgid = ?'
+        stmt = 'SELECT * from "orgroles" WHERE orgid = ?'
         self.s_get_roles_by_orgid = self.session.prepare(stmt)
         stmt = 'DELETE FROM "organizations" WHERE id = ?'
         self.s_delete_organization = self.session.prepare(stmt)
-        stmt = 'DELETE FROM "roles" WHERE feideid = ? AND orgid = ?'
+        stmt = 'DELETE FROM "orgroles" WHERE identity = ? AND orgid = ?'
         self.s_delete_role = self.session.prepare(stmt)
         stmt = "UPDATE organizations set services = services {} {{'{}'}} where id = '{}'"
         self.s_update_service = stmt
@@ -63,7 +63,7 @@ class CassandraClient(object):
 
     def insert_role(self, role):
         self.session.execute(self.s_insert_role.bind([
-            role['feideid'], role['orgid'], role['role']]))
+            role['identity'], role['orgid'], role['role']]))
 
     def get_orgs(self):
         return self.session.execute(self.s_get_orgs)
@@ -77,8 +77,8 @@ class CassandraClient(object):
     def delete_organization(self, orgid):
         self.session.execute(self.s_delete_organization.bind([orgid]))
 
-    def delete_role(self, feideid, orgid):
-        self.session.execute(self.s_delete_role.bind([feideid, orgid]))
+    def delete_role(self, identity, orgid):
+        self.session.execute(self.s_delete_role.bind([identity, orgid]))
 
     def update_service(self, orgid, service, add):
         oper = '+' if add else '-'
@@ -110,7 +110,7 @@ def make_org(feideorg, orgid):
 
 
 def rolekey(role):
-    return '#'.join([role['feideid'], role['orgid']])
+    return '#'.join([role['identity'], role['orgid']])
 
 
 def adapt_orgno(organization_number):
@@ -184,7 +184,7 @@ class Syncer(object):
                 contacts[feideid].add(apirole)
         for feideid, roles in contacts.items():
             yield {
-                'feideid': feideid.lower(),
+                'identity': 'feide:{}'.format(feideid.lower()),
                 'orgid': orgid,
                 'role': roles
             }
@@ -193,7 +193,7 @@ class Syncer(object):
     def roles_from_db(rows):
         for row in rows:
             yield {
-                'feideid': row[0],
+                'identity': row[0],
                 'orgid': row[1],
                 'role': row[2]
             }
@@ -207,9 +207,9 @@ class Syncer(object):
         newkeys = {rolekey(nrole) for nrole in newroles}
         for orole in oldroles:
             if not rolekey(orole) in newkeys:
-                self.log.info('Dropping role', feideid=orole['feideid'],
+                self.log.info('Dropping role', identity=orole['identity'],
                               orgid=orole['orgid'])
-                self.client.delete_role(orole['feideid'], orole['orgid'])
+                self.client.delete_role(orole['identity'], orole['orgid'])
 
     def sync_roles(self, newroles, oldroles):
         for role in newroles:
