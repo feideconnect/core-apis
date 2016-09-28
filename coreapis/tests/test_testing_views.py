@@ -1,5 +1,5 @@
 import unittest
-from webtest import TestApp
+import webtest
 from pyramid import testing
 from coreapis import main, middleware
 
@@ -29,7 +29,7 @@ class ViewTests(unittest.TestCase):
             'cassandra_keyspace': 'notused',
         }, enabled_components='testing')
         mw = middleware.MockAuthMiddleware(app, 'test realm')
-        self.testapp = TestApp(mw)
+        self.testapp = webtest.TestApp(mw)
 
     def tearDown(self):
         testing.tearDown()

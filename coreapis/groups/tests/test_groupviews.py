@@ -1,5 +1,5 @@
 import unittest
-from webtest import TestApp
+import webtest
 from coreapis import main, middleware
 from . import groupid1, groupid2
 
@@ -16,7 +16,7 @@ class GroupsViewTests(unittest.TestCase):
             'use_eventlets': 'true',
         }, enabled_components='groups', groups_backend_test='coreapis.groups.tests:MockBackend')
         mw = middleware.MockAuthMiddleware(app, 'test realm')
-        self.testapp = TestApp(mw)
+        self.testapp = webtest.TestApp(mw)
 
     def test_grouptypes(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -124,7 +124,7 @@ class GroupsViewErrorHandlingTests(unittest.TestCase):
                    groups_backend_stale='coreapis.groups.tests:StaleBackend',
                    groups_backend_crash='coreapis.groups.tests:CrashBackend')
         mockmiddleware = middleware.MockAuthMiddleware(app, 'test realm')
-        self.testapp = TestApp(mockmiddleware)
+        self.testapp = webtest.TestApp(mockmiddleware)
 
     def test_get_groups(self):
         headers = {'Authorization': 'Bearer user_token'}

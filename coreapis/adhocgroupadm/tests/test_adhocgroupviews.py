@@ -2,7 +2,7 @@ import unittest
 import mock
 import uuid
 from copy import deepcopy
-from webtest import TestApp
+import webtest
 from pyramid import testing
 from coreapis import main, middleware
 from coreapis.utils import (json_normalize, now)
@@ -41,7 +41,7 @@ class AdHocGroupAdmTests(unittest.TestCase):
             profile_token_secret='AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=')
         mw = middleware.MockAuthMiddleware(app, 'test realm')
         self.session = Client
-        self.testapp = TestApp(mw)
+        self.testapp = webtest.TestApp(mw)
 
     def tearDown(self):
         testing.tearDown()

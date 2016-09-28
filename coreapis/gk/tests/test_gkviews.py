@@ -1,6 +1,6 @@
 import unittest
 import mock
-from webtest import TestApp
+import webtest
 from pyramid import testing
 from coreapis import main, middleware
 
@@ -18,7 +18,7 @@ class GkViewTests(unittest.TestCase):
         }, enabled_components='gk', gk_header_prefix='X-GK-Test-')
         mw = middleware.GKMockAuthMiddleware(app, 'test realm')
         self.session = Client()
-        self.testapp = TestApp(mw)
+        self.testapp = webtest.TestApp(mw)
 
     def tearDown(self):
         testing.tearDown()

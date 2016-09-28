@@ -2,7 +2,7 @@ import unittest
 import mock
 # import uuid
 # from copy import deepcopy
-from webtest import TestApp
+import webtest
 from pyramid import testing
 from coreapis import main, middleware
 from coreapis.authorizations.tests.data import (authz1, ret_authz1, client1, group1)
@@ -22,7 +22,7 @@ class AuthzviewTests(unittest.TestCase):
         }, enabled_components='authorizations')
         mw = middleware.MockAuthMiddleware(app, 'test realm')
         self.session = Client()
-        self.testapp = TestApp(mw)
+        self.testapp = webtest.TestApp(mw)
 
     def tearDown(self):
         testing.tearDown()

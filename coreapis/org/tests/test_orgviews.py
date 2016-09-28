@@ -3,7 +3,7 @@ import mock
 import uuid
 import json
 from copy import deepcopy
-from webtest import TestApp
+import webtest
 from pyramid import testing
 from cassandra.util import SortedSet
 from coreapis import main, middleware
@@ -67,7 +67,7 @@ class OrgViewTests(unittest.TestCase):
         }, enabled_components='org', clientadm_maxrows=100, ldap_config_file='testdata/test-ldap-config.json')
         mw = middleware.MockAuthMiddleware(app, 'test realm')
         self.session = Client()
-        self.testapp = TestApp(mw)
+        self.testapp = webtest.TestApp(mw)
 
     def tearDown(self):
         testing.tearDown()

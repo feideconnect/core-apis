@@ -3,7 +3,7 @@ import unittest
 import uuid
 from copy import deepcopy
 import mock
-from webtest import TestApp
+import webtest
 from pyramid import testing
 from coreapis import main, middleware
 from coreapis.utils import (json_normalize, now)
@@ -43,7 +43,7 @@ class APIGKAdmTests(unittest.TestCase):
             clientadm_scopedefs_file='testdata/scopedefs_testing.json')
         mw = middleware.MockAuthMiddleware(app, 'test realm')
         self.session = Client
-        self.testapp = TestApp(mw)
+        self.testapp = webtest.TestApp(mw)
 
     def tearDown(self):
         testing.tearDown()

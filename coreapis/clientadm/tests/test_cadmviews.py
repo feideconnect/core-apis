@@ -7,7 +7,7 @@ from copy import deepcopy
 import mock
 from cassandra.util import SortedSet
 from aniso8601 import parse_datetime
-from webtest import TestApp
+import webtest
 from pyramid import testing
 from coreapis import main, middleware
 from coreapis.utils import translatable
@@ -54,7 +54,7 @@ class ClientAdmTests(unittest.TestCase):
         mw = middleware.MockAuthMiddleware(app, 'test realm')
         self.session = Client()
         self.session.get_apigk.side_effect = mock_get_apigk
-        self.testapp = TestApp(mw)
+        self.testapp = webtest.TestApp(mw)
 
     def tearDown(self):
         testing.tearDown()
