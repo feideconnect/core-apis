@@ -195,7 +195,8 @@ def make_apigk():
         owner=uuid.uuid4(),
         organization='',
         created=ts_now,
-        updated=ts_now
+        updated=ts_now,
+        allow_unauthenticated=False,
     )
 
 
