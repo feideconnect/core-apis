@@ -42,17 +42,14 @@ def info(request):
         raise HTTPForbidden('client certificate not authorized')
     backend = request.matchdict['backend']
     prefix = request.registry.settings.gk_header_prefix
-    if not request.has_permission('scope_gk_{}'.format(backend)):
-        LOG.debug('provided token misses scopes to access this api', gatekeeper=backend)
-        raise HTTPForbidden('Unauthorized: scope_gk_{} failed permission check'.format(backend))
-    client = request.environ['FC_CLIENT']
+    client = request.environ.get('FC_CLIENT', None)
     user = request.environ.get('FC_USER', None)
-    scopes = request.environ['FC_SCOPES']
-    subtokens = request.environ['FC_SUBTOKENS']
+    scopes = request.environ.get('FC_SCOPES', [])
+    subtokens = request.environ.get('FC_SUBTOKENS', None)
     try:
         headers = request.gk_controller.info(backend, client, user, scopes, subtokens)
         if headers is None:
-            raise HTTPForbidden('token with user required')
+            raise HTTPForbidden('Token misses required scope, or is not associated with a user')
         for header, value in headers.items():
             request.response.headers[prefix + header] = value
         return ''

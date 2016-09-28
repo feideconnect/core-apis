@@ -42,6 +42,34 @@ class GkViewTests(unittest.TestCase):
         }
         headers = {'Gate-Keeper-DN': '/C=NO/CN=foo.example.com'}
         self.testapp.get('/gk/info/no_access', status=401, headers=headers)
+        self.session.get_apigk.return_value = {
+            'allow_unauthenticated': False,
+            'endpoints': ['ep.example.com'],
+            'requireuser': False,
+            'trust': {
+                'type': 'bearer',
+                'token': 'foo',
+            },
+        }
+        self.testapp.get('/gk/info/no_access', status=401, headers=headers)
+
+    def test_get_public(self):
+        self.session.apigk_allowed_dn.return_value = True
+        self.session.get_apigk.return_value = {
+            'allow_unauthenticated': True,
+            'endpoints': ['ep.example.com'],
+            'requireuser': False,
+            'trust': {
+                'type': 'bearer',
+                'token': 'foo',
+            },
+        }
+        headers = {'Gate-Keeper-DN': '/C=NO/CN=foo.example.com'}
+        resp = self.testapp.get('/gk/info/no_access', status=200, headers=headers)
+        assert resp.headers['X-Gk-Test-Endpoint'] == 'ep.example.com'
+        assert 'X-Gk-Test-Authorization' not in resp.headers
+        assert 'X-Gk-Test-Gatekeeper' not in resp.headers
+        assert 'X-Gk-Test-Clientid' not in resp.headers
 
     def test_get_no_access(self):
         headers = {

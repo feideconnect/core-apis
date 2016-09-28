@@ -44,11 +44,23 @@ class GkController(object):
 
     def info(self, backend_id, client, user, scopes, subtokens):
         backend = self.session.get_apigk(backend_id)
+        headers = dict()
+        headers['endpoint'] = random.choice(backend['endpoints'])
+
+        if backend.get('allow_unauthenticated', None) and client is None:
+            self.log.debug('Allowing unauthenticated gatekeeping', gatekeeper=backend_id,
+                           endpoint=headers['endpoint'])
+            return headers
+
+        main_scope = 'gk_{}'.format(backend_id)
+        if main_scope not in scopes:
+            self.log.debug('provided token misses scopes to access this api', gatekeeper=backend)
+            return None
+
         if backend['requireuser'] and user is None:
             self.log.warn('user required but not in token', gatekeeper=backend_id,
                           client=client['id'])
             return None
-        headers = dict()
 
         if backend_id in subtokens:
             subtoken = self.session.get_token(subtokens[backend_id])
@@ -70,14 +82,14 @@ class GkController(object):
                             exposed_sec_ids.append(sec_id)
                     headers['userid-sec'] = ",".join(exposed_sec_ids)
 
-        scope_prefix = 'gk_{}_'.format(backend_id)
-        exposed_scopes = [scope[len(scope_prefix):]
+        scope_prefix = main_scope + '_'
+        scope_prefix_len = len(scope_prefix)
+        exposed_scopes = [scope[scope_prefix_len:]
                           for scope in scopes if scope.startswith(scope_prefix)]
         headers['scopes'] = ','.join(exposed_scopes)
 
         headers['clientid'] = str(client['id'])
         headers['gatekeeper'] = backend_id
-        headers['endpoint'] = random.choice(backend['endpoints'])
         header, value = auth_header(backend['trust'])
         headers[header] = value
         self.log.debug('Allowing gatekeeping', gatekeeper=backend_id, endpoint=headers['endpoint'],
