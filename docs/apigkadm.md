@@ -9,11 +9,6 @@ To test the API, obtain an authentication token and
     $ curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{
     "httpscertpinned": null,
     "descr": "The feide api",
-    "expose": {
-      "clientid": false,
-      "userid": false,
-      "scopes": false
-    },
     "requireuser": false,
     "owner": "52a55f50-3b1f-4d25-8b14-d34ca715c30e",
     "updated": "2015-01-26T16:05:59Z",
@@ -42,12 +37,6 @@ To test the API, obtain an authentication token and
 ### Optional attributes
 
 - `descr`: Textual description of this gatekeeper
-- `expose`: Object describing what data is exposed to the api
-  - `clientid`: The id of the client is exposed if set to true
-  - `userid`: The id of the user is exposed if set to true
-  - `scopes`: Active sub scopes of this gatekeeper is exposed, that is scopes starting with `gk_<id>_`
-  - `groups`: Not implemented yet
-  - `userid_sec`: If true, all secondary user ids are exposed to the api. If a list only secondary user ids of the types listed are exposed
 - `trust`: Information about credentials passed to the backend. Must contain a `type` attribute, other attributes depend on the value of `type`:
   - `bearer`: The value of `token` in `trust` is passed using Bearer authentication in the Authorization header
   - `basic`: The attributes `username` and `passwords` are used to do HTTP Basic authentication
@@ -91,8 +80,7 @@ All attributes have the same meaning as when creating, but none are mandatory an
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
     'https://api.dataporten.no/apigkadm/apigks/<api gatekeeper id>'
 
-    {"scopedef": null, "expose": {"clientid": false, "userid": false,
-    "scopes": true}, "trust": {"type": "bearer", "token": "absd"},
+    {"scopedef": null, "trust": {"type": "bearer", "token": "absd"},
     "status": null, "endpoints": ["https://testgk.uninett.no"],
     "httpscertpinned": null, "name": "testgk", "descr": "sigmund
     tester", "id": "testgk", "owner":
@@ -111,12 +99,12 @@ All attributes have the same meaning as when creating, but none are mandatory an
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
     'https://api.dataporten.no/apigkadm/apigks/'
 
-    [{"scopedef": null, "expose": {"userid": false, "scopes": false, "clientid": false},
+    [{"scopedef": null,
       "trust": {"type": "bearer", "token": "adsfSFDsdfasdfa"},"status": null,
       "endpoints": ["https://api.feide.no"], "httpscertpinned": null, "name": "feide api",
       "descr": "The feide api", "id": "feideapi", "owner": "52a55f50-3b1f-4d25-8b14-d34ca715c30e",
       "updated": "2015-01-26T16:05:59Z", "requireuser": false, "created": "2015-01-23T13:50:09Z"},
-     {"scopedef": null, "expose": {"clientid": false, "userid": false, "scopes": true},
+     {"scopedef": null,
       "trust": {"type": "bearer", "token": "absd"}, "status": null,
        "endpoints": ["https://testgk.uninett.no"], "httpscertpinned": null, "name": "testgk",
        "descr": "sigmund tester", "id": "testgk", "owner": "52a55f50-3b1f-4d25-8b14-d34ca715c30e",
@@ -132,12 +120,12 @@ even if resulting list is empty.
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
     'https://api.dataporten.no/apigkadm/apigks/?showAll=true'
 
-    [{"scopedef": null, "expose": {"userid": false, "scopes": false, "clientid": false},
+    [{"scopedef": null,
       "trust": {"type": "bearer", "token": "adsfSFDsdfasdfa"},"status": null,
       "endpoints": ["https://api.feide.no"], "httpscertpinned": null, "name": "feide api",
       "descr": "The feide api", "id": "feideapi", "owner": "52a55f50-3b1f-4d25-8b14-d34ca715c30e",
       "updated": "2015-01-26T16:05:59Z", "requireuser": false, "created": "2015-01-23T13:50:09Z"},
-     {"scopedef": null, "expose": {"clientid": false, "userid": false, "scopes": true},
+     {"scopedef": null,
       "trust": {"type": "bearer", "token": "absd"}, "status": null,
        "endpoints": ["https://testgk.uninett.no"], "httpscertpinned": null, "name": "testgk",
        "descr": "sigmund tester", "id": "testgk", "owner": "52a55f50-3b1f-4d25-8b14-d34ca715c30e",
@@ -154,12 +142,12 @@ administrator
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
     'https://api.dataporten.no/apigkadm/apigks/?organization=<org-id>'
 
-    [{"scopedef": null, "expose": {"userid": false, "scopes": false, "clientid": false},
+    [{"scopedef": null,
       "trust": {"type": "bearer", "token": "adsfSFDsdfasdfa"},"status": null,
       "endpoints": ["https://api.feide.no"], "httpscertpinned": null, "name": "feide api",
       "descr": "The feide api", "id": "feideapi", "owner": "52a55f50-3b1f-4d25-8b14-d34ca715c30e",
       "updated": "2015-01-26T16:05:59Z", "requireuser": false, "created": "2015-01-23T13:50:09Z"},
-     {"scopedef": null, "expose": {"clientid": false, "userid": false, "scopes": true},
+     {"scopedef": null,
       "trust": {"type": "bearer", "token": "absd"}, "status": null,
        "endpoints": ["https://testgk.uninett.no"], "httpscertpinned": null, "name": "testgk",
        "descr": "sigmund tester", "id": "testgk", "owner": "52a55f50-3b1f-4d25-8b14-d34ca715c30e",
@@ -211,10 +199,10 @@ or:
 
     $ curl https://api.dataporten.no/apigkadm/public
 
-    [{"id": "feideapi", "expose": {"userid": false, "clientid": false, "scopes": false},
+    [{"id": "feideapi",
       "name": "feide api", "owner": {"id": "p:6fc96878-fdc5-4fc3-abfc-6fcc018ff0fc",
       "name": "Sigmund Augdal"}, "scopedef": null, "descr": "The feide api"},
-     {"id": "testgk", "expose": {"userid": false, "clientid": false, "scopes": true},
+     {"id": "testgk",
       "name": "testgk", "owner": {"id": "p:6fc96878-fdc5-4fc3-abfc-6fcc018ff0fc",
       "name": "Sigmund Augdal"}, "scopedef": null, "descr": "sigmund tester"}]
 
