@@ -11,7 +11,6 @@ class TestController(TestCase):
         'endpoints': [
             'http://localhost:1234',
             'http://localhost:1235'],
-        'expose': {},
         'requireuser': False,
         'trust': {
             "type": "basic",
@@ -75,7 +74,6 @@ class TestController(TestCase):
 
     def test_expose_userid(self):
         backend = self.basic_backend.copy()
-        backend['expose'] = dict(userid=True)
         self.session.get_apigk.return_value = backend
         self.session.get_token.return_value = {
             'access_token': 'my secret',
@@ -94,7 +92,6 @@ class TestController(TestCase):
 
     def test_expose_feideid(self):
         backend = self.basic_backend.copy()
-        backend['expose'] = {'userid': True, 'userid-sec': ['feide']}
         self.session.get_apigk.return_value = backend
         self.session.get_token.return_value = {
             'access_token': 'my secret',
@@ -111,7 +108,6 @@ class TestController(TestCase):
 
     def test_expose_only_nin(self):
         backend = self.basic_backend.copy()
-        backend['expose'] = {'userid': True, 'userid-sec': ['feide']}
         self.session.get_apigk.return_value = backend
         self.session.get_token.return_value = {
             'access_token': 'my secret',

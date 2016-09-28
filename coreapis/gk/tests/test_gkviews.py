@@ -35,7 +35,6 @@ class GkViewTests(unittest.TestCase):
         self.session.get_apigk.return_value = {
             'endpoints': ['ep.example.com'],
             'requireuser': False,
-            'expose': {},
             'trust': {
                 'type': 'bearer',
                 'token': 'foo',
@@ -53,7 +52,6 @@ class GkViewTests(unittest.TestCase):
         self.session.get_apigk.return_value = {
             'endpoints': ['ep.example.com'],
             'requireuser': False,
-            'expose': {},
             'trust': {
                 'type': 'bearer',
                 'token': 'foo',
@@ -70,7 +68,6 @@ class GkViewTests(unittest.TestCase):
         self.session.get_apigk.return_value = {
             'endpoints': ['ep.example.com'],
             'requireuser': False,
-            'expose': {},
             'trust': {
                 'type': 'bearer',
                 'token': 'foo',
