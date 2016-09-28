@@ -76,7 +76,11 @@ class GkViewTests(unittest.TestCase):
                 'token': 'foo',
             },
         }
-        self.testapp.get('/gk/info/nicegk', headers=headers, status=200)
+        resp = self.testapp.get('/gk/info/nicegk', headers=headers, status=200)
+        assert resp.headers['X-Gk-Test-Authorization'] == 'Bearer foo'
+        assert resp.headers['X-Gk-Test-Gatekeeper'] == 'nicegk'
+        assert resp.headers['X-Gk-Test-Endpoint'] == 'ep.example.com'
+        assert resp.headers['X-Gk-Test-Clientid'] == '00000000-0000-0000-0000-000000000002'
 
     def test_get_not_found(self):
         self.session.get_apigk.side_effect = KeyError
