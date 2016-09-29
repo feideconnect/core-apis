@@ -272,6 +272,10 @@ class OrgViewTests(unittest.TestCase):
         self._test_add_org_role(400, 'hello', ['admin'])
 
     @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_add_org_role_bad_provider(self, _):
+        self._test_add_org_role(400, 'bogus:foo@bar', ['admin'])
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_add_org_role_malformed_identity(self, _):
         self._test_add_org_role(400, dict(identity=testidentity), ['admin'])
 
