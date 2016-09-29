@@ -61,13 +61,18 @@ post_body_maximal = {
 }
 
 retrieved_client = {
-    'name': 'per', 'scopes': SortedSet(), 'redirect_uri': testuris,
+    'name': 'per',
+    'scopes': SortedSet(),
+    'redirect_uri': testuris,
     'owner': uuid.UUID(userid_own),
     'organization': None,
     'id': uuid.UUID(clientid),
-    'client_secret': 'sekrit', 'created': parse_datetime(date_created),
+    'client_secret': 'sekrit',
+    'created': parse_datetime(date_created),
     'descr': 'green',
-    'scopes_requested': SortedSet([testscope]), 'status': ['lab'], 'type': 'client',
+    'scopes_requested': SortedSet([testscope]),
+    'status': ['lab'],
+    'type': 'client',
     'authproviders': [],
     'orgauthorization': {},
     'systemdescr': None,
