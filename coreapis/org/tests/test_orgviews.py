@@ -268,6 +268,10 @@ class OrgViewTests(unittest.TestCase):
         self._test_add_org_role(204, testidentity, ['admin'])
 
     @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_add_org_role_social(self, _):
+        self._test_add_org_role(204, 'facebook:3141592653589793', ['admin'])
+
+    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_add_org_role_bad_identity(self, _):
         self._test_add_org_role(400, 'hello', ['admin'])
 
