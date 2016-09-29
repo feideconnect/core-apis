@@ -132,8 +132,8 @@ class CrudControllerBase(object):
     def is_org_admin(self, user, org):
         if user is None:
             return False
-        for feideid in get_feideids(user):
-            if self.session.is_org_admin('feide:{}'.format(feideid.lower()), org):
+        for identity in user['userid_sec']:
+            if self.session.is_org_admin(identity, org):
                 return True
         return False
 
