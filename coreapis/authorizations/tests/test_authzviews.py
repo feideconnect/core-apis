@@ -5,7 +5,7 @@ import mock
 import webtest
 from pyramid import testing
 from coreapis import main, middleware
-from coreapis.authorizations.tests.data import (authz1, ret_authz1, client1, group1)
+from coreapis.authorizations.tests.data import (authz1, ret_authz1, client1, group1, user1, clients, users)
 #from coreapis.utils import json_normalize
 
 
@@ -67,3 +67,44 @@ class AuthzviewTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_clients.return_value = iter([{}])
         self.testapp.post('/authorizations/consent_withdrawn', status=403, headers=headers)
+
+    def test_get_mandatory_clients(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_clients.return_value = iter([])
+        self.session.get_mandatory_clients.return_value = [client1]
+        self.session.get_client_by_id.return_value = clients[client1]
+        self.session.get_user_by_id.return_value = users[user1]
+        resp = self.testapp.get('/authorizations/mandatory_clients/', status=200, headers=headers)
+
+        assert resp.json == [
+            {'authproviders': [],
+             'descr': 'green',
+             'homepageurl': None,
+             'id': '00000000-0000-0000-0001-000000000001',
+             'loginurl': None,
+             'name': 'per',
+             'organization': None,
+             'owner': {'id': 'p:foo', 'name': 'foo'},
+             'privacypolicyurl': None,
+             'redirect_uri': ['https://test.example.com'],
+             'supporturl': None,
+             'systemdescr': None}]
+        self.session.get_clients.return_value = [clients[client1]]
+        self.session.get_mandatory_clients.return_value = []
+#        self.session.get_client_by_id.return_value = clients[client1]
+        self.session.get_user_by_id.return_value = users[user1]
+        resp = self.testapp.get('/authorizations/mandatory_clients/', status=200, headers=headers)
+
+        assert resp.json == [
+            {'authproviders': [],
+             'descr': 'green',
+             'homepageurl': None,
+             'id': '00000000-0000-0000-0001-000000000001',
+             'loginurl': None,
+             'name': 'per',
+             'organization': None,
+             'owner': {'id': 'p:foo', 'name': 'foo'},
+             'privacypolicyurl': None,
+             'redirect_uri': ['https://test.example.com'],
+             'supporturl': None,
+             'systemdescr': None}]

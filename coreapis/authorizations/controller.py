@@ -1,5 +1,6 @@
 from coreapis import cassandra_client
-from coreapis.utils import LogWrapper
+from coreapis.clientadm.controller import ClientAdmController
+from coreapis.utils import LogWrapper, get_feideids
 
 
 class AuthorizationController(object):
@@ -10,6 +11,7 @@ class AuthorizationController(object):
         authz = settings.get('cassandra_authz')
         self.session = cassandra_client.Client(contact_points, keyspace, authz=authz)
         self.log = LogWrapper('authorizations.AuthorizationController')
+        self.cadm_controller = ClientAdmController(settings)
 
     def delete(self, userid, clientid):
         self.log.debug('Delete authorization', userid=userid, clientid=clientid)
@@ -65,3 +67,15 @@ class AuthorizationController(object):
             return True
         else:
             return False
+
+    def get_mandatory_clients(self, user):
+        selectors = ['status contains ?']
+        values = ['Mandatory']
+
+        by_id = {c['id']: c for c in self.session.get_clients(selectors, values)}
+        for feideid in get_feideids(user):
+            print(feideid)
+            _, realm = feideid.split('@')
+            for clientid in self.session.get_mandatory_clients(realm):
+                by_id[clientid] = self.session.get_client_by_id(clientid)
+        return [self.cadm_controller.get_public_info(c) for c in by_id.values()]

@@ -5,7 +5,7 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
 from pyramid.response import Response
 
 from .controller import AuthorizationController
-from coreapis.utils import get_userid
+from coreapis.utils import get_user, get_userid, translation
 
 
 def configure(config):
@@ -17,6 +17,7 @@ def configure(config):
     config.add_route('delete_authz', '/{id}', request_method='DELETE')
     config.add_route('resources_owned', '/resources_owned', request_method='GET')
     config.add_route('consent_withdrawn', '/consent_withdrawn', request_method='POST')
+    config.add_route('mandatory_clients', '/mandatory_clients/', request_method='GET')
     config.scan(__name__)
 
 
@@ -51,3 +52,11 @@ def consent_withdrawn(request):
         return 'OK'
     else:
         raise HTTPForbidden('User still owns resources')
+
+
+@view_config(route_name='mandatory_clients', request_method="GET",
+             permission='scope_authzinfo', renderer="json")
+@translation
+def mandatory_clients(request):
+    user = get_user(request)
+    return request.authz_controller.get_mandatory_clients(user)
