@@ -133,6 +133,8 @@ class CrudControllerBase(object):
         if user is None:
             return False
         for identity in user['userid_sec']:
+            if identity.startswith('feide:'):
+                identity = identity.lower()
             if self.session.is_org_admin(identity, org):
                 return True
         return False
