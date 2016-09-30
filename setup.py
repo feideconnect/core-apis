@@ -64,5 +64,6 @@ setup(name='core-apis',
       gkmiddleware = coreapis.middleware:gk_main
       logmiddleware = coreapis.middleware:log_main
       corsmiddleware = coreapis.middleware:cors_main
+      ratelimitmiddleware = coreapis.middleware:ratelimit_main
       """,
       )

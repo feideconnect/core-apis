@@ -32,6 +32,7 @@ status_token = {{getv "/fc/status/token"}}
 pipeline =
          logmiddleware
          corsmiddleware
+         ratelimitmiddleware
          gkmiddleware
          coreapis
 # By default, the toolbar only appears for clients from IP addresses
@@ -89,12 +90,15 @@ use = egg:core-apis#mockauthmiddleware
 
 [filter:gkmiddleware]
 use = egg:core-apis#gkmiddleware
-client_max_share = {{getv "/fc/ratelimit/maxshare"}}
-client_max_rate = {{getv "/fc/ratelimit/maxrate"}}
-client_max_burst_size= {{getv "/fc/ratelimit/maxburstsize"}}
 
 [filter:logmiddleware]
 use = egg:core-apis#logmiddleware
 
 [filter:corsmiddleware]
 use = egg:core-apis#corsmiddleware
+
+[filter:ratelimitmiddleware]
+use = egg:core-apis#ratelimitmiddleware
+client_max_share = {{getv "/fc/ratelimit/maxshare"}}
+client_max_rate = {{getv "/fc/ratelimit/maxrate"}}
+client_max_burst_size= {{getv "/fc/ratelimit/maxburstsize"}}

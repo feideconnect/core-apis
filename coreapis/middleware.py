@@ -25,8 +25,14 @@ def cors_main(app, config):
     return CorsMiddleware(app)
 
 
-def cassandra_main(app, config, client_max_share, client_max_rate, client_max_burst_size,
-                   cls=None):
+def ratelimit_main(app, config, client_max_share, client_max_rate, client_max_burst_size):
+    ratelimiter = RateLimiter(float(client_max_share),
+                              int(client_max_burst_size),
+                              float(client_max_rate))
+    return RateLimitMiddleware(app, ratelimiter)
+
+
+def cassandra_main(app, config, cls=None):
     contact_points = config['cassandra_contact_points'].split(', ')
     keyspace = config['cassandra_keyspace']
     authz = get_cassandra_authz(config)
@@ -38,18 +44,14 @@ def cassandra_main(app, config, client_max_share, client_max_rate, client_max_bu
         pool = ResourcePool
     timer = Timer(config['statsd_server'], int(config['statsd_port']),
                   config['statsd_prefix'], log_timings, pool)
-    ratelimiter = RateLimiter(float(client_max_share),
-                              int(client_max_burst_size),
-                              float(client_max_rate))
     if cls is None:
         cls = CassandraMiddleware
     return cls(app, config['oauth_realm'], contact_points,
-               keyspace, timer, ratelimiter, use_eventlets, authz)
+               keyspace, timer, use_eventlets, authz)
 
 
-def gk_main(app, config, client_max_share, client_max_rate, client_max_burst_size):
-    return cassandra_main(app, config, client_max_share, client_max_rate, client_max_burst_size,
-                          GKMiddleware)
+def gk_main(app, config):
+    return cassandra_main(app, config, GKMiddleware)
 
 
 class CorsMiddleware(object):
@@ -214,22 +216,27 @@ def get_client_address(environ):
         return environ['REMOTE_ADDR']
 
 
-class CassandraMiddleware(AuthMiddleware):
-    def __init__(self, app, realm, contact_points, keyspace, timer, ratelimiter,
-                 use_eventlet, authz):
-        super(CassandraMiddleware, self).__init__(app, realm)
-        self.timer = timer
+class RateLimitMiddleware(object):
+    def __init__(self, app, ratelimiter):
+        self._app = app
         self.ratelimiter = ratelimiter
-        self.session = cassandra_client.Client(contact_points, keyspace, use_eventlet, authz=authz)
-        self.session.timer = timer
 
     def __call__(self, environ, start_response):
-        if self.ratelimiter and not self.ratelimiter.check_rate(get_client_address(environ)):
+        if not self.ratelimiter.check_rate(get_client_address(environ)):
             headers = []
             start_response('429 Too many requests', headers)
             return ""
         else:
-            return super(CassandraMiddleware, self).__call__(environ, start_response)
+            return self._app(environ, start_response)
+
+
+class CassandraMiddleware(AuthMiddleware):
+    def __init__(self, app, realm, contact_points, keyspace, timer,
+                 use_eventlet, authz):
+        super(CassandraMiddleware, self).__init__(app, realm)
+        self.timer = timer
+        self.session = cassandra_client.Client(contact_points, keyspace, use_eventlet, authz=authz)
+        self.session.timer = timer
 
     def token_is_valid(self, token, token_string):
         for column in ('clientid', 'scope', 'validuntil'):

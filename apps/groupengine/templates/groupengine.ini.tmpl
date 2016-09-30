@@ -43,6 +43,7 @@ status_token = {{getv "/fc/status/token"}}
 [pipeline:main]
 pipeline =
          logmiddleware
+         ratelimitmiddleware
          corsmiddleware
          cassandramiddleware
          coreapis
@@ -101,12 +102,15 @@ use = egg:core-apis#mockauthmiddleware
 
 [filter:cassandramiddleware]
 use = egg:core-apis#cassandramiddleware
-client_max_share = {{getv "/fc/ratelimit/maxshare"}}
-client_max_rate = {{getv "/fc/ratelimit/maxrate"}}
-client_max_burst_size= {{getv "/fc/ratelimit/maxburstsize"}}
 
 [filter:logmiddleware]
 use = egg:core-apis#logmiddleware
 
 [filter:corsmiddleware]
 use = egg:core-apis#corsmiddleware
+
+[filter:ratelimitmiddleware]
+use = egg:core-apis#ratelimitmiddleware
+client_max_share = {{getv "/fc/ratelimit/maxshare"}}
+client_max_rate = {{getv "/fc/ratelimit/maxrate"}}
+client_max_burst_size= {{getv "/fc/ratelimit/maxburstsize"}}
