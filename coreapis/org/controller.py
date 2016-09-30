@@ -13,7 +13,7 @@ from coreapis.clientadm.controller import ClientAdmController
 from coreapis.ldap.status import ldap_status
 
 VALID_SERVICES = ['auth', 'avtale', 'idporten', 'pilot', 'fsgroups', 'nostatus']
-VALID_PROVIDERS = ['facebook', 'feide', 'github', 'idporten', 'linkedin', 'twitter']
+VALID_PREFIXES = ['facebook', 'feide', 'github', 'linkedin', 'nin', 'twitter']
 VALID_ROLENAMES = ['admin', 'mercantile', 'technical']
 
 
@@ -31,12 +31,12 @@ def valid_feideid(feideid):
 
 
 def valid_identity(identity):
-    provider_name, separator, user_key = identity.partition(':')
+    provider_prefix, separator, user_key = identity.partition(':')
     if separator != ':':
         ret = False
-    elif provider_name == 'feide':
+    elif provider_prefix == 'feide':
         ret = valid_feideid(user_key)
-    elif provider_name in VALID_PROVIDERS and user_key != '':
+    elif provider_prefix in VALID_PREFIXES and user_key != '':
         ret = True
     else:
         ret = False
