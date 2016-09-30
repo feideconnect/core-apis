@@ -1,3 +1,4 @@
+import base64
 import json
 import urllib.parse
 import uuid
@@ -48,6 +49,22 @@ def cassandra_main(app, config, cls=None):
         cls = CassandraMiddleware
     return cls(app, config['oauth_realm'], contact_points,
                keyspace, timer, use_eventlets, authz)
+
+
+def gatekeeped_mw_main(app, config, username, password):
+    contact_points = config['cassandra_contact_points'].split(', ')
+    keyspace = config['cassandra_keyspace']
+    authz = get_cassandra_authz(config)
+    log_timings = config.get('log_timings', 'false').lower() == 'true'
+    use_eventlets = (config.get('use_eventlets', '') == 'true')
+    if use_eventlets:
+        pool = EventletPool
+    else:
+        pool = ResourcePool
+    timer = Timer(config['statsd_server'], int(config['statsd_port']),
+                  config['statsd_prefix'], log_timings, pool)
+    return GatekeepedMiddleware(app, config['oauth_realm'], contact_points,
+                                keyspace, timer, use_eventlets, authz, username, password)
 
 
 def gk_main(app, config):
@@ -287,3 +304,64 @@ class GKMiddleware(CassandraMiddleware):
             'FC_SCOPES': token['scope'],
             'FC_SUBTOKENS': token['subtokens'],
         }
+
+
+class GatekeepedMiddleware(object):
+    def __init__(self, app, realm, contact_points, keyspace, timer,
+                 use_eventlet, authz, username, password):
+        self._app = app
+        self.realm = realm
+        self.credentials = str(base64.b64encode('{}:{}'.format(username, password).encode('UTF-8')), 'UTF-8')
+        self.log = LogWrapper('dataporten.auth')
+        self.session = cassandra_client.Client(contact_points, keyspace, use_eventlet, authz=authz)
+        self.session.timer = timer
+
+    def __call__(self, environ, start_response):
+        authorization = self.get_authorization(environ)
+        if authorization is not None:
+            if authorization == self.credentials:
+                userid = environ.get('HTTP_X_DATAPORTEN_USERID', None)
+                clientid = environ.get('HTTP_X_DATAPORTEN_CLIENTID')
+                gatekeeper = environ.get('HTTP_X_DATAPORTEN_GATEKEEPER')
+                scopes = [gatekeeper]
+                subscopestr = environ.get('HTTP_X_DATAPORTEN_SCOPES')
+                if subscopestr:
+                    subscopes = subscopestr.split(',')
+                    scopes = ["{}_{}".format(gatekeeper, s) for s in subscopes]
+                else:
+                    scopes = []
+                scopes.append(gatekeeper)
+                if userid:
+                    user = self.session.get_user_by_id(userid)
+                else:
+                    user = None
+                client = self.session.get_client_by_id(clientid)
+                token = environ.get('HTTP_X_DATAPORTEN_TOKEN')
+                environ.update({
+                    'FC_USER': user,
+                    'FC_CLIENT': client,
+                    'FC_SCOPES': scopes,
+                    'FC_TOKEN': token
+                })
+                self.log.debug('successfully authenticated request', user=userid, client=clientid,
+                               scopes=scopes, accesstoken=log_token(token))
+            else:
+                # Invalid token passed. Perhaps return 402?
+                self.log.debug('invalid credentials')
+                headers = [
+                    ('WWW-Authenticate', www_authenticate(self.realm, authtype='Basic')),
+                    ('Content-Type', 'application/json; charset=UTF-8'),
+                ]
+                start_response('401 Unauthorized', headers)
+                return [json.dumps({'message': 'Invalid credentials'}).encode('utf-8')]
+        return self._app(environ, start_response)
+
+    def get_authorization(self, environ):
+        authorization = environ.get('HTTP_AUTHORIZATION')
+        if authorization:
+            authtype, sep, value = authorization.partition(' ')
+            if authtype == 'Basic':
+                return value
+            else:
+                self.log.debug('unhandled authorization scheme {}'.format(authorization.split()[0]))
+        return None

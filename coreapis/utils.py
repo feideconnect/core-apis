@@ -251,12 +251,12 @@ class RequestTimingTween(object):
         return response
 
 
-def www_authenticate(realm, error=None, description=None):
+def www_authenticate(realm, error=None, description=None, authtype="Bearer"):
     if error is not None:
-        template = 'Bearer realm="{}", error="{}", error_description="{}"'
-        return template.format(realm, error, description)
+        template = '{} realm="{}", error="{}", error_description="{}"'
+        return template.format(authtype, realm, error, description)
     else:
-        return 'Bearer realm="{}"'.format(realm)
+        return '{} realm="{}"'.format(authtype, realm)
 
 
 class ValidationError(RuntimeError):
