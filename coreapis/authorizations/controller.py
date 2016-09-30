@@ -72,7 +72,7 @@ class AuthorizationController(object):
         selectors = ['status contains ?']
         values = ['Mandatory']
 
-        by_id = {c['id']: c for c in self.session.get_clients(selectors, values)}
+        by_id = {c['id']: c for c in self.session.get_clients(selectors, values, 9999)}
         for feideid in get_feideids(user):
             print(feideid)
             _, realm = feideid.split('@')
