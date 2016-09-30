@@ -2,7 +2,7 @@ import functools
 
 from eventlet.greenpool import GreenPool
 
-from coreapis.utils import LogWrapper, get_feideids, failsafe, translatable
+from coreapis.utils import LogWrapper, failsafe, translatable
 from . import BaseBackend
 from coreapis import cassandra_client
 
@@ -56,6 +56,17 @@ def get_orgtag(orgid):
     return orgtag
 
 
+def get_canonical_id(identity):
+    if identity.startswith('feide:'):
+        return identity.lower()
+    else:
+        return identity
+
+
+def get_canonical_ids(user):
+    return set(get_canonical_id(ident) for ident in user['userid_sec'])
+
+
 def format_orgadmin_group(role):
     orgid = role['orgid']
     orgtag = get_orgtag(orgid)
@@ -87,7 +98,6 @@ class OrgAdminBackend(BaseBackend):
         self.scopes_needed = SCOPES_NEEDED
 
     def get_members(self, user, groupid, show_all, include_member_ids):
-        feideids = {u.lower() for u in get_feideids(user)}
         orgtag = get_orgtag(groupid)
         if not groupid.startswith("{}:".format(ORGADMIN_TYPE)):
             raise KeyError("Not an orgadmin group")
@@ -98,19 +108,19 @@ class OrgAdminBackend(BaseBackend):
         roles = self.session.get_roles(['orgid = ?'], [orgid],
                                        self.maxrows)
         for role in roles:
-            if role['feideid'] in feideids:
+            if role['identity'] in get_canonical_ids(user):
                 found = True
             result.append({
-                'userid': 'feide:{}'.format(role['feideid']),
+                'userid': role['identity'],
                 'membership': format_membership(role['role'])
             })
         if not found:
             raise KeyError("Not member of group")
         return result
 
-    def _get_member_groups(self, pool, feideid):
+    def _get_member_groups(self, pool, identity):
         result = []
-        roles = list(self.session.get_roles(['feideid = ?'], [feideid.lower()],
+        roles = list(self.session.get_roles(['identity = ?'], [get_canonical_id(identity)],
                                             self.maxrows))
         if len(roles) == 0:
             return []
@@ -138,7 +148,8 @@ class OrgAdminBackend(BaseBackend):
     def get_member_groups(self, user, show_all):
         result = []
         pool = GreenPool()
-        for res in pool.imap(functools.partial(self._get_member_groups, pool), get_feideids(user)):
+        for res in pool.imap(functools.partial(self._get_member_groups, pool),
+                             get_canonical_ids(user)):
             result.extend(res)
         return result
 
