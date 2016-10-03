@@ -11,3 +11,4 @@ scopedefs.json
 testresults.xml
 htmlcov
 pylint.out
+.cache
