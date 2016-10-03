@@ -91,8 +91,8 @@ def main(global_config, **settings):
         config.include('coreapis.adhocgroupadm.views.configure', route_prefix='adhocgroups')
     if enabled('groups'):
         config.include('coreapis.groups.views.configure', route_prefix='groups')
-    if enabled('org'):
-        config.include('coreapis.org.views.configure', route_prefix='orgs')
+    if enabled('orgs'):
+        config.include('coreapis.orgs.views.configure', route_prefix='orgs')
     if enabled('userinfo'):
         config.include('coreapis.userinfo.views.configure', route_prefix='userinfo')
     if enabled('statistics'):
