@@ -70,31 +70,11 @@ def main(global_config, **settings):
         all_enabled = True
         enabled_components = set()
 
-    def enabled(component):
-        return all_enabled or component in enabled_components
-
-    if enabled('status'):
-        config.include('coreapis.status.views.configure', route_prefix='status')
-    if enabled('peoplesearch'):
-        config.include('coreapis.peoplesearch.views.configure', route_prefix='peoplesearch')
-    if enabled('clientadm'):
-        config.include('coreapis.clientadm.views.configure', route_prefix='clientadm')
-    if enabled('apigkadm'):
-        config.include('coreapis.apigkadm.views.configure', route_prefix='apigkadm')
-    if enabled('gk'):
-        config.include('coreapis.gk.views.configure', route_prefix='gk')
-    if enabled('authorizations'):
-        config.include('coreapis.authorizations.views.configure', route_prefix='authorizations')
-    if enabled('adhocgroupadm'):
-        config.include('coreapis.adhocgroupadm.views.configure', route_prefix='adhocgroups')
-    if enabled('groups'):
-        config.include('coreapis.groups.views.configure', route_prefix='groups')
-    if enabled('orgs'):
-        config.include('coreapis.orgs.views.configure', route_prefix='orgs')
-    if enabled('userinfo'):
-        config.include('coreapis.userinfo.views.configure', route_prefix='userinfo')
-    if enabled('statistics'):
-        config.include('coreapis.statistics.views.configure', route_prefix='statistics')
+    components = ['status', 'peoplesearch', 'clientadm', 'apigkadm', 'gk', 'authorizations',
+                  'adhocgroupadm', 'groups', 'orgs', 'userinfo', 'statistics']
+    for component in components:
+        if all_enabled or component in enabled_components:
+            config.include('coreapis.{}.view.configure'.format(component), route_prefix=component)
     config.scan('coreapis.error_views')
     config.add_settings(realm=global_config['oauth_realm'])
     config.add_tween('coreapis.utils.RequestTimingTween')
