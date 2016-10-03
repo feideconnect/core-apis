@@ -75,8 +75,6 @@ def main(global_config, **settings):
 
     if enabled('status'):
         config.include('coreapis.status.views.configure', route_prefix='status')
-    if enabled('testing'):
-        config.include('coreapis.testing_views.configure', route_prefix='test')
     if enabled('peoplesearch'):
         config.include('coreapis.peoplesearch.views.configure', route_prefix='peoplesearch')
     if enabled('clientadm'):
