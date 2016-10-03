@@ -332,10 +332,10 @@ class GatekeepedMiddleware(object):
                     scopes = []
                 scopes.append(gatekeeper)
                 if userid:
-                    user = self.session.get_user_by_id(userid)
+                    user = self.session.get_user_by_id(uuid.UUID(userid))
                 else:
                     user = None
-                client = self.session.get_client_by_id(clientid)
+                client = self.session.get_client_by_id(uuid.UUID(clientid))
                 token = environ.get('HTTP_X_DATAPORTEN_TOKEN')
                 environ.update({
                     'FC_USER': user,
