@@ -24,13 +24,14 @@ pyramid.debug_notfound = false
 pyramid.debug_routematch = false
 pyramid.default_locale_name = en
 pyramid.includes =
-enabled_components = peoplesearch,authorizations,adhocgroupadm,org,userinfo,status,statistics
-profile_token_secret = {{getv "/fc/profiletokensecret"}}
-peoplesearch.cache_keyspace = {{getv "/fc/ps/cachekeyspace"}}
-adhocgroupadm_max_add_members = {{getv "/fc/adhocgroupadm/maxaddmembers"}}
-ldap_config_file = /conf/ldap-config.json
-ldap_ca_certs = /conf/ldap_certs.txt
+enabled_components = apigkadm,status
+apigkadm_maxrows = {{getv "/fc/apigkadm/maxrows"}}
+clientadm_scopedefs_file = /conf/scopedefs.json
 platformadmins_file = /conf/platformadmins.json
+clientadm_system_moderator = {{getv "/fc/clientadm/system/moderator"}}
+notifications.email.enabled = {{getv "/fc/notifications/email/enabled"}}
+notifications.email.sender = {{getv "/fc/notifications/email/sender"}}
+notifications.email.mta = {{getv "/fc/notifications/email/mta"}}
 status_token = {{getv "/fc/status/token"}}
 
 [pipeline:main]
@@ -38,7 +39,7 @@ pipeline =
          logmiddleware
          ratelimitmiddleware
          corsmiddleware
-         cassandramiddleware
+         gatekeepedmiddleware
          coreapis
 # By default, the toolbar only appears for clients from IP addresses
 # '127.0.0.1' and '::1'.
@@ -93,8 +94,10 @@ class = coreapis.utils.DebugLogFormatter
 [filter:mockauthmiddleware]
 use = egg:core-apis#mockauthmiddleware
 
-[filter:cassandramiddleware]
-use = egg:core-apis#cassandramiddleware
+[filter:gatekeepedmiddleware]
+use = egg:core-apis#gatekeepedmiddleware
+username = dataporten
+password = a2c966d3-daef-4349-a507-846418663fb0
 
 [filter:logmiddleware]
 use = egg:core-apis#logmiddleware

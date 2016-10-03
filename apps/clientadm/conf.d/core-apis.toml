@@ -2,7 +2,6 @@
 src = "core-apis.ini.tmpl"
 dest = "/etc/core-apis.ini"
 keys = [
-    "/fc/status/token",
     "/fc/statsd/server",
     "/fc/statsd/port",
     "/fc/statsd/prefix",
@@ -12,9 +11,11 @@ keys = [
     "/fc/cassandra/username",
     "/fc/cassandra/password",
     "/fc/logtimings",
-    "/fc/profiletokensecret",
-    "/fc/ps/cachekeyspace",
-    "/fc/adhocgroupadm/maxaddmembers",
+    "/fc/clientadm/maxrows",
+    "/fc/clientadm/system/moderator",
+    "/fc/notifications/email/enabled",
+    "/fc/notifications/email/sender",
+    "/fc/notifications/email/mta",
     "/fc/ratelimit/maxshare",
     "/fc/ratelimit/maxrate",
     "/fc/ratelimit/maxburstsize",
