@@ -125,12 +125,12 @@ class TestController(TestCase):
 class TestAuthHeader(TestCase):
     def test_token(self):
         trust = {
-            'type': 'token',
+            'type': 'bearer',
             'token': 'abc123'
         }
         header, value = controller.auth_header(trust)
-        assert header == 'Auth'
-        assert value == 'abc123'
+        assert header == 'Authorization'
+        assert value == 'Bearer abc123'
 
     def test_basic(self):
         trust = {
