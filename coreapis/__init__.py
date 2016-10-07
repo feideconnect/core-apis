@@ -69,12 +69,19 @@ def main(global_config, **settings):
     else:
         all_enabled = True
         enabled_components = set()
+    main_component = settings.get('main_component', None)
 
-    components = ['status', 'peoplesearch', 'clientadm', 'apigkadm', 'gk', 'authorizations',
+    components = ['status', 'clientadm', 'apigkadm', 'gk', 'authorizations',
                   'adhocgroupadm', 'groups', 'orgs', 'userinfo', 'statistics']
+    log = LogWrapper('main')
     for component in components:
         if all_enabled or component in enabled_components:
-            config.include('coreapis.{}.view.configure'.format(component), route_prefix=component)
+            if component == main_component:
+                prefix = ''
+            else:
+                prefix = component
+            log.info("Enabling component", component=component, route_prefix=prefix)
+            config.include('coreapis.{}.views.configure'.format(component), route_prefix=prefix)
     config.scan('coreapis.error_views')
     config.add_settings(realm=global_config['oauth_realm'])
     config.add_tween('coreapis.utils.RequestTimingTween')
