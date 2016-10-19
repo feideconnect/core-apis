@@ -3,7 +3,7 @@ from copy import deepcopy
 import py.test
 import mock
 from coreapis.groups.adhoc_backend import query_match, format_membership, AdHocGroupBackend
-from coreapis.adhocgroupadm.tests.data import \
+from coreapis.adhocgroups.tests.data import \
     user1, user2, user3, \
     groupid1, group1, \
     groupid2, group2, \

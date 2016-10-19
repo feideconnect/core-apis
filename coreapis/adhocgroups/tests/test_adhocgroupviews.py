@@ -6,7 +6,7 @@ import webtest
 from pyramid import testing
 from coreapis import main, middleware
 from coreapis.utils import (json_normalize, now)
-from coreapis.adhocgroupadm.tests.data import \
+from coreapis.adhocgroups.tests.data import \
     public_userinfo, public_userinfo_view, \
     group1, group1_invitation, group1_view, groupid1, group1_details, \
     group2, group2_invitation, group2_view, groupid2, \
@@ -25,7 +25,7 @@ def make_user(feideid):
 
 
 class AdHocGroupAdmTests(unittest.TestCase):
-    @mock.patch('coreapis.adhocgroupadm.controller.get_platform_admins')
+    @mock.patch('coreapis.adhocgroups.controller.get_platform_admins')
     @mock.patch('coreapis.middleware.cassandra_client.Client')
     def setUp(self, Client, gpa):
         gpa.return_value = [PLATFORMADMIN]
@@ -36,7 +36,7 @@ class AdHocGroupAdmTests(unittest.TestCase):
             'oauth_realm': 'test realm',
             'cassandra_contact_points': '',
             'cassandra_keyspace': 'notused',
-        }, enabled_components='adhocgroupadm', adhocgroupadm_maxrows=100,
+        }, enabled_components='adhocgroups', adhocgroupadm_maxrows=100,
             adhocgroupadm_max_add_members=4,
             profile_token_secret='AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=')
         mw = middleware.MockAuthMiddleware(app, 'test realm')
@@ -78,7 +78,7 @@ class AdHocGroupAdmTests(unittest.TestCase):
     def test_get_group_no_access(self):
         self._test_get_group_no_access(403)
 
-    @mock.patch('coreapis.adhocgroupadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.adhocgroups.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_get_group_platform_admin(self, get_user):
         self._test_get_group_no_access(200)
 
@@ -201,7 +201,7 @@ class AdHocGroupAdmTests(unittest.TestCase):
     def test_delete_group_not_owner(self):
         self._test_delete_group(group2, 403)
 
-    @mock.patch('coreapis.adhocgroupadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.adhocgroups.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_delete_group_platform_admin(self, get_user):
         self._test_delete_group(group2, 204)
 
@@ -239,7 +239,7 @@ class AdHocGroupAdmTests(unittest.TestCase):
         res = self._test_update_not_owner(403)
         assert res.www_authenticate is None
 
-    @mock.patch('coreapis.adhocgroupadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.adhocgroups.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_update_platform_admin(self, get_user):
         self._test_update_not_owner(200)
 
@@ -279,7 +279,7 @@ class AdHocGroupAdmTests(unittest.TestCase):
     def test_get_group_members_no_access(self):
         self._test_get_group_members_no_access(403)
 
-    @mock.patch('coreapis.adhocgroupadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.adhocgroups.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_get_group_members_platform_admin(self, get_user):
         self._test_get_group_members_no_access(200)
 
@@ -294,7 +294,7 @@ class AdHocGroupAdmTests(unittest.TestCase):
     def test_add_group_members_no_access(self):
         self._test_add_group_members_no_access(403)
 
-    @mock.patch('coreapis.adhocgroupadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.adhocgroups.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_add_group_members_platform_admin(self, get_user):
         self._test_add_group_members_no_access(200)
 
@@ -307,7 +307,7 @@ class AdHocGroupAdmTests(unittest.TestCase):
     def test_add_group_members_unknown_group(self):
         self._test_add_group_members_unknown_group(404)
 
-    @mock.patch('coreapis.adhocgroupadm.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.adhocgroups.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_add_group_members_unknown_group_platform_admin(self, get_user):
         self._test_add_group_members_unknown_group(404)
 
