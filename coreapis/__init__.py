@@ -71,7 +71,7 @@ def main(global_config, **settings):
         enabled_components = set()
     main_component = settings.get('main_component', None)
 
-    components = ['status', 'clientadm', 'apigkadm', 'gk', 'authorizations',
+    components = ['status', 'peoplesearch', 'clientadm', 'apigkadm', 'gk', 'authorizations',
                   'adhocgroupadm', 'groups', 'orgs', 'userinfo', 'statistics']
     log = LogWrapper('main')
     for component in components:
