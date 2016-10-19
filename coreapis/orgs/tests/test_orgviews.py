@@ -53,7 +53,7 @@ def orgs_match(raw, formatted):
 
 
 class OrgViewTests(unittest.TestCase):
-    @mock.patch('coreapis.org.controller.get_platform_admins')
+    @mock.patch('coreapis.orgs.controller.get_platform_admins')
     @mock.patch('coreapis.middleware.cassandra_client.Client')
     def setUp(self, Client, gpa):
         gpa.return_value = [PLATFORMADMIN]
@@ -64,7 +64,7 @@ class OrgViewTests(unittest.TestCase):
             'oauth_realm': 'test realm',
             'cassandra_contact_points': '',
             'cassandra_keyspace': 'notused',
-        }, enabled_components='org', clientadm_maxrows=100, ldap_config_file='testdata/test-ldap-config.json')
+        }, enabled_components='orgs', clientadm_maxrows=100, ldap_config_file='testdata/test-ldap-config.json')
         mw = middleware.MockAuthMiddleware(app, 'test realm')
         self.session = Client()
         self.testapp = webtest.TestApp(mw)
@@ -123,7 +123,7 @@ class OrgViewTests(unittest.TestCase):
         return self.testapp.post_json('/orgs/', body,
                                       status=httpstat, headers=headers)
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_post_org(self, get_user):
         res = self._test_post_org(201, body=json_normalize(testorg))
         assert orgs_match(testorg, res.json)
@@ -131,27 +131,27 @@ class OrgViewTests(unittest.TestCase):
     def test_post_org_no_access(self):
         self._test_post_org(403, json_normalize(testorg))
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_post_org_duplicate(self, get_user):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_org.return_value = {'foo': 'bar'}
         self.testapp.post_json('/orgs/', json_normalize(testorg), status=409, headers=headers)
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_post_org_invalid_json(self, get_user):
         self._test_post_org(400, body='foo')
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_post_org_not_json_object(self, get_user):
         self._test_post_org(400, body='"foo"')
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_post_org_empty_name(self, get_user):
         org = json_normalize(testorg)
         org['name'] = {}
         self._test_post_org(400, body=org)
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_post_org_too_long_language_in_name(self, get_user):
         org = json_normalize(testorg)
         org['name'].update(dict(nynorsk='testorganisasjon'))
@@ -163,7 +163,7 @@ class OrgViewTests(unittest.TestCase):
         path = '/orgs/{}'.format(testorg_id)
         return self.testapp.patch_json(path, body, status=httpstat, headers=headers)
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_update_org_no_change(self, get_user):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_org.return_value = deepcopy(testorg)
@@ -172,7 +172,7 @@ class OrgViewTests(unittest.TestCase):
         res = self.testapp.patch_json(path, body, status=200, headers=headers)
         assert orgs_match(testorg, res.json)
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_update_org(self, get_user):
         body = dict(uiinfo=dict(geo=[eg7]))
         res = self._test_update_org(200, body)
@@ -180,14 +180,14 @@ class OrgViewTests(unittest.TestCase):
         assert updated['uiinfo'] == body['uiinfo']
         assert 'type' in updated
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_update_org_add_type(self, get_user):
         body = dict(type=["higher_education", "home_organization"])
         res = self._test_update_org(200, body)
         updated = res.json
         assert updated['type'] == body['type']
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_update_org_change_id(self, get_user):
         body = dict(id='fc:org:uixyz.no')
         res = self._test_update_org(200, body)
@@ -197,7 +197,7 @@ class OrgViewTests(unittest.TestCase):
         body = json_normalize(testorg)
         self._test_update_org(403, body)
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_update_org_invalid_json(self, get_user):
         body = 'foo'
         self._test_update_org(400, body)
@@ -207,19 +207,19 @@ class OrgViewTests(unittest.TestCase):
         path = '/orgs/{}'.format(testorg_id)
         return self.testapp.delete(path, status=httpstat, headers=headers)
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_delete_org(self, get_user):
         self._test_delete_org(204)
 
     def test_delete_org_no_access(self):
         self._test_delete_org(403)
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_delete_missing_org(self, get_user):
         self.session.get_org.side_effect = KeyError
         self._test_delete_org(404)
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_delete_org_mandatory_clients(self, get_user):
         self.session.get_mandatory_clients.return_value = iter([1])
         self._test_delete_org(400)
@@ -241,7 +241,7 @@ class OrgViewTests(unittest.TestCase):
     def test_get_org_roles(self):
         self._test_get_org_roles(403)
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_get_org_roles_platform_admin(self, _):
         res = self._test_get_org_roles(200)
         assert 'admin' in res.json[0]['role']
@@ -263,31 +263,31 @@ class OrgViewTests(unittest.TestCase):
         self.session.get_org.side_effect = KeyError
         self._test_add_org_role(404, testidentity, ['admin'])
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_add_org_role_platform_admin(self, _):
         self._test_add_org_role(204, testidentity, ['admin'])
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_add_org_role_social(self, _):
         self._test_add_org_role(204, 'facebook:3141592653589793', ['admin'])
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_add_org_role_bad_identity(self, _):
         self._test_add_org_role(400, 'hello', ['admin'])
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_add_org_role_bad_provider(self, _):
         self._test_add_org_role(400, 'bogus:foo@bar', ['admin'])
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_add_org_role_malformed_identity(self, _):
         self._test_add_org_role(400, dict(identity=testidentity), ['admin'])
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_add_org_role_bad_rolename(self, _):
         self._test_add_org_role(400, testidentity, ['amin'])
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_add_org_role_malformed_body(self, _):
         self._test_add_org_role(400, testidentity, 3)
 
@@ -303,11 +303,11 @@ class OrgViewTests(unittest.TestCase):
         self.session.get_org.side_effect = KeyError
         self._test_del_org_role(404, testidentity)
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_del_org_role_platform_admin(self, _):
         self._test_del_org_role(204, testidentity)
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_del_org_role_bad_identity(self, _):
         self._test_del_org_role(400, 'feide:hello')
 
@@ -339,7 +339,7 @@ class OrgViewTests(unittest.TestCase):
     def test_post_org_logo_body_not_admin(self):
         self._test_post_org_logo_body('', False, 403)
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_post_org_logo_body_platform_admin(self, get_user):
         res = self._test_post_org_logo_body('', False, 200)
         assert res.json == 'OK'
@@ -374,7 +374,7 @@ class OrgViewTests(unittest.TestCase):
     def test_list_mandatory_clients_no_access(self):
         self._test_list_mandatory_clients(False, 403)
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_list_mandatory_clients_platform_admin(self, get_user):
         res = self._test_list_mandatory_clients(False, 200)
         assert len(res.json) == 1
@@ -403,7 +403,7 @@ class OrgViewTests(unittest.TestCase):
         clientid = uuid.uuid4()
         self._test_add_mandatory_client(clientid, False, 403)
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_add_mandatory_client_platform_admin(self, get_user):
         clientid = uuid.uuid4()
         self._test_add_mandatory_client(clientid, False, 204)
@@ -441,7 +441,7 @@ class OrgViewTests(unittest.TestCase):
         clientid = uuid.uuid4()
         self._test_del_mandatory_client(clientid, False, 403)
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_del_mandatory_client_platform_admin(self, get_user):
         clientid = uuid.uuid4()
         self._test_del_mandatory_client(clientid, False, 204)
@@ -477,7 +477,7 @@ class OrgViewTests(unittest.TestCase):
     def test_list_services_no_access(self):
         self._test_list_services(False, 403)
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_list_services_platform_admin(self, get_user):
         res = self._test_list_services(False, 200)
         assert res.json == ['auth']
@@ -492,18 +492,18 @@ class OrgViewTests(unittest.TestCase):
     def test_add_service_org_admin(self):
         self._test_add_service(testservice, 403)
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_add_service_platform_admin(self, get_user):
         self._test_add_service(testservice, 204)
         services = set()
         services.add(testservice)
         self.session.add_services.assert_called_with(testorg2_id, services)
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_add_unknown_service(self, get_user):
         self._test_add_service("foo", 400)
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_add_service_unknown_org(self, get_user):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.is_org_admin.return_value = False
@@ -521,14 +521,14 @@ class OrgViewTests(unittest.TestCase):
     def test_del_service_org_admin(self):
         self._test_del_service(testservice, 403)
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_del_service_platform_admin(self, get_user):
         self._test_del_service(testservice, 204)
         services = set()
         services.add(testservice)
         self.session.del_services.assert_called_with(testorg2_id, services)
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_del_service_unknown_org(self, get_user):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.is_org_admin.return_value = False
@@ -536,6 +536,6 @@ class OrgViewTests(unittest.TestCase):
         self.testapp.delete('/orgs/{}/services/{}'.format(testorg2_id, testservice),
                             status=404, headers=headers)
 
-    @mock.patch('coreapis.org.views.get_user', return_value=make_user(PLATFORMADMIN))
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_del_unknown_service(self, get_user):
         self._test_del_service("foo", 400)
