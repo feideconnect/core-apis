@@ -29,11 +29,11 @@ class TestController(TestCase):
         assert True not in res
 
     def test_has_permission(self):
-        assert self.controller.has_permission(retrieved_gk_client, None) is False
+        assert self.controller.has_permission(retrieved_gk_client, None, None) is False
         other_user = deepcopy(retrieved_user)
         other_user['userid'] = uuid.uuid4()
-        assert self.controller.has_permission(retrieved_gk_client, other_user) is False
-        assert self.controller.has_permission(retrieved_gk_client, retrieved_user) is True
+        assert self.controller.has_permission(retrieved_gk_client, other_user, None) is False
+        assert self.controller.has_permission(retrieved_gk_client, retrieved_user, None) is True
         client = deepcopy(retrieved_gk_client)
         client['organization'] = 'test:org'
         is_platform_admin = mock.MagicMock()
@@ -42,12 +42,12 @@ class TestController(TestCase):
         is_org_admin = mock.MagicMock()
         self.controller.is_org_admin = is_org_admin
         is_org_admin.return_value = False
-        assert self.controller.has_permission(client, retrieved_user) is False
+        assert self.controller.has_permission(client, retrieved_user, None) is False
         is_org_admin.return_value = True
-        assert self.controller.has_permission(client, retrieved_user) is True
+        assert self.controller.has_permission(client, retrieved_user, None) is True
         is_platform_admin.return_value = True
         is_org_admin.return_value = False
-        assert self.controller.has_permission(client, retrieved_user) is True
+        assert self.controller.has_permission(client, retrieved_user, None) is True
 
     def test_add_with_owner(self):
         testuid = retrieved_user['userid']

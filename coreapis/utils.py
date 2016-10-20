@@ -283,6 +283,10 @@ class ResourceError(RuntimeError):
         self.message = message
 
 
+def get_token(request):
+    return request.environ.get('FC_TOKEN', None)
+
+
 def get_userid(request):
     try:
         return request.environ['FC_USER']['userid']

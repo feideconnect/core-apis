@@ -7,8 +7,8 @@ from pyramid.response import Response
 
 from .controller import ClientAdmController
 from coreapis.utils import (
-    AlreadyExistsError, ForbiddenError, get_payload, get_user, translation,
-    get_logo_bytes)
+    AlreadyExistsError, ForbiddenError, get_payload, get_token, get_user,
+    translation, get_logo_bytes)
 from coreapis.authproviders import REGISTER_CLIENT, authprovmgr
 
 
@@ -48,9 +48,10 @@ def configure(config):
 def check(request):
     user = get_user(request)
     clientid = get_clientid(request)
+    token = get_token(request)
     try:
         client = request.cadm_controller.get(clientid)
-        if not request.cadm_controller.has_permission(client, user):
+        if not request.cadm_controller.has_permission(client, user, token):
             raise HTTPForbidden('Insufficient permissions')
         return client
     except KeyError:
@@ -95,9 +96,10 @@ def public_clients(request):
 def get_client(request):
     user = get_user(request)
     clientid = get_clientid(request)
+    token = get_token(request)
     try:
         client = request.cadm_controller.get(clientid)
-        if not request.cadm_controller.has_permission(client, user) or \
+        if not request.cadm_controller.has_permission(client, user, token) or \
            (not request.has_permission('scope_clientadmin')):
             return request.cadm_controller.get_public_info(client)
     except KeyError:
@@ -153,11 +155,12 @@ def update_client(request):
 def update_gkscopes(request):
     user = get_user(request)
     clientid = get_clientid(request)
+    token = get_token(request)
     payload = get_payload(request)
     scopes_add = payload.get('scopes_add', [])
     scopes_remove = payload.get('scopes_remove', [])
     try:
-        request.cadm_controller.update_gkscopes(clientid, user, scopes_add, scopes_remove)
+        request.cadm_controller.update_gkscopes(clientid, user, scopes_add, scopes_remove, token)
         return "OK"
     except ForbiddenError as err:
         raise HTTPForbidden(err.message)
@@ -206,11 +209,12 @@ def list_scopes(request):
 def check_orgauthz_params(request, owner_ok=True):
     user = get_user(request)
     clientid = get_clientid(request)
+    token = get_token(request)
     realm = request.matchdict['realm']
     try:
         client = request.cadm_controller.get(clientid)
         if not request.cadm_controller.has_realm_permission(realm, user):
-            if not owner_ok or not request.cadm_controller.has_permission(client, user):
+            if not owner_ok or not request.cadm_controller.has_permission(client, user, token):
                 raise HTTPForbidden('Insufficient permissions')
         return client, realm
     except KeyError:

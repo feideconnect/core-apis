@@ -65,16 +65,16 @@ class TestAPIGKAdmController(unittest.TestCase):
             self.controller.validate(testdata)
 
     def test_has_permission(self):
-        assert self.controller.has_permission(pre_update, None) is False
+        assert self.controller.has_permission(pre_update, None, None) is False
         other_user = deepcopy(retrieved_user)
         other_user['userid'] = uuid.uuid4()
-        assert self.controller.has_permission(pre_update, other_user) is False
-        assert self.controller.has_permission(pre_update, retrieved_user) is True
+        assert self.controller.has_permission(pre_update, other_user, None) is False
+        assert self.controller.has_permission(pre_update, retrieved_user, None) is True
         apigk = deepcopy(pre_update)
         apigk['organization'] = 'test:org'
         is_org_admin = mock.MagicMock()
         self.controller.is_org_admin = is_org_admin
         is_org_admin.return_value = False
-        assert self.controller.has_permission(apigk, retrieved_user) is False
+        assert self.controller.has_permission(apigk, retrieved_user, None) is False
         is_org_admin.return_value = True
-        assert self.controller.has_permission(apigk, retrieved_user) is True
+        assert self.controller.has_permission(apigk, retrieved_user, None) is True

@@ -62,9 +62,21 @@ class APIGKAdmController(CrudControllerBase):
         self.platformadmins = get_platform_admins(platformadmins_file)
         self.log = LogWrapper('apigkadm.APIGKAdmController')
         self.scopemgr = ScopesManager(settings, self.session, self.get_public_info, True)
+        self.groupengine_base_url = settings.get('groupengine_base_url')
         self.cadm_controller = ClientAdmController(settings)
 
-    def has_permission(self, apigk, user):
+    def is_owner_equiv(self, apigk, user, token):
+        if apigk['owner'] == user['userid']:
+            return True
+        admins = set(apigk.get('admins') or [])
+        self.log.debug('is_owner_equiv', admins=admins)
+        if not admins:
+            return False
+        groupids = set(self.get_my_groupids(token))
+        self.log.debug('is_owner_equiv', groupids=groupids)
+        return admins.intersection(groupids)
+
+    def has_permission(self, apigk, user, token):
         if user is None:
             return False
         if self.is_platform_admin(user):
@@ -73,9 +85,7 @@ class APIGKAdmController(CrudControllerBase):
         if org:
             return self.is_org_admin(user, org)
         else:
-            if apigk['owner'] == user['userid']:
-                return True
-            return False
+            return self.is_owner_equiv(apigk, user, token)
 
     def get(self, gkid):
         self.log.debug('Get apigk', gkid=gkid)

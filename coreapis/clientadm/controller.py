@@ -100,6 +100,7 @@ class ClientAdmController(CrudControllerBase):
         self.platformadmins = get_platform_admins(platformadmins_file)
         self.scopemgr = ScopesManager(settings, self.session, self.get_public_info, False)
         self.log = LogWrapper('clientadm.ClientAdmController')
+        self.groupengine_base_url = settings.get('groupengine_base_url')
 
     @staticmethod
     def adapt_client(client):
@@ -147,18 +148,27 @@ class ClientAdmController(CrudControllerBase):
         clients = self._list(selectors, values, None)
         return [self.get_public_info(c) for c in clients if c]
 
-    def has_permission(self, client, user):
-        if self.is_platform_admin(user):
+    def is_owner_equiv(self, client, user, token):
+        if client['owner'] == user['userid']:
             return True
+        admins = set(client.get('admins') or [])
+        self.log.debug('is_owner_equiv', admins=admins)
+        if not admins:
+            return False
+        groupids = set(self.get_my_groupids(token))
+        self.log.debug('is_owner_equiv', groupids=groupids)
+        return admins.intersection(groupids)
+
+    def has_permission(self, client, user, token):
         if user is None:
             return False
+        if self.is_platform_admin(user):
+            return True
         org = client.get('organization', None)
         if org:
             return self.is_org_admin(user, org)
         else:
-            if client['owner'] == user['userid']:
-                return True
-            return False
+            return self.is_owner_equiv(client, user, token)
 
     def get(self, clientid):
         self.log.debug('Get client', clientid=clientid)
@@ -300,34 +310,34 @@ class ClientAdmController(CrudControllerBase):
         self.log.debug('List scopes')
         return self.scopemgr.list_scopes()
 
-    def validate_gkscope(self, user, scope):
+    def validate_gkscope(self, user, scope, token):
         if not is_gkscopename(scope):
             raise ForbiddenError('{} is not an API Gatekeeper'.format(scope))
         gk = self.scopemgr.scope_to_gk(scope)
-        if not gk or not self.has_permission(gk, user):
+        if not gk or not self.has_permission(gk, user, token):
             raise ForbiddenError('User does not have access to manage API Gatekeeper')
 
-    def add_gkscopes(self, client, user, scopes_add):
+    def add_gkscopes(self, client, user, scopes_add, token):
         for scope in [scope for scope in scopes_add if scope not in client['scopes']]:
             if scope not in client['scopes_requested']:
                 raise ForbiddenError('Client owner has not requested scope {}'.format(scope))
-            self.validate_gkscope(user, scope)
+            self.validate_gkscope(user, scope, token)
             client['scopes'].append(scope)
         return client
 
-    def remove_gkscopes(self, client, user, scopes_remove):
+    def remove_gkscopes(self, client, user, scopes_remove, token):
         for scope in scopes_remove:
-            self.validate_gkscope(user, scope)
+            self.validate_gkscope(user, scope, token)
             if scope in client['scopes']:
                 client['scopes'].remove(scope)
             if scope in client['scopes_requested']:
                 client['scopes_requested'].remove(scope)
         return client
 
-    def update_gkscopes(self, clientid, user, scopes_add, scopes_remove):
+    def update_gkscopes(self, clientid, user, scopes_add, scopes_remove, token):
         client = self.get(clientid)
-        client = self.add_gkscopes(client, user, scopes_add)
-        client = self.remove_gkscopes(client, user, scopes_remove)
+        client = self.add_gkscopes(client, user, scopes_add, token)
+        client = self.remove_gkscopes(client, user, scopes_remove, token)
         self.log.info('updating gkscopes for client',
                       audit=True, clientid=clientid,
                       scopes_add=scopes_add, scopes_remove=scopes_remove,

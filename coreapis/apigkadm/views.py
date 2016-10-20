@@ -2,8 +2,9 @@ from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPNotFound, HTTPConflict, HTTPForbidden
 from pyramid.response import Response
 from .controller import APIGKAdmController
-from coreapis.utils import (AlreadyExistsError, get_userid, get_payload, get_user, get_logo_bytes,
-                            get_max_replies, translation)
+from coreapis.utils import (
+    AlreadyExistsError, get_userid, get_payload, get_user, get_token,
+    get_logo_bytes, get_max_replies, translation)
 from coreapis.authproviders import REGISTER_APIGK, authprovmgr
 
 
@@ -30,9 +31,10 @@ def configure(config):
 def check(request):
     user = get_user(request)
     gkid = request.matchdict['id']
+    token = get_token(request)
     try:
         gk = request.gkadm_controller.get(gkid)
-        if not request.gkadm_controller.has_permission(gk, user):
+        if not request.gkadm_controller.has_permission(gk, user, token):
             raise HTTPForbidden('Insufficient permissions')
         return gk
     except KeyError:

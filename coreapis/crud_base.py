@@ -1,6 +1,7 @@
 import io
 import uuid
 
+import requests
 import valideer as V
 from PIL import Image
 
@@ -57,6 +58,17 @@ class CrudControllerBase(object):
             return True
         except KeyError:
             return False
+
+    def get_my_groups(self, token):
+        headers = {'Authorization': 'Bearer {}'.format(token)}
+        url = '{}/groups/me/groups'.format(self.groupengine_base_url)
+        self.log.debug('get_my_groups', url=url)
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        return response.json()
+
+    def get_my_groupids(self, token):
+        return (group['id'] for group in self.get_my_groups(token))
 
     def get_owner(self, itemid):
         try:
