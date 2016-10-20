@@ -58,7 +58,7 @@ class AdHocGroupAdmController(CrudControllerBase):
         self.session = cassandra_client.Client(contact_points, keyspace, authz=authz)
         platformadmins_file = settings.get('platformadmins_file')
         self.platformadmins = get_platform_admins(platformadmins_file)
-        self.log = LogWrapper('adhocgroupadm.AdHocGroupAdmController')
+        self.log = LogWrapper('adhocgroups.AdHocGroupAdmController')
         self.key = key
         self.ps_controller = ps_controller
         self.max_add_members = max_add_members
