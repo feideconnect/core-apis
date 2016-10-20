@@ -57,7 +57,8 @@ post_body_maximal = {
     'loginurl': 'http://altinn.no',
     'supporturl': 'http://www.google.com',
     'authoptions': {'this': 'that'},
-    'orgauthorization': {testrealm: [testgk, testgk_foo]}
+    'orgauthorization': {testrealm: [testgk, testgk_foo]},
+    'admins': ['fc:adhoc:005f54c7-97da-49b0-8a41-5de844a2a44b'],
 }
 
 retrieved_client = {
@@ -81,7 +82,8 @@ retrieved_client = {
     'loginurl': None,
     'supporturl': None,
     'authoptions': None,
-    'updated': parse_datetime(date_created)
+    'updated': parse_datetime(date_created),
+    'admins': [],
 }
 
 retrieved_user = {

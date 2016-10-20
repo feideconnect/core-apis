@@ -79,6 +79,7 @@ class ClientAdmController(CrudControllerBase):
         'loginurl': V.Nullable(valid_url),
         'supporturl': V.Nullable(valid_url),
         'authoptions': V.Nullable({}),
+        'admins': V.Nullable(['string'], lambda: list()),
     }
     public_attrs = ['id', 'name', 'descr', 'redirect_uri', 'owner', 'organization', 'authproviders',
                     'systemdescr', 'privacypolicyurl', 'homepageurl', 'loginurl', 'supporturl']

@@ -37,6 +37,7 @@ post_body_maximal = {
     'privacypolicyurl': 'http://www.seoghor.no',
     'docurl': 'http://la.wikipedia.org',
     'scopes_requested': ['userinfo'],
+    'admins': ['fc:adhoc:005f54c7-97da-49b0-8a41-5de844a2a44b'],
 }
 
 
@@ -65,6 +66,7 @@ pre_update = {
     "docurl": None,
     "scopes": ['userinfo'],
     "scopes_requested": ['userinfo'],
+    "admins": []
 }
 
 mock_apigks = [deepcopy(pre_update) for i in range(2)]

@@ -43,6 +43,7 @@ class APIGKAdmController(CrudControllerBase):
         'privacypolicyurl': V.Nullable(valid_url),
         'docurl': V.Nullable(valid_url),
         'scopes': V.Nullable(['string'], lambda: list()),
+        'admins': V.Nullable(['string'], lambda: list()),
     }
     public_attrs = ['id', 'name', 'descr', 'scopedef', 'systemdescr', 'privacypolicyurl', 'docurl']
     platformadmin_attrs = ['owner', 'scopes']
