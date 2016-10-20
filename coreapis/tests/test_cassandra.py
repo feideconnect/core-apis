@@ -142,6 +142,7 @@ def make_client():
         organization='',
         created=ts_now,
         updated=ts_now,
+        admins=[],
     )
 
 
@@ -197,6 +198,7 @@ def make_apigk():
         created=ts_now,
         updated=ts_now,
         allow_unauthenticated=False,
+        admins=[],
     )
 
 

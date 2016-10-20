@@ -55,12 +55,12 @@ class Client(object):
                 'client_secret', 'created', 'redirect_uri', 'descr', 'id', 'scopes',
                 'updated', 'organization', 'orgauthorization', 'authproviders',
                 'systemdescr', 'privacypolicyurl', 'homepageurl', 'loginurl', 'supporturl',
-                'authoptions'],
+                'authoptions', 'admins'],
             'apigk': [
                 'id', 'requireuser', 'created', 'name', 'scopedef', 'httpscertpinned',
                 'status', 'descr', 'updated', 'trust', 'endpoints', 'owner',
                 'organization', 'systemdescr', 'privacypolicyurl', 'docurl',
-                'scopes', 'scopes_requested', 'allow_unauthenticated'],
+                'scopes', 'scopes_requested', 'allow_unauthenticated', 'admins'],
             'groups': [
                 'id', 'created', 'descr', 'name', 'owner', 'public', 'updated',
                 'invitation_token'],
