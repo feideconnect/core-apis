@@ -137,8 +137,8 @@ class ClientAdmController(CrudControllerBase):
         clients = self._list(selectors, values, scope)
         return [c for c in clients if c['organization'] is None]
 
-    def list_managed(self, owner, scope, token):
-        managed = self.list_by_owner(owner, scope)
+    def list_managed(self, userid, scope, token):
+        managed = self.list_by_owner(userid, scope)
         managed_ids = {client['id'] for client in managed}
         groupids = set(self.get_my_groupids(token))
         for groupid in groupids:
