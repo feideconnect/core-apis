@@ -64,6 +64,7 @@ def list_clients(request):
     user = get_user(request)
     organization = request.params.get('organization', None)
     scope = request.params.get('scope', None)
+    token = get_token(request)
     show_all = request.params.get('showAll', 'false').lower() == 'true'
     if organization:
         if request.cadm_controller.is_admin(user, organization):
@@ -76,7 +77,7 @@ def list_clients(request):
         else:
             raise HTTPForbidden('user is not a platform administrator')
     else:
-        return request.cadm_controller.list_by_owner(user['userid'], scope)
+        return request.cadm_controller.list_managed(user['userid'], scope, token)
 
 
 @view_config(route_name='public_clients_v1', renderer='json')

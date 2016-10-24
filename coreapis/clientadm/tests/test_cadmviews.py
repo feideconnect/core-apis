@@ -13,7 +13,7 @@ from coreapis import main, middleware
 from coreapis.utils import translatable
 from coreapis.clientadm.tests.helper import (
     userid_own, userid_other, clientid, date_created, testscope, otherscope, testuris, baduris,
-    post_body_minimal, post_body_other_owner, post_body_maximal, retrieved_client,
+    testadmins, post_body_minimal, post_body_other_owner, post_body_maximal, retrieved_client,
     retrieved_user, retrieved_gk_clients, testgk, testgk_foo, othergk, owngk, nullscopedefgk,
     httptime, mock_get_apigk, mock_get_clients, retrieved_apigks, userstatus, reservedstatus,
     testrealm, is_full_client, is_public_client, FEIDETESTER)
@@ -107,7 +107,9 @@ class ClientAdmTests(unittest.TestCase):
     def test_list_clients(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_clients.side_effect = mock_get_clients
-        res = self.testapp.get('/clientadm/clients/', status=200, headers=headers)
+        with mock.patch('coreapis.clientadm.controller.ClientAdmController.get_my_groupids',
+                        return_value=[]):
+            res = self.testapp.get('/clientadm/clients/', status=200, headers=headers)
         assert is_full_client(res.json[0])
         assert len(res.json) < len(retrieved_gk_clients)
 
@@ -115,7 +117,9 @@ class ClientAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_clients.side_effect = mock_get_clients
         path = '/clientadm/clients/?showAll={}'.format(val)
-        return self.testapp.get(path, status=httpstat, headers=headers)
+        with mock.patch('coreapis.clientadm.controller.ClientAdmController.get_my_groupids',
+                        return_value=[]):
+            return self.testapp.get(path, status=httpstat, headers=headers)
 
     @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_list_clients_show_all_platform_admin(self, _):
@@ -134,7 +138,10 @@ class ClientAdmTests(unittest.TestCase):
     def test_list_clients_by_scope(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_clients.return_value = iter([deepcopy(retrieved_client)])
-        res = self.testapp.get('/clientadm/clients/?scope=userlist', status=200, headers=headers)
+        with mock.patch('coreapis.clientadm.controller.ClientAdmController.get_my_groupids',
+                        return_value=[]):
+            res = self.testapp.get('/clientadm/clients/?scope=userlist', status=200,
+                                   headers=headers)
         assert is_full_client(res.json[0])
 
     def _test_list_clients_by_org_as_admin(self, orgadmin, expected):

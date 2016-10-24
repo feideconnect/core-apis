@@ -131,6 +131,25 @@ class ClientAdmController(CrudControllerBase):
         clients = self._list(selectors, values, scope)
         return [c for c in clients if c['organization'] is None]
 
+    def list_by_admin(self, admin, scope=None):
+        selectors = ['admins contains ?']
+        values = [admin]
+        clients = self._list(selectors, values, scope)
+        return [c for c in clients if c['organization'] is None]
+
+    def list_managed(self, owner, scope, token):
+        managed = self.list_by_owner(owner, scope)
+        managed_ids = {client['id'] for client in managed}
+        groupids = set(self.get_my_groupids(token))
+        for groupid in groupids:
+            clients = self.list_by_admin(groupid, scope)
+            for client in clients:
+                clientid = client['id']
+                if clientid not in managed_ids:
+                    managed.append(clients)
+                    managed_ids.add(clientid)
+        return managed
+
     def list_by_organization(self, organization, scope=None):
         selectors = ['organization = ?']
         values = [organization]

@@ -37,7 +37,7 @@ prefixed_realm = 'feide|realm|' + testrealm
 
 userstatus = 'Public'
 reservedstatus = 'Mandatory'
-
+testadmins = ['fc:adhoc:005f54c7-97da-49b0-8a41-5de844a2a44b']
 post_body_minimal = {
     'name': 'per', 'scopes_requested': [testscope], 'redirect_uri': testuris
 }
@@ -58,7 +58,7 @@ post_body_maximal = {
     'supporturl': 'http://www.google.com',
     'authoptions': {'this': 'that'},
     'orgauthorization': {testrealm: [testgk, testgk_foo]},
-    'admins': ['fc:adhoc:005f54c7-97da-49b0-8a41-5de844a2a44b'],
+    'admins': testadmins
 }
 
 retrieved_client = {
