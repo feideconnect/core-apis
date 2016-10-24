@@ -78,7 +78,7 @@ def list_clients(request):
             raise HTTPForbidden('user is not a platform administrator')
     elif delegated:
         token = get_token(request)
-        return request.cadm_controller.list_delegated(scope, token)
+        return request.cadm_controller.list_delegated(user['userid'], scope, token)
     else:
         return request.cadm_controller.list_by_owner(user['userid'], scope)
 

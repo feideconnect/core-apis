@@ -59,7 +59,7 @@ def list_apigks(request):
             raise HTTPForbidden('user is not a platform administrator')
     elif delegated:
         token = get_token(request)
-        return request.gkadm_controller.list_delegated(token)
+        return request.gkadm_controller.list_delegated(user['userid'], token)
     else:
         return request.gkadm_controller.list_by_owner(user['userid'])
 

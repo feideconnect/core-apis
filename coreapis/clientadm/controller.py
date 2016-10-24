@@ -137,7 +137,7 @@ class ClientAdmController(CrudControllerBase):
         clients = self._list(selectors, values, scope)
         return [c for c in clients if c['organization'] is None]
 
-    def list_delegated(self, scope, token):
+    def list_delegated(self, userid, scope, token):
         delegated = []
         delegated_ids = set()
         groupids = set(self.get_my_groupids(token))
@@ -145,7 +145,7 @@ class ClientAdmController(CrudControllerBase):
             clients = self.list_by_admin(groupid, scope)
             for client in clients:
                 clientid = client['id']
-                if clientid not in delegated_ids:
+                if client['owner'] != userid and clientid not in delegated_ids:
                     delegated.append(client)
                     delegated_ids.add(clientid)
         return delegated
