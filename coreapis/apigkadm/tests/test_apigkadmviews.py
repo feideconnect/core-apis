@@ -79,7 +79,9 @@ class APIGKAdmTests(unittest.TestCase):
     def test_list_apigks(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_apigks.side_effect = mock_get_apigks
-        res = self.testapp.get('/apigkadm/apigks/', status=200, headers=headers)
+        with mock.patch('coreapis.apigkadm.controller.APIGKAdmController.get_my_groupids',
+                        return_value=[]):
+            res = self.testapp.get('/apigkadm/apigks/', status=200, headers=headers)
         out = res.json
         assert 'trust' in out[0]
         assert len(out) < num_mock_apigks
@@ -101,7 +103,9 @@ class APIGKAdmTests(unittest.TestCase):
         self._test_list_apigks_show_all('true', 403)
 
     def test_list_apigks_show_all_param_not_true(self):
-        res = self._test_list_apigks_show_all('1', 200)
+        with mock.patch('coreapis.apigkadm.controller.APIGKAdmController.get_my_groupids',
+                        return_value=[]):
+            res = self._test_list_apigks_show_all('1', 200)
         out = res.json
         assert 'trust' in out[0]
         assert len(out) < num_mock_apigks
@@ -110,7 +114,9 @@ class APIGKAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_apigks.return_value = [pre_update]
         path = '/apigkadm/apigks/?owner={}'.format('00000000-0000-0000-0000-000000000001')
-        res = self.testapp.get(path, status=200, headers=headers)
+        with mock.patch('coreapis.apigkadm.controller.APIGKAdmController.get_my_groupids',
+                        return_value=[]):
+            res = self.testapp.get(path, status=200, headers=headers)
         out = res.json
         assert out[0]['id'] == 'updateable'
 

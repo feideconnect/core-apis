@@ -46,6 +46,7 @@ def list_apigks(request):
     user = get_user(request)
     organization = request.params.get('organization', None)
     show_all = request.params.get('showAll', 'false').lower() == 'true'
+    token = get_token(request)
     if organization:
         if request.gkadm_controller.is_admin(user, organization):
             return request.gkadm_controller.list_by_organization(organization)
@@ -57,7 +58,7 @@ def list_apigks(request):
         else:
             raise HTTPForbidden('user is not a platform administrator')
     else:
-        return request.gkadm_controller.list_by_owner(user['userid'])
+        return request.gkadm_controller.list_managed(user['userid'], token)
 
 
 @view_config(route_name='list_public_apigks_v1', renderer='json')

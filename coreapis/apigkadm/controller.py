@@ -154,6 +154,25 @@ class APIGKAdmController(CrudControllerBase):
         owned = self._list(selectors, values, self.maxrows)
         return [gk for gk in owned if not gk['organization']]
 
+    def list_by_admin(self, admin):
+        selectors = ['admins contains ?']
+        values = [admin]
+        apigks = self._list(selectors, values, self.maxrows)
+        return [gk for gk in apigks if not gk['organization']]
+
+    def list_managed(self, userid, token):
+        managed = self.list_by_owner(userid)
+        managed_ids = {gk['id'] for gk in managed}
+        groupids = set(self.get_my_groupids(token))
+        for groupid in groupids:
+            apigks = self.list_by_admin(groupid)
+            for gk in apigks:
+                gkid = gk['id']
+                if gkid not in managed_ids:
+                    managed.append(gk)
+                    managed_ids.add(gkid)
+        return managed
+
     def list_by_organization(self, organization):
         selectors = ['organization = ?']
         values = [organization]
