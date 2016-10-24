@@ -146,7 +146,7 @@ class ClientAdmController(CrudControllerBase):
             for client in clients:
                 clientid = client['id']
                 if clientid not in delegated_ids:
-                    delegated.append(clients)
+                    delegated.append(client)
                     delegated_ids.add(clientid)
         return delegated
 
