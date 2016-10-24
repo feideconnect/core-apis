@@ -1,6 +1,8 @@
+from copy import deepcopy
 import re
 import uuid
 
+import cassandra.util
 import valideer as V
 
 from coreapis import cassandra_client
@@ -65,6 +67,14 @@ class APIGKAdmController(CrudControllerBase):
         self.groupengine_base_url = settings.get('groupengine_base_url')
         self.cadm_controller = ClientAdmController(settings)
 
+    @staticmethod
+    def adapt_apigk(apigk):
+        adapted = deepcopy(apigk)
+        for key, val in adapted.items():
+            if isinstance(val, cassandra.util.SortedSet):
+                adapted[key] = list(val)
+        return adapted
+
     def is_owner_equiv(self, apigk, user, token):
         if apigk['owner'] == user['userid']:
             return True
@@ -90,7 +100,7 @@ class APIGKAdmController(CrudControllerBase):
     def get(self, gkid):
         self.log.debug('Get apigk', gkid=gkid)
         apigk = self.session.get_apigk(gkid)
-        return apigk
+        return self.adapt_apigk(apigk)
 
     def delete(self, gk, user):
         gkid = gk['id']
@@ -134,19 +144,23 @@ class APIGKAdmController(CrudControllerBase):
             self.session.update_token_scopes(tokenid, token['scope'])
         self.session.delete_apigk(gkid)
 
+    def _list(self, selectors, values, maxrows):
+        return [self.adapt_apigk(apigk) for apigk in
+                self.session.get_apigks(selectors, values, maxrows)]
+
     def list_by_owner(self, owner):
         selectors = ['owner = ?']
         values = [owner]
-        owned = self.session.get_apigks(selectors, values, self.maxrows)
+        owned = self._list(selectors, values, self.maxrows)
         return [gk for gk in owned if not gk['organization']]
 
     def list_by_organization(self, organization):
         selectors = ['organization = ?']
         values = [organization]
-        return self.session.get_apigks(selectors, values, self.maxrows)
+        return self._list(selectors, values, self.maxrows)
 
     def list_all(self):
-        return self.session.get_apigks([], [], self.maxrows)
+        return self._list([], [], self.maxrows)
 
     # Used both for add and update.
     # By default CQL does not distinguish between INSERT and UPDATE
@@ -187,8 +201,7 @@ class APIGKAdmController(CrudControllerBase):
         maxrows = self.maxrows
         if query:
             maxrows = 9999
-        res = [r for count, r in enumerate(self.session.get_apigks(['status contains ?'],
-                                                                   ['public'], maxrows))
+        res = [r for count, r in enumerate(self._list(['status contains ?'], ['public'], maxrows))
                if count < max_replies and self.matches_query(r, query)]
         users = {}
         orgs = {}
