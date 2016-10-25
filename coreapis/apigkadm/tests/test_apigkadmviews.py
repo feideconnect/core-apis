@@ -8,7 +8,8 @@ from pyramid import testing
 from coreapis import main, middleware
 from coreapis.utils import (json_normalize, now)
 from coreapis.apigkadm.tests.data import (
-    post_body_minimal, post_body_maximal, pre_update, mock_get_apigks, num_mock_apigks)
+    testadmins, post_body_minimal, post_body_maximal, pre_update, mock_get_apigks, num_mock_apigks,
+    mock_get_apigks_by_admin)
 
 PLATFORMADMIN = 'admin@example.com'
 
@@ -56,20 +57,26 @@ class APIGKAdmTests(unittest.TestCase):
         out = res.json
         assert out['id'] == 'updateable'
 
-    def _test_get_apigk_not_owner(self, httpstat):
+    def _test_get_apigk_not_owner(self, admins, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         other_owner = deepcopy(pre_update)
         other_owner['owner'] = uuid.uuid4()
+        other_owner['admins'] = admins
         self.session().get_apigk.return_value = other_owner
         path = '/apigkadm/apigks/{}'.format(uuid.uuid4())
         self.testapp.get(path, status=httpstat, headers=headers)
 
     def test_get_apigk_not_owner(self):
-        self._test_get_apigk_not_owner(403)
+        self._test_get_apigk_not_owner([], 403)
+
+    def test_get_apigk_delegated(self):
+        with mock.patch('coreapis.apigkadm.controller.APIGKAdmController.get_my_groupids',
+                        return_value=testadmins):
+            self._test_get_apigk_not_owner(testadmins, 200)
 
     @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_get_apigk_platform_admin(self, _):
-        self._test_get_apigk_not_owner(200)
+        self._test_get_apigk_not_owner([], 200)
 
     def test_missing_apigk(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -109,6 +116,22 @@ class APIGKAdmTests(unittest.TestCase):
         out = res.json
         assert 'trust' in out[0]
         assert len(out) < num_mock_apigks
+
+    def _test_list_apigks_delegated(self, my_groupids):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session().get_apigks.side_effect = mock_get_apigks_by_admin
+        path = '/apigkadm/apigks/?delegated=true'
+        with mock.patch('coreapis.apigkadm.controller.APIGKAdmController.get_my_groupids',
+                        return_value=my_groupids):
+            return self.testapp.get(path, status=200, headers=headers)
+
+    def test_list_apigks_user_not_delegate(self):
+        res = self._test_list_apigks_delegated([])
+        assert len(res.json) == 0
+
+    def test_list_apigks_user_is_delegate(self):
+        res = self._test_list_apigks_delegated([testadmins[0], 'fc:adhoc:foo'])
+        assert len(res.json) == 1
 
     def test_list_apigks_by_owner(self):
         headers = {'Authorization': 'Bearer user_token'}

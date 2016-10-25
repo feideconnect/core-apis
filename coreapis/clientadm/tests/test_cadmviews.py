@@ -15,8 +15,8 @@ from coreapis.clientadm.tests.helper import (
     userid_own, userid_other, clientid, date_created, testscope, otherscope, testuris, baduris,
     testadmins, post_body_minimal, post_body_other_owner, post_body_maximal, retrieved_client,
     retrieved_user, retrieved_gk_clients, testgk, testgk_foo, othergk, owngk, nullscopedefgk,
-    httptime, mock_get_apigk, mock_get_clients, retrieved_apigks, userstatus, reservedstatus,
-    testrealm, is_full_client, is_public_client, FEIDETESTER)
+    httptime, mock_get_apigk, mock_get_clients, mock_get_clients_by_admin, retrieved_apigks,
+    userstatus, reservedstatus, testrealm, is_full_client, is_public_client, FEIDETESTER)
 
 
 PLATFORMADMIN = 'admin@example.com'
@@ -73,9 +73,10 @@ class ClientAdmTests(unittest.TestCase):
         self.testapp.get('/clientadm/clients/{}'.format(uuid.UUID(clientid)), status=404,
                          headers=headers)
 
-    def _test_get_client_not_owner(self, headers, httpstat):
+    def _test_get_client_not_owner(self, headers, admins, httpstat):
         client = deepcopy(retrieved_client)
         client['owner'] = userid_other
+        client['admins'] = admins
         owner = deepcopy(retrieved_user)
         owner['userid'] = uuid.UUID(userid_other)
         self.session.get_client_by_id.return_value = client
@@ -84,18 +85,27 @@ class ClientAdmTests(unittest.TestCase):
                                 headers=headers, status=httpstat)
 
     def test_get_client_unauthenticated(self):
-        res = self._test_get_client_not_owner(None, 200)
+        res = self._test_get_client_not_owner(None, [], 200)
         assert is_public_client(res.json)
 
     def test_get_client_not_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
-        res = self._test_get_client_not_owner(headers, 200)
+        with mock.patch('coreapis.clientadm.controller.ClientAdmController.get_my_groupids',
+                        return_value=['fc:adhoc:foo']):
+            res = self._test_get_client_not_owner(headers, testadmins, 200)
         assert is_public_client(res.json)
+
+    def test_get_client_delegated(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        with mock.patch('coreapis.clientadm.controller.ClientAdmController.get_my_groupids',
+                        return_value=[testadmins[0], 'fc:adhoc:foo']):
+            res = self._test_get_client_not_owner(headers, testadmins, 200)
+        assert is_full_client(res.json)
 
     @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_get_client_platform_admin(self, _):
         headers = {'Authorization': 'Bearer user_token'}
-        res = self._test_get_client_not_owner(headers, 200)
+        res = self._test_get_client_not_owner(headers, [], 200)
         assert is_full_client(res.json)
 
     def test_get_client_missing_user(self):
@@ -134,6 +144,22 @@ class ClientAdmTests(unittest.TestCase):
         res = self._test_list_clients_show_all('1', 200)
         assert is_full_client(res.json[0])
         assert len(res.json) < len(retrieved_gk_clients)
+
+    def _test_list_clients_delegated(self, my_groupids):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_clients.side_effect = mock_get_clients_by_admin
+        path = '/clientadm/clients/?delegated=true'
+        with mock.patch('coreapis.clientadm.controller.ClientAdmController.get_my_groupids',
+                        return_value=my_groupids):
+            return self.testapp.get(path, status=200, headers=headers)
+
+    def test_list_clients_user_not_delegate(self):
+        res = self._test_list_clients_delegated([])
+        assert len(res.json) == 0
+
+    def test_list_clients_user_is_delegate(self):
+        res = self._test_list_clients_delegated([testadmins[0], 'fc:adhoc:foo'])
+        assert len(res.json) == 1
 
     def test_list_clients_by_scope(self):
         headers = {'Authorization': 'Bearer user_token'}
@@ -1051,7 +1077,9 @@ class ClientAdmTests(unittest.TestCase):
         self.session.get_client_by_id.return_value = client
         self.session.is_org_admin.return_value = realmadmin
         path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
-        return self.testapp.get(path, status=httpstat, headers=headers)
+        with mock.patch('coreapis.clientadm.controller.ClientAdmController.get_my_groupids',
+                        return_value=[]):
+            return self.testapp.get(path, status=httpstat, headers=headers)
 
     def test_get_orgauth_not_owner(self):
         self._test_get_orgauth_not_owner(False, 403)
@@ -1117,7 +1145,9 @@ class ClientAdmTests(unittest.TestCase):
         self.session.get_client_by_id.return_value = client
         self.session.is_org_admin.return_value = realmadmin
         path = '/clientadm/clients/{}/orgauthorization/{}'.format(clientid, testrealm)
-        self.testapp.delete(path, status=httpstat, headers=headers)
+        with mock.patch('coreapis.clientadm.controller.ClientAdmController.get_my_groupids',
+                        return_value=[]):
+            self.testapp.delete(path, status=httpstat, headers=headers)
 
     def test_delete_orgauthorization_owner(self):
         self._test_delete_orgauthorization(userid_own, True, 204)

@@ -118,7 +118,8 @@ retrieved_gk_clients[1].update({
 
 retrieved_gk_clients[2].update({
     'id': '00000000-0000-0000-0000-000000000005',
-    'scopes_requested': [othergk]
+    'scopes_requested': [othergk],
+    'admins': testadmins
 })
 
 retrieved_gk_clients[3].update({
@@ -126,7 +127,8 @@ retrieved_gk_clients[3].update({
     'owner': uuid.UUID(userid_other),
     'scopes': [testgk, testgk_foo],
     'scopes_requested': [testgk, testgk_foo, othergk],
-    'orgauthorization': {testrealm: json.dumps([testgk, testgk_foo])}
+    'orgauthorization': {testrealm: json.dumps([testgk, testgk_foo])},
+    'admins': testadmins
 })
 
 retrieved_gk_client = retrieved_gk_clients[0]
@@ -166,6 +168,11 @@ def mock_get_clients(selectors, values, maxrows):
         key = selectors[0].split()[0]
     return (client for client in retrieved_gk_clients
             if not selectors or values[0] == client[key])
+
+
+def mock_get_clients_by_admin(_, admins, __):
+    return (client for client in retrieved_gk_clients
+            if admins and admins[0] in client['admins'])
 
 
 def mock_get_clients_by_scope(scope):

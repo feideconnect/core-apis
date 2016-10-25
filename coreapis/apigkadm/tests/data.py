@@ -3,6 +3,8 @@ from coreapis.utils import parse_datetime
 import uuid
 
 
+testadmins = ['fc:adhoc:005f54c7-97da-49b0-8a41-5de844a2a44b']
+
 post_body_minimal = {
     'id': 'testgk',
     'name': 'per',
@@ -37,7 +39,7 @@ post_body_maximal = {
     'privacypolicyurl': 'http://www.seoghor.no',
     'docurl': 'http://la.wikipedia.org',
     'scopes_requested': ['userinfo'],
-    'admins': ['fc:adhoc:005f54c7-97da-49b0-8a41-5de844a2a44b'],
+    'admins': testadmins,
 }
 
 
@@ -71,6 +73,8 @@ pre_update = {
 
 mock_apigks = [deepcopy(pre_update) for i in range(2)]
 mock_apigks[0]['owner'] = uuid.uuid4()
+mock_apigks[0]['admins'] = testadmins
+mock_apigks[1]['admins'] = testadmins
 num_mock_apigks = len(mock_apigks)
 
 
@@ -85,3 +89,7 @@ def mock_get_apigks(selectors, values, maxrows):
     print(list(res))
     return [apigk for apigk in mock_apigks
             if not selectors or values[0] == apigk[key]]
+
+def mock_get_apigks_by_admin(_, admins, __):
+    return (apigk for apigk in mock_apigks
+            if admins and admins[0] in apigk['admins'])
