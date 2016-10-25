@@ -471,6 +471,11 @@ class APIGKAdmTests(unittest.TestCase):
         self.testapp.get('/apigkadm/apigks/owners/{}/clients/'.format(uuid.uuid4()),
                          status=403, headers=headers)
 
+    def test_apigk_get_delegate_clients(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        res = self.testapp.get('/apigkadm/apigks/delegates/me/clients/',
+                               status=200, headers=headers)
+
     def _test_apigk_get_org_clients(self, orgadmin, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         org = 'fc:org:example.com'

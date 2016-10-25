@@ -24,6 +24,7 @@ def configure(config):
     config.add_route('apigk_logo_v1', '/v1/apigks/{id}/logo')
     config.add_route('apigk_logo', '/apigks/{id}/logo')
     config.add_route('apigk_owner_clients', '/apigks/owners/{ownerid}/clients/')
+    config.add_route('apigk_delegate_clients', '/apigks/delegates/{delegateid}/clients/')
     config.add_route('apigk_org_clients', '/apigks/orgs/{orgid}/clients/')
     config.scan(__name__)
 
@@ -175,6 +176,18 @@ def apigk_owner_clients(request):
     if ownerid != str(userid):
         raise HTTPForbidden('wrong owner')
     return request.gkadm_controller.get_gkowner_clients(userid)
+
+
+@view_config(route_name='apigk_delegate_clients', renderer='json', permission='scope_apigkadmin')
+@translation
+def apigk_delegate_clients(request):
+    userid = get_userid(request)
+    delegateid = request.matchdict['delegateid']
+    if delegateid == 'me':
+        delegateid = str(userid)
+    if delegateid != str(userid):
+        raise HTTPForbidden('wrong delegateid')
+    return request.gkadm_controller.get_gkdelegate_clients(userid)
 
 
 @view_config(route_name='apigk_org_clients', renderer='json', permission='scope_apigkadmin')
