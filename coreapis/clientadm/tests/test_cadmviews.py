@@ -541,6 +541,17 @@ class ClientAdmTests(unittest.TestCase):
     def test_delete_client_not_owner_platform_admin_(self, _):
         self._test_delete_client_not_owner(False, 204)
 
+    def test_delete_client_not_owner_delegated(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        client['owner'] = uuid.UUID(userid_other)
+        client['admins'] = testadmins
+        self.session.get_client_by_id.return_value = client
+        path = '/clientadm/clients/{}'.format(uuid.UUID(clientid))
+        with mock.patch('coreapis.clientadm.controller.ClientAdmController.get_my_groupids',
+                        return_value=testadmins):
+            self.testapp.delete(path, status=204, headers=headers)
+
     def _test_delete_missing_client(self, orgadmin):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.side_effect = KeyError
@@ -613,6 +624,20 @@ class ClientAdmTests(unittest.TestCase):
     @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_update_client_not_owner_platform_admin(self, _):
         res = self._test_update_client_not_owner(False, 200)
+        assert res.json['descr'] == 'blue'
+
+    def test_update_client_not_owner_delegated(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        client['owner'] = uuid.UUID(userid_other)
+        client['admins'] = testadmins
+        self.session.get_client_by_id.return_value = client
+        self.session.insert_client = mock.MagicMock()
+        path = '/clientadm/clients/{}'.format(clientid)
+        attrs = {'descr': 'blue'}
+        with mock.patch('coreapis.clientadm.controller.ClientAdmController.get_my_groupids',
+                        return_value=[testadmins[0], 'fc:adhoc:foo']):
+            res = self.testapp.patch_json(path, attrs, status=200, headers=headers)
         assert res.json['descr'] == 'blue'
 
     def test_update_client_change_timestamp(self):

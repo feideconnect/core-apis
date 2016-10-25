@@ -321,25 +321,30 @@ class APIGKAdmTests(unittest.TestCase):
         self.session().insert_apigk = mock.MagicMock()
         self.testapp.post_json('/apigkadm/apigks/', body, status=400, headers=headers)
 
-    def _test_delete_apigk(self, owner, httpstat):
+    def _test_delete_apigk(self, owner, admins, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         gkid = 'testapi'
-        self.session().get_apigk.return_value = {'owner': uuid.UUID(owner), 'id': gkid}
+        self.session().get_apigk.return_value = {'owner': uuid.UUID(owner), 'id': gkid, 'admins': admins}
         self.testapp.delete('/apigkadm/apigks/{}'.format(id), status=httpstat, headers=headers)
 
     def test_delete_apigk(self):
-        self._test_delete_apigk('00000000-0000-0000-0000-000000000001', 204)
+        self._test_delete_apigk('00000000-0000-0000-0000-000000000001', [], 204)
 
     def test_delete_apigk_no_id(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.testapp.delete('/apigkadm/apigks/', status=404, headers=headers)
 
     def test_delete_apigk_not_owner(self):
-        self._test_delete_apigk('00000000-0000-0000-0000-000000000002', 403)
+        self._test_delete_apigk('00000000-0000-0000-0000-000000000002', [], 403)
+
+    def test_delete_apigk_not_owner_delegated(self):
+        with mock.patch('coreapis.apigkadm.controller.APIGKAdmController.get_my_groupids',
+                        return_value=testadmins):
+            self._test_delete_apigk('00000000-0000-0000-0000-000000000002', testadmins, 204)
 
     @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_delete_apigk_platform_admin(self, _):
-        self._test_delete_apigk('00000000-0000-0000-0000-000000000002', 204)
+        self._test_delete_apigk('00000000-0000-0000-0000-000000000002', [], 204)
 
     def _test_delete_unknown_apigk(self, orgadmin):
         headers = {'Authorization': 'Bearer user_token'}
@@ -403,20 +408,26 @@ class APIGKAdmTests(unittest.TestCase):
         self.testapp.patch_json('/apigkadm/apigks/updatable', {'endpoints': 'file:///etc/shadow'},
                                 status=400, headers=headers)
 
-    def _test_update_not_owner(self, httpstat):
+    def _test_update_not_owner(self, admins, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         to_update = deepcopy(pre_update)
         to_update['owner'] = uuid.uuid4()
+        to_update['admins'] = admins
         self.session().get_apigk.return_value = to_update
         self.testapp.patch_json('/apigkadm/apigks/updatable', {},
                                 status=httpstat, headers=headers)
 
     def test_update_not_owner(self):
-        self._test_update_not_owner(403)
+        self._test_update_not_owner([], 403)
+
+    def test_update_not_owner_delegated(self):
+        with mock.patch('coreapis.apigkadm.controller.APIGKAdmController.get_my_groupids',
+                        return_value=testadmins):
+            self._test_update_not_owner(testadmins, 200)
 
     @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_update_as_platform_admin(self, _):
-        self._test_update_not_owner(200)
+            self._test_update_not_owner([], 200)
 
     def test_apigk_exists(self):
         headers = {'Authorization': 'Bearer user_token'}
