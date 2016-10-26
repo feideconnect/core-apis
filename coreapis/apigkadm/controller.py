@@ -75,16 +75,16 @@ class APIGKAdmController(CrudControllerBase):
                 adapted[key] = list(val)
         return adapted
 
-    def is_owner_equiv(self, apigk, user, token):
-        if apigk['owner'] == user['userid']:
-            return True
+    def is_delegated_admin(self, apigk, user, token):
         admins = set(apigk.get('admins') or [])
-        self.log.debug('is_owner_equiv', admins=admins)
         if not admins:
             return False
         groupids = set(self.get_my_groupids(token))
-        self.log.debug('is_owner_equiv', groupids=groupids)
-        return admins.intersection(groupids)
+        return bool(admins.intersection(groupids))
+
+    def is_owner(self, apigk, user):
+        if apigk['owner'] == user['userid']:
+            return True
 
     def has_permission(self, apigk, user, token):
         if user is None:
@@ -92,10 +92,12 @@ class APIGKAdmController(CrudControllerBase):
         if self.is_platform_admin(user):
             return True
         org = apigk.get('organization', None)
-        if org:
-            return self.is_org_admin(user, org)
+        if org and self.is_org_admin(user, org):
+            return True
+        elif not org and self.is_owner(apigk, user):
+            return True
         else:
-            return self.is_owner_equiv(apigk, user, token)
+            return self.is_delegated_admin(apigk, user, token)
 
     def get(self, gkid):
         self.log.debug('Get apigk', gkid=gkid)
@@ -158,7 +160,7 @@ class APIGKAdmController(CrudControllerBase):
         selectors = ['admins contains ?']
         values = [admin]
         apigks = self._list(selectors, values, self.maxrows)
-        return [gk for gk in apigks if not gk['organization']]
+        return [gk for gk in apigks]
 
     def list_delegated(self, userid, token):
         delegated = []

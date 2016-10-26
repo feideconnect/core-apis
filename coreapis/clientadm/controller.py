@@ -135,7 +135,7 @@ class ClientAdmController(CrudControllerBase):
         selectors = ['admins contains ?']
         values = [admin]
         clients = self._list(selectors, values, scope)
-        return [c for c in clients if c['organization'] is None]
+        return [c for c in clients]
 
     def list_delegated(self, userid, scope, token):
         delegated = []
@@ -167,16 +167,17 @@ class ClientAdmController(CrudControllerBase):
         clients = self._list(selectors, values, None)
         return [self.get_public_info(c) for c in clients if c]
 
-    def is_owner_equiv(self, client, user, token):
+    def is_owner(self, user, client):
         if client['owner'] == user['userid']:
             return True
+        return False
+
+    def is_delegated_admin(self, client, user, token):
         admins = set(client.get('admins') or [])
-        self.log.debug('is_owner_equiv', admins=admins)
         if not admins:
             return False
         groupids = set(self.get_my_groupids(token))
-        self.log.debug('is_owner_equiv', groupids=groupids)
-        return admins.intersection(groupids)
+        return bool(admins.intersection(groupids))
 
     def has_permission(self, client, user, token):
         if user is None:
@@ -184,10 +185,12 @@ class ClientAdmController(CrudControllerBase):
         if self.is_platform_admin(user):
             return True
         org = client.get('organization', None)
-        if org:
-            return self.is_org_admin(user, org)
+        if org and self.is_org_admin(user, org):
+            return True
+        elif not org and self.is_owner(user, client):
+            return True
         else:
-            return self.is_owner_equiv(client, user, token)
+            return self.is_delegated_admin(client, user, token)
 
     def get(self, clientid):
         self.log.debug('Get client', clientid=clientid)

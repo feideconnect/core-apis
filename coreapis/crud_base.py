@@ -68,6 +68,8 @@ class CrudControllerBase(object):
         return response.json()
 
     def get_my_groupids(self, token):
+        if not token:
+            return []
         return (group['id'] for group in self.get_my_groups(token))
 
     def get_owner(self, itemid):

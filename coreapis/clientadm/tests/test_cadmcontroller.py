@@ -48,6 +48,18 @@ class TestController(TestCase):
         is_platform_admin.return_value = True
         is_org_admin.return_value = False
         assert self.controller.has_permission(client, retrieved_user, None) is True
+        is_platform_admin.return_value = False
+        get_my_groupids = mock.MagicMock()
+        self.controller.get_my_groupids = get_my_groupids
+        get_my_groupids.return_value = ['a']
+        client['admins'] = ['b']
+        assert self.controller.has_permission(client, retrieved_user, 'token') is False
+        client['admins'] = ['a']
+        assert self.controller.has_permission(client, retrieved_user, 'token') is True
+        del client['organization']
+        assert self.controller.has_permission(client, other_user, 'token') is True
+        client['admins'] = ['b']
+        assert self.controller.has_permission(client, other_user, 'token') is False
 
     def test_add_with_owner(self):
         testuid = retrieved_user['userid']

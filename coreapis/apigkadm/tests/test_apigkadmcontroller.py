@@ -78,3 +78,15 @@ class TestAPIGKAdmController(unittest.TestCase):
         assert self.controller.has_permission(apigk, retrieved_user, None) is False
         is_org_admin.return_value = True
         assert self.controller.has_permission(apigk, retrieved_user, None) is True
+        is_org_admin.return_value = False
+        get_my_groupids = mock.MagicMock()
+        self.controller.get_my_groupids = get_my_groupids
+        get_my_groupids.return_value = ['a']
+        apigk['admins'] = ['b']
+        assert self.controller.has_permission(apigk, retrieved_user, 'token') is False
+        apigk['admins'] = ['a']
+        assert self.controller.has_permission(apigk, retrieved_user, 'token') is True
+        del apigk['organization']
+        assert self.controller.has_permission(apigk, other_user, 'token') is True
+        apigk['admins'] = ['b']
+        assert self.controller.has_permission(apigk, other_user, 'token') is False
