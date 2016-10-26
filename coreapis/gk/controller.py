@@ -52,7 +52,7 @@ class GkController(object):
 
         main_scope = 'gk_{}'.format(backend_id)
         if main_scope not in scopes:
-            self.log.debug('provided token misses scopes to access this api', gatekeeper=backend)
+            self.log.debug('provided token misses scopes to access this api', gatekeeper=backend_id)
             return None
 
         if backend['requireuser'] and user is None:
