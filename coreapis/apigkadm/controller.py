@@ -230,8 +230,8 @@ class APIGKAdmController(CrudControllerBase):
         gkscopes = ['gk_{}'.format(r['id']) for r in self.list_by_owner(ownerid)]
         return self.cadm_controller.get_gkscope_clients(gkscopes)
 
-    def get_gkdelegate_clients(self, delegeateid):
-        gkscopes = ['gk_{}'.format(r['id']) for r in self.list_by_admin(delegeateid)]
+    def get_gkdelegate_clients(self, delegateid, token):
+        gkscopes = ['gk_{}'.format(r['id']) for r in self.list_delegated(delegateid, token)]
         return self.cadm_controller.get_gkscope_clients(gkscopes)
 
     def get_gkorg_clients(self, orgid):

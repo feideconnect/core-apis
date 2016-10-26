@@ -187,7 +187,8 @@ def apigk_delegate_clients(request):
         delegateid = str(userid)
     if delegateid != str(userid):
         raise HTTPForbidden('wrong delegateid')
-    return request.gkadm_controller.get_gkdelegate_clients(userid)
+    token = get_token(request)
+    return request.gkadm_controller.get_gkdelegate_clients(userid, token)
 
 
 @view_config(route_name='apigk_org_clients', renderer='json', permission='scope_apigkadmin')
