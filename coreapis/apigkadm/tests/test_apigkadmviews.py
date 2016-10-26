@@ -473,8 +473,10 @@ class APIGKAdmTests(unittest.TestCase):
 
     def test_apigk_get_delegate_clients(self):
         headers = {'Authorization': 'Bearer user_token'}
-        res = self.testapp.get('/apigkadm/apigks/delegates/me/clients/',
-                               status=200, headers=headers)
+        with mock.patch('coreapis.apigkadm.controller.APIGKAdmController.get_my_groupids',
+                        return_value=testadmins):
+            self.testapp.get('/apigkadm/apigks/delegates/me/clients/',
+                             status=200, headers=headers)
 
     def _test_apigk_get_org_clients(self, orgadmin, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
