@@ -75,7 +75,7 @@ class APIGKAdmController(CrudControllerBase):
                 adapted[key] = list(val)
         return adapted
 
-    def is_delegated_admin(self, apigk, user, token):
+    def is_delegated_admin(self, apigk, token):
         admins = set(apigk.get('admins') or [])
         if not admins:
             return False
@@ -97,7 +97,7 @@ class APIGKAdmController(CrudControllerBase):
         elif not org and self.is_owner(apigk, user):
             return True
         else:
-            return self.is_delegated_admin(apigk, user, token)
+            return self.is_delegated_admin(apigk, token)
 
     def get(self, gkid):
         self.log.debug('Get apigk', gkid=gkid)

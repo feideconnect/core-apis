@@ -172,7 +172,7 @@ class ClientAdmController(CrudControllerBase):
             return True
         return False
 
-    def is_delegated_admin(self, client, user, token):
+    def is_delegated_admin(self, client, token):
         admins = set(client.get('admins') or [])
         if not admins:
             return False
@@ -190,7 +190,7 @@ class ClientAdmController(CrudControllerBase):
         elif not org and self.is_owner(user, client):
             return True
         else:
-            return self.is_delegated_admin(client, user, token)
+            return self.is_delegated_admin(client, token)
 
     def get(self, clientid):
         self.log.debug('Get client', clientid=clientid)
