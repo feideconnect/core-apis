@@ -99,7 +99,7 @@ use = egg:core-apis#mockauthmiddleware
 [filter:gatekeepedmiddleware]
 use = egg:core-apis#gatekeepedmiddleware
 username = dataporten
-password = a2c966d3-daef-4349-a507-846418663fb0
+password = {{getv "/fc/apigkadm/password"}}
 
 [filter:logmiddleware]
 use = egg:core-apis#logmiddleware

@@ -14,6 +14,7 @@ keys = [
     "/fc/logtimings",
     "/fc/profiletokensecret",
     "/fc/ps/cachekeyspace",
+    "/fc/apigkadm/password",
     "/fc/apigkadm/maxrows",
     "/fc/clientadm/maxrows",
     "/fc/clientadm/system/moderator",

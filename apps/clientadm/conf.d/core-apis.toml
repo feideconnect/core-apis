@@ -11,6 +11,7 @@ keys = [
     "/fc/cassandra/username",
     "/fc/cassandra/password",
     "/fc/logtimings",
+    "/fc/clientadm/password",
     "/fc/clientadm/maxrows",
     "/fc/clientadm/system/moderator",
     "/fc/notifications/email/enabled",
