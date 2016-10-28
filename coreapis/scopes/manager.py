@@ -52,6 +52,9 @@ class ScopesManager(object):
 
     def _get_gk_moderator(self, scope):
         apigk = self.scope_to_gk(scope)
+        admin_contact = apigk.get('admin_contact', None)
+        if admin_contact:
+            return admin_contact
         owner = self.session.get_user_by_id(apigk['owner'])
         try:
             return list(owner['email'].values())[0]
