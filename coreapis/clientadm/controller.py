@@ -83,8 +83,7 @@ class ClientAdmController(CrudControllerBase):
         'admin_contact': V.Nullable('string', None),
     }
     public_attrs = ['id', 'name', 'descr', 'redirect_uri', 'owner', 'organization', 'authproviders',
-                    'systemdescr', 'privacypolicyurl', 'homepageurl', 'loginurl', 'supporturl',
-                    'admin_contact']
+                    'systemdescr', 'privacypolicyurl', 'homepageurl', 'loginurl', 'supporturl']
     scope_attrs = ['scopes', 'scopes_requested']
     platformadmin_attrs = ['owner', 'scopes', 'orgauthorization']
     platformadmin_attrs_update = ['organization']
