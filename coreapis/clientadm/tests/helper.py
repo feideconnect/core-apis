@@ -38,6 +38,7 @@ prefixed_realm = 'feide|realm|' + testrealm
 userstatus = 'Public'
 reservedstatus = 'Mandatory'
 testadmins = ['fc:adhoc:005f54c7-97da-49b0-8a41-5de844a2a44b']
+testcontact = 'admin@' + testrealm
 post_body_minimal = {
     'name': 'per', 'scopes_requested': [testscope], 'redirect_uri': testuris
 }
@@ -58,7 +59,8 @@ post_body_maximal = {
     'supporturl': 'http://www.google.com',
     'authoptions': {'this': 'that'},
     'orgauthorization': {testrealm: [testgk, testgk_foo]},
-    'admins': testadmins
+    'admins': testadmins,
+    'admin_contact': testcontact,
 }
 
 retrieved_client = {
@@ -84,6 +86,7 @@ retrieved_client = {
     'authoptions': None,
     'updated': parse_datetime(date_created),
     'admins': [],
+    'admin_contact': None
 }
 
 retrieved_user = {
@@ -119,7 +122,8 @@ retrieved_gk_clients[1].update({
 retrieved_gk_clients[2].update({
     'id': '00000000-0000-0000-0000-000000000005',
     'scopes_requested': [othergk],
-    'admins': testadmins
+    'admins': testadmins,
+    'admin_contact': testcontact,
 })
 
 retrieved_gk_clients[3].update({
@@ -128,7 +132,8 @@ retrieved_gk_clients[3].update({
     'scopes': [testgk, testgk_foo],
     'scopes_requested': [testgk, testgk_foo, othergk],
     'orgauthorization': {testrealm: json.dumps([testgk, testgk_foo])},
-    'admins': testadmins
+    'admins': testadmins,
+    'admin_contact': testcontact,
 })
 
 retrieved_gk_client = retrieved_gk_clients[0]

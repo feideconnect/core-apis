@@ -4,6 +4,7 @@ import uuid
 
 
 testadmins = ['fc:adhoc:005f54c7-97da-49b0-8a41-5de844a2a44b']
+testcontact = 'admin@example.org'
 
 post_body_minimal = {
     'id': 'testgk',
@@ -40,6 +41,7 @@ post_body_maximal = {
     'docurl': 'http://la.wikipedia.org',
     'scopes_requested': ['userinfo'],
     'admins': testadmins,
+    'admin_contact': testcontact,
 }
 
 
@@ -68,7 +70,8 @@ pre_update = {
     "docurl": None,
     "scopes": ['userinfo'],
     "scopes_requested": ['userinfo'],
-    "admins": []
+    "admins": [],
+    'admin_contact': None,
 }
 
 mock_apigks = [deepcopy(pre_update) for i in range(2)]

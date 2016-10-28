@@ -143,6 +143,7 @@ def make_client():
         created=ts_now,
         updated=ts_now,
         admins=[],
+        admin_contact=None
     )
 
 
@@ -199,6 +200,7 @@ def make_apigk():
         updated=ts_now,
         allow_unauthenticated=False,
         admins=[],
+        admin_contact=None,
     )
 
 
