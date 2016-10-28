@@ -88,7 +88,8 @@ class AuthzviewTests(unittest.TestCase):
              'privacypolicyurl': None,
              'redirect_uri': ['https://test.example.com'],
              'supporturl': None,
-             'systemdescr': None}]
+             'systemdescr': None,
+             'admin_contact': None}]
         self.session.get_clients.return_value = [clients[client1]]
         self.session.get_mandatory_clients.return_value = []
 #        self.session.get_client_by_id.return_value = clients[client1]
@@ -107,4 +108,5 @@ class AuthzviewTests(unittest.TestCase):
              'privacypolicyurl': None,
              'redirect_uri': ['https://test.example.com'],
              'supporturl': None,
-             'systemdescr': None}]
+             'systemdescr': None,
+             'admin_contact': None}]

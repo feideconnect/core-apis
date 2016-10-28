@@ -57,6 +57,8 @@ clients = {
         'loginurl': None,
         'supporturl': None,
         'authoptions': None,
-        'updated': parse_datetime(date_created)
+        'updated': parse_datetime(date_created),
+        'admins': [],
+        'admin_contact': None,
     }
 }
