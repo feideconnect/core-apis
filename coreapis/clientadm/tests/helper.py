@@ -17,6 +17,7 @@ testgk = 'gk_test1'
 testgk_foo = testgk + '_foo'
 othergk = 'gk_test2'
 owngk = 'gk_test3'
+contactgk = 'gk_testcontact'
 nullscopedefgk = 'gk_nullscopedef'
 testuris = [
     'http://example.org',
@@ -144,6 +145,9 @@ apigks = {testgk.split('_')[1]: {'owner': uuid.UUID(userid_other),
                                   'scopedef': {}},
           owngk.split('_')[1]: {'owner': uuid.UUID(userid_own),
                                 'scopedef': {}},
+          contactgk.split('_')[1]: {'owner': uuid.UUID(userid_other),
+                                 'admin_contact': testcontact,
+                                 'scopedef': {'subscopes': {'foo': {'policy': subscope_policy}}}},
           nullscopedefgk.split('_')[1]: {'owner': uuid.UUID(userid_other), 'scopedef': None}}
 
 

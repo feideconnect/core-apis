@@ -14,7 +14,8 @@ from coreapis.utils import translatable
 from coreapis.clientadm.tests.helper import (
     userid_own, userid_other, clientid, date_created, testscope, otherscope, testuris, baduris,
     testadmins, post_body_minimal, post_body_other_owner, post_body_maximal, retrieved_client,
-    retrieved_user, retrieved_gk_clients, testgk, testgk_foo, othergk, owngk, nullscopedefgk,
+    retrieved_user, retrieved_gk_clients, testgk, testgk_foo, othergk, owngk, contactgk,
+    nullscopedefgk,
     httptime, mock_get_apigk, mock_get_clients, mock_get_clients_by_admin, retrieved_apigks,
     userstatus, reservedstatus, testrealm, is_full_client, is_public_client, FEIDETESTER)
 
@@ -378,6 +379,15 @@ class ClientAdmTests(unittest.TestCase):
         body['scopes_requested'] = [othergk, othergk + '_bar']
         self.session.insert_client = mock.MagicMock()
         self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
+
+    def test_post_client_scope_admin_contact(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_client_by_id.side_effect = KeyError
+        self.session.get_user_by_id.return_value = retrieved_user
+        body = deepcopy(post_body_minimal)
+        body['scopes_requested'] = [contactgk, contactgk + '_foo']
+        self.session.insert_client = mock.MagicMock()
+        self.testapp.post_json('/clientadm/clients/', body, status=201, headers=headers)
 
     def test_post_client_missing_name(self):
         headers = {'Authorization': 'Bearer user_token'}
