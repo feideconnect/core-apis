@@ -2,6 +2,7 @@
 src = "core-apis.ini.tmpl"
 dest = "/etc/core-apis.ini"
 keys = [
+    "/fc/status/token",
     "/fc/statsd/server",
     "/fc/statsd/port",
     "/fc/statsd/prefix",
