@@ -19,7 +19,7 @@ class TestController(TestCase):
         settings = {
             'cassandra_contact_points': [],
             'cassandra_keyspace': 'keyspace',
-            'clientadm_scopedefs_file': 'scopedefs.json.example',
+            'clientadm_scopedefs_file': 'testdata/scopedefs_testing.json',
             'clientadm_maxrows': 100
         }
         self.controller = controller.ClientAdmController(settings)

@@ -15,7 +15,7 @@ def configure(config):
 
 
 @view_config(route_name='get_userinfo_v1', request_method="GET",
-             permission='scope_userinfo', renderer="json")
+             renderer="json")
 def get_userinfo_v1(request):
     user = get_user(request)
     return request.userinfo_controller.get_userinfo(user, request.has_permission)

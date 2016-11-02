@@ -1,13 +1,21 @@
 {
-	"userinfo": {
-		"title": "Brukerinfo",
-		"descr": "Basisinformasjon om brukere. BrukerID, navn og profilbilde.",
+	"moderated_scope": {
+		"title": "Moderated test scope",
+		"descr": "...",
+		"public": false,
+		"policy": {
+			"auto": false
+		}
+	},
+	"profile": {
+		"title": "Profilinfo",
+		"descr": "Brukerens navn og profilbilde.",
 		"public": true,
 		"policy": {
 			"auto": true
 		}
 	},
-	"userinfo-feide": {
+	"userid-feide": {
 		"title": "Feide-navn",
 		"descr": "Brukerens identifikator i Feide. Tilsvarende eduPersonPrincipalName.",
 		"public": true,
@@ -15,21 +23,13 @@
 			"auto": true
 		}
 	},
-	"clientadmin": {
-		"title": "Klient Admin",
-		"descr": "Adminsitrer klienter",
-		"public": false,
-		"policy": {
-			"auto": false
-		}
-	},
-    "openid": {
+	"openid": {
 		"title": "Openid connect",
 		"descr": "Fuu",
 		"public": true,
 		"policy": {
 			"auto": true
 		},
-        "client_only": true
-    }
+		"client_only": true
+	}
 }

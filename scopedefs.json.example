@@ -151,22 +151,6 @@
 			"auto": false
 		}
 	},
-	"clientadmin": {
-		"title": "Klient Admin",
-		"descr": "Administrer klienter",
-		"public": false,
-		"policy": {
-			"auto": false
-		}
-	},
-	"apigkadmin": {
-		"title": "API Gatekeeper Admin",
-		"descr": "Administrer API Gatekeeper instanser.",
-		"public": false,
-		"policy": {
-			"auto": false
-		}
-	},
 	"orgadmin": {
 		"title": "Org Admin",
 		"descr": "Styre obligatoriske klienter for en organisasjon",

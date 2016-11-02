@@ -1089,7 +1089,7 @@ class ClientAdmTests(unittest.TestCase):
     def test_list_public_scopes(self):
         for ver in ['', '/v1']:
             res = self.testapp.get('/clientadm{}/scopes/'.format(ver), status=200)
-            assert 'userinfo' in res.json
+            assert 'profile' in res.json
             assert 'apigkadm' not in res.json
 
     def test_get_orgauthorization(self):

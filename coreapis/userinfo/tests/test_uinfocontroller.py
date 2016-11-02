@@ -27,10 +27,10 @@ class TestUserInfo(TestCase):
 
 class TestMisc(TestCase):
     def setUp(self):
-        self.scopes = {'scope_userinfo', 'scope_userinfo-feide'}
+        self.scopes = {'scope_profile', 'scope_userid-feide'}
 
     def test_allowed_attributes(self):
         candidates = controller.USER_INFO_ATTRIBUTES_FEIDE
         allowed = controller.allowed_attributes(controller.USER_INFO_ATTRIBUTES_FEIDE,
                                                 lambda x: x in self.scopes)
-        assert len(allowed) == len(candidates['userinfo']) + len(candidates['userinfo-feide'])
+        assert len(allowed) == len(candidates['profile']) + len(candidates['userid-feide'])

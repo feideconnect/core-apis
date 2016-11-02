@@ -7,20 +7,12 @@ USER_INFO_ATTRIBUTES_FEIDE = {
         'sn',
         'givenName',
     ],
-    "userinfo": [
-        'displayName',
-        'sn',
-        'givenName',
-    ],
-    "userinfo-feide": [
+    "userid-feide": [
         'eduPersonPrincipalName',
         'uid',
     ],
     "userid-nin": [
         'norEduPersonNIN',
-    ],
-    "userinfo-mail": [
-        'mail',
     ],
     "email": [
         'mail',

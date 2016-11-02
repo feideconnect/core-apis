@@ -25,22 +25,22 @@ are multiple valued unless stated otherwise below.
 
 The returned information depends on the scopes held by the caller:
 
-- scope `userinfo`
+- scope `profile`
 
   - `displayName`, single value
   - `sn`
   - `givenName`
 
-- scope `userinfo-feide`
+- scope `userid-feide`
 
   - `eduPersonPrincipalName`, single value
   - `uid`
 
-- scope `userinfo-nin`
+- scope `userid-nin`
 
   - `norEduPersonNIN`, single value
 
-- scope `userinfo-mail`
+- scope `email`
 
   - `mail`
 
@@ -59,17 +59,20 @@ The returned information depends on the scopes held by the caller:
 
   - `eduPersonEntitlement`
 
-- scope `userinfo-contact`
+- scope `address`
 
   - `postOfficeBox`
   - `postalAddress`
   - `postalCode`
-  - `facsimileTelephoneNumber`
-  - `homePhone`
   - `homePostalAddress`
   - `l`
-  - `mobile`
   - `street`
+
+- scope `phone`
+
+  - `mobile`
+  - `facsimileTelephoneNumber`
+  - `homePhone`
   - `telephoneNumber`
 
 - scope `userinfo-extra`

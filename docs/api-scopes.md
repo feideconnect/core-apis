@@ -7,10 +7,10 @@ point to the latest version.
 Public scopes
 -------------
 
-- userinfo
-- userinfo-mail
-- userinfo-feide
-- userinfo-photo
+- userid
+- email
+- userid-feide
+- profile
 - openid
 - longterm
 - peoplesearch

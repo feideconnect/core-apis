@@ -17,7 +17,7 @@ post_body_minimal = {
         'username': 'username',
         'password': 'secrit',
     },
-    'scopes_requested': ['userinfo'],
+    'scopes_requested': ['profile'],
 }
 
 post_body_maximal = {
@@ -39,7 +39,7 @@ post_body_maximal = {
     'systemdescr': 'Awesome!',
     'privacypolicyurl': 'http://www.seoghor.no',
     'docurl': 'http://la.wikipedia.org',
-    'scopes_requested': ['userinfo'],
+    'scopes_requested': ['profile'],
     'admins': testadmins,
     'admin_contact': testcontact,
 }
@@ -68,8 +68,8 @@ pre_update = {
     "systemdescr": None,
     "privacypolicyurl": None,
     "docurl": None,
-    "scopes": ['userinfo'],
-    "scopes_requested": ['userinfo'],
+    "scopes": ['profile'],
+    "scopes_requested": ['profile'],
     "admins": [],
     'admin_contact': None,
 }
