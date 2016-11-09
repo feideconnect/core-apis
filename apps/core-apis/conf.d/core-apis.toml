@@ -18,4 +18,5 @@ keys = [
     "/fc/ratelimit/maxshare",
     "/fc/ratelimit/maxrate",
     "/fc/ratelimit/maxburstsize",
+    "/fc/orgadmin/maxrows",
 ]
