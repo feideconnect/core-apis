@@ -116,6 +116,63 @@ Only for platform administrators
 Only for platform administrators
 
 
+## Uploading a new  logo
+
+    $ curl -X POST -H "Authorization: Bearer $TOKEN" -F 'logo=@new_logo.png' \
+    'https://api.dataporten.no/orgs/<org id>/logo'
+
+or:
+
+    $ curl -X POST -H "Authorization: Bearer $TOKEN" -H 'Content-Type: image/png' \
+    --data-binary '@new_logo.png' \
+    'https://api.dataporten.no/orgs/<org id>/logo'
+
+### Payload
+
+A png file, dimension 128x128.
+
+### Parameters
+
+- `org-id`: In the url. The id of the organization to work on.
+
+### Return values
+
+- `200 OK`: On success
+- `400 Bad Request`: The image data uploaded is not in a recognized format
+- `403 Forbidden`: Current user is not an administrator for the organization
+- `404 Not Found`: The provided organization id does not exist in database
+
+
+## Uploading geo coodinates
+
+    $ curl -X POST -v -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+    -d '[{"lat": 63.4201, "lon": 10.3915}]'  'https://api.dataporten.no/orgs/<org id>/geo'
+
+### Payload
+
+A json array of geographic coordinate pairs. Each pair has the form
+
+    {"lat": <latitude>, "lon": <lognitude>}
+
+e.g.
+
+	[{"lat": 63.4201, "lon": 10.3915}]
+
+
+### Parameters
+
+- `org-id`: In the url. The id of the organization to work on.
+- `add`: If true, add to the existing coordinates. If false (default),
+  replace them.
+
+### Return values
+
+- `200 OK`: On success
+- `400 Bad Request`: The coordinates uploaded are not in a recognized format
+- `403 Forbidden`: Current user is not an administrator for the organization
+- `404 Not Found`: The provided organization id does not exist in database
+
+
 ## Register a role for an organization
 
     curl -X PUT -H "Authorization: Bearer $TOKEN" -d '["admin", "technical"]' \

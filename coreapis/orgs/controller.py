@@ -69,6 +69,10 @@ class OrgController(CrudControllerBase):
         'has_peoplesearch': '?boolean',
         'peoplesearch': V.Nullable({})
     }
+    geo_schema = {
+        '+lat': 'number',
+        '+lon': 'number',
+    }
     platformadmin_attrs = []
     platformadmin_attrs_update = []
     protected_attrs = ['has_ldapgroups', 'has_peoplesearch', 'peoplesearch']
@@ -178,6 +182,33 @@ class OrgController(CrudControllerBase):
 
     def _save_logo(self, orgid, data, updated):
         self.session.save_org_logo('organizations', orgid, data, updated)
+
+    def validate_geo(self, geo):
+        validator = V.parse(self.geo_schema, additional_properties=False)
+        validator.validate(geo)
+        if not ((-180. <= geo['lon'] <= 180.) and (-90. <= geo['lat'] <= 90.)):
+            raise ValidationError('coordinates outside range: {}'.format(geo))
+
+    def update_geo(self, user, orgid, payload, add):
+        try:
+            for geo in payload:
+                self.validate_geo(geo)
+        except V.ValidationError:
+            raise ValidationError('payload must be an array of coordinates: {}'.format(payload))
+
+        org = self.session.get_org(orgid)
+        self.log.info('updating geo coordinates for organization',
+                      audit=True, orgid=orgid, payload=payload, add=add,
+                      user=userinfo_for_log(user))
+        print("uiinfo:", org.get('uiinfo'))
+        uiinfo = json.loads(org.get('uiinfo', "{}"))
+        if add:
+            geos = uiinfo.get('geo', []) + payload
+        else:
+            geos = payload
+        uiinfo['geo'] = geos
+        org['uiinfo'] = uiinfo
+        self.session.insert_org(org)
 
     def list_mandatory_clients(self, orgid):
         org = self.session.get_org(orgid)

@@ -20,6 +20,8 @@ def configure(config):
     config.add_route('orgs', '/')
     config.add_route('org_logo_v1', '/v1/{id}/logo')
     config.add_route('org_logo', '/{id}/logo')
+    config.add_route('org_geo_v1', '/v1/{id}/geo')
+    config.add_route('org_geo', '/{id}/geo')
     config.add_route('org_mandatory_clients', '/{id}/mandatory_clients/')
     config.add_route('org_mandatory_client', '/{id}/mandatory_clients/{clientid}')
     config.add_route('org_services', '/{id}/services/')
@@ -135,6 +137,23 @@ def upload_logo_v1(request):
              renderer="json")
 def upload_logo(request):
     return upload_logo_v1(request)
+
+
+@view_config(route_name='org_geo_v1', request_method='POST', permission='scope_orgadmin',
+             renderer="json")
+def upload_geo_v1(request):
+    user = get_user(request)
+    orgid = check(request, needs_realm=False, needs_platform_admin=False)
+    payload = get_payload(request)
+    add = request.params.get('add', 'false').lower() == 'true'
+    request.org_controller.update_geo(user, orgid, payload, add)
+    return 'OK'
+
+
+@view_config(route_name='org_geo', request_method='POST', permission='scope_orgadmin',
+             renderer="json")
+def upload_geo(request):
+    return upload_geo_v1(request)
 
 
 def check(request, needs_realm, needs_platform_admin):

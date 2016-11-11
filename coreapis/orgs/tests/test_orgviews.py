@@ -353,6 +353,40 @@ class OrgViewTests(unittest.TestCase):
             logo = fh.read()
             self.testapp.post(path, logo, status=404, headers=headers)
 
+    def _test_post_org_geo(self, ver, geo, orgadmin, httpstat):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.is_org_admin.return_value = orgadmin
+        self.session.get_org.return_value = deepcopy(testorg2)
+        self.session.insert_org = mock.MagicMock()
+        path = '/orgs{}/{}/geo'.format(ver, uuid.uuid4())
+        return self.testapp.post_json(path, geo, status=httpstat, headers=headers)
+
+    def test_post_org_geo(self):
+        for ver in ['', '/v1']:
+            res = self._test_post_org_geo(ver, [eg7], True, 200)
+            assert res.json == 'OK'
+
+    def test_post_org_geo_west_pole(self):
+        self._test_post_org_geo('', [dict(lat=0, lon=270)], True, 400)
+
+    def test_post_org_geo_wrong_kind_of_json(self):
+        self._test_post_org_geo('', "this_is_also_json", True, 400)
+
+    def test_post_org_geo_not_admin(self):
+        self._test_post_org_geo('', [], False, 403)
+
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_post_org_geo_platform_admin(self, get_user):
+        res = self._test_post_org_geo('', [], False, 200)
+        assert res.json == 'OK'
+
+    def test_post_org_geo_unknown_org(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.is_org_admin.return_value = True
+        self.session.get_org.side_effect = KeyError
+        path = '/orgs{}/{}/geo'.format('', uuid.uuid4())
+        return self.testapp.post_json(path, [], status=404, headers=headers)
+
     def _test_list_mandatory_clients(self, orgadmin, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.is_org_admin.return_value = orgadmin
