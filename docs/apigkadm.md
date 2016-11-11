@@ -25,7 +25,7 @@ To test the API, obtain an authentication token and
     "status": null,
     "scopedef": null
     }' \
-    'https://api.dataporten.no/apigkadm/apigks/'
+    'https://apigkadmin.dataporten-api.no/apigks/'
 
 ### Required attributes
 
@@ -63,7 +63,7 @@ These attributes are returned from queries, and will be ignored in updates and w
 
     $ curl -X PATCH  -H "Authorization: Bearer $TOKEN" \
      -H "Content-Type: application/json" -d '{"name": "New gatekeeper name"}' \
-    'https://api.dataporten.no/apigkadm/apigks/<gatekeeper id>'
+    'https://apigkadmin.dataporten-api.no/apigks/<gatekeeper id>'
 
 ### Attributes
 
@@ -78,7 +78,7 @@ All attributes have the same meaning as when creating, but none are mandatory an
 ## Fetching a gatekeeper
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
-    'https://api.dataporten.no/apigkadm/apigks/<api gatekeeper id>'
+    'https://apigkadmin.dataporten-api.no/apigks/<api gatekeeper id>'
 
     {"scopedef": null, "trust": {"type": "bearer", "token": "absd"},
     "status": null, "endpoints": ["https://testgk.uninett.no"],
@@ -97,7 +97,7 @@ All attributes have the same meaning as when creating, but none are mandatory an
 ## Listing all gatekeepers owned by user
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
-    'https://api.dataporten.no/apigkadm/apigks/'
+    'https://apigkadmin.dataporten-api.no/apigks/'
 
     [{"scopedef": null,
       "trust": {"type": "bearer", "token": "adsfSFDsdfasdfa"},"status": null,
@@ -118,7 +118,7 @@ even if resulting list is empty.
 ## Listing all gatekeepers for all owners
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
-    'https://api.dataporten.no/apigkadm/apigks/?showAll=true'
+    'https://apigkadmin.dataporten-api.no/apigks/?showAll=true'
 
     [{"scopedef": null,
       "trust": {"type": "bearer", "token": "adsfSFDsdfasdfa"},"status": null,
@@ -140,7 +140,7 @@ administrator
 ## Listing all gatekeepers owned by an organization
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
-    'https://api.dataporten.no/apigkadm/apigks/?organization=<org-id>'
+    'https://apigkadmin.dataporten-api.no/apigks/?organization=<org-id>'
 
     [{"scopedef": null,
       "trust": {"type": "bearer", "token": "adsfSFDsdfasdfa"},"status": null,
@@ -161,7 +161,7 @@ even if resulting list is empty. Returns `403 Forbidden` if user is not admin fo
 ## Deleting a gatekeeper
 
     $ curl -v -X DELETE -H "Authorization: Bearer $TOKEN" \
-    'https://api.dataporten.no/apigkadm/apigks/<api gatekeeper id>'
+    'https://apigkadmin.dataporten-api.no/apigks/<api gatekeeper id>'
 
 ### Return values
 
@@ -171,7 +171,7 @@ even if resulting list is empty. Returns `403 Forbidden` if user is not admin fo
 
 ## Getting api gatekeeper logo
 
-    $ curl https://api.dataporten.no/apigkadm/apigks/<api gatekeeper id>/logo|display
+    $ curl https://apigkadmin.dataporten-api.no/apigks/<api gatekeeper id>/logo|display
 
 ### Return values
 
@@ -182,13 +182,13 @@ even if resulting list is empty. Returns `403 Forbidden` if user is not admin fo
 ## Uploading a new api gatekeeper logo
 
     $ curl -v -H "Authorization: Bearer $TOKEN" -F 'logo=@new_logo.png' \
-    'https://api.dataporten.no/apigkadm/apigks/<api gatekeeper id>/logo'
+    'https://apigkadmin.dataporten-api.no/apigks/<api gatekeeper id>/logo'
 
 or:
 
     $ curl -v -H "Authorization: Bearer $TOKEN" -H 'Content-Type: image/png' \
     --data-binary '@new_logo.png' \
-    'https://api.dataporten.no/apigkadm/apigks/<api gatekeeper id>/logo'
+    'https://apigkadmin.dataporten-api.no/apigks/<api gatekeeper id>/logo'
 
 - `200 OK`: On success
 - `400 Bad Request`: The image data uploaded is not in a recognized format
@@ -220,7 +220,7 @@ contains 'public' are included.
 ## Checking whether a gatekeeper id is already in use
 
     $ curl -v -H "Authorization: Bearer $TOKEN" -F 'logo=@new_logo.png' \
-    'https://api.dataporten.no/apigkadm/apigks/<api gatekeeper id>/exists'
+    'https://apigkadmin.dataporten-api.no/apigks/<api gatekeeper id>/exists'
 
 ### Return value
 
@@ -229,7 +229,7 @@ Returns `200 OK` on success with a single boolean in the json body indicating wh
 ## Listing clients interested in a user's api gatekeepers
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
-    'https://api.dataporten.no/apigkadm/apigks/owners/<owner id>/clients/'
+    'https://apigkadmin.dataporten-api.no/apigks/owners/<owner id>/clients/'
 
 ### Return value
 
@@ -252,7 +252,7 @@ matching. Example:
 ## Listing clients interested in an organization's api gatekeepers
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
-    'https://api.dataporten.no/apigkadm/apigks/orgs/<organization id>/clients/'
+    'https://apigkadmin.dataporten-api.no/apigks/orgs/<organization id>/clients/'
 
 ### Return value
 

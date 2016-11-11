@@ -9,7 +9,7 @@ To test the API, obtain an authentication token and
     $ curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
     -d '{ "name" : "per", "scopes_requested" : ["clientadmin"],
           "redirect_uri" : ["http://example.org"] }' \
-    'https://api.dataporten.no/clientadm/clients/'
+    'https://clientadmin.dataporten-api.no/clients/'
 
     {"type": "", "name": "per", "status": [], "redirect_uri": ["http://example.org"],
      "client_secret": "", "id": "9dd084a3-c497-4d4c-9832-a5096371a4c9",
@@ -35,7 +35,7 @@ but user is not admin of that organization
 
     $ curl -X PATCH -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
     -d '{"descr": "test"}' \
-    'https://api.dataporten.no/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9'
+    'https://clientadmin.dataporten-api.no/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9'
 
     {"type": "", "name": "per", "status": [], "client_secret": "",
      "redirect_uri": ["http://example.org"], "id": "9dd084a3-c497-4d4c-9832-a5096371a4c9",
@@ -78,7 +78,7 @@ the scope.
 
     $ curl -X PATCH -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
     -d '{"scopes_add": ["gk_foo_bar"], "scopes_remove": ["gk_foo_quux"]}' \
-    'https://api.dataporten.no/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9/scopes'
+    'https://clientadmin.dataporten-api.no/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9/scopes'
 
     "OK"
 
@@ -87,7 +87,7 @@ List scopes to be added in `scopes_add` and scopes to be removed in `scopes_remo
 ## Fetching a client
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
-    'https://api.dataporten.no/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9'
+    'https://clientadmin.dataporten-api.no/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9'
 
     {"type": "", "name": "per", "status": null, "client_secret": "",
      "redirect_uri": ["http://example.org"], "id": "9dd084a3-c497-4d4c-9832-a5096371a4c9",
@@ -99,7 +99,7 @@ If user is unauthenticated, a restricted view of the client is
 returned.
 
     $ curl -X GET
-    'https://api.dataporten.no/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9'
+    'https://clientadmin.dataporten-api.no/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9'
 
     {"name": "per", "redirect_uri": ["http://example.org"],
      "id": "9dd084a3-c497-4d4c-9832-a5096371a4c9",
@@ -111,7 +111,7 @@ Returns `404 Not Found` if client does not exist.
 ## Listing all clients owned by user
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
-    'https://api.dataporten.no/clientadm/clients/'
+    'https://clientadmin.dataporten-api.no/clients/'
 
     [{"name": "per","redirect_uri": ["http://example.org"],
       "id": "9dd084a3-c497-4d4c-9832-a5096371a4c9",
@@ -131,7 +131,7 @@ even if resulting list is empty.
 ## Listing all clients owned by an organization
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
-    'https://api.dataporten.no/clientadm/clients/?organization=<org-id>'
+    'https://clientadmin.dataporten-api.no/clients/?organization=<org-id>'
 
     [{"name": "per","redirect_uri": ["http://example.org"],
       "id": "9dd084a3-c497-4d4c-9832-a5096371a4c9",
@@ -152,7 +152,7 @@ of the requested organization
 ## Listing clients for all owners
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
-    'https://api.dataporten.no/clientadm/clients/?showAll=true'
+    'https://clientadmin.dataporten-api.no/clients/?showAll=true'
 
     [{"name": "per","redirect_uri": ["http://example.org"],
       "id": "9dd084a3-c497-4d4c-9832-a5096371a4c9",
@@ -173,7 +173,7 @@ administrator.
 ## Filtering list of clients by scope
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
-    'https://api.dataporten.no/clientadm/clients/?scope=clientadmin'
+    'https://clientadmin.dataporten-api.no/clients/?scope=clientadmin'
 
     [{"type": "client", "name": "test_clientadm", "status": ["production"],
       "client_secret": "88c7cdbf-d2bd-4d1b-825d-683770cd4bd3",
@@ -215,24 +215,24 @@ even if resulting list is empty.
 ## Deleting a client
 
     $ curl -v -X DELETE -H "Authorization: Bearer $TOKEN" \
-    'https://api.dataporten.no/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9'
+    'https://clientadmin.dataporten-api.no/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9'
 
 Returns `204 No Content`, or `403 Forbidden` if trying to delete a
 client not owned by user. No body is returned.
 
 ## Getting client logo
 
-    $ curl https://api.dataporten.no/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9/logo|display
+    $ curl https://clientadmin.dataporten-api.no/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9/logo|display
 
 Returns `404 Not Found` if id does not map to an existing client in the database, `304 Not Modified` if request has the `If-Modified-Since` header set to a timestamp equal or higher than the updated column for that client and `200 OK` otherwise. If no logo has been uploaded for this client a default image will be returned
 
 ## Uploading a new client logo
 
-    $ curl -v -H "Authorization: Bearer $TOKEN" -F 'logo=@new_logo.png' https://api.dataporten.no/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9/logo
+    $ curl -v -H "Authorization: Bearer $TOKEN" -F 'logo=@new_logo.png' https://clientadmin.dataporten-api.no/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9/logo
 
 or:
 
-    $ curl -v -H "Authorization: Bearer $TOKEN" -H 'Content-Type: image/png' --data-binary '@new_logo.png' https://api.dataporten.no/clientadm/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9/logo
+    $ curl -v -H "Authorization: Bearer $TOKEN" -H 'Content-Type: image/png' --data-binary '@new_logo.png' https://clientadmin.dataporten-api.no/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9/logo
 
 Returns `403 Forbidden` if trying to change logo of a client not owned by user. `404 Not found` if no client with that id exists and `200 OK` otherwise, `400 Bad Request` if the uploaded file is not in a recognized image format.
 
@@ -253,7 +253,7 @@ scope.
 ## Listing orgauthorizations
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
-	'https://api.dataporten.no/clientadm/clients/<id>/orgauthorization/<realm>'
+	'https://clientadmin.dataporten-api.no/clients/<id>/orgauthorization/<realm>'
 
     [
         "gk_foo",
@@ -272,7 +272,7 @@ The caller has to be one of
 
     $ curl -X PATCH -H "Authorization: Bearer $TOKEN" \
 	-d '["gk_jktest_rw"]'
-	'https://api.dataporten.no/clientadm/clients/<id>/orgauthorization/<realm>'
+	'https://clientadmin.dataporten-api.no/clients/<id>/orgauthorization/<realm>'
 
     [
         "gk_jktest_rw"
@@ -287,7 +287,7 @@ The caller has to be an administrator of the owner organization of the realm.
 ## Deleting an orgauthorization
 
     $ curl -X DELETE -H "Authorization: Bearer $TOKEN" \
-	'https://api.dataporten.no/clientadm/clients/<id>/orgauthorization/<realm>'
+	'https://clientadmin.dataporten-api.no/clients/<id>/orgauthorization/<realm>'
 
 The list of scopes available to the client and authorized for the
 realm is deleted.
@@ -333,7 +333,7 @@ The caller has to be an administrator of the owner organization of the realm.
 
 ## Getting statistics records for a client
 
-    curl -H "Authorization: Bearer $TOKEN" 'https://api.dataporten.no/clientadm/clients/<id>/logins_stats/'
+    curl -H "Authorization: Bearer $TOKEN" 'https://clientadmin.dataporten-api.no/clients/<id>/logins_stats/'
 
     [{"login_count": 5,
       "date": "2016-03-02",
@@ -344,13 +344,13 @@ The caller has to be an administrator of the owner organization of the realm.
 	]
 
     curl -H "Authorization: Bearer $TOKEN" \
-	'https://api.dataporten.no/clientadm/clients/<id>/logins_stats/?end_date=2016-03-15'
+	'https://clientadmin.dataporten-api.no/clients/<id>/logins_stats/?end_date=2016-03-15'
 
     curl -H "Authorization: Bearer $TOKEN" \
-	'https://api.dataporten.no/clientadm/clients/<id>/logins_stats/?num_days=2'
+	'https://clientadmin.dataporten-api.no/clients/<id>/logins_stats/?num_days=2'
 
     curl -H "Authorization: Bearer $TOKEN" \
-	'https://api.dataporten.no/clientadm/clients/<id>/logins_stats/?authsource=feide:uninett.no'
+	'https://clientadmin.dataporten-api.no/clients/<id>/logins_stats/?authsource=feide:uninett.no'
 
 ### Description
 
