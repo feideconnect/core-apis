@@ -1,11 +1,9 @@
 from functools import partial
 import uuid
 
-from eventlet.greenpool import GreenPool
-
 from coreapis import cassandra_client
 from coreapis.utils import LogWrapper, public_userinfo, failsafe, translatable
-from . import BaseBackend
+from . import BaseBackend, Pool
 
 adhoc_type = 'voot:ad-hoc'
 
@@ -108,13 +106,13 @@ class AdHocGroupBackend(BaseBackend):
         if membership is None:
             raise KeyError("Not member of group")
         member_ids = self.session.get_group_members(group['id'])
-        pool = GreenPool()
+        pool = Pool()
         members = pool.imap(failsafe(partial(self._handle_member, group)), member_ids)
         return [member for member in members if member]
 
     def get_member_groups(self, user, show_all):
         userid = user['userid']
-        pool = GreenPool()
+        pool = Pool()
         membership_list = self.session.get_group_memberships(userid, None, None, self.maxrows)
         memberships = {membership['groupid']: membership for membership in membership_list}
         groups = pool.imap(failsafe(self.session.get_group), memberships.keys())

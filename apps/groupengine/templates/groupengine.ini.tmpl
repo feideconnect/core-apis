@@ -15,6 +15,7 @@ cassandra_password = {{getv "/fc/cassandra/password"}}
 cassandra_cacerts = /conf/cassandraca.pem
 {{end}}
 log_timings = {{getv "/fc/logtimings"}}
+use_eventlets = true
 
 [app:coreapis]
 use = egg:core-apis

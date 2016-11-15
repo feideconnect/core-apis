@@ -3,12 +3,11 @@ import urllib.parse as urlparse
 
 import eventlet
 import eventlet.greenthread
-from eventlet.greenpool import GreenPool
 ldap3 = eventlet.import_patched('ldap3')
 
 from coreapis.utils import LogWrapper, get_feideids, translatable, failsafe
 from coreapis.cache import Cache
-from . import BaseBackend, IDHandler
+from . import BaseBackend, IDHandler, Pool
 ldapcontroller = eventlet.import_patched('coreapis.ldap.controller')
 from coreapis import cassandra_client, feide
 from coreapis.groups.gogroups import (
@@ -292,7 +291,7 @@ class LDAPBackend(BaseBackend):
 
     def get_member_groups(self, user, show_all):
         result = []
-        pool = GreenPool()
+        pool = Pool()
         get_member_groups = failsafe(functools.partial(self._get_member_groups, show_all))
         for res in pool.imap(get_member_groups, get_feideids(user)):
             if res:

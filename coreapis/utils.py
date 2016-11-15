@@ -39,6 +39,10 @@ def request_id():
         return __local.log_request_id
 
 
+def set_request_id(new):
+    __local.log_request_id = new
+
+
 def now():
     return datetime.datetime.now(tz=pytz.UTC)
 

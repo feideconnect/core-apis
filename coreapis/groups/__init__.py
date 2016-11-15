@@ -1,4 +1,6 @@
-from coreapis.utils import now
+from eventlet.greenpool import GreenPool
+
+from coreapis.utils import now, request_id, set_request_id
 
 
 class IDHandler(object):
@@ -55,3 +57,14 @@ class BaseBackend(object):
 
     def grouptypes(self):
         pass
+
+
+class Pool(GreenPool):
+    def imap(self, func, *args):
+        reqid = request_id()
+
+        def impl(*args):
+            set_request_id(reqid)
+            return func(*args)
+
+        return GreenPool.imap(self, impl, *args)

@@ -1,9 +1,7 @@
 import functools
 
-from eventlet.greenpool import GreenPool
-
 from coreapis.utils import LogWrapper, failsafe, translatable
-from . import BaseBackend
+from . import BaseBackend, Pool
 from coreapis import cassandra_client
 
 ORGADMIN_TYPE = 'fc:orgadmin'
@@ -147,7 +145,7 @@ class OrgAdminBackend(BaseBackend):
 
     def get_member_groups(self, user, show_all):
         result = []
-        pool = GreenPool()
+        pool = Pool()
         for res in pool.imap(functools.partial(self._get_member_groups, pool),
                              get_canonical_ids(user)):
             result.extend(res)

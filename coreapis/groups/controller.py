@@ -4,7 +4,7 @@ from eventlet.greenpool import GreenPool, GreenPile
 from eventlet.timeout import Timeout
 from paste.deploy.util import lookup_object
 
-from coreapis.utils import LogWrapper
+from coreapis.utils import LogWrapper, request_id, set_request_id
 
 BACKEND_CONFIG_KEY = 'groups_backend_'
 ID_PREFIX = 'fc'
@@ -44,7 +44,8 @@ class GroupsController(object):
             raise KeyError('No access to backend')
         return res
 
-    def _backend_call(self, method, *args, **kwargs):
+    def _backend_call(self, method, reqid, *args, **kwargs):
+        set_request_id(reqid)
         backend = method.__self__.prefix
         call = method.__name__
         with self.timer.time('groups.{}.{}'.format(call, backend.replace(':', '_'))):
@@ -61,9 +62,10 @@ class GroupsController(object):
 
     def _call_backends(self, func, perm_checker, *args, **kwargs):
         pile = GreenPile(self.pool)
+        reqid = request_id()
         for backend in (backend for backend in self.backends.values()
                         if backend.permissions_ok(perm_checker)):
-            pile.spawn(self._backend_call, func(backend), *args, **kwargs)
+            pile.spawn(self._backend_call, func(backend), reqid, *args, **kwargs)
         for result in pile:
             if result:
                 for value in result:

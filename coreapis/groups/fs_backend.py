@@ -1,13 +1,12 @@
 import functools
 
 import eventlet
-from eventlet.greenpool import GreenPool
 requests = eventlet.import_patched('requests')
 
 from coreapis.utils import LogWrapper, get_feideids, failsafe, translatable, parse_datetime
 from coreapis.cache import Cache
 from coreapis import cassandra_client
-from . import BaseBackend
+from . import BaseBackend, Pool
 
 
 class FsBackend(BaseBackend):
@@ -100,7 +99,7 @@ class FsBackend(BaseBackend):
 
     def get_member_groups(self, user, show_all):
         result = []
-        pool = GreenPool()
+        pool = Pool()
         func = failsafe(functools.partial(self._get_member_groups, show_all))
         for res in pool.imap(func, get_feideids(user)):
             if res:
