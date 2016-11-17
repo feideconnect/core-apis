@@ -324,8 +324,18 @@ class APIGKAdmTests(unittest.TestCase):
     def _test_delete_apigk(self, owner, admins, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         gkid = 'testapi'
-        self.session().get_apigk.return_value = {'owner': uuid.UUID(owner), 'id': gkid, 'admins': admins}
-        self.testapp.delete('/apigkadm/apigks/{}'.format(id), status=httpstat, headers=headers)
+        testscopes = set(['gk_' + gkid])
+        testclient = deepcopy(dict(id=uuid.uuid4(), scopes=testscopes, scopes_requested=testscopes))
+        self.session().get_apigk.return_value = {'owner': uuid.UUID(owner),
+                                                 'id': gkid, 'admins': admins}
+        self.session.get_client_by_id.return_value = testclient
+        self.session.insert_client = mock.MagicMock()
+        with mock.patch('coreapis.clientadm.controller.ClientAdmController.get_gkscope_clients',
+                        return_value=[testclient]):
+            with mock.patch('coreapis.clientadm.controller.ClientAdmController.validate_gkscope',
+                            return_value=True):
+                self.testapp.delete('/apigkadm/apigks/{}'.format(id),
+                                    status=httpstat, headers=headers)
 
     def test_delete_apigk(self):
         self._test_delete_apigk('00000000-0000-0000-0000-000000000001', [], 204)
