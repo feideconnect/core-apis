@@ -120,7 +120,8 @@ def add_apigk(request):
 def delete_apigk(request):
     gk = check(request)
     user = get_user(request)
-    request.gkadm_controller.delete(gk, user)
+    token = get_token(request)
+    request.gkadm_controller.delete(gk, user, token)
     return Response(status=204, content_type=False)
 
 

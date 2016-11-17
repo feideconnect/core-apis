@@ -105,7 +105,7 @@ class APIGKAdmController(CrudControllerBase):
         apigk = self.session.get_apigk(gkid)
         return self.adapt_apigk(apigk)
 
-    def delete(self, gk, user):
+    def delete(self, gk, user, mytoken):
         gkid = gk['id']
         mainscope = 'gk_' + gkid
         subscopes = ['{}_{}'.format(mainscope, s)
@@ -120,7 +120,7 @@ class APIGKAdmController(CrudControllerBase):
             scopes = set(client['scopes_requested']) | set(client['scopes'])
             self.log.debug('removing scopes from client', client=client['id'],
                            scopes_removed=list(scopes))
-            self.cadm_controller.update_gkscopes(client['id'], user, [], scopes)
+            self.cadm_controller.update_gkscopes(client['id'], user, [], scopes, mytoken)
         # Delete scopes from all oauth_authorizations
         authorizations = {}
         for scope in gk_scopes:
