@@ -42,7 +42,7 @@ class ScopesManager(object):
             raise ValidationError('invalid scope: {}'.format(scope))
         self._add_scope_if_approved(target, scopedef, scope, privileges)
 
-    def _handle_scope_request(self, target, scope, privileges):
+    def handle_scope_request(self, target, scope, privileges):
         if is_gkscopename(scope):
             self._handle_gkscope_request(target, scope, privileges)
         elif scope not in self.scopedefs:
@@ -152,4 +152,4 @@ class ScopesManager(object):
             target['scopes_requested'] = filter_missing_mainscope(target['scopes_requested'])
         target['scopes'] = list(set(target['scopes']).intersection(set(target['scopes_requested'])))
         for scope in set(target['scopes_requested']).difference(set(target['scopes'])):
-            self._handle_scope_request(target, scope, privileges)
+            self.handle_scope_request(target, scope, privileges)

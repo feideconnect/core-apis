@@ -33,6 +33,7 @@ def configure(config):
     config.add_route('delete_client', '/clients/{id}', request_method='DELETE')
     config.add_route('update_client', '/clients/{id}', request_method='PATCH')
     config.add_route('update_gkscopes', '/clients/{id}/gkscopes', request_method='PATCH')
+    config.add_route('update_scopes', '/clients/{id}/scopes', request_method='PATCH')
     config.add_route('client_logo_v1', '/v1/clients/{id}/logo')
     config.add_route('client_logo', '/clients/{id}/logo')
     config.add_route('list_scopes_v1', '/v1/scopes/')
@@ -166,6 +167,20 @@ def update_gkscopes(request):
     try:
         request.cadm_controller.update_gkscopes(clientid, user, scopes_add, scopes_remove, token)
         return "OK"
+    except ForbiddenError as err:
+        raise HTTPForbidden(err.message)
+
+
+@view_config(route_name='update_scopes', renderer="json", permission='scope_clientadmin')
+def update_scopes(request):
+    client = check(request)
+    user = get_user(request)
+    payload = get_payload(request)
+    scopes_add = payload.get('scopes_add', [])
+    scopes_remove = payload.get('scopes_remove', [])
+    try:
+        request.cadm_controller.update_scopes(client, user, scopes_add, scopes_remove)
+        return client
     except ForbiddenError as err:
         raise HTTPForbidden(err.message)
 

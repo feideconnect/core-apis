@@ -367,6 +367,32 @@ class ClientAdmController(CrudControllerBase):
                       user=userinfo_for_log(user))
         self.insert_client(client)
 
+    def add_scopes(self, client, scopes_add, privileges):
+        for scope in [scope for scope in scopes_add if scope not in client['scopes']]:
+            if scope not in client['scopes_requested']:
+                raise ForbiddenError('Client owner has not requested scope {}'.format(scope))
+            self.scopemgr.handle_scope_request(client, scope, privileges)
+        return client
+
+    def remove_scopes(self, client, scopes_remove):
+        for scope in scopes_remove:
+            if scope in client['scopes']:
+                client['scopes'].remove(scope)
+            if scope in client['scopes_requested']:
+                client['scopes_requested'].remove(scope)
+        return client
+
+    def update_scopes(self, client, user, scopes_add, scopes_remove):
+        client = self.add_scopes(client, scopes_add, self.get_privileges(user))
+        client = self.remove_scopes(client, scopes_remove)
+        self.log.info('updating scopes for client',
+                      audit=True, clientid=client['id'],
+                      scopes_add=scopes_add, scopes_remove=scopes_remove,
+                      user=userinfo_for_log(user))
+        self.insert_client(client)
+        self.scopemgr.notify_moderators(client)
+        return client
+
     def has_realm_permission(self, realm, user):
         org = self.session.get_org_by_realm(realm)
         return self.is_admin(user, org['id'])
