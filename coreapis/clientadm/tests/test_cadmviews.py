@@ -828,6 +828,16 @@ class ClientAdmTests(unittest.TestCase):
         assert testscope not in res.json['scopes']
         assert notify.called
 
+    def test_update_client_scopes_owner_adds_unwanted_scope(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        client['scopes_requested'] = []
+        self.session.get_client_by_id.return_value = client
+        self.session.insert_client = mock.MagicMock()
+        path = '/clientadm/clients/{}/scopes'.format(clientid)
+        attrs = {'scopes_add': [testscope]}
+        self.testapp.patch_json(path, attrs, status=403, headers=headers)
+
     def test_update_client_scopes_stranger_adds_scope(self):
         headers = {'Authorization': 'Bearer user_token'}
         client = deepcopy(retrieved_client)
@@ -851,6 +861,19 @@ class ClientAdmTests(unittest.TestCase):
         attrs = {'scopes_add': [testscope]}
         res = self.testapp.patch_json(path, attrs, status=200, headers=headers)
         assert testscope in res.json['scopes']
+
+    def test_update_client_scopes_owner_removes_scope(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        client['scopes'] = [otherscope]
+        client['scopes_requested'] = [otherscope]
+        self.session.get_client_by_id.return_value = client
+        self.session.insert_client = mock.MagicMock()
+        path = '/clientadm/clients/{}/scopes'.format(clientid)
+        attrs = {'scopes_remove': [otherscope, testscope]}
+        res = self.testapp.patch_json(path, attrs, status=200, headers=headers)
+        assert all(scope not in res.json['scopes'] for scope in [testscope, otherscope])
+        assert all(scope not in res.json['scopes_requested'] for scope in [testscope, otherscope])
 
     def test_update_client_gkowner_adds_gkscope(self):
         headers = {'Authorization': 'Bearer user_token'}
