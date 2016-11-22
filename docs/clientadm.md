@@ -78,9 +78,24 @@ the scope.
 
     $ curl -X PATCH -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
     -d '{"scopes_add": ["gk_foo_bar"], "scopes_remove": ["gk_foo_quux"]}' \
+    'https://clientadmin.dataporten-api.no/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9/gkscopes'
+ 
+    "OK"
+
+If successful, returns `200 OK`, and "OK" as body.
+
+List scopes to be added in `scopes_add` and scopes to be removed in `scopes_remove`.
+
+A platform administrator can add or remove any scope
+to/from a client's 'scopes', as long as the client owner has requested
+the scope. The same call works for client owners, and scope requests
+are moderated as for the client update call.
+
+    $ curl -X PATCH -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+    -d '{"scopes_add": ["gk_foo_bar"], "scopes_remove": ["gk_foo_quux"]}' \
     'https://clientadmin.dataporten-api.no/clients/9dd084a3-c497-4d4c-9832-a5096371a4c9/scopes'
 
-    "OK"
+If successful, returns `200 OK`, and client as json in body.
 
 List scopes to be added in `scopes_add` and scopes to be removed in `scopes_remove`.
 
