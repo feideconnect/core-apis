@@ -25,6 +25,7 @@ ORG_UNIT_ATTRIBUTE_NAMES = {
 GROUP_PERSON_ATTRIBUTES = (
     'eduPersonOrgDN',
     'eduPersonOrgUnitDN',
+    'eduPersonPrimaryOrgUnitDN',
     'eduPersonEntitlement',
     'eduPersonAffiliation',
     'eduPersonPrimaryAffiliation',

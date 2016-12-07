@@ -183,7 +183,7 @@ class LDAPBackend(BaseBackend):
                 res[attribute] = org_attributes[attribute][0]
         return res
 
-    def _get_orgunit(self, realm, dn):
+    def _get_orgunit(self, realm, dn, primaryDN):
         ou = self.ldap.search(realm, dn, '(objectClass=*)',
                               ldap3.SEARCH_SCOPE_BASE_OBJECT,
                               ldap3.ALL_ATTRIBUTES, 1)
@@ -206,6 +206,9 @@ class LDAPBackend(BaseBackend):
         if 'higher_education' not in org_type:
             data['type'] = 'fc:org'
             data['orgType'] = list(org_type)
+            data['membership']['primarySchool'] = (dn == primaryDN)
+        else:
+            data['membership']['primaryOrgUnit'] = (dn == primaryDN)
         return data
 
     def _handle_grepcode(self, grep_id, is_member):
@@ -281,8 +284,13 @@ class LDAPBackend(BaseBackend):
             orgDN = attributes['eduPersonOrgDN'][0]
             result.append(self._get_org(realm, orgDN, attributes))
         if 'eduPersonOrgUnitDN' in attributes:
+            primaryOrgUnit = attributes.get('eduPersonPrimaryOrgUnitDN', [])
+            if primaryOrgUnit:
+                primaryOrgUnit = primaryOrgUnit[0]
+            else:
+                primaryOrgUnit = None
             for orgUnitDN in attributes['eduPersonOrgUnitDN']:
-                result.append(self._get_orgunit(realm, orgUnitDN))
+                result.append(self._get_orgunit(realm, orgUnitDN, primaryOrgUnit))
         if 'eduPersonEntitlement' in attributes:
             result.extend(self._handle_grepcodes(attributes['eduPersonEntitlement']))
             result.extend(self._handle_go_groups(realm, attributes['eduPersonEntitlement'],

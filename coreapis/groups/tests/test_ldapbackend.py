@@ -216,13 +216,16 @@ class TestLDAPBackend(unittest.TestCase):
         self.session.get_org_by_realm.return_value = {
             'type': {'higher_education', 'service_provider'},
         }
-        result = self.backend._get_orgunit('example.org', 'dc=example,dc=org')
+        result = self.backend._get_orgunit('example.org', 'dc=example,dc=org', 'dc=example,dc=org')
         assert result == {
             'displayName': 'testOrgUnit',
             'type': 'fc:orgunit',
             'public': True,
             'id': 'org:example.org:unit:AVD-Q10',
-            'membership': {'basic': 'member'},
+            'membership': {
+                'basic': 'member',
+                'primaryOrgUnit': True,
+            },
             'parent': 'org:example.org',
         }
 
@@ -236,18 +239,21 @@ class TestLDAPBackend(unittest.TestCase):
         self.session.get_org_by_realm.return_value = {
             'type': {'primary_and_lower_secondary', 'service_provider'},
         }
-        result = self.backend._get_orgunit('example.org', 'dc=example,dc=org')
+        result = self.backend._get_orgunit('example.org', 'dc=example,dc=org', None)
         assert result == {
             'displayName': 'testSchool',
             'orgType': ['primary_and_lower_secondary'],
             'type': 'fc:org',
             'public': True,
             'id': 'org:example.org:unit:NO123456789',
-            'membership': {'basic': 'member'},
+            'membership': {
+                'basic': 'member',
+                'primarySchool': False,
+            },
             'parent': 'org:example.org',
         }
 
     def test_get_orgunit_not_found(self):
         self.ldap.search.return_value = []
         with raises(KeyError):
-            self.backend._get_orgunit('example.org', 'dc=example,dc=org')
+            self.backend._get_orgunit('example.org', 'dc=example,dc=org', None)
