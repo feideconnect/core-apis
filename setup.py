@@ -22,7 +22,7 @@ requires = [
     'gunicorn',
     'mock == 1.0.1',
     'pillow',
-    'pyramid',
+    'pyramid ~= 1.7',
     'pytest',
     'ldap3 == 1.4.0',
     'pytz',
