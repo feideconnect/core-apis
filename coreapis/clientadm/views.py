@@ -298,8 +298,12 @@ def policy(request):
 @view_config(route_name='logins_stats', request_method="GET",
              permission='scope_clientadmin', renderer="json")
 def logins_stats(request):
-    client = check(request)
+    if request.has_permission('scope_clientadmin_loginstats'):
+        clientid = get_clientid(request)
+    else:
+        clientid = check(request)['id']
+
     end_date = request.params.get('end_date', None)
     num_days = request.params.get('num_days', 1)
     authsource = request.params.get('authsource', None)
-    return request.cadm_controller.get_logins_stats(client['id'], end_date, num_days, authsource)
+    return request.cadm_controller.get_logins_stats(clientid, end_date, num_days, authsource)

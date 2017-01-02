@@ -1355,3 +1355,11 @@ class ClientAdmTests(unittest.TestCase):
         self._test_get_logins_stats_num_days('pi', 400)
         self._test_get_logins_stats_num_days(0, 400)
         self._test_get_logins_stats_num_days(99, 400)
+
+    def test_get_logins_stats_no_user(self):
+        headers = {'Authorization': 'Bearer client_token'}
+        self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
+        self.session.get_logins_stats = mock.MagicMock()
+        params = ''
+        path = '/clientadm/clients/{}/logins_stats/{}'.format(uuid.UUID(clientid), params)
+        return self.testapp.get(path, status=200, headers=headers)
