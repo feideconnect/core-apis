@@ -65,10 +65,10 @@ class GkViewTests(unittest.TestCase):
             },
         }
         headers = {'Gate-Keeper-DN': '/C=NO/CN=foo.example.com'}
-        resp = self.testapp.get('/gk/info/no_access', status=200, headers=headers)
+        resp = self.testapp.get('/gk/info/nicegk', status=200, headers=headers)
         assert resp.headers['X-Gk-Test-Endpoint'] == 'ep.example.com'
+        assert resp.headers['X-Gk-Test-Gatekeeper'] == 'nicegk'
         assert 'X-Gk-Test-Authorization' not in resp.headers
-        assert 'X-Gk-Test-Gatekeeper' not in resp.headers
         assert 'X-Gk-Test-Clientid' not in resp.headers
 
     def test_get_no_access(self):

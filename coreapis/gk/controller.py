@@ -44,6 +44,7 @@ class GkController(object):
         backend = self.session.get_apigk(backend_id)
         headers = dict()
         headers['endpoint'] = random.choice(backend['endpoints'])
+        headers['gatekeeper'] = backend_id
 
         if backend.get('allow_unauthenticated', None) and client is None:
             self.log.debug('Allowing unauthenticated gatekeeping', gatekeeper=backend_id,
@@ -87,7 +88,6 @@ class GkController(object):
         headers['scopes'] = ','.join(exposed_scopes)
 
         headers['clientid'] = str(client['id'])
-        headers['gatekeeper'] = backend_id
         header, value = auth_header(backend['trust'])
         headers[header] = value
         self.log.debug('Allowing gatekeeping', gatekeeper=backend_id, endpoint=headers['endpoint'],
