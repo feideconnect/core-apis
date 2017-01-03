@@ -40,6 +40,7 @@ TABLES = [
     'mandatory_clients',
     'remote_apigatekeepers',
     'logins_stats',
+    'clients_counters',
 ]
 
 db_node = os.environ.get('DP_CASSANDRA_TEST_NODE', 'cassandra-test-coreapis')
@@ -420,6 +421,14 @@ class CassandraClientTests(unittest.TestCase):
         for statsline in statslines:
             self.insert_statsline(statsline)
         return statslines
+
+    def insert_countline(self, clientid):
+        session = self.cclient.session
+        values = [clientid]
+        for stmt in ['UPDATE clients_counters SET count_tokens = count_tokens + 1 WHERE id = ?',
+                     'UPDATE clients_counters SET count_users = count_users + 1 WHERE id = ?']:
+            prep = session.prepare(stmt)
+            self.cclient.session.execute(prep.bind(values))
 
     def authorize(self, userid, clientid, scopes):
         authz = [make_authorization() for i in range(self.nrecs)]
@@ -845,3 +854,11 @@ class CassandraClientTests(unittest.TestCase):
             res = list(self.cclient.get_logins_stats(clientid, [date], authsource, self.maxrows))
             assert len(res) == 1
             assert res[0]['authsource'] == statline['authsource'] and res[0]['login_count'] == 1
+
+    def test_get_clients_counters(self):
+        clientid = uuid.uuid4()
+        self.insert_countline(clientid)
+        res = list(self.cclient.get_clients_counters(self.maxrows))
+        assert len(res) == 1
+        assert res[0]['count_tokens'] == res[0]['count_users'] == 1
+        assert res[0]['id'] == clientid

@@ -200,10 +200,10 @@ class ClientAdmTests(unittest.TestCase):
             self.session.get_clients.return_value = iter(deepcopy([retrieved_client, org_client]))
             res = self.testapp.get('/clientadm{}/public/'.format(ver), status=200)
             out = res.json
-            assert out[0]['name'] == 'per'
             assert all(is_public_client(c) for c in out)
-            assert out[1]['organization']['id'] == 'fc:org:example.com'
-            assert out[1]['organization']['name'] == 'testorg'
+            assert out[0]['organization']['id'] == 'fc:org:example.com'
+            assert out[0]['organization']['name'] == 'testorg'
+            assert out[1]['name'] == 'per'
 
     def test_list_public_clients_bogus_user(self):
         self.session.get_clients.return_value = iter(deepcopy([retrieved_client]))

@@ -70,6 +70,7 @@ class Client(object):
                 'organization_number', 'type', 'realm', 'id', 'name', 'fs_groups', 'services',
                 'uiinfo'],
             'orgroles': ['identity', 'orgid', 'role'],
+            'clients_counters': ['id', 'count_tokens', 'count_users'],
         }
         self.json_columns = {
             'clients': ['authoptions'],
@@ -487,3 +488,6 @@ class Client(object):
         if metric:
             params.append(metric)
         return self.session.execute(prep.bind(params))
+
+    def get_clients_counters(self, maxrows):
+        return self.get_generic('clients_counters', [], [], maxrows)

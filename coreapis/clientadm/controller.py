@@ -156,8 +156,21 @@ class ClientAdmController(CrudControllerBase):
         values = [organization]
         return self._list(selectors, values, scope)
 
+    def make_client_sortkey(self):
+        clients_counters = {row['id']: row['count_tokens'] + row['count_users']
+                            for row in self.session.get_clients_counters(self.maxrows)}
+
+        def client_sortkey(client):
+            sortkey = clients_counters.get(client['id'], 0)
+            if client.get('organization'):
+                sortkey += 10000000
+            return sortkey
+
+        return client_sortkey
+
     def list_all(self, scope=None):
-        return self._list([], [], scope)
+        return sorted(self._list([], [], scope),
+                      key=self.make_client_sortkey(), reverse=True)
 
     def public_clients(self, orgauthorization):
         selectors = []
@@ -165,7 +178,8 @@ class ClientAdmController(CrudControllerBase):
         if orgauthorization:
             selectors = ['orgauthorization contains key ?']
             values = [orgauthorization]
-        clients = self._list(selectors, values, None)
+        clients = sorted(self._list(selectors, values, None),
+                         key=self.make_client_sortkey(), reverse=True)
         return [self.get_public_info(c) for c in clients if c]
 
     def is_owner(self, user, client):
