@@ -180,7 +180,9 @@ class ClientAdmController(CrudControllerBase):
             values = [orgauthorization]
         clients = sorted(self._list(selectors, values, None),
                          key=self.make_client_sortkey(), reverse=True)
-        return [self.get_public_info(c) for c in clients if c]
+        users = {}
+        orgs = {}
+        return [self.get_public_info(c, users, orgs) for c in clients if c]
 
     def is_owner(self, user, client):
         if client['owner'] == user['userid']:
