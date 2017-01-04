@@ -157,7 +157,7 @@ class ClientAdmController(CrudControllerBase):
         return self._list(selectors, values, scope)
 
     def make_client_sortkey(self):
-        clients_counters = {row['id']: row['count_tokens'] + row['count_users']
+        clients_counters = {row['id']: row['count_tokens'] or 0 + row['count_users'] or 0
                             for row in self.session.get_clients_counters(self.maxrows)}
 
         def client_sortkey(client):

@@ -194,6 +194,9 @@ class ClientAdmTests(unittest.TestCase):
         org_client = deepcopy(retrieved_client)
         org_client['organization'] = 'fc:org:example.com'
         self.session.get_user_by_id.return_value = retrieved_user
+        self.session.get_clients_counters.return_value = [
+            {'id': retrieved_client['id'], 'count_tokens': None, 'count_users': 1},
+        ]
         self.session.get_org.return_value = {'id': 'fc:org:example.com',
                                              'name': translatable({'en': 'testorg'})}
         for ver in ['', '/v1']:
