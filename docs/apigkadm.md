@@ -197,7 +197,7 @@ or:
 
 ## Getting public information about api gatekeepers
 
-    $ curl https://api.dataporten.no/apigkadm/public
+    $ curl https://apigkadmin.dataporten-api.no/public
 
     [{"id": "feideapi",
       "name": "feide api", "owner": {"id": "p:6fc96878-fdc5-4fc3-abfc-6fcc018ff0fc",

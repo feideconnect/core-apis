@@ -204,7 +204,7 @@ are not one of scope and owner, or if a parameter value is missing or malformed.
 ## Listing public information about all clients
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
-    'https://api.dataporten.no/clientadm/public/'
+    'https://clientadmin.dataporten-api.no/public/'
 
     [{"name": "Test client", "owner": {
     "name": "Test Developer", "id": "p:00000000-0000-0000-0000-000000000001"},
@@ -216,7 +216,7 @@ Lists the publicly available information about all registered clients
 ## Listing all clients authorized by an organization
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
-    'https://api.dataporten.no/clientadm/public/?orgauthorization=<realm>'
+    'https://clientadmin.dataporten-api.no/public/?orgauthorization=<realm>'
 
     [{"name": "Test client", "owner": {
     "name": "Test Developer", "id": "p:00000000-0000-0000-0000-000000000001"},
@@ -253,7 +253,7 @@ Returns `403 Forbidden` if trying to change logo of a client not owned by user. 
 
 ## Listing public scope definitions
 
-    $ curl https://api.dataporten.no/clientadm/scopes/
+    $ curl https://clientadmin.dataporten-api.no/scopes/
 
     {"userinfo": {"policy": {"auto": true}, "title": "Grunnleggende informasjon om brukeren",
                   "descr": "bla blab la", "public": true},
@@ -315,7 +315,7 @@ The caller has to be one of
 ## Listing clients targeting a realm
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
-	'https://api.dataporten.no/clientadm/realmclients/targetrealm/<realm>/'
+	'https://clientadmin.dataporten-api.no/realmclients/targetrealm/<realm>/'
 
     [
         {
