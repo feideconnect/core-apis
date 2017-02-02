@@ -143,6 +143,26 @@ Returns `404 Not Found` if client does not exist.
 Returns `200 OK`, and list of clients as json in body. Status is `200 OK`
 even if resulting list is empty.
 
+## Listing all clients delegated to a user
+
+    $ curl -X GET -H "Authorization: Bearer $TOKEN" \
+    'https://clientadmin.dataporten-api.no/clients/?delegated=true'
+
+    [{"name": "per","redirect_uri": ["http://example.org"],
+      "id": "9dd084a3-c497-4d4c-9832-a5096371a4c9",
+      "owner": "ce5e8798-df69-4b87-a2e7-9678ab9a2820", "updated": "2015-01-22T11:03:29.983000",
+      "scopes": null, "scopes_requested": ["clientadmin"], "descr": "test",
+      "created": "2015-01-22T10:59:03.585000"},
+     {"type": "client", "name": "test_clientadm", "status": ["production"],
+      "client_secret": "88c7cdbf-d2bd-4d1b-825d-683770cd4bd3",
+      "redirect_uri": ["http://example.org"], "id": "f3f043db-9fd6-4c5a-b0bc-61992bea9eca",
+      "owner": "ce5e8798-df69-4b87-a2e7-9678ab9a2820", "updated": "2015-01-12T13:05:16.884000",
+      "scopes": ["clientadmin"], "scopes_requested": ["clientadmin"],
+      "descr": "Test client for client admin api", "created": "2015-01-12T13:05:16.884000"}]
+
+Returns `200 OK`, and list of clients as json in body. Status is `200 OK`
+even if resulting list is empty.
+
 ## Listing all clients owned by an organization
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
@@ -203,8 +223,7 @@ are not one of scope and owner, or if a parameter value is missing or malformed.
 
 ## Listing public information about all clients
 
-    $ curl -X GET -H "Authorization: Bearer $TOKEN" \
-    'https://clientadmin.dataporten-api.no/public/'
+    $ curl -X GET 'https://clientadmin.dataporten-api.no/public/'
 
     [{"name": "Test client", "owner": {
     "name": "Test Developer", "id": "p:00000000-0000-0000-0000-000000000001"},
@@ -215,7 +234,7 @@ Lists the publicly available information about all registered clients
 
 ## Listing all clients authorized by an organization
 
-    $ curl -X GET -H "Authorization: Bearer $TOKEN" \
+    $ curl -X GET \
     'https://clientadmin.dataporten-api.no/public/?orgauthorization=<realm>'
 
     [{"name": "Test client", "owner": {
@@ -340,11 +359,44 @@ The caller has to be one of
 The call returns a list of clients which have been assigned a scope
 which targets this realm.  The information is the public view of the
 client, with the additional property
-`scopeauthorizations`. `scopeathorizations` lists scopes available to
+`scopeauthorizations`. `scopeauthorizations` lists scopes available to
 the client, with a boolean telling whether the client has authorized
 the scope.
 
 The caller has to be an administrator of the owner organization of the realm.
+
+
+## Listing mandatory clients for a user
+
+    $ curl -X GET -H "Authorization: Bearer $TOKEN" \
+	'https://clientadmin.dataporten-api.no/v1/mandatory/'
+
+    [{"name": "Test client", "owner": {
+    "name": "Test Developer", "id": "p:00000000-0000-0000-0000-000000000001"},
+    "id": "fb787073-d862-4f5a-8f5c-6b3ec439d817",
+    "redirect_uri": ["http://people.dev.dataporten.no/"], "descr": ""},...]
+
+The call returns a list of clients which are mandatory for the authenticated user.
+The information is the public view of the
+clients.
+
+The caller needs the `authzinfo` scope.
+
+
+## Listing policy for a user
+
+    $ curl -X GET -H "Authorization: Bearer $TOKEN" \
+	'https://clientadmin.dataporten-api.no/policy'
+
+	{
+		"register": true
+	}
+
+The call returns a json object body with various policies for the
+authenticated user. So far, only one policy has been defined:
+
+`register`: `true` if user is allowed to register clients.
+
 
 ## Getting statistics records for a client
 

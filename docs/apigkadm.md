@@ -115,6 +115,27 @@ All attributes have the same meaning as when creating, but none are mandatory an
 Returns `200 OK`, and list of api gatekeepers as json in body. Status is `200 OK`
 even if resulting list is empty.
 
+## Listing all gatekeepers delegated to a user
+
+    $ curl -X GET -H "Authorization: Bearer $TOKEN" \
+    'https://apigkadmin.dataporten-api.no/apigks/?delegated=true'
+
+    [{"scopedef": null,
+      "trust": {"type": "bearer", "token": "adsfSFDsdfasdfa"},"status": null,
+      "endpoints": ["https://api.feide.no"], "httpscertpinned": null, "name": "feide api",
+      "descr": "The feide api", "id": "feideapi", "owner": "52a55f50-3b1f-4d25-8b14-d34ca715c30e",
+      "updated": "2015-01-26T16:05:59Z", "requireuser": false, "created": "2015-01-23T13:50:09Z"},
+     {"scopedef": null,
+      "trust": {"type": "bearer", "token": "absd"}, "status": null,
+       "endpoints": ["https://testgk.uninett.no"], "httpscertpinned": null, "name": "testgk",
+       "descr": "sigmund tester", "id": "testgk", "owner": "52a55f50-3b1f-4d25-8b14-d34ca715c30e",
+       "updated": "2015-01-26T12:43:31Z", "requireuser": true, "created": "2015-01-26T12:43:31Z"}]
+
+### Return values
+
+Returns `200 OK`, and list of api gatekeepers as json in body. Status is `200 OK`
+even if resulting list is empty.
+
 ## Listing all gatekeepers for all owners
 
     $ curl -X GET -H "Authorization: Bearer $TOKEN" \
@@ -240,6 +261,29 @@ Returns `200 OK` on success with a single boolean in the json body indicating wh
 
 On success, the json body consists of a list of clients matching the
 request. If the owner owns an apigk with id `foo`, clients having
+`gk_foo` in scopes or scopes_requested are considered
+matching. Example:
+
+    [{"descr": "Example", "id": "a7f407fd-ace2-4fbe-a07a-db123821ff59",
+      "name": "example",
+      "owner": {"id": "p:497ff70b-4b73-47a9-b9f4-8a87d844a410", "name": "Pelle"},
+      "redirect_uri": ["http://example.org"],"scopes": [],
+      "scopes_requested": ["gk_foo", "gk_bar"]}]
+
+## Listing clients interested in a user's delegated api gatekeepers
+
+    $ curl -X GET -H "Authorization: Bearer $TOKEN" \
+    'https://apigkadmin.dataporten-api.no/apigks/delegates/<delegate id>/clients/'
+
+### Return value
+
+- `200 OK`: On success
+- `403 Forbidden`: Current user is not allowed to see the delegate's clients
+
+'me' can be used as delegate id and means the userid of the calling user.
+
+On success, the json body consists of a list of clients matching the
+request. If the delegate manages an apigk with id `foo`, clients having
 `gk_foo` in scopes or scopes_requested are considered
 matching. Example:
 
