@@ -190,6 +190,43 @@ class ClientAdmTests(unittest.TestCase):
         res = self._test_list_clients_by_org_as_admin(False, 200)
         assert is_full_client(res.json[0])
 
+    def test_list_clients_by_owner_as_owner(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_clients.return_value = iter([deepcopy(retrieved_client)])
+        self.session.is_org_admin.return_value = False
+        path = '/clientadm/clients/?owner={}'.format(userid_own)
+        res = self.testapp.get(path, status=200, headers=headers)
+        assert len(res.json) == 1
+
+    def _test_list_clients_by_owner_not_owner(self, orgadmin, expected):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(retrieved_client)
+        client['owner'] = userid_other
+        client['organization'] = 'fc:org:foo'
+        self.session.get_clients.return_value = iter([client])
+        self.session.is_org_admin.return_value = orgadmin
+        path = '/clientadm/clients/?owner={}'.format(userid_other)
+        return self.testapp.get(path, status=expected, headers=headers)
+
+    def test_list_clients_by_owner_not_owner(self):
+        res = self._test_list_clients_by_owner_not_owner(False, 200)
+        assert len(res.json) == 0
+
+    def test_list_clients_by_owner_as_orgadmin(self):
+        res = self._test_list_clients_by_owner_not_owner(True, 200)
+        assert len(res.json) == 1
+
+    @mock.patch('coreapis.clientadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
+    def test_list_clients_by_owner_platform_admin(self, _):
+        res = self._test_list_clients_by_owner_not_owner(False, 200)
+        assert len(res.json) == 1
+
+    def test_list_clients_by_owner_bad_ownerid(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_clients.return_value = iter([deepcopy(retrieved_client)])
+        path = '/clientadm/clients/?owner={}'.format('boo')
+        self.testapp.get(path, status=400, headers=headers)
+
     def test_list_public_clients(self):
         org_client = deepcopy(retrieved_client)
         org_client['organization'] = 'fc:org:example.com'

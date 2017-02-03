@@ -7,7 +7,7 @@ from pyramid.response import Response
 
 from .controller import ClientAdmController
 from coreapis.utils import (
-    AlreadyExistsError, ForbiddenError, get_payload, get_token, get_user,
+    AlreadyExistsError, ForbiddenError, ValidationError, get_payload, get_token, get_user,
     translation, get_logo_bytes)
 from coreapis.authproviders import REGISTER_CLIENT, authprovmgr
 
@@ -65,6 +65,7 @@ def list_clients(request):
     user = get_user(request)
     organization = request.params.get('organization', None)
     scope = request.params.get('scope', None)
+    ownerstr = request.params.get('owner', None)
     delegated = request.params.get('delegated', 'false').lower() == 'true'
     show_all = request.params.get('showAll', 'false').lower() == 'true'
     if organization:
@@ -80,6 +81,14 @@ def list_clients(request):
     elif delegated:
         token = get_token(request)
         return request.cadm_controller.list_delegated(user['userid'], scope, token)
+    elif ownerstr:
+        try:
+            owner = uuid.UUID(ownerstr)
+        except ValueError:
+            raise ValidationError('malformed owner id')
+        token = get_token(request)
+        return [client for client in request.cadm_controller.list_by_owner(owner, scope)
+                if request.cadm_controller.has_permission(client, user, token)]
     else:
         return request.cadm_controller.list_personal(user['userid'], scope)
 
