@@ -81,7 +81,7 @@ def list_clients(request):
         token = get_token(request)
         return request.cadm_controller.list_delegated(user['userid'], scope, token)
     else:
-        return request.cadm_controller.list_by_owner(user['userid'], scope)
+        return request.cadm_controller.list_personal(user['userid'], scope)
 
 
 @view_config(route_name='public_clients_v1', renderer='json')

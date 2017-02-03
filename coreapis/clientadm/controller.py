@@ -129,8 +129,10 @@ class ClientAdmController(CrudControllerBase):
     def list_by_owner(self, owner, scope=None):
         selectors = ['owner = ?']
         values = [owner]
-        clients = self._list(selectors, values, scope)
-        return [c for c in clients if c['organization'] is None]
+        return self._list(selectors, values, scope)
+
+    def list_personal(self, owner, scope=None):
+        return [c for c in self.list_by_owner(owner, scope) if c['organization'] is None]
 
     def list_by_admin(self, admin, scope=None):
         selectors = ['admins contains ?']
