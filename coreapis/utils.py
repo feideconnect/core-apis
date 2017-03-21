@@ -354,6 +354,22 @@ def public_userinfo(user):
     }
 
 
+def preferred_email(user):
+    pairs = user.get('email', {})
+    if not pairs:
+        return None
+    try:
+        addr = pairs[user['selectedsource']]
+    except KeyError:
+        addr = None
+    if not addr:
+        try:
+            addrs = [val for val in pairs.values() if val]
+            addr = addrs[0]
+        except IndexError:
+            addr = None
+    return addr
+
 def public_orginfo(org):
     return {
         'id': org['id'],
