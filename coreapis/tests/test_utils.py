@@ -25,6 +25,32 @@ class TestMisc(TestCase):
         assert utils.public_userinfo(input) == output
 
 
+class TestPreferredEmail(TestCase):
+    def test_ok(self):
+        user = {
+            'email': {'feide:example.org': 'test@example.org'},
+            'userid': uuid.uuid4(),
+            'selectedsource': 'feide:example.org',
+        }
+        assert utils.preferred_email(user) == 'test@example.org'
+
+    def test_empty(self):
+        assert utils.preferred_email({}) is None
+
+    def test_no_selectedsource(self):
+        user = {
+            'email': {'feide:example.org': 'test@example.org'},
+            'userid': uuid.uuid4(),
+        }
+        assert utils.preferred_email(user) == 'test@example.org'
+
+    def test_no_addr(self):
+        user = {
+            'email': {'feide:example.org': ''},
+            'userid': uuid.uuid4(),
+        }
+        assert utils.preferred_email(user) is None
+
 class TestGetFeideids(TestCase):
     def test_ok(self):
         user = {
