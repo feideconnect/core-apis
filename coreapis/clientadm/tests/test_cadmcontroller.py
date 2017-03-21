@@ -136,3 +136,8 @@ class TestController(TestCase):
         self.session.get_user_by_id.return_value = retrieved_user
         res = self.controller.get_gkscope_clients([testgk, othergk])
         assert len(res) == 3
+
+    def test_get_admin_contact_bad_owner(self):
+        self.session.get_user_by_id.side_effect = KeyError
+        res = self.controller.get_admin_contact(retrieved_gk_client)
+        assert not res
