@@ -1,5 +1,5 @@
 from coreapis.utils import (
-    EmailNotifier, json_load, LogWrapper, ValidationError, PRIV_PLATFORM_ADMIN)
+    EmailNotifier, json_load, preferred_email, LogWrapper, ValidationError, PRIV_PLATFORM_ADMIN)
 from .scope_request_notification import ScopeRequestNotification
 from coreapis.scopes import filter_missing_mainscope, gk_mainscope, is_gkscopename
 
@@ -56,10 +56,7 @@ class ScopesManager(object):
         if admin_contact:
             return admin_contact
         owner = self.session.get_user_by_id(apigk['owner'])
-        try:
-            return list(owner['email'].values())[0]
-        except (AttributeError, IndexError):
-            return None
+        return preferred_email(owner)
 
     def _get_moderator(self, scope):
         if is_gkscopename(scope):

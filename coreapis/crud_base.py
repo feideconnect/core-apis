@@ -7,7 +7,7 @@ from PIL import Image
 
 from coreapis.utils import (
     now, ValidationError, AlreadyExistsError, LogWrapper, get_feideids, public_userinfo,
-    public_orginfo, PRIV_PLATFORM_ADMIN)
+    public_orginfo, preferred_email, PRIV_PLATFORM_ADMIN)
 
 LOGO_SIZE = 128, 128
 
@@ -187,3 +187,16 @@ class CrudControllerBase(object):
                 'name': 'Unknown user',
             }
         return pubtarget
+
+    def get_admin_contact(self, target):
+        contact = target.get('admin_contact', '')
+        if contact:
+            return contact
+        try:
+            owner_uuid = target.get('owner')
+            contact = preferred_email(self.session.get_user_by_id(owner_uuid))
+        except KeyError:
+            logdata = dict(userid=target['owner'])
+            logdata[self.objtype + 'id'] = target['id']
+            self.log.warn('{} owner does not exist in users table'.format(self.objtype), **logdata)
+        return contact

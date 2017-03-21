@@ -328,6 +328,7 @@ class ClientAdmController(CrudControllerBase):
             orgauthz = {key: json.loads(val) for key, val in orgauthz.items()}
         gkclient.update({'orgauthorization': orgauthz})
         gkclient.update({attr: [] for attr in self.scope_attrs})
+        gkclient.update({'admin_contact': self.get_admin_contact(client)})
         for attr in self.scope_attrs:
             clientscopes = client[attr]
             if clientscopes:
