@@ -266,6 +266,7 @@ matching. Example:
 
     [{"descr": "Example", "id": "a7f407fd-ace2-4fbe-a07a-db123821ff59",
       "name": "example",
+	  "admin_contact": "per@example.org",
       "owner": {"id": "p:497ff70b-4b73-47a9-b9f4-8a87d844a410", "name": "Pelle"},
       "redirect_uri": ["http://example.org"],"scopes": [],
       "scopes_requested": ["gk_foo", "gk_bar"]}]
@@ -289,6 +290,7 @@ matching. Example:
 
     [{"descr": "Example", "id": "a7f407fd-ace2-4fbe-a07a-db123821ff59",
       "name": "example",
+	  "admin_contact": "per@example.org",
       "owner": {"id": "p:497ff70b-4b73-47a9-b9f4-8a87d844a410", "name": "Pelle"},
       "redirect_uri": ["http://example.org"],"scopes": [],
       "scopes_requested": ["gk_foo", "gk_bar"]}]
@@ -310,6 +312,7 @@ matching. Example:
 
     [{"descr": "Example", "id": "a7f407fd-ace2-4fbe-a07a-db123821ff59",
       "name": "example",
+	  "admin_contact": "per@example.org",
       "owner": {"id": "p:497ff70b-4b73-47a9-b9f4-8a87d844a410", "name": "Pelle"},
       "redirect_uri": ["http://example.org"],"scopes": [],
       "scopes_requested": ["gk_foo", "gk_bar"]}]
