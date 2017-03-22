@@ -129,7 +129,7 @@ class AuthMiddleware(object):
                 client = environ["FC_CLIENT"]
                 scopes = environ["FC_SCOPES"]
                 self.log.debug('successfully looked up token',
-                               user=user['userid'] if user else None,
+                               userid=user['userid'] if user else None,
                                clientid=client['id'], scopes=scopes, accesstoken=log_token(token))
             except KeyError as ex:
                 # Invalid token passed. Perhaps return 402?
@@ -344,8 +344,8 @@ class GatekeepedMiddleware(object):
                     'FC_SCOPES': scopes,
                     'FC_TOKEN': token
                 })
-                self.log.debug('successfully authenticated request', user=userid, clientid=clientid,
-                               scopes=scopes, accesstoken=log_token(token))
+                self.log.debug('successfully authenticated request', userid=userid,
+                               clientid=clientid, scopes=scopes, accesstoken=log_token(token))
             else:
                 # Invalid token passed. Perhaps return 402?
                 self.log.debug('invalid credentials')
