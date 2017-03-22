@@ -118,7 +118,7 @@ class APIGKAdmController(CrudControllerBase):
         clients = self.cadm_controller.get_gkscope_clients(['gk_' + gkid])
         for client in clients:
             scopes = set(client['scopes_requested']) | set(client['scopes'])
-            self.log.debug('removing scopes from client', client=client['id'],
+            self.log.debug('removing scopes from client', clientid=client['id'],
                            scopes_removed=list(scopes))
             self.cadm_controller.update_gkscopes(client['id'], user, [], scopes, mytoken)
         # Delete scopes from all oauth_authorizations

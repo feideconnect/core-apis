@@ -58,7 +58,7 @@ class GkController(object):
 
         if backend['requireuser'] and user is None:
             self.log.warn('user required but not in token', gatekeeper=backend_id,
-                          client=client['id'])
+                          clientid=client['id'])
             return None
 
         if backend_id in subtokens:
@@ -91,5 +91,5 @@ class GkController(object):
         header, value = auth_header(backend['trust'])
         headers[header] = value
         self.log.debug('Allowing gatekeeping', gatekeeper=backend_id, endpoint=headers['endpoint'],
-                       client=client['id'])
+                       clientid=client['id'])
         return headers
