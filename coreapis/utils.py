@@ -194,7 +194,7 @@ class RateLimiter(object):
     def check_rate(self, remote_addr):
         client = remote_addr
         accepted = not self.buckets[client].full()
-        self.log.debug("check_rate", client=client, accepted=accepted)
+        self.log.debug("check_rate", src_ip=client, accepted=accepted)
         if accepted:
             self.buckets[client].add()
             oldclient = self.recents.popleft()
@@ -202,7 +202,7 @@ class RateLimiter(object):
                 self.counts[oldclient] -= 1
                 if self.counts[oldclient] <= 0:
                     self.log.debug("bucket deleted",
-                                   client=oldclient,
+                                   src_ip=oldclient,
                                    contents=self.buckets[oldclient].contents)
                     del self.buckets[oldclient]
                     del self.counts[oldclient]
