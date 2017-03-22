@@ -106,7 +106,8 @@ class LogMiddleware(object):
             if environ.get('QUERY_STRING'):
                 req_uri += '?'+environ['QUERY_STRING']
             method = environ['REQUEST_METHOD']
-            self.log.info('access', uri=req_uri, method=method, status=status)
+            status_code = int(status.split(" ", 1)[0])
+            self.log.info('access', uri=req_uri, method=method, status=status_code)
             headers.append(('X-Request-Id', str(request_id())))
             return start_response(status, headers)
         return self.app(environ, replace_start_response)
