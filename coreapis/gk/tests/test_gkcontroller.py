@@ -45,7 +45,7 @@ class TestController(TestCase):
         backend = self.basic_backend.copy()
         backend['requireuser'] = True
         self.session.get_apigk.return_value = backend
-        headers = self.controller.info('testbackend', self.client, None, ['gk_testbackend'], {})
+        headers = self.controller.info('testbackend', self.client, None, ['gk_testbackend'], {}, None)
         assert headers is None
 
     def test_expose_nothing(self):
@@ -54,8 +54,8 @@ class TestController(TestCase):
             'access_token': 'my secret',
             'scope': ['userid'],
         }
-        headers = self.controller.info('testbackend', self.client, self.user, ['gk_testbackend'], {})
-        assert len(headers) == 5
+        headers = self.controller.info('testbackend', self.client, self.user, ['gk_testbackend'], {}, None)
+        assert len(headers) == 6
         self.basic_asserts(headers)
 
     def test_no_user(self):
@@ -66,8 +66,8 @@ class TestController(TestCase):
         }
         headers = self.controller.info('testbackend', self.client, None, ['gk_testbackend'], {
             'testbackend': 'my secret',
-        })
-        assert len(headers) == 6
+        }, None)
+        assert len(headers) == 7
         self.basic_asserts(headers)
         assert 'userid' not in headers
         assert 'token' in headers
@@ -82,13 +82,33 @@ class TestController(TestCase):
         headers = self.controller.info('testbackend', self.client, self.user,
                                        ['gk_testbackend'], {
                                            'testbackend': 'my secret',
-                                       })
-        assert len(headers) == 7
+                                       }, None)
+        assert len(headers) == 8
         self.basic_asserts(headers)
         assert 'userid' in headers
         assert headers['userid'] == '0186bdb5-5f68-436a-8453-6efe4a66cf1e'
         assert 'userid-feide' not in headers
         assert 'userid-nin' not in headers
+
+    def test_acr(self):
+        backend = self.basic_backend.copy()
+        self.session.get_apigk.return_value = backend
+        self.session.get_token.return_value = {
+            'access_token': 'my secret',
+            'scope': ['userid'],
+        }
+        headers = self.controller.info('testbackend', self.client, self.user,
+                                       ['gk_testbackend'], {
+                                           'testbackend': 'my secret',
+                                       }, "level 4")
+        assert len(headers) == 8
+        self.basic_asserts(headers)
+        assert 'userid' in headers
+        assert headers['userid'] == '0186bdb5-5f68-436a-8453-6efe4a66cf1e'
+        assert 'userid-feide' not in headers
+        assert 'userid-nin' not in headers
+        assert 'acr' in headers
+        assert headers['acr'] == "level 4"
 
     def test_expose_feideid(self):
         backend = self.basic_backend.copy()
@@ -98,8 +118,8 @@ class TestController(TestCase):
             'scope': ['userid', 'userid-feide'],
         }
         headers = self.controller.info('testbackend', self.client, self.user,
-                                       ['gk_testbackend'], {'testbackend': 'my secret'})
-        assert len(headers) == 8
+                                       ['gk_testbackend'], {'testbackend': 'my secret'}, None)
+        assert len(headers) == 9
         self.basic_asserts(headers)
         assert 'userid' in headers
         assert headers['userid'] == '0186bdb5-5f68-436a-8453-6efe4a66cf1e'
@@ -114,8 +134,8 @@ class TestController(TestCase):
             'scope': ['userid-nin'],
         }
         headers = self.controller.info('testbackend', self.client, self.user,
-                                       ['gk_testbackend'], {'testbackend': 'my secret'})
-        assert len(headers) == 7
+                                       ['gk_testbackend'], {'testbackend': 'my secret'}, None)
+        assert len(headers) == 8
         self.basic_asserts(headers)
         assert 'userid' not in headers
         assert 'userid-sec' in headers

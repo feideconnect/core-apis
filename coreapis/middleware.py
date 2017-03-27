@@ -304,6 +304,7 @@ class GKMiddleware(CassandraMiddleware):
             'FC_CLIENT': client,
             'FC_SCOPES': token['scope'],
             'FC_SUBTOKENS': token['subtokens'],
+            'FC_ACR': token.get('acr'),
         }
 
 

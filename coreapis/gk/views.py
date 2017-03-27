@@ -46,8 +46,9 @@ def info(request):
     user = request.environ.get('FC_USER', None)
     scopes = request.environ.get('FC_SCOPES', [])
     subtokens = request.environ.get('FC_SUBTOKENS', None)
+    acr = request.environ.get('FC_ACR', None)
     try:
-        headers = request.gk_controller.info(backend, client, user, scopes, subtokens)
+        headers = request.gk_controller.info(backend, client, user, scopes, subtokens, acr)
         if headers is None:
             raise HTTPForbidden('Token misses required scope, or is not associated with a user')
         for header, value in headers.items():

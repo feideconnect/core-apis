@@ -40,11 +40,14 @@ class GkController(object):
                        gatekeeper=backend_id, endpoint=headers['endpoint'])
         return headers
 
-    def info(self, backend_id, client, user, scopes, subtokens):
+    def info(self, backend_id, client, user, scopes, subtokens, acr):
         backend = self.session.get_apigk(backend_id)
         headers = dict()
         headers['endpoint'] = random.choice(backend['endpoints'])
         headers['gatekeeper'] = backend_id
+        if acr is None:
+            acr = ''
+        headers['acr'] = acr
 
         if backend.get('allow_unauthenticated', None) and client is None:
             self.log.debug('Allowing unauthenticated gatekeeping', gatekeeper=backend_id,
