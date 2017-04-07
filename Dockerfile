@@ -1,4 +1,4 @@
-FROM uninett-docker-uninett.bintray.io/jessie/minbase
+FROM registry.uninett.no/public/jessie:minbase
 # Setup locales
 ENV LC_ALL=en_US.UTF-8
 # Install dependencies
