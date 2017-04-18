@@ -1,7 +1,7 @@
 import unittest
 import mock
-# import uuid
-# from copy import deepcopy
+import uuid
+from copy import deepcopy
 import webtest
 from pyramid import testing
 from coreapis import main, middleware
@@ -48,6 +48,26 @@ class AuthzviewTests(unittest.TestCase):
     def test_delete_authz_bad_uuid(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.testapp.delete('/authorizations/{}'.format('foo'), status=404, headers=headers)
+
+    def test_delete_all_authz(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.is_org_admin.return_value = False
+        self.session.get_client_by_id.return_value = clients[client1]
+        self.testapp.delete('/authorizations/all_users/{}'.format(client1),
+                            status=204, headers=headers)
+
+    def test_delete_all_authz_not_owner(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        client = deepcopy(clients[client1])
+        client['owner'] = uuid.uuid4()
+        self.session.is_org_admin.return_value = False
+        self.testapp.delete('/authorizations/all_users/{}'.format(client1),
+                            status=403, headers=headers)
+
+    def test_delete_all_authz_bad_uuid(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.testapp.delete('/authorizations/all_users/{}'.format('foo'),
+                            status=404, headers=headers)
 
     def test_resources_owned(self):
         headers = {'Authorization': 'Bearer user_token'}

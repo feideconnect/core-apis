@@ -285,6 +285,12 @@ class Client(object):
             self.log.debug('deleting token', token=tokenid)
             self.delete_token(tokenid)
 
+    def delete_all_authorizations(self, clientid):
+        prep = self._prepare('SELECT userid FROM oauth_tokens WHERE clientid = ?')
+        prep.consistency_level = cassandra.ConsistencyLevel.ALL
+        for userid in set(self.session.execute(prep.bind([clientid]))):
+            self.delete_authorization(userid, clientid)
+
     def get_oauth_authorizations_by_scope(self, scope):
         prep = self._prepare('SELECT * FROM oauth_authorizations WHERE scopes CONTAINS ?')
         return self.session.execute(prep.bind([scope]))

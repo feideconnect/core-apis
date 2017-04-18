@@ -5,7 +5,7 @@ from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
 from pyramid.response import Response
 
 from .controller import AuthorizationController
-from coreapis.utils import get_user, get_userid, translation
+from coreapis.utils import get_user, get_userid, get_token, translation, ForbiddenError
 
 
 def configure(config):
@@ -15,6 +15,7 @@ def configure(config):
                               reify=True)
     config.add_route('list_authz', '/', request_method='GET')
     config.add_route('delete_authz', '/{id}', request_method='DELETE')
+    config.add_route('delete_all_authz', '/all_users/{id}', request_method='DELETE')
     config.add_route('resources_owned', '/resources_owned', request_method='GET')
     config.add_route('consent_withdrawn', '/consent_withdrawn', request_method='POST')
     config.add_route('mandatory_clients', '/mandatory_clients/', request_method='GET')
@@ -36,6 +37,22 @@ def delete(request):
     except ValueError:
         raise HTTPNotFound
     request.authz_controller.delete(userid, clientid)
+    return Response(status=204, content_type=False)
+
+
+@view_config(route_name="delete_all_authz", permission="scope_authzinfo")
+def delete_all(request):
+    user = get_user(request)
+    token = get_token(request)
+    clientid = request.matchdict['id']
+    try:
+        clientid = uuid.UUID(clientid)
+    except ValueError:
+        raise HTTPNotFound
+    try:
+        request.authz_controller.delete_all(clientid, user, token)
+    except ForbiddenError:
+        raise HTTPForbidden('Insufficient permissions')
     return Response(status=204, content_type=False)
 
 

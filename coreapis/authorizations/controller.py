@@ -1,6 +1,6 @@
 from coreapis import cassandra_client
 from coreapis.clientadm.controller import ClientAdmController
-from coreapis.utils import LogWrapper, get_feideids
+from coreapis.utils import LogWrapper, get_feideids, ForbiddenError
 
 
 class AuthorizationController(object):
@@ -16,6 +16,14 @@ class AuthorizationController(object):
     def delete(self, userid, clientid):
         self.log.debug('Delete authorization', userid=userid, clientid=clientid)
         self.session.delete_authorization(userid, clientid)
+
+    def delete_all(self, clientid, user, token):
+        client = self.cadm_controller.get(clientid)
+        if self.cadm_controller.has_permission(client, user, token):
+            self.log.debug('Delete all authorizations', clientid=clientid)
+            self.session.delete_all_authorizations(clientid)
+        else:
+            raise ForbiddenError('Must be owner or administrator of client')
 
     def list(self, userid):
         res = []
