@@ -74,7 +74,6 @@ class AuthorizationController(object):
 
         by_id = {c['id']: c for c in self.session.get_clients(selectors, values, 9999)}
         for feideid in get_feideids(user):
-            print(feideid)
             _, realm = feideid.split('@')
             for clientid in self.session.get_mandatory_clients(realm):
                 by_id[clientid] = self.session.get_client_by_id(clientid)
