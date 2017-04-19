@@ -1,4 +1,4 @@
-# API Gatekeeper Administration API for Dataporten
+# Authorizations API for Dataporten
 
 To test the API, obtain an authentication token and
 
@@ -25,7 +25,7 @@ To test the API, obtain an authentication token and
       }
     ]
 
-## Delete an authorization
+## Delete an authorization for a client for the current user
 
     $ curl -X DELETE -H "Authorization: Bearer $token" \
         https://api.dataporten.no/authorizations/<client id>
@@ -38,3 +38,18 @@ To test the API, obtain an authentication token and
 
 - `204 No Content`: Request was successful. Note that this does not guarantee that the authorization did exist beforehand, only that it does not exist anymore
 - `404 Not Found`: Client id does not exist or was malformed.
+
+## Delete an authorization for a client for all users
+
+    $ curl -X DELETE -H "Authorization: Bearer $token" \
+        https://api.dataporten.no/authorizations/all_users/<client id>
+
+### Parameters
+
+- `client id`: The id of the client whose authorization should be removed
+
+### Return codes
+
+- `204 No Content`: Request was successful
+- `403 Forbidden`: User is not an owner or administrator of the client
+- `404 Not Found`: Client id does not exist or was malformed
