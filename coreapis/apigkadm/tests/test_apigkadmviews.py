@@ -17,7 +17,11 @@ PLATFORMADMIN = 'admin@example.com'
 def make_user(source, userid):
     return {
         'userid': uuid.uuid4(),
-        'userid_sec': ['{}:{}'.format(source, userid)]
+        'userid_sec': ['{}:{}'.format(source, userid)],
+        'name': {
+            'feide': "The Admin",
+        },
+        'selectedsource': 'feide',
     }
 
 

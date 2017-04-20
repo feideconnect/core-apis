@@ -382,10 +382,10 @@ def json_normalize(data):
 
 
 def userinfo_for_log(user):
-    try:
-        return get_feideid(user)
-    except RuntimeError:
-        return user['userid']
+    return {
+        'name': user.get('name', {}).get(user['selectedsource'], "User without name"),
+        'userid': user['userid'],
+    }
 
 
 # Raises exception if filename is given, but open fails
