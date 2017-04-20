@@ -288,7 +288,8 @@ class Client(object):
     def delete_all_authorizations(self, clientid):
         prep = self._prepare('SELECT userid FROM oauth_tokens WHERE clientid = ?')
         prep.consistency_level = cassandra.ConsistencyLevel.ALL
-        for userid in set(self.session.execute(prep.bind([clientid]))):
+        res = self.session.execute(prep.bind([clientid]))
+        for userid in {row['userid'] for row in res}:
             self.delete_authorization(userid, clientid)
 
     def get_oauth_authorizations_by_scope(self, scope):
