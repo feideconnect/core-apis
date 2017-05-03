@@ -258,6 +258,28 @@ class ClientAdmTests(unittest.TestCase):
         assert all(is_public_client(c) for c in out)
         assert out[0]['owner'] == {'id': '', 'name': 'Unknown user'}
 
+    def test_list_public_clients_no_username(self):
+        self.session.get_clients.return_value = iter(deepcopy([retrieved_client]))
+        user = deepcopy(retrieved_user)
+        user['name'] = None
+        self.session.get_user_by_id.return_value = user
+        res = self.testapp.get('/clientadm/public/', status=200)
+        out = res.json
+        assert out[0]['name'] == 'per'
+        assert all(is_public_client(c) for c in out)
+        assert out[0]['owner'] == {'id': 'p:foo', 'name': 'Unknown user'}
+
+    def test_list_public_clients_no_selectedsource(self):
+        self.session.get_clients.return_value = iter(deepcopy([retrieved_client]))
+        user = deepcopy(retrieved_user)
+        user['selectedsource'] = None
+        self.session.get_user_by_id.return_value = user
+        res = self.testapp.get('/clientadm/public/', status=200)
+        out = res.json
+        assert out[0]['name'] == 'per'
+        assert all(is_public_client(c) for c in out)
+        assert out[0]['owner'] == {'id': 'p:foo', 'name': 'Unknown user'}
+
     def test_list_public_clients_orgauth(self):
         org_client = deepcopy(retrieved_gk_clients[3])
         org_client['organization'] = 'fc:org:example.com'

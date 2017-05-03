@@ -347,7 +347,10 @@ def public_userinfo(user):
     for sec in user['userid_sec']:
         if sec.startswith('p:'):
             userid = sec
-    name = user['name'][user['selectedsource']]
+    try:
+        name = user['name'][user['selectedsource']]
+    except (KeyError, TypeError):
+        name = 'Unknown user'
     return {
         'id': userid,
         'name': name
