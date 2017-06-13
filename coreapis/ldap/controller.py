@@ -37,6 +37,8 @@ class LDAPController(object):
         self.health_check_interval = 10
         self.statsd = statsd
         settings.get('status_methods', {})['ldap'] = self.status
+        self.last_health_check = 0
+        self.last_health_check_exception = 0
 
     def parse_ldap_config(self):
         mtime = os.stat(self.ldap_config).st_mtime
@@ -138,6 +140,8 @@ class LDAPController(object):
                 sleeptime = self.health_check_interval / len(servers)
                 for server in servers:
                     if parent and not parent.is_alive():
+                        self.log.info("Parent is not alive any more, shutting down "
+                                      "ldap health check thread")
                         return
                     if self.parse_ldap_config():
                         break
@@ -147,8 +151,10 @@ class LDAPController(object):
                 for org, orgpool in orgpools:
                     self.host_statsd.gauge(self._org_statsd_key(org, 'alive_servers'),
                                            len(orgpool.alive_servers()))
+                self.last_health_check = time.time()
             except Exception as ex:
                 self.log.warn('Exception in health check thread', exception=str(ex))
+                self.last_health_check_exception = time.time()
                 time.sleep(1)
 
     def status(self):
@@ -157,5 +163,7 @@ class LDAPController(object):
             status[org] = {
                 'servers': len(orgpool.servers),
                 'alive_servers': len(orgpool.alive_servers()),
+                'last_health_check': self.last_health_check,
+                'last_health_check_exception': self.last_health_check_exception,
             }
         return status
