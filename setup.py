@@ -27,6 +27,7 @@ requires = [
     'ldap3 == 1.4.0',
     'pytz',
     'requests',
+    'six >= 1.9',
     'statsd',
     'valideer',
     'webtest',

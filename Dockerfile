@@ -2,7 +2,7 @@ FROM registry.uninett.no/public/jessie:minbase
 # Setup locales
 ENV LC_ALL=en_US.UTF-8
 # Install dependencies
-RUN install_packages.sh python3 python3-six python3-requests locales ca-certificates libjpeg62 libpng12-0
+RUN install_packages.sh python3 python3-requests locales ca-certificates libjpeg62 libpng12-0
 
 RUN sh -c 'echo "en_US.UTF-8 UTF-8" > /etc/locale.gen' && locale-gen
 
