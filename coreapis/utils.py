@@ -373,6 +373,7 @@ def preferred_email(user):
             addr = None
     return addr
 
+
 def public_orginfo(org):
     return {
         'id': org['id'],
