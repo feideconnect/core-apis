@@ -366,17 +366,16 @@ class LDAPBackend(BaseBackend):
                                     query_attributes, 1000)
         res = []
         for hit in ldap_res:
-            attributes = hit['attributes']
-            entry = {'name': attributes['displayName'][0]}
             try:
+                attributes = hit['attributes']
+                entry = {'name': attributes['displayName'][0]}
                 if include_member_ids:
                     entry['userid_sec'] = ['feide:{}'.format(v) for v in attributes['eduPersonPrincipalName']]
                 group = self._find_group_for_groupid(entitlement_value, attributes['eduPersonEntitlement'])
                 entry['membership'] = group.membership()
+                res.append(entry)
             except KeyError:
-                import logging
-                logging.exception('hmm')
-            res.append(entry)
+                self.log.debug("Dropping member for member list due to missing attributes")
         return res
 
     def get_groups(self, user, query):
