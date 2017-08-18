@@ -4,6 +4,9 @@ import mock
 import uuid
 from aniso8601 import parse_datetime
 
+import py.test
+
+from coreapis.utils import ValidationError
 from coreapis.clientadm import controller
 from coreapis.clientadm.tests.helper import (
     userid_own, clientid, testgk, othergk, post_body_minimal, retrieved_gk_client, testscope,
@@ -141,3 +144,9 @@ class TestController(TestCase):
         self.session.get_user_by_id.side_effect = KeyError
         res = self.controller.get_admin_contact(retrieved_gk_client)
         assert not res
+
+    def test_update_logo_bomb(self):
+        self.controller._save_logo = mock.Mock()
+        with open('testdata/spark.png', "rb") as fh:
+            with py.test.raises(ValidationError):
+                self.controller.update_logo("fooo", fh.read())

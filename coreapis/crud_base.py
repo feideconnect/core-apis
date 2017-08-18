@@ -1,5 +1,6 @@
 import io
 import uuid
+import warnings
 
 import requests
 import valideer as V
@@ -10,6 +11,7 @@ from coreapis.utils import (
     public_orginfo, preferred_email, PRIV_PLATFORM_ADMIN)
 
 LOGO_SIZE = 128, 128
+warnings.simplefilter('error', Image.DecompressionBombWarning)
 
 
 def cache(data, key, fetch):
@@ -129,6 +131,8 @@ class CrudControllerBase(object):
             image = Image.open(fake_file)
         except OSError:
             raise ValidationError('image format not supported')
+        except Image.DecompressionBombWarning:
+            raise ValidationError('Bad image')
         image.thumbnail(LOGO_SIZE)
         fake_output = io.BytesIO()
         image.save(fake_output, format='PNG')
