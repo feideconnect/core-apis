@@ -119,7 +119,7 @@ class AdHocGroupAdmController(CrudControllerBase):
         return self.session.get_group_logo(groupid)
 
     def _save_logo(self, groupid, data, updated):
-        self.session.save_logo('group', groupid, data, updated)
+        self.session.save_logo('groups', groupid, data, updated)
 
     def is_owner(self, group, userid):
         return group['owner'] == userid
