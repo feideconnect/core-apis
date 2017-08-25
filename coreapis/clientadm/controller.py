@@ -16,8 +16,8 @@ from coreapis.scopes.manager import ScopesManager
 from coreapis.authproviders import authprovmgr, REGISTER_CLIENT
 from coreapis.utils import (
     LogWrapper, timestamp_adapter, ValidationError, ForbiddenError,
-    valid_url, get_feideids, userinfo_for_log, get_platform_admins,
-    PRIV_PLATFORM_ADMIN)
+    valid_url, valid_name, valid_description, get_feideids, userinfo_for_log,
+    get_platform_admins, PRIV_PLATFORM_ADMIN)
 
 
 USER_SETTABLE_STATUS_FLAGS = {'Public'}
@@ -56,7 +56,7 @@ def filter_client_status(attrs_new, attrs_old, privileges):
 class ClientAdmController(CrudControllerBase):
     schema = {
         # Required
-        '+name': 'string',
+        '+name': V.AdaptBy(valid_name, traps=ValueError),
         '+redirect_uri': V.HomogeneousSequence(item_schema=V.Condition(is_valid_uri), min_length=1),
         '+scopes_requested':  V.HomogeneousSequence(item_schema='string', min_length=1),
         # Maintained by clientadm API
@@ -68,12 +68,12 @@ class ClientAdmController(CrudControllerBase):
         'orgauthorization': V.Nullable({}),
         # Other attributes
         'client_secret': V.Nullable('string', ''),
-        'descr': V.Nullable('string', ''),
+        'descr': V.Nullable(V.AdaptBy(valid_description, traps=ValueError), ''),
         'scopes': V.Nullable(['string'], lambda: list()),
         'authproviders': V.Nullable(['string'], lambda: list()),
         'status': V.Nullable(['string'], lambda: list()),
         'type': V.Nullable('string', ''),
-        'systemdescr': V.Nullable('string', ''),
+        'systemdescr': V.Nullable(V.AdaptBy(valid_description, traps=ValueError), ''),
         'privacypolicyurl': V.Nullable(valid_url),
         'homepageurl': V.Nullable(valid_url),
         'loginurl': V.Nullable(valid_url),

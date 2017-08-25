@@ -10,7 +10,8 @@ from coreapis.crud_base import CrudControllerBase
 from coreapis.clientadm.controller import ClientAdmController
 from coreapis.scopes.manager import ScopesManager
 from coreapis.utils import (
-    LogWrapper, timestamp_adapter, log_token, valid_url, userinfo_for_log, get_platform_admins)
+    LogWrapper, timestamp_adapter, log_token, valid_url, valid_name,
+    valid_description, userinfo_for_log, get_platform_admins)
 
 
 def valid_gk_url(url):
@@ -21,13 +22,13 @@ def valid_gk_url(url):
 
 class APIGKAdmController(CrudControllerBase):
     schema = {
-        '+name': 'string',
+        '+name': V.AdaptBy(valid_name, traps=ValueError),
         'owner': V.AdaptTo(uuid.UUID),
         'organization': V.Nullable('string'),
         '+id': re.compile(r'^[a-z][a-z0-9\-]{2,14}$'),
         '+scopes_requested':  V.HomogeneousSequence(item_schema='string', min_length=1),
         'created': V.AdaptBy(timestamp_adapter),
-        'descr': V.Nullable('string'),
+        'descr': V.Nullable(V.AdaptBy(valid_description, traps=ValueError)),
         'status': V.Nullable(['string']),
         'updated': V.AdaptBy(timestamp_adapter),
         '+endpoints': V.HomogeneousSequence(valid_gk_url, min_length=1),
@@ -41,7 +42,7 @@ class APIGKAdmController(CrudControllerBase):
             'username': 'string',
             'password': 'string',
         },
-        'systemdescr': V.Nullable('string'),
+        'systemdescr': V.Nullable(V.AdaptBy(valid_description, traps=ValueError)),
         'privacypolicyurl': V.Nullable(valid_url),
         'docurl': V.Nullable(valid_url),
         'scopes': V.Nullable(['string'], lambda: list()),

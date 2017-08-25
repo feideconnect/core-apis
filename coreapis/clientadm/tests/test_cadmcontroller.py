@@ -95,6 +95,14 @@ class TestController(TestCase):
         res = self.controller.update(id, attrs, retrieved_user, [])
         assert res['created'] == parse_datetime(date_created)
 
+    def test_update_with_bad_name(self):
+        id = clientid
+        self.session.get_client_by_id.return_value = deepcopy(retrieved_gk_client)
+        self.session.insert_client = mock.MagicMock()
+        attrs = {'name': "foo\rbar"}
+        with py.test.raises(ValidationError):
+            res = self.controller.update(id, attrs, retrieved_user, [])
+        
     def test_get_gkscope_clients(self):
         self.session.get_clients_by_scope.return_value = iter([])
         self.session.get_clients_by_scope_requested.return_value = iter([retrieved_gk_client])

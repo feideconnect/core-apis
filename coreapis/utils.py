@@ -8,10 +8,12 @@ import hashlib
 import json
 import logging
 from queue import Queue, Empty
+import re
 import smtplib
 import threading
 from threading import Lock
 import time
+import unicodedata
 from urllib.parse import urlparse
 import uuid
 import ssl
@@ -585,6 +587,42 @@ def valid_url(value):
         return False
     return True
 
+
+def valid_string(value, allow_newline):
+    if not isinstance(value, str):
+        raise ValueError()
+    value = value.strip()
+    normalized = unicodedata.normalize("NFKC", value)
+    valid_categories = {
+        'LC', 'Ll', 'Lm', 'Lo', 'Lt', 'Lu',  # Letters
+        'Nd', 'Nl', 'No',  # Numbers
+        'Pd', 'Pe', 'Pf', 'Pi', 'Po', 'Ps',  # Punctuation
+        'Sc', 'Sk', 'Sm', 'So',  # Symbols
+        'Zs',  # Space
+    }
+    if allow_newline:
+        valid_categories.add('Cc')
+    for c in normalized:
+        category = unicodedata.category(c)
+        if category not in valid_categories:
+            raise ValueError()
+        if category == 'Zs' and c != " ":
+            raise ValueError()
+        if category == 'Cc' and c != "\n":
+            raise ValueError()
+        if c == '<' or c == '>':
+            raise ValueError()
+    value = re.sub(r'  +', ' ', normalized)
+    if allow_newline:
+        value = re.sub(r' \n', '\n', value)
+        value = re.sub(r'\n\n\n+', '\n\n', value)
+    return value
+
+def valid_name(value):
+    return valid_string(value, False)
+
+def valid_description(value):
+    return valid_string(value, True)
 
 def get_cassandra_authz(config):
     authkeys = ['cassandra_username', 'cassandra_password', 'cassandra_cacerts']

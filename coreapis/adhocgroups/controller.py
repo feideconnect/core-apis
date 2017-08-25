@@ -6,7 +6,8 @@ import valideer as V
 from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.utils import (LogWrapper, timestamp_adapter, ValidationError, public_userinfo,
-                            ResourceError, get_platform_admins, userinfo_for_log)
+                            ResourceError, get_platform_admins, userinfo_for_log,
+                            valid_name, valid_description)
 from coreapis.peoplesearch.tokens import decrypt_token
 
 
@@ -26,11 +27,11 @@ def valid_member_id(mid):
 
 class AdHocGroupAdmController(CrudControllerBase):
     schema = {
-        '+name': 'string',
+        '+name': V.AdaptBy(valid_name, traps=ValueError),
         'owner': V.AdaptTo(uuid.UUID),
         'id': V.AdaptTo(uuid.UUID),
         'created': V.AdaptBy(timestamp_adapter),
-        'descr': V.Nullable('string'),
+        'descr': V.Nullable(V.AdaptBy(valid_description, traps=ValueError)),
         'updated': V.AdaptBy(timestamp_adapter),
         '+public': 'boolean',
         'invitation_token': V.Nullable('string'),

@@ -150,6 +150,52 @@ class TestValidUrl(TestCase):
         assert not utils.valid_url('https:///FOO')
 
 
+class TestValidName(TestCase):
+    def test_valid_names(self):
+        for name in (
+                "Dataporten klient 1",
+                "Dataporten & stuff",
+                "Kient-4+",
+                ):
+            assert utils.valid_name(name) == name
+
+    def test_invalid_names(self):
+        for name in (
+                "foo\n\n\n\n\nPhish",
+                "bar\rboo",
+                "baz\tugle",
+                "<script>",
+                ):
+            with py.test.raises(ValueError):
+                utils.valid_name(name)
+
+    def test_adaption(self):
+        assert utils.valid_name("   foo") == "foo"
+        assert utils.valid_name("øæå") == "øæå"
+
+
+class TestValidDescription(TestCase):
+    def test_valid_descriptions(self):
+        for description in (
+                "Dataporten klient 1\nFine ting",
+                "Kient-4+\n\nintro\n\nmer info",
+                ):
+            assert utils.valid_description(description) == description
+
+    def test_invalid_descriptions(self):
+        for description in (
+                "bar\rboo",
+                "baz\tugle",
+                ):
+            with py.test.raises(ValueError):
+                utils.valid_description(description)
+
+    def test_adaption(self):
+        assert utils.valid_description("   foo") == "foo"
+        assert utils.valid_description("øæå") == "øæå"
+        assert utils.valid_description("foo \n \n \n \nbar") == "foo\n\nbar"
+
+
 class TestLogToken(TestCase):
     def test_string(self):
         assert utils.log_token('7d4a4d65-8670-4b75-994b-894872fe1d46') == '739384b61d0cd34c2da0687e7aab162e'
