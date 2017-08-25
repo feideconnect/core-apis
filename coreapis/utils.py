@@ -588,7 +588,7 @@ def valid_url(value):
     return True
 
 
-def valid_string(value, allow_newline):
+def valid_string(value, allow_newline, minlength, maxlength):
     if not isinstance(value, str):
         raise ValueError()
     value = value.strip()
@@ -602,27 +602,32 @@ def valid_string(value, allow_newline):
     }
     if allow_newline:
         valid_categories.add('Cc')
+    value = ''
     for c in normalized:
         category = unicodedata.category(c)
         if category not in valid_categories:
-            raise ValueError()
+            c = ''
         if category == 'Zs' and c != " ":
-            raise ValueError()
+            c = ''
         if category == 'Cc' and c != "\n":
-            raise ValueError()
+            c = ''
         if c == '<' or c == '>':
-            raise ValueError()
-    value = re.sub(r'  +', ' ', normalized)
+            c = ''
+        value += c
+    value = re.sub(r'  +', ' ', value)
     if allow_newline:
-        value = re.sub(r' \n', '\n', value)
+        value = re.sub(r' \n ', '\n', value)
         value = re.sub(r'\n\n\n+', '\n\n', value)
+    l = len(value)
+    if l < minlength or l >maxlength:
+        raise ValueError()
     return value
 
 def valid_name(value):
-    return valid_string(value, False)
+    return valid_string(value, False, 3, 90)
 
 def valid_description(value):
-    return valid_string(value, True)
+    return valid_string(value, True, 0, 5000)
 
 def get_cassandra_authz(config):
     authkeys = ['cassandra_username', 'cassandra_password', 'cassandra_cacerts']

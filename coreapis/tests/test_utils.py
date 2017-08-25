@@ -161,15 +161,19 @@ class TestValidName(TestCase):
 
     def test_invalid_names(self):
         for name in (
-                "foo\n\n\n\n\nPhish",
-                "bar\rboo",
-                "baz\tugle",
-                "<script>",
+                "",
+                'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+                'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+                False,
+                None,
+                42,
                 ):
             with py.test.raises(ValueError):
                 utils.valid_name(name)
 
     def test_adaption(self):
+        assert utils.valid_name("<script>") == "script"
+        assert utils.valid_name("foo\rbar") == "foobar"
         assert utils.valid_name("   foo") == "foo"
         assert utils.valid_name("øæå") == "øæå"
 
@@ -184,8 +188,8 @@ class TestValidDescription(TestCase):
 
     def test_invalid_descriptions(self):
         for description in (
-                "bar\rboo",
-                "baz\tugle",
+                ,
+                "foobar"*1000,
                 ):
             with py.test.raises(ValueError):
                 utils.valid_description(description)
