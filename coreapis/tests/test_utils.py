@@ -198,7 +198,7 @@ class TestValidDescription(TestCase):
     def test_adaption(self):
         assert utils.valid_description("   foo") == "foo"
         assert utils.valid_description("øæå") == "øæå"
-        assert utils.valid_description("foo \n \n \n \nbar") == "foo\n\nbar"
+        assert utils.valid_description("foo \n\n \n\n bar") == "foo\n\nbar"
 
 
 class TestLogToken(TestCase):

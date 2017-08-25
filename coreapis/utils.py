@@ -616,7 +616,7 @@ def valid_string(value, allow_newline, minlength, maxlength):
         value += c
     value = re.sub(r'  +', ' ', value)
     if allow_newline:
-        value = re.sub(r' \n ', '\n', value)
+        value = re.sub(r' ?\n ?', '\n', value)
         value = re.sub(r'\n\n\n+', '\n\n', value)
     l = len(value)
     if l < minlength or l >maxlength:
