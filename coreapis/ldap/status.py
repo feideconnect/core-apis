@@ -13,7 +13,7 @@ def ldap_exception_argument(ex):
 
 def check_object(con, dn, objtype, needed_attributes):
     errors = []
-    con.search(dn, '(objectClass=*)', ldap3.SEARCH_SCOPE_BASE_OBJECT,
+    con.search(dn, '(objectClass=*)', ldap3.BASE,
                attributes=list(needed_attributes), size_limit=1)
     if len(con.response) == 0:
         errors.append("Could not lookup {} {}".format(objtype, dn))
@@ -55,7 +55,7 @@ def ldap_status(realm, feideid, ldap_config, ldap_certs):
                                    user=user, password=password,
                                    client_strategy=ldap3.STRATEGY_SYNC,
                                    check_names=True)
-            con.search(base_dn, search_filter, ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
+            con.search(base_dn, search_filter, ldap3.SUBTREE,
                        attributes=coreapis.ldap.REQUIRED_PERSON_ATTRIBUTES, size_limit=1)
             if len(con.response) == 0:
                 status[server] = {

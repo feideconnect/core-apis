@@ -4,6 +4,8 @@ import urllib.parse as urlparse
 import eventlet
 import eventlet.greenthread
 ldap3 = eventlet.import_patched('ldap3')
+ldap3.core = eventlet.import_patched('ldap3.core')
+ldap3.core.exceptions = eventlet.import_patched('ldap3.core.exceptions')
 
 from coreapis.utils import LogWrapper, get_feideids, translatable, failsafe
 from coreapis.cache import Cache
@@ -161,7 +163,7 @@ class LDAPBackend(BaseBackend):
 
     def _get_org(self, realm, dn, person):
         org = self.ldap.search(realm, dn, '(objectClass=*)',
-                               ldap3.SEARCH_SCOPE_BASE_OBJECT,
+                               ldap3.BASE,
                                ldap3.ALL_ATTRIBUTES, 1)
         if len(org) == 0:
             raise KeyError('orgDN not found in catalog')
@@ -185,7 +187,7 @@ class LDAPBackend(BaseBackend):
 
     def _get_orgunit(self, realm, dn, primaryDN):
         ou = self.ldap.search(realm, dn, '(objectClass=*)',
-                              ldap3.SEARCH_SCOPE_BASE_OBJECT,
+                              ldap3.BASE,
                               ldap3.ALL_ATTRIBUTES, 1)
         if len(ou) == 0:
             raise KeyError('orgUnitDN not found in catalog')
@@ -274,7 +276,7 @@ class LDAPBackend(BaseBackend):
             self.log.debug('ldap not configured for realm', realm=realm)
             return []
         res = self.ldap.search(realm, base_dn, '(eduPersonPrincipalName={})'.format(feideid),
-                               ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
+                               ldap3.SUBTREE,
                                GROUP_PERSON_ATTRIBUTES, 1)
         if len(res) == 0:
             raise KeyError('could not find user in catalog')
@@ -362,7 +364,7 @@ class LDAPBackend(BaseBackend):
             query_attributes += ('eduPersonPrincipalName',)
         ldap_res = self.ldap.search(realm, base_dn,
                                     '(eduPersonEntitlement={})'.format(entitlement_value),
-                                    ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
+                                    ldap3.SUBTREE,
                                     query_attributes, 1000)
         res = []
         for hit in ldap_res:

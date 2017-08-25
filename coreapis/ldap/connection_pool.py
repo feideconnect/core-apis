@@ -6,11 +6,12 @@ import ssl
 import threading
 
 import ldap3
+import ldap3.core.exceptions
 
 from coreapis.utils import LogWrapper
 
 
-class TooManyConnectionsException(ldap3.LDAPExceptionError):
+class TooManyConnectionsException(ldap3.core.exceptions.LDAPExceptionError):
     pass
 
 
@@ -51,7 +52,7 @@ class ConnectionPool(object):
                                       connect_timeout=self.timeouts['connect'], tls=self.tls)
                 conn = ldap3.Connection(server, auto_bind=True,
                                         user=self.username, password=self.password,
-                                        client_strategy=ldap3.STRATEGY_SYNC,
+                                        client_strategy=ldap3.SYNC,
                                         check_names=True)
                 self.statsd.gauge(self._statsd_key('connections'),
                                   self.max_total - self.create_semaphore._value)
@@ -120,7 +121,7 @@ class ConnectionPool(object):
     def _try_connection(self):
         try:
             with self.connection() as connection:
-                connection.search("", "(objectClass=*)", ldap3.SEARCH_SCOPE_BASE_OBJECT,
+                connection.search("", "(objectClass=*)", ldap3.BASE,
                                   attributes=['vendorversion'], size_limit=1)
                 return HealthCheckResult.ok
         except TooManyConnectionsException:
@@ -178,7 +179,7 @@ class RetryPool(object):
                                       size_limit=size_limit)
                     self.statsd.incr('ldap.org.{org}.successes'.format(org=self.statsd_org))
                     return connection.response
-            except ldap3.LDAPExceptionError as ex:
+            except ldap3.core.exceptions.LDAPExceptionError as ex:
                 self.statsd.incr('ldap.org.{org}.failures'.format(org=self.statsd_org))
                 exception = ex
         raise exception

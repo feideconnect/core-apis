@@ -150,7 +150,7 @@ class PeopleSearchController(object):
             search_filter = '(&{}(!(eduPersonAffiliation=employee)))'.format(search_filter)
         elif 'employees' in access and 'others' not in access:
             search_filter = '(&{}(eduPersonAffiliation=employee))'.format(search_filter)
-        res = self.ldap.ldap_search(org, search_filter, ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
+        res = self.ldap.ldap_search(org, search_filter, 'SUBTREE',
                                     attributes=PEOPLE_SEARCH_ATTRIBUTES, size_limit=max_replies)
         with self.t.time('ps.process_results'):
             result = [dict(r['attributes']) for r in res]

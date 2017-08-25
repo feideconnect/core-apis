@@ -26,7 +26,7 @@ def parse_ldap_config(filename):
     servers = {}
     for org in config:
         orgconf = config[org]
-        server_pool = ldap3.ServerPool(None, ldap3.POOLING_STRATEGY_ROUND_ROBIN, active=True)
+        server_pool = ldap3.ServerPool(None, ldap3.ROUND_ROBIN, active=True)
         for server in orgconf['servers']:
             if ':' in server:
                 host, port = server.split(':', 1)
@@ -104,7 +104,7 @@ def main():
         search_filter = '(eduPersonPrincipalName=notfound@example.com)'
         try:
             ldap.ldap_search(org, search_filter,
-                             ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
+                             ldap3.SUBTREE,
                              attributes=['cn'], size_limit=1)
             print("OK")
         except ldap3.core.exceptions.LDAPServerPoolExhaustedError:

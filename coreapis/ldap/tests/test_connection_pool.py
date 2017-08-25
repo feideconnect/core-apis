@@ -4,6 +4,8 @@ import time
 
 import eventlet
 ldap3 = eventlet.import_patched('ldap3')
+ldap3.core = eventlet.import_patched('ldap3.core')
+ldap3.core.exceptions = eventlet.import_patched('ldap3.core.exceptions')
 threading = eventlet.import_patched('threading')
 import mock
 import pytest
@@ -32,7 +34,7 @@ class TestConnectionPool(TestCase):
                                                 auto_bind=True,
                                                 user=None,
                                                 password=None,
-                                                client_strategy=ldap3.STRATEGY_SYNC,
+                                                client_strategy=ldap3.SYNC,
                                                 check_names=True)
         assert self.pool.create_semaphore._value == 4
 
@@ -114,7 +116,7 @@ class TestConnectionPool(TestCase):
         assert self.pool.idle.empty()
         mock_connection.assert_called_once_with(mock_server(),
                                                 auto_bind=True, user=None, password=None,
-                                                client_strategy=ldap3.STRATEGY_SYNC,
+                                                client_strategy=ldap3.SYNC,
                                                 check_names=True)
         assert self.pool.create_semaphore._value == 4
 
@@ -219,7 +221,7 @@ class TestRetryPool(TestCase):
     @mock.patch('random.sample')
     def test_search(self, sample):
         sample.side_effect = lambda x, y: sorted(x, key=str)
-        self.cp1.connection().__enter__.return_value.search.side_effect = ldap3.LDAPExceptionError
+        self.cp1.connection().__enter__.return_value.search.side_effect = ldap3.core.exceptions.LDAPExceptionError
         self.cp2.connection().__enter__.return_value.response = "token"
         self.cp3.connection().__enter__.return_value.response = "token2"
         assert self.sp.search("dc=example,dc=org", "uid=1000", "BASE", ["uid"], 1) == "token"
@@ -233,5 +235,5 @@ class TestRetryPool(TestCase):
         assert self.sp.search("dc=example,dc=org", "uid=1000", "BASE", ["uid"], 1) == "token"
 
         self.cp1.alive = True
-        with pytest.raises(ldap3.LDAPExceptionError):
+        with pytest.raises(ldap3.core.exceptions.LDAPExceptionError):
             self.sp.search("dc=example,dc=org", "uid=1000", "BASE", ["uid"], 1)

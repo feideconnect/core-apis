@@ -124,7 +124,7 @@ class LDAPController(object):
         validate_query(feideid)
         search_filter = '(eduPersonPrincipalName={})'.format(feideid)
         res = self.ldap_search(realm, search_filter,
-                               ldap3.SEARCH_SCOPE_WHOLE_SUBTREE,
+                               ldap3.SUBTREE,
                                attributes=attributes, size_limit=1)
         if len(res) == 0:
             self.log.debug('Could not find user for %s' % feideid)
