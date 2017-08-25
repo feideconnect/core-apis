@@ -14,7 +14,6 @@ from coreapis.ldap.controller import validate_query
 from coreapis.ldap import PEOPLE_SEARCH_ATTRIBUTES
 
 THUMB_SIZE = 128, 128
-SINGLE_VALUED_ATTRIBUTES = ['cn', 'displayName', 'eduPersonPrincipalName']
 
 
 def flatten(user, attributes):
@@ -83,7 +82,6 @@ class PeopleSearchController(object):
         return {realm: data['display'] for realm, data in conf.items()}
 
     def _format_person(self, person):
-        flatten(person, SINGLE_VALUED_ATTRIBUTES)
         new_person = {}
         if 'eduPersonPrincipalName' in person:
             feideid = person['eduPersonPrincipalName']
