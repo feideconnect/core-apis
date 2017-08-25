@@ -99,7 +99,7 @@ class TestController(TestCase):
         id = clientid
         self.session.get_client_by_id.return_value = deepcopy(retrieved_gk_client)
         self.session.insert_client = mock.MagicMock()
-        attrs = {'name': "foo\rbar"}
+        attrs = {'name': "fo"}
         with py.test.raises(ValidationError):
             res = self.controller.update(id, attrs, retrieved_user, [])
         
