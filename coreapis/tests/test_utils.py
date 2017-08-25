@@ -176,6 +176,7 @@ class TestValidName(TestCase):
         assert utils.valid_name("foo\rbar") == "foobar"
         assert utils.valid_name("   foo") == "foo"
         assert utils.valid_name("øæå") == "øæå"
+        assert utils.valid_name("my\u1680bad") == "mybad"
 
 
 class TestValidDescription(TestCase):
