@@ -188,7 +188,7 @@ class TestValidDescription(TestCase):
 
     def test_invalid_descriptions(self):
         for description in (
-                ,
+                3,
                 "foobar"*1000,
                 ):
             with py.test.raises(ValueError):
