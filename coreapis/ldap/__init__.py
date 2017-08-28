@@ -52,3 +52,9 @@ REQUIRED_ORG_UNIT_ATTRIBUTES = [
     'norEduOrgUnitUniqueIdentifier',
     'ou',
 ]
+
+
+def get_single(attribute):
+    if isinstance(attribute, list):
+        return attribute[0]
+    return attribute

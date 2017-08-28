@@ -54,6 +54,7 @@ def ldap_status(realm, feideid, ldap_config, ldap_certs):
             con = ldap3.Connection(ldapserver, auto_bind=True,
                                    user=user, password=password,
                                    client_strategy=ldap3.SYNC,
+                                   return_empty_attributes=False,
                                    check_names=True)
             con.search(base_dn, search_filter, ldap3.SUBTREE,
                        attributes=coreapis.ldap.REQUIRED_PERSON_ATTRIBUTES, size_limit=1)
@@ -68,7 +69,7 @@ def ldap_status(realm, feideid, ldap_config, ldap_certs):
                 if attribute not in attributes:
                     errors.append('Attribute {} missing on person'.format(attribute))
             if 'eduPersonOrgDN' in attributes:
-                orgDN = attributes['eduPersonOrgDN'][0]
+                orgDN = coreapis.ldap.get_single(attributes['eduPersonOrgDN'])
                 errors.extend(check_object(con, orgDN, 'organization',
                                            coreapis.ldap.REQUIRED_ORG_ATTRIBUTES))
             if 'eduPersonOrgUnitDN' in attributes:

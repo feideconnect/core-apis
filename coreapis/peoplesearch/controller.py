@@ -11,15 +11,16 @@ from coreapis.utils import ValidationError, LogWrapper, now, \
 from .tokens import crypt_token, decrypt_token
 import coreapis.cassandra_client
 from coreapis.ldap.controller import validate_query
-from coreapis.ldap import PEOPLE_SEARCH_ATTRIBUTES
+from coreapis.ldap import PEOPLE_SEARCH_ATTRIBUTES, get_single
 
 THUMB_SIZE = 128, 128
+SINGLE_VALUED_ATTRIBUTES = ['cn', 'displayName', 'eduPersonPrincipalName']
 
 
 def flatten(user, attributes):
     for attr in attributes:
         if attr in user:
-            user[attr] = user[attr][0]
+            user[attr] = get_single(user[attr])
 
 
 def make_etag(data):
@@ -82,6 +83,7 @@ class PeopleSearchController(object):
         return {realm: data['display'] for realm, data in conf.items()}
 
     def _format_person(self, person):
+        flatten(person, SINGLE_VALUED_ATTRIBUTES)
         new_person = {}
         if 'eduPersonPrincipalName' in person:
             feideid = person['eduPersonPrincipalName']
@@ -165,10 +167,10 @@ class PeopleSearchController(object):
             attributes = self.ldap.lookup_feideid(user, ['jpegPhoto'])
         except KeyError:
             return None, None, None
-        if 'jpegPhoto' not in attributes or len(attributes['jpegPhoto']) < 1:
+        if 'jpegPhoto' not in attributes:
             self.log.debug('User %s has no jpegPhoto' % user)
             return None, None, None
-        data = attributes['jpegPhoto'][0]
+        data = get_single(attributes['jpegPhoto'])
         return data, make_etag(data), now()
 
     def decrypt_profile_image_token(self, token):

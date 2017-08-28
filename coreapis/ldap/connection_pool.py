@@ -53,6 +53,7 @@ class ConnectionPool(object):
                 conn = ldap3.Connection(server, auto_bind=True,
                                         user=self.username, password=self.password,
                                         client_strategy=ldap3.SYNC,
+                                        return_empty_attributes=False,
                                         check_names=True)
                 self.statsd.gauge(self._statsd_key('connections'),
                                   self.max_total - self.create_semaphore._value)
