@@ -35,7 +35,8 @@ class TestConnectionPool(TestCase):
                                                 user=None,
                                                 password=None,
                                                 client_strategy=ldap3.SYNC,
-                                                check_names=True)
+                                                check_names=True,
+                                                return_empty_attributes=False)
         assert self.pool.create_semaphore._value == 4
 
     @mock.patch('ldap3.Connection')
@@ -117,7 +118,8 @@ class TestConnectionPool(TestCase):
         mock_connection.assert_called_once_with(mock_server(),
                                                 auto_bind=True, user=None, password=None,
                                                 client_strategy=ldap3.SYNC,
-                                                check_names=True)
+                                                check_names=True,
+                                                return_empty_attributes=False)
         assert self.pool.create_semaphore._value == 4
 
     @mock.patch('ldap3.Connection')
