@@ -165,7 +165,7 @@ class PeopleSearchController(object):
             attributes = self.ldap.lookup_feideid(user, ['jpegPhoto'])
         except KeyError:
             return None, None, None
-        if 'jpegPhoto' not in attributes:
+        if 'jpegPhoto' not in attributes or len(attributes['jpegPhoto']) < 1:
             self.log.debug('User %s has no jpegPhoto' % user)
             return None, None, None
         data = attributes['jpegPhoto'][0]
