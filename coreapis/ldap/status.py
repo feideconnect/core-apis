@@ -53,7 +53,7 @@ def ldap_status(realm, feideid, ldap_config, ldap_certs):
         try:
             con = ldap3.Connection(ldapserver, auto_bind=True,
                                    user=user, password=password,
-                                   client_strategy=ldap3.STRATEGY_SYNC,
+                                   client_strategy=ldap3.SYNC,
                                    check_names=True)
             con.search(base_dn, search_filter, ldap3.SUBTREE,
                        attributes=coreapis.ldap.REQUIRED_PERSON_ATTRIBUTES, size_limit=1)
