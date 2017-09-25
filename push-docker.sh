@@ -1,4 +1,4 @@
-base_name=uninett-docker-uninett.bintray.io/dataporten/core-apis
+base_name=registry.uninett.no/public/dataporten-core-apis
 
 for app in base api-gatekeeper core-apis groupengine clientadm apigkadm
 do
