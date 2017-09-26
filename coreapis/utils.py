@@ -619,15 +619,18 @@ def valid_string(value, allow_newline, minlength, maxlength):
         value = re.sub(r' ?\n ?', '\n', value)
         value = re.sub(r'\n\n\n+', '\n\n', value)
     l = len(value)
-    if l < minlength or l >maxlength:
+    if l < minlength or l > maxlength:
         raise ValueError()
     return value
+
 
 def valid_name(value):
     return valid_string(value, False, 3, 90)
 
+
 def valid_description(value):
     return valid_string(value, True, 0, 5000)
+
 
 def get_cassandra_authz(config):
     authkeys = ['cassandra_username', 'cassandra_password', 'cassandra_cacerts']

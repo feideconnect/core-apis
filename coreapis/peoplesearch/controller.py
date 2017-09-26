@@ -3,7 +3,6 @@ import datetime
 import hashlib
 import io
 
-import ldap3
 from PIL import Image
 
 from coreapis.utils import ValidationError, LogWrapper, now, \
