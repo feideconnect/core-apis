@@ -11,18 +11,11 @@ function clean-docker() {
 }
 trap clean-docker EXIT
 
-export DP_CASSANDRA_TEST_NODE=localhost
-export DP_CASSANDRA_TEST_KEYSPACE=test_coreapis
-
-pip install pylint
-pip install coverage
-pip install --upgrade setuptools
-python setup.py develop
-pylint -f parseable coreapis >pylint.out || true
-echo "pylint returned $result"
+docker-compose build coreapis
+docker-compose run coreapis sh -c "pylint -f parseable coreapis >pylint.out || true"
 
 docker-compose run dataportenschemas
 
-coverage run --branch -m py.test --junitxml=testresults.xml || true
-coverage html --include 'coreapis/*'
-coverage xml --include 'coreapis/*'
+docker-compose run coreapis sh -c "coverage run --branch -m py.test --junitxml=testresults.xml || true"
+docker-compose run coreapis sh -c "coverage html --include 'coreapis/*'"
+docker-compose run coreapis sh -c "coverage xml --include 'coreapis/*'"

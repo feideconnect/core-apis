@@ -1,7 +1,5 @@
 cassandra:
   image: cassandra:2.2
-  ports:
-    - "9042:9042"
 dataportenschemas:
   image: registry.uninett.no/public/dataporten-cassandra-schemas
   links:
@@ -11,3 +9,13 @@ dataportenschemas:
     - CASSANDRA_KEYSPACE=test_coreapis
     - TESTDATA=true
   command: up
+coreapis:
+  build: .
+  dockerfile: Dockerfile-tests
+  volumes:
+    - .:/app
+  links:
+    - cassandra:cassandra
+  environment:
+    - DP_CASSANDRA_TEST_NODE=cassandra
+    - DP_CASSANDRA_TEST_KEYSPACE=test_coreapis
