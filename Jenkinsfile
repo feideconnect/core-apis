@@ -16,9 +16,9 @@ node {
         args = "--pull --no-cache  --build-arg GIT_COMMIT='${env.GIT_COMMIT}' --build-arg JENKINS_BUILD_NUMBER='${env.BUILD_NUMBER}' ."
         images = []
         images.add(docker.build(base_name, args))
-        for (app in ['api-gatekeeper', 'core-apis groupengine', 'clientadm', 'apigkadm']) {
+        for (app in ['api-gatekeeper', 'core-apis', 'groupengine', 'clientadm', 'apigkadm']) {
             image="${base_name}-${app}"
-            images.add(docker.build(image))
+            images.add(docker.build(image, "apps/${app}"))
         }
         for (image in images) {
             image.push()
