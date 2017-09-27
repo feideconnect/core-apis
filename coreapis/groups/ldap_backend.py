@@ -14,7 +14,7 @@ ldapcontroller = eventlet.import_patched('coreapis.ldap.controller')
 from coreapis import cassandra_client, feide
 from coreapis.groups.gogroups import (
     affiliation_names as go_affiliation_names, GOGroup, groupid_entitlement)
-from coreapis.ldap import ORG_ATTRIBUTE_NAMES, GROUP_PERSON_ATTRIBUTES
+from coreapis.ldap import ORG_ATTRIBUTE_NAMES, GROUP_PERSON_ATTRIBUTES, get_single
 
 PERSON_ATTRIBUTE_MAPPING = {
     'eduPersonAffiliation': 'affiliation',
@@ -122,7 +122,7 @@ def org_membership(person, org_type):
     for key, value in person.items():
         if key in PERSON_ATTRIBUTE_MAPPING:
             if key in feide.SINGLE_VALUED_ATTRIBUTES:
-                value = value[0]
+                value = get_single(value)
             membership[PERSON_ATTRIBUTE_MAPPING[key]] = value
     affiliation = membership.get('affiliation', [])
     if 'employee' in affiliation:
@@ -174,7 +174,7 @@ class LDAPBackend(BaseBackend):
             orgType = ['{}_owner'.format(o) for o in orgType]
         res = {
             'id': self._groupid(realm),
-            'displayName': org_attributes['eduOrgLegalName'][0],
+            'displayName': get_single(org_attributes['eduOrgLegalName']),
             'type': 'fc:org',
             'public': True,
             'membership': org_membership(person, orgType),
@@ -182,7 +182,7 @@ class LDAPBackend(BaseBackend):
         }
         for attribute in ORG_ATTRIBUTE_NAMES:
             if attribute in org_attributes:
-                res[attribute] = org_attributes[attribute][0]
+                res[attribute] = get_single(org_attributes[attribute])
         return res
 
     def _get_orgunit(self, realm, dn, primaryDN):
@@ -195,10 +195,12 @@ class LDAPBackend(BaseBackend):
         ou_attributes = ou['attributes']
         org_type = self._get_org_type(realm).intersection(educational_org_types)
         data = {
-            'id': self._groupid('{}:unit:{}'.format(realm,
-                ou_attributes['norEduOrgUnitUniqueIdentifier'][0])),
+            'id': self._groupid('{}:unit:{}'.format(
+                realm,
+                get_single(ou_attributes['norEduOrgUnitUniqueIdentifier']))
+            ),
             'parent': self._groupid(realm),
-            'displayName': ou_attributes['ou'][0],
+            'displayName': get_single(ou_attributes['ou']),
             'type': 'fc:orgunit',
             'public': True,
             'membership': {
@@ -283,12 +285,12 @@ class LDAPBackend(BaseBackend):
         res = res[0]
         attributes = res['attributes']
         if 'eduPersonOrgDN' in attributes:
-            orgDN = attributes['eduPersonOrgDN'][0]
+            orgDN = get_single(attributes['eduPersonOrgDN'])
             result.append(self._get_org(realm, orgDN, attributes))
         if 'eduPersonOrgUnitDN' in attributes:
             primaryOrgUnit = attributes.get('eduPersonPrimaryOrgUnitDN', [])
             if primaryOrgUnit:
-                primaryOrgUnit = primaryOrgUnit[0]
+                primaryOrgUnit = get_single(primaryOrgUnit)
             else:
                 primaryOrgUnit = None
             for orgUnitDN in attributes['eduPersonOrgUnitDN']:
@@ -370,7 +372,7 @@ class LDAPBackend(BaseBackend):
         for hit in ldap_res:
             try:
                 attributes = hit['attributes']
-                entry = {'name': attributes['displayName'][0]}
+                entry = {'name': get_single(attributes['displayName'])}
                 if include_member_ids:
                     entry['userid_sec'] = ['feide:{}'.format(v) for v in attributes['eduPersonPrincipalName']]
                 group = self._find_group_for_groupid(entitlement_value, attributes['eduPersonEntitlement'])
