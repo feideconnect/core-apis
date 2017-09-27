@@ -17,7 +17,7 @@ node {
         images = []
         images.add(docker.build(base_name, args))
         for (app in ['api-gatekeeper', 'core-apis groupengine', 'clientadm', 'apigkadm']) {
-            image='${base_name}-${app}'
+            image="${base_name}-${app}"
             images.add(docker.build(image))
         }
         for (image in images) {
