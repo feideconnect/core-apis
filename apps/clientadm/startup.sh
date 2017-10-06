@@ -1,3 +1,2 @@
 #! /bin/sh
-confd -onetime -backend env
-exec gunicorn $EXTRA_ARGS --workers "${FC_WORKERS}" --threads "${FC_THREADS}" --paste /etc/core-apis.ini
+exec /app/run-gunicorn-common.sh --workers "${FC_WORKERS}" --threads "${FC_THREADS}" --paste /etc/core-apis.ini
