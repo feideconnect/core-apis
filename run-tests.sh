@@ -17,6 +17,6 @@ docker-compose run coreapis sh -c "pylint -f parseable coreapis >pylint.out || t
 
 docker-compose run dataportenschemas
 
-docker-compose run coreapis sh -c "coverage run --branch -m py.test --junitxml=testresults.xml || true"
+docker-compose run coreapis sh -c "coverage run --concurrency eventlet --branch -m py.test --junitxml=testresults.xml || true"
 docker-compose run coreapis sh -c "coverage html --include 'coreapis/*'"
 docker-compose run coreapis sh -c "coverage xml --include 'coreapis/*'"
