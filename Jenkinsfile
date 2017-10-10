@@ -11,7 +11,7 @@ node {
         publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'htmlcov', reportFiles: 'index.html', reportName: 'Code coverage'])
     }
 
-    if (env.BRANCH_NAME == "master") {
+    if (env.BRANCH_NAME == "master" && currentBuild.resultIsBetterOrEqualTo('SUCCESS')) {
         stage('Build') {
             base_name = "registry.uninett.no/public/dataporten-core-apis"
             args = "--pull --no-cache  --build-arg GIT_COMMIT='${env.GIT_COMMIT}' --build-arg JENKINS_BUILD_NUMBER='${env.BUILD_NUMBER}' ."
