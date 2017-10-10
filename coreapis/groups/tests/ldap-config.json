@@ -1,0 +1,10 @@
+{
+    "example.org": {
+        "servers": [ "ldap:636"],
+        "base_dn": "dc=example,dc=org",
+        "peoplesearch": {
+            "employees": "all",
+            "others": "sameOrg"
+        }
+    }
+}
