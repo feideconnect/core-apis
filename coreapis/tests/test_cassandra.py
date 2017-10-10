@@ -56,6 +56,7 @@ def setUpModule():
     except NoHostAvailable:
         raise unittest.SkipTest('No database available')
     truncate_tables(cclient, TABLES)
+    return cclient
 
 
 def truncate_tables(cclient, tables):

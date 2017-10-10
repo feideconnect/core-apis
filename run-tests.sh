@@ -5,6 +5,7 @@ export COMPOSE_FILE=compose-test-cassandra.yml
 # Set up cassandra test environment
 docker-compose pull
 docker-compose up -d cassandra
+docker-compose up -d ldap
 function clean-docker() {
     docker-compose kill
     docker-compose rm --force --all

@@ -1,0 +1,12 @@
+version: 1
+
+dn: o=Osp kommune,dc=example,dc=org
+mail: support@feide.no
+eduOrgLegalName: Osp kommune
+norEduOrgNIN: NO856326502
+norEduOrgSchemaVersion: 1.5
+o: Osp kommune
+objectClass: eduOrg
+objectClass: norEduOrg
+objectClass: organization
+objectClass: top

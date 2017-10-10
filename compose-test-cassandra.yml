@@ -1,5 +1,14 @@
 cassandra:
   image: cassandra:2.2
+ldap:
+  image: osixia/openldap
+  volumes:
+    - ./testdata/ldap/schema.ldif:/container/service/slapd/assets/config/bootstrap/schema/feide.ldif
+    - ./testdata/ldap/ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom
+    - ./testdata/ldap/certs:/container/service/slapd/assets/certs
+  command: --loglevel debug --copy-service
+  environment:
+    - LDAP_TLS_VERIFY_CLIENT=never
 dataportenschemas:
   image: registry.uninett.no/public/dataporten-cassandra-schemas
   links:
@@ -14,8 +23,10 @@ coreapis:
   dockerfile: Dockerfile-tests
   volumes:
     - .:/app
+    - ./testdata/ldap/certs/ca.crt:/etc/ldap_certs.crt
   links:
     - cassandra:cassandra
+    - ldap:ldap
   environment:
     - DP_CASSANDRA_TEST_NODE=cassandra
     - DP_CASSANDRA_TEST_KEYSPACE=test_coreapis
