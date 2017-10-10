@@ -2,7 +2,7 @@ import datetime
 import os
 import unittest
 import mock
-from pytest import raises
+from pytest import mark, raises
 from pytz import UTC
 from coreapis.utils import translatable
 from coreapis.groups.ldap_backend import org_membership_name, LDAPBackend
@@ -37,6 +37,7 @@ def setUpModule():
     settings['ldap_ca_certs'] = '/etc/ldap_certs.crt'
 
 
+@mark.eventlet
 class TestLDAPIntegration(object):
     def setup(self):
         self.backend = LDAPBackend('foo', 1000, settings)

@@ -6,7 +6,7 @@ node {
             sh "./run-tests.sh"
         }
 
-        junit "testresults.xml"
+        junit "testresults*.xml"
         step([$class: 'CoberturaPublisher', coberturaReportFile: 'coverage.xml'])
         publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'htmlcov', reportFiles: 'index.html', reportName: 'Code coverage'])
     }
