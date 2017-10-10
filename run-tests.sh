@@ -8,7 +8,7 @@ docker-compose up -d cassandra
 docker-compose up -d ldap
 function clean-docker() {
     docker-compose kill
-    docker-compose rm --force --all
+    docker-compose rm --force -v
 }
 trap clean-docker EXIT
 
