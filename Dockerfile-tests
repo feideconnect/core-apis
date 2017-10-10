@@ -1,4 +1,4 @@
 FROM python:3.5
 ADD setup.py README.md CHANGES.txt /app/
 WORKDIR /app
-RUN python setup.py develop
+RUN CASS_DRIVER_NO_CYTHON=1 python setup.py develop

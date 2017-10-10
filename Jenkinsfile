@@ -3,7 +3,7 @@ node {
 
     stage('Test') {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-            sh "CASS_DRIVER_NO_CYTHON=1 ./run-tests.sh"
+            sh "./run-tests.sh"
         }
 
         junit "testresults.xml"
