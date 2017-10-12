@@ -15,9 +15,16 @@ from coreapis.utils import (
 
 
 def valid_gk_url(url):
-    if valid_url(url) and not url.endswith('/') and url.startswith('https://'):
-        return True
-    return False
+    parsed = valid_url(url)
+    if not parsed:
+        return False
+    if parsed.scheme != 'https':
+        return False
+    if parsed.hostname.endswith('dataporten-api.no'):
+        return False
+    if parsed.path.endswith('/'):
+        return False
+    return True
 
 
 class APIGKAdmController(CrudControllerBase):

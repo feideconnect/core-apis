@@ -60,8 +60,12 @@ class TestAPIGKAdmController(unittest.TestCase):
             testdata['id'] = 'ab1'
             testdata['created'] = 42
             self.controller.validate(testdata)
+        del testdata['created']
         with py.test.raises(ValidationError):
             testdata['endpoints'] = ['https://ugle.uninett.no/']
+            self.controller.validate(testdata)
+        with py.test.raises(ValidationError):
+            testdata['endpoints'] = ['https://some.dataporten-api.no']
             self.controller.validate(testdata)
 
     def test_has_permission(self):
