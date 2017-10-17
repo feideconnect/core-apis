@@ -580,12 +580,12 @@ def log_token(token):
 def valid_url(value):
     url = urlparse(value)
     if url.scheme not in ('http', 'https'):
-        return False
+        return None
     if url.netloc == '':
-        return False
+        return None
     if url.username or url.password:
-        return False
-    return True
+        return None
+    return url
 
 
 def valid_string(value, allow_newline, minlength, maxlength):
