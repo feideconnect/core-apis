@@ -1,5 +1,6 @@
 from coreapis import cassandra_client, feide
 from coreapis.utils import LogWrapper, get_feideid
+from coreapis.ldap import get_single
 
 USER_INFO_ATTRIBUTES_FEIDE = {
     "profile": [
@@ -60,7 +61,7 @@ USER_INFO_ATTRIBUTES_FEIDE = {
 def flatten(user, single_val_attrs):
     for attr in single_val_attrs:
         if attr in user:
-            user[attr] = user[attr][0]
+            user[attr] = get_single(user[attr])
 
 
 def normalize(user, single_val_attrs):
