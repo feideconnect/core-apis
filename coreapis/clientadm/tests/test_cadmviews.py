@@ -291,7 +291,7 @@ class ClientAdmTests(unittest.TestCase):
         res = self.testapp.get(path, status=200)
         out = res.json
         assert out[0]['name'] == 'per'
-        assert 'scopes' not in out[0]
+        assert out[0]['scopes'] == ['gk_test1', 'gk_test1_foo']
         assert out[0]['organization']['id'] == 'fc:org:example.com'
         assert out[0]['organization']['name'] == 'testorg'
 

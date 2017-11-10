@@ -160,7 +160,7 @@ def is_full_client(client):
 
 
 def is_public_client(client):
-    return ('scopes' not in client) and ('id' in client.get('owner', {}))
+    return ('id' in client.get('owner', {}))
 
 
 def mock_get_apigk(gkid):

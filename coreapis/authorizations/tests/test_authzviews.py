@@ -107,6 +107,7 @@ class AuthzviewTests(unittest.TestCase):
              'owner': {'id': 'p:foo', 'name': 'foo'},
              'privacypolicyurl': None,
              'redirect_uri': ['https://test.example.com'],
+             'scopes': [],
              'supporturl': None,
              'systemdescr': None}]
         self.session.get_clients.return_value = [clients[client1]]
@@ -126,5 +127,6 @@ class AuthzviewTests(unittest.TestCase):
              'owner': {'id': 'p:foo', 'name': 'foo'},
              'privacypolicyurl': None,
              'redirect_uri': ['https://test.example.com'],
+             'scopes': [],
              'supporturl': None,
              'systemdescr': None}]
