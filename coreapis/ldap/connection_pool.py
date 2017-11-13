@@ -161,6 +161,7 @@ class RetryPool(object):
         self.org = org
         self.statsd_org = org.replace('.', '_')
         self.statsd = statsd
+        self.log = LogWrapper('ldap.RetryPool', org=self.org)
 
     def search(self, base_dn, search_filter, scope, attributes, size_limit=None):
         exception = RuntimeError('No servers alive')
@@ -184,6 +185,7 @@ class RetryPool(object):
                 # We catch `Exception` instead of `ldap3.core.exceptions.LDAPExceptionError` here because the latter
                 # is hard to get hold of due to eventlet patching. We can only get the patched version, while the
                 # ldap3-library raises the unpatched version.
+                self.log.exception('LDAP search failed in RetryPool')
                 self.statsd.incr('ldap.org.{org}.failures'.format(org=self.statsd_org))
                 exception = ex
         raise exception
