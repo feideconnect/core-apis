@@ -310,22 +310,6 @@ class LDAPBackend(BaseBackend):
                 result.extend(res)
         return result
 
-    def get_membership(self, user, groupid):
-        groupid = groupid_escape(groupid)
-        my_groups = self.get_member_groups(user, True)
-        for group in my_groups:
-            if group['id'] == groupid:
-                return group['membership']
-        raise KeyError('Not found')
-
-    def get_group(self, user, groupid):
-        groupid = groupid_escape(groupid)
-        my_groups = self.get_member_groups(user, True)
-        for group in my_groups:
-            if group['id'] == groupid:
-                return group
-        raise KeyError('Not found')
-
     def get_grep_group(self, user, groupid):
         try:
             return self.get_group(user, groupid)

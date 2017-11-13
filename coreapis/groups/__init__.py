@@ -38,10 +38,18 @@ class BaseBackend(object):
         return len(objections) == 0
 
     def get_membership(self, user, groupid):
-        pass
+        my_groups = self.get_member_groups(user, True)
+        for group in my_groups:
+            if group['id'] == groupid:
+                return group['membership']
+        raise KeyError('Not found')
 
     def get_group(self, user, groupid):
-        pass
+        my_groups = self.get_member_groups(user, True)
+        for group in my_groups:
+            if group['id'] == groupid:
+                return group
+        raise KeyError('Not found')
 
     def get_members(self, user, groupid, show_all, include_member_ids):
         pass
