@@ -13,6 +13,7 @@ import smtplib
 import threading
 from threading import Lock
 import time
+import traceback
 import unicodedata
 from urllib.parse import urlparse
 import uuid
@@ -131,6 +132,10 @@ class LogWrapper(object):
 
     def info(self, msg, **kwargs):
         self.l.info(LogMessage(msg, self.base, **kwargs))
+
+    def exception(self, msg, **kwargs):
+        exception = traceback.format_exc()
+        self.error(msg, exception=exception, **kwargs)
 
 
 class DebugLogFormatter(logging.Formatter):
