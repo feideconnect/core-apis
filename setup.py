@@ -15,7 +15,6 @@ requires = [
     'aniso8601',
     'blist',
     'cassandra-driver',
-    'cherrypy',
     'coverage',
     'cryptography',
     'eventlet == 0.19.0',
