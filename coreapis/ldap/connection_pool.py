@@ -180,7 +180,10 @@ class RetryPool(object):
                                       size_limit=size_limit)
                     self.statsd.incr('ldap.org.{org}.successes'.format(org=self.statsd_org))
                     return connection.response
-            except ldap3.core.exceptions.LDAPExceptionError as ex:
+            except Exception as ex:
+                # We catch `Exception` instead of `ldap3.core.exceptions.LDAPExceptionError` here because the latter
+                # is hard to get hold of due to eventlet patching. We can only get the patched version, while the
+                # ldap3-library raises the unpatched version.
                 self.statsd.incr('ldap.org.{org}.failures'.format(org=self.statsd_org))
                 exception = ex
         raise exception
