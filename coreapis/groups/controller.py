@@ -1,5 +1,3 @@
-import traceback
-
 from eventlet.greenpool import GreenPool, GreenPile
 from eventlet.timeout import Timeout
 from paste.deploy.util import lookup_object
@@ -56,8 +54,7 @@ class GroupsController(object):
                     self.log.warn("Timeout in group backend", backend=backend,
                                   method=call)
                 except:
-                    exception = traceback.format_exc()
-                    self.log.error('unhandled exception in group backend', exception=exception)
+                    self.log.exception('unhandled exception in group backend')
         return []
 
     def _call_backends(self, func, perm_checker, *args, **kwargs):
