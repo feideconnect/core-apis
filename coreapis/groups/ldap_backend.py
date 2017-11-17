@@ -1,5 +1,6 @@
 import functools
 import urllib.parse as urlparse
+import time
 
 import eventlet
 import eventlet.greenthread
@@ -35,6 +36,11 @@ AFFILIATION_PRIORITY = (
 GREP_PREFIX = 'urn:mace:feide.no:go:grep:'
 GREP_ID_PREFIX = 'fc:grep'
 GOGROUP_ID_PREFIX = 'fc:gogroup'
+
+GROUPID_CANONICALIZATION_MIGRATION_TIME = {
+    'feide.osloskolen.no': 1515711600,  # Fri Jan 12 00:00:00 CET 2018
+    'tromso.kommune.no': 1513292400,  # Fri Dec 15 00:00:00 CET 2017
+}
 
 lang_map = {
     'nno': 'nn',
@@ -129,6 +135,11 @@ def org_membership(person, org_type):
         membership['basic'] = 'admin'
         membership['displayName'] = org_membership_name(affiliation, org_type)
     return membership
+
+
+def should_canonicalize_groupid(realm):
+    migration_time = GROUPID_CANONICALIZATION_MIGRATION_TIME.get(realm, 0)
+    return time.time() >= migration_time
 
 
 class LDAPBackend(BaseBackend):
@@ -236,7 +247,7 @@ class LDAPBackend(BaseBackend):
         return result
 
     def _handle_gogroup(self, realm, group_info, show_all):
-        group = GOGroup(group_info)
+        group = GOGroup(group_info, canonicalize=should_canonicalize_groupid(realm))
         if not group.valid() and not show_all:
             raise KeyError('Group not valid now and show_all off')
         result = group.format_group(GOGROUP_ID_PREFIX, realm, self.prefix)
@@ -322,12 +333,12 @@ class LDAPBackend(BaseBackend):
     def get_members(self, user, groupid, show_all, include_member_ids):
         return []
 
-    def _find_group_for_groupid(self, target, candidates):
+    def _find_group_for_groupid(self, target, candidates, realm):
         for group_data in candidates:
             if not GOGroup.candidate(group_data):
                 continue
             try:
-                group = GOGroup(group_data)
+                group = GOGroup(group_data, canonicalize=should_canonicalize_groupid(realm))
                 if group.groupid_entitlement() == target:
                     return group
             except KeyError:
@@ -359,7 +370,7 @@ class LDAPBackend(BaseBackend):
                 entry = {'name': get_single(attributes['displayName'])}
                 if include_member_ids:
                     entry['userid_sec'] = ['feide:{}'.format(get_single(attributes['eduPersonPrincipalName']))]
-                group = self._find_group_for_groupid(entitlement_value, attributes['eduPersonEntitlement'])
+                group = self._find_group_for_groupid(entitlement_value, attributes['eduPersonEntitlement'], realm)
                 entry['membership'] = group.membership()
                 res.append(entry)
             except KeyError:
