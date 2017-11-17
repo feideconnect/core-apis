@@ -75,7 +75,7 @@ class TestLDAPIntegration(object):
                 'displayName': 'Klasse 10A',
                 'go_type': 'b',
                 'go_type_displayName': {'nb': 'basisgruppe'},
-                'id': 'fc:gogroup:example.org:b:NO856326499:10A:2016-01-01:2019-06-20',
+                'id': 'fc:gogroup:example.org:b:NO856326499:10a:2016-01-01:2019-06-20',
                 'membership': {'affiliation': 'student',
                                'basic': 'member',
                                'displayName': {'nb': 'Elev'}},
@@ -88,7 +88,7 @@ class TestLDAPIntegration(object):
                 'displayName': 'Laboratoriegruppe 1',
                 'go_type': 'a',
                 'go_type_displayName': {'en': 'other groups', 'nb': 'andre grupper'},
-                'id': 'fc:gogroup:example.org:a:NO856326499:10A-LAB1:2016-01-01:2019-06-20',
+                'id': 'fc:gogroup:example.org:a:NO856326499:10a-lab1:2016-01-01:2019-06-20',
                 'membership': {'affiliation': 'student',
                                'basic': 'member',
                                'displayName': {'nb': 'Elev'}},
@@ -100,7 +100,7 @@ class TestLDAPIntegration(object):
         ]
 
     def test_get_go_members(self):
-        assert self.backend.get_go_members('asbjorn_elevg@example.org', 'fc:gogroup:example.org:a:NO856326499:10A-LAB1:2016-01-01:2019-06-20', True, True) == [
+        assert self.backend.get_go_members('asbjorn_elevg@example.org', 'fc:gogroup:example.org:a:NO856326499:10a-lab1:2016-01-01:2019-06-20', True, True) == [
             {
                 'name': 'Asbjørn ElevG Hansen',
                 'userid_sec': ['feide:asbjorn_elevg@example.org'],

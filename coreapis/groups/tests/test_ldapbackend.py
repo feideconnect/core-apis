@@ -91,7 +91,7 @@ class TestLDAPBackend(unittest.TestCase):
         ]
         result = self.backend.get_go_members(
             None,
-            'fc:org:example.org:b:NO975278964:6A:2014-08-01:2015-06-15',
+            'fc:org:example.org:b:NO975278964:6a:2014-08-01:2015-06-15',
             True, False)
         assert result == [
             {
@@ -138,7 +138,7 @@ class TestLDAPBackend(unittest.TestCase):
         ]
         result = self.backend.get_go_members(
             None,
-            'fc:org:example.org:b:NO975278964:6A:2014-08-01:2015-06-15',
+            'fc:org:example.org:b:NO975278964:6a:2014-08-01:2015-06-15',
             True, True)
         assert result == [
             {
