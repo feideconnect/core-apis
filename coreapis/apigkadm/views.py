@@ -15,6 +15,7 @@ def configure(config):
                               reify=True)
     config.add_route('get_apigk', '/apigks/{id}', request_method='GET')
     config.add_route('list_apigks', '/apigks/', request_method='GET')
+    config.add_route('public_apigk_v1', '/v1/public/{id}', request_method='GET')
     config.add_route('list_public_apigks_v1', '/v1/public', request_method='GET')
     config.add_route('list_public_apigks', '/public', request_method='GET')
     config.add_route('add_apigk', '/apigks/', request_method='POST')
@@ -63,6 +64,17 @@ def list_apigks(request):
         return request.gkadm_controller.list_delegated(user['userid'], token)
     else:
         return request.gkadm_controller.list_by_owner(user['userid'])
+
+
+@view_config(route_name='public_apigk_v1', renderer='json')
+@translation
+def public_apigk_v1(request):
+    gkid = request.matchdict['id']
+    try:
+        gk = request.gkadm_controller.get(gkid)
+        return request.gkadm_controller.get_public_info(gk)
+    except KeyError:
+        raise HTTPNotFound()
 
 
 @view_config(route_name='list_public_apigks_v1', renderer='json')

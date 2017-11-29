@@ -61,6 +61,29 @@ class APIGKAdmTests(unittest.TestCase):
         out = res.json
         assert out['id'] == 'updateable'
 
+    def test_get_public_apigk(self):
+        self.session().get_apigk.return_value = pre_update
+        retrieved_user = {
+            'userid_sec': ['p:foo'],
+            'selectedsource': 'us',
+            'name': {'us': 'foo'},
+            'userid': uuid.UUID('00000000-0000-0000-0000-000000000001'),
+        }
+        self.session().get_user_by_id.return_value = retrieved_user
+        path = '/apigkadm/v1/public/{}'.format(uuid.uuid4())
+        res = self.testapp.get(path, status=200)
+        out = res.json
+        assert out == {
+            'descr': None,
+            'docurl': None,
+            'id': 'updateable',
+            'name': 'pre update',
+            'owner': {'id': 'p:foo', 'name': 'foo'},
+            'privacypolicyurl': None,
+            'scopedef': None,
+            'systemdescr': None,
+        }
+
     def _test_get_apigk_not_owner(self, admins, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         other_owner = deepcopy(pre_update)
