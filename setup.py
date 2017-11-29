@@ -25,7 +25,6 @@ requires = [
     'pylint',
     'pyramid ~= 1.7.0',
     'pytest-cov',
-    'pytest-catchlog',
     'pytest',
     'ldap3 == 2.3',
     'pytz',
