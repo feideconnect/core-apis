@@ -20,4 +20,5 @@ docker-compose run coreapis sh -c "pylint -f parseable coreapis >pylint.out || t
 
 docker-compose run dataportenschemas
 
-docker-compose run -u ${UID}:${GID} coreapis sh -c "py.test --cov --cov-report=html --cov-report=xml --junitxml=testresults.xml $@"
+docker-compose run -u ${UID}:${GID} coreapis sh -c "py.test -m 'not eventlet' --cov --cov-report=html --cov-report=xml --junitxml=testresults.xml $@||true"
+docker-compose run -u ${UID}:${GID} coreapis sh -c "py.test -m eventlet --cov --cov-append --cov-report=html --cov-report=xml --junitxml=testresults-eventlet.xml $@||true"
