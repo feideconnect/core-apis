@@ -84,6 +84,11 @@ class APIGKAdmTests(unittest.TestCase):
             'systemdescr': None,
         }
 
+    def test_get_public_apigk_not_found(self):
+        self.session().get_apigk.side_effect = KeyError
+        path = '/apigkadm/v1/public/{}'.format(uuid.uuid4())
+        self.testapp.get(path, status=404)
+
     def _test_get_apigk_not_owner(self, admins, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         other_owner = deepcopy(pre_update)
