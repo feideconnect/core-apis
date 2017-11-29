@@ -10,14 +10,14 @@ function clean-docker() {
     docker-compose kill
     docker-compose rm --force -v
 }
-trap clean-docker EXIT
+if test -z "${NO_CLEANUP}"
+then
+    trap clean-docker EXIT
+fi
 
 docker-compose build coreapis
 docker-compose run coreapis sh -c "pylint -f parseable coreapis >pylint.out || true"
 
 docker-compose run dataportenschemas
 
-docker-compose run coreapis sh -c "coverage run --branch -m py.test -m 'not eventlet' --junitxml=testresults.xml || true"
-docker-compose run coreapis sh -c "coverage run --append --concurrency eventlet --branch -m py.test -m eventlet --junitxml=testresults-eventlet.xml || true"
-docker-compose run coreapis sh -c "coverage html --include 'coreapis/*'"
-docker-compose run coreapis sh -c "coverage xml --include 'coreapis/*'"
+docker-compose run -u ${UID}:${GID} coreapis sh -c "py.test --cov --cov-report=html --cov-report=xml --junitxml=testresults.xml $@"

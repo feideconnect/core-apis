@@ -27,6 +27,8 @@ coreapis:
   links:
     - cassandra:cassandra
     - ldap:ldap
+  working_dir: /app
   environment:
     - DP_CASSANDRA_TEST_NODE=cassandra
     - DP_CASSANDRA_TEST_KEYSPACE=test_coreapis
+    - PYTHON_EGG_CACHE=/tmp/Python-Eggs
