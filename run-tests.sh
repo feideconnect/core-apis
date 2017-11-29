@@ -16,7 +16,7 @@ then
 fi
 
 docker-compose build coreapis
-docker-compose run coreapis sh -c "pylint -f parseable coreapis >pylint.out || true"
+docker-compose run -u ${UID}:${GID} coreapis sh -c "pylint -f parseable coreapis >pylint.out || true"
 
 docker-compose run dataportenschemas
 
