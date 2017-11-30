@@ -28,15 +28,15 @@ eduPersonEntitlement: urn:mace:feide.no:go:group:a::NO856326499:10A-LAB1:2016-
  01-01:2019-06-20:student:Laboratoriegruppe%201
 eduPersonEntitlement: urn:mace:feide.no:go:groupid:b:NO856326499:10A:2016-01-0
  1:2019-06-20
-eduPersonEntitlement: urn:mace:feide.no:go:groupid:u:NO856326499:XMAS-10A:2016
+eduPersonEntitlement: urn:mace:feide.no:go:groupid:u:NO856326499:xmas-10a:2016
  -01-01:2019-06-20
-eduPersonEntitlement: urn:mace:feide.no:go:groupid:u:NO856326499:XENS-10A:2016
+eduPersonEntitlement: urn:mace:feide.no:go:groupid:u:NO856326499:xens-10a:2016
  -01-01:2019-06-20
-eduPersonEntitlement: urn:mace:feide.no:go:groupid:u:NO856326499:XNA-10A:2016-
+eduPersonEntitlement: urn:mace:feide.no:go:groupid:u:NO856326499:xna-10a:2016-
  01-01:2019-06-20
-eduPersonEntitlement: urn:mace:feide.no:go:groupid:u:NO856326499:XSA-10A:2016-
+eduPersonEntitlement: urn:mace:feide.no:go:groupid:u:NO856326499:xsa-10a:2016-
  01-01:2019-06-20
-eduPersonEntitlement: urn:mace:feide.no:go:groupid:a:NO856326499:10A-LAB1:2016
+eduPersonEntitlement: urn:mace:feide.no:go:groupid:a:NO856326499:10a-lab1:2016
  -01-01:2019-06-20
 eduPersonOrgDN: o=Osp kommune,dc=example,dc=org
 eduPersonOrgUnitDN:: b3U9R3LDuG4gYmFybmVza29sZSxkYz1leGFtcGxlLGRjPW9yZw==

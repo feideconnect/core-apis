@@ -68,7 +68,7 @@ def groupid_entitlement(group_id_base):
 
 
 class GOGroup(object):
-    def __init__(self, group_string):
+    def __init__(self, group_string, *, canonicalize=True):
         self.log = LogWrapper('groups.ldapbackend.gogroups')
         if not group_string.startswith(GOGROUP_PREFIX):
             raise KeyError("Found malformed group info: {}".format(group_string))
@@ -84,6 +84,12 @@ class GOGroup(object):
         self.valid_to = parse_go_date(valid_to)
         self.role = role
         self.name = name
+        if canonicalize:
+            self.group_type = self.group_type.lower()
+            self.grep_code = self.grep_code.upper()
+            self.organization = self.organization.upper()
+            self._group_id = self._group_id.lower()
+            self.role = self.role.lower()
 
     def valid(self):
         ts = now()

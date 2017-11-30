@@ -1,5 +1,6 @@
 import datetime
 import os
+import time
 import unittest
 import mock
 from pytest import mark, raises
@@ -75,6 +76,64 @@ class TestLDAPIntegration(object):
                 'displayName': 'Klasse 10A',
                 'go_type': 'b',
                 'go_type_displayName': {'nb': 'basisgruppe'},
+                'id': 'fc:gogroup:example.org:b:NO856326499:10a:2016-01-01:2019-06-20',
+                'membership': {'affiliation': 'student',
+                               'basic': 'member',
+                               'displayName': {'nb': 'Elev'}},
+                'notAfter': datetime.datetime(2019, 6, 20, 0, 0, tzinfo=UTC),
+                'notBefore': datetime.datetime(2016, 1, 1, 0, 0, tzinfo=UTC),
+                'parent': 'foo:example.org:unit:NO856326499',
+                'type': 'fc:gogroup'
+            },
+            {
+                'displayName': 'Laboratoriegruppe 1',
+                'go_type': 'a',
+                'go_type_displayName': {'en': 'other groups', 'nb': 'andre grupper'},
+                'id': 'fc:gogroup:example.org:a:NO856326499:10a-lab1:2016-01-01:2019-06-20',
+                'membership': {'affiliation': 'student',
+                               'basic': 'member',
+                               'displayName': {'nb': 'Elev'}},
+                'notAfter': datetime.datetime(2019, 6, 20, 0, 0, tzinfo=UTC),
+                'notBefore': datetime.datetime(2016, 1, 1, 0, 0, tzinfo=UTC),
+                'parent': 'foo:example.org:unit:NO856326499',
+                'type': 'fc:gogroup'
+            }
+        ]
+
+    @mock.patch.dict('coreapis.groups.ldap_backend.GROUPID_CANONICALIZATION_MIGRATION_TIME', {'example.org': time.time() + 1000})
+    def test_get_member_groups_noncanonical(self):
+        assert self.backend._get_member_groups(True, 'asbjorn_elevg@example.org') == [
+            {
+                'displayName': 'Osp kommune',
+                'eduOrgLegalName': 'Osp kommune',
+                'id': 'foo:example.org',
+                'mail': 'support@feide.no',
+                'type': 'fc:org',
+                'norEduOrgNIN': 'NO856326502',
+                'orgType': ['upper_secondary_owner'],
+                'public': True,
+                'membership': {
+                    'basic': 'member',
+                    'affiliation': ['student', 'member'],
+                    'primaryAffiliation': 'student'
+                }
+            },
+            {
+                'displayName': 'Grøn barneskole',
+                'id': 'foo:example.org:unit:NO856326499',
+                'membership': {
+                    'basic': 'member',
+                    'primarySchool': True
+                },
+                'orgType': ['upper_secondary'],
+                'parent': 'foo:example.org',
+                'public': True,
+                'type': 'fc:org',
+            },
+            {
+                'displayName': 'Klasse 10A',
+                'go_type': 'b',
+                'go_type_displayName': {'nb': 'basisgruppe'},
                 'id': 'fc:gogroup:example.org:b:NO856326499:10A:2016-01-01:2019-06-20',
                 'membership': {'affiliation': 'student',
                                'basic': 'member',
@@ -100,7 +159,7 @@ class TestLDAPIntegration(object):
         ]
 
     def test_get_go_members(self):
-        assert self.backend.get_go_members('asbjorn_elevg@example.org', 'fc:gogroup:example.org:a:NO856326499:10A-LAB1:2016-01-01:2019-06-20', True, True) == [
+        assert self.backend.get_go_members('asbjorn_elevg@example.org', 'fc:gogroup:example.org:a:NO856326499:10a-lab1:2016-01-01:2019-06-20', True, True) == [
             {
                 'name': 'Asbjørn ElevG Hansen',
                 'userid_sec': ['feide:asbjorn_elevg@example.org'],
@@ -111,3 +170,10 @@ class TestLDAPIntegration(object):
                 }
             }
         ]
+
+    def test_get_go_members_uncanonical_groupid(self):
+        assert self.backend.get_go_members('asbjorn_elevg@example.org', 'fc:gogroup:example.org:a:NO856326499:10a:2016-01-01:2019-06-20', True, True) == []
+
+    @mock.patch.dict('coreapis.groups.ldap_backend.GROUPID_CANONICALIZATION_MIGRATION_TIME', {'example.org': time.time() + 1000})
+    def test_get_go_members_noncanonical(self):
+        assert self.backend.get_go_members('asbjorn_elevg@example.org', 'fc:gogroup:example.org:a:NO856326499:10A:2016-01-01:2019-06-20', True, True) == []

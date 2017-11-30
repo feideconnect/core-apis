@@ -7,7 +7,8 @@ from coreapis.groups.gogroups import GOGroup
 
 GROUP1 = "urn:mace:feide.no:go:group:b::NO975278964:6A:2014-08-01:2015-06-15:student:Klasse%206A"
 GROUP2 = "urn:mace:feide.no:go:group:u:REA3012:NO974558386:3kja:2014-08-01:2015-06-15:faculty:Kjemi%202A"
-GROUPID1 = 'urn:mace:feide.no:go:groupid:b:NO975278964:6A:2014-08-01:2015-06-15'
+GROUPID1 = 'urn:mace:feide.no:go:groupid:b:NO975278964:6a:2014-08-01:2015-06-15'
+GROUPID1_NONCANONICAL = 'urn:mace:feide.no:go:groupid:b:NO975278964:6A:2014-08-01:2015-06-15'
 
 
 class TestGOGroups(unittest.TestCase):
@@ -16,7 +17,7 @@ class TestGOGroups(unittest.TestCase):
         assert group.group_type == 'b'
         assert group.grep_code == ''
         assert group.organization == 'NO975278964'
-        assert group._group_id == '6A'
+        assert group._group_id == '6a'
         assert group.valid_from == datetime.datetime(2014, 8, 1, tzinfo=pytz.UTC)
         assert group.valid_to == datetime.datetime(2015, 6, 15, tzinfo=pytz.UTC)
         assert group.role == 'student'
@@ -35,6 +36,27 @@ class TestGOGroups(unittest.TestCase):
             GOGroup("urn:mace:uninett.no:go:group:u:REA3012:NO974558386:3kja:2014-08-01:2015-06-15:faculty:Kjemi%202A")
         with raises(KeyError):
             GOGroup("urn:mace:feide.no:go:group:u:NO974558386:3kja:2014-08-01:2015-06-15:faculty:Kjemi%202A")
+
+    def test_parse_gogroup_noncanonical(self):
+        group = GOGroup(GROUP1, canonicalize=False)
+        assert group.group_type == 'b'
+        assert group.grep_code == ''
+        assert group.organization == 'NO975278964'
+        assert group._group_id == '6A'
+        assert group.valid_from == datetime.datetime(2014, 8, 1, tzinfo=pytz.UTC)
+        assert group.valid_to == datetime.datetime(2015, 6, 15, tzinfo=pytz.UTC)
+        assert group.role == 'student'
+        assert group.name == 'Klasse 6A'
+
+        group = GOGroup(GROUP2, canonicalize=False)
+        assert group.group_type == 'u'
+        assert group.grep_code == 'REA3012'
+        assert group.organization == 'NO974558386'
+        assert group._group_id == '3kja'
+        assert group.valid_from == datetime.datetime(2014, 8, 1, tzinfo=pytz.UTC)
+        assert group.valid_to == datetime.datetime(2015, 6, 15, tzinfo=pytz.UTC)
+        assert group.role == 'faculty'
+        assert group.name == 'Kjemi 2A'
 
     def test_membership(self):
         group = GOGroup(GROUP1)
@@ -67,8 +89,16 @@ class TestGOGroups(unittest.TestCase):
         group = GOGroup(GROUP1)
         assert group.groupid_entitlement() == GROUPID1
 
+    def test_groupid_entitlement_noncanonical(self):
+        group = GOGroup(GROUP1, canonicalize=False)
+        assert group.groupid_entitlement() == GROUPID1_NONCANONICAL
+
     def test_groupid(self):
         group = GOGroup(GROUP1)
+        assert group.group_id('fc:org', 'uninett.no') == 'fc:org:uninett.no:b:NO975278964:6a:2014-08-01:2015-06-15'
+
+    def test_groupid_noncanonical(self):
+        group = GOGroup(GROUP1, canonicalize=False)
         assert group.group_id('fc:org', 'uninett.no') == 'fc:org:uninett.no:b:NO975278964:6A:2014-08-01:2015-06-15'
 
     def test_valid(self):
@@ -84,7 +114,7 @@ class TestGOGroups(unittest.TestCase):
             'displayName': 'Klasse 6A',
             'go_type': 'b',
             'go_type_displayName': translatable({'nb': 'basisgruppe'}),
-            'id': 'gogroup:example.org:b:NO975278964:6A:2014-08-01:2015-06-15',
+            'id': 'gogroup:example.org:b:NO975278964:6a:2014-08-01:2015-06-15',
             'membership': {
                 'affiliation': 'student',
                 'basic': 'member',
