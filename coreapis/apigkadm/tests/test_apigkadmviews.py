@@ -81,6 +81,7 @@ class APIGKAdmTests(unittest.TestCase):
             'owner': {'id': 'p:foo', 'name': 'foo'},
             'privacypolicyurl': None,
             'scopedef': None,
+            'scopes': ['profile'],
             'systemdescr': None,
         }
 
