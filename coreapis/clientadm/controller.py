@@ -17,7 +17,7 @@ from coreapis.authproviders import authprovmgr, REGISTER_CLIENT
 from coreapis.utils import (
     LogWrapper, timestamp_adapter, ValidationError, ForbiddenError,
     valid_url, valid_name, valid_description, get_feideids, userinfo_for_log,
-    get_platform_admins, PRIV_PLATFORM_ADMIN)
+    get_platform_admins, PRIV_PLATFORM_ADMIN, public_userinfo, public_orginfo)
 
 
 USER_SETTABLE_STATUS_FLAGS = {'Public'}
@@ -51,6 +51,13 @@ def filter_client_status(attrs_new, attrs_old, privileges):
     else:
         status_allowed = status_requested.intersection(USER_SETTABLE_STATUS_FLAGS)
     attrs_new['status'] = list(status_old.union(status_allowed))
+
+
+def client_sortkey(client):
+    sortkey = (client.get('count_tokens') or 0) + (client.get('count_users') or 0)
+    if client.get('organization'):
+        sortkey += 10000000
+    return sortkey
 
 
 class ClientAdmController(CrudControllerBase):
@@ -158,21 +165,11 @@ class ClientAdmController(CrudControllerBase):
         values = [organization]
         return self._list(selectors, values, scope)
 
-    def make_client_sortkey(self):
-        clients_counters = {row['id']: row['count_tokens'] or 0 + row['count_users'] or 0
-                            for row in self.session.get_clients_counters(self.maxrows)}
-
-        def client_sortkey(client):
-            sortkey = clients_counters.get(client['id'], 0)
-            if client.get('organization'):
-                sortkey += 10000000
-            return sortkey
-
-        return client_sortkey
-
     def list_all(self, scope=None):
-        return sorted(self._list([], [], scope),
-                      key=self.make_client_sortkey(), reverse=True)
+        clients = self._list([], [], scope)
+        self.session.add_client_counters(clients)
+        return sorted(clients,
+                      key=client_sortkey, reverse=True)
 
     def public_clients(self, orgauthorization):
         selectors = []
@@ -180,10 +177,15 @@ class ClientAdmController(CrudControllerBase):
         if orgauthorization:
             selectors = ['orgauthorization contains key ?']
             values = [orgauthorization]
-        clients = sorted(self._list(selectors, values, None),
-                         key=self.make_client_sortkey(), reverse=True)
-        users = {}
-        orgs = {}
+        clients = self._list(selectors, values, None)
+        self.session.add_client_counters(clients)
+
+        clients = sorted(clients,
+                         key=client_sortkey, reverse=True)
+        owner_ids = list({c['owner'] for c in clients})
+        users = {uid: public_userinfo(user) for uid, user in self.session.get_users(owner_ids).items()}
+        org_ids = list({c['organization'] for c in clients if c.get('organization')})
+        orgs = {oid: public_orginfo(org) for oid, org in self.session.get_orgs(org_ids).items()}
         return [self.get_public_info(c, users, orgs) for c in clients if c]
 
     def is_owner(self, user, client):
@@ -442,7 +444,11 @@ class ClientAdmController(CrudControllerBase):
             _, realm = feideid.split('@')
             for clientid in self.session.get_mandatory_clients(realm):
                 by_id[clientid] = self.session.get_client_by_id(clientid)
-        return [self.get_public_info(c) for c in by_id.values()]
+        owner_ids = list({c['owner'] for c in by_id.values()})
+        users = {uid: public_userinfo(user) for uid, user in self.session.get_users(owner_ids).items()}
+        org_ids = list({c['organization'] for c in by_id.values() if c.get('organization')})
+        orgs = {oid: public_orginfo(org) for oid, org in self.session.get_orgs(org_ids).items()}
+        return [self.get_public_info(c, users, orgs) for c in by_id.values()]
 
     def get_policy(self, user):
         approved = authprovmgr.has_user_permission(user, REGISTER_CLIENT)

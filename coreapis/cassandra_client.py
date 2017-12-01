@@ -5,6 +5,7 @@ import json
 
 from cassandra.cluster import Cluster
 import cassandra
+import cassandra.concurrent
 from cassandra.query import dict_factory
 import pytz
 
@@ -71,6 +72,9 @@ class Client(object):
                 'uiinfo'],
             'orgroles': ['identity', 'orgid', 'role'],
             'clients_counters': ['id', 'count_tokens', 'count_users'],
+            'users': ['userid', 'aboveagelimit', 'created', 'email', 'name',
+                      'selectedsource', 'updated', 'usageterms',
+                      'userid_sec', 'userid_sec_seen'],
         }
         self.json_columns = {
             'clients': ['authoptions'],
@@ -90,10 +94,15 @@ class Client(object):
         self.prepared[query] = prep
         return prep
 
-    def _get_compound_pk(self, table, idvs, columns, idcolumns):
+    def _get_statement(self, table, columns=None, idcolumns=['id']):
+        if columns is None:
+            columns = self.default_columns[table]
         where = ' AND '.join(('{} = ?'.format(col) for col in idcolumns))
         stmt = 'SELECT {} FROM {} WHERE {}'.format(','.join(columns), table, where)
-        prep = self._prepare(stmt)
+        return self._prepare(stmt)
+
+    def _get_compound_pk(self, table, idvs, columns, idcolumns):
+        prep = self._get_statement(table, columns, idcolumns)
         res = self.session.execute(prep.bind(idvs))
         try:
             return next(iter(res))
@@ -101,9 +110,21 @@ class Client(object):
             raise KeyError('{} entry not found'.format(table))
 
     def _get(self, table, idv, columns=None, idcolumn='id'):
-        if columns is None:
-            columns = self.default_columns[table]
         return self._get_compound_pk(table, [idv], columns, [idcolumn])
+
+    def _get_concurrent(self, statement, ids):
+        output = {}
+        if ids and not isinstance(ids[0], tuple):
+            qids = [(u,) for u in ids]
+        else:
+            qids = ids
+        results = cassandra.concurrent.execute_concurrent_with_args(self.session, statement, qids)
+        for id, (success, result) in zip(ids, results):
+            if not success:
+                raise result
+            if result:
+                output[id] = result[0]
+        return output
 
     @staticmethod
     def val_to_store(client, colname, jsoncols):
@@ -161,6 +182,14 @@ class Client(object):
         res = self.session.execute(prep.bind([scope]))
         return res
 
+    def add_client_counters(self, clients):
+        ids = [c['id'] for c in clients]
+        print(ids)
+        statement = self._get_statement('clients_counters')
+        counters = self._get_concurrent(statement, ids)
+        for client in clients:
+            client.update(counters.get(client['id'], {'count_users': 0, 'count_tokens': 0}))
+
     def delete_client(self, clientid):
         prep = self._prepare('DELETE FROM clients WHERE id = ?')
         with self.timer.time('cassandra.delete_client'):
@@ -191,11 +220,11 @@ class Client(object):
         self.session.execute(prep.bind([scopes, access_token]))
 
     def get_user_by_id(self, userid):
-        return self._get('users', userid,
-                         ['userid', 'aboveagelimit', 'created', 'email', 'name',
-                          'selectedsource', 'updated', 'usageterms',
-                          'userid_sec', 'userid_sec_seen'],
-                         'userid')
+        return self._get('users', userid, None, 'userid')
+
+    def get_users(self, userids):
+        statement = self._get_statement('users', None, ['userid'])
+        return self._get_concurrent(statement, userids)
 
     def get_user_profilephoto(self, userid):
         userinfo = self._get('users', userid,
@@ -381,6 +410,14 @@ class Client(object):
         if 'name' in data and data['name'] is not None:
             data['name'] = translatable(data['name'])
         return data
+
+    def get_orgs(self, orgids):
+        statement = self._get_statement('organizations')
+        result = self._get_concurrent(statement, orgids)
+        for org in result.values():
+            if 'name' in org and org['name'] is not None:
+                org['name'] = translatable(org['name'])
+        return result
 
     def get_org_by_realm(self, realm):
         data = self._get('organizations', realm, idcolumn='realm')
