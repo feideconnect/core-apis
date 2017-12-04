@@ -171,6 +171,13 @@ class ClientAdmController(CrudControllerBase):
         return sorted(clients,
                       key=client_sortkey, reverse=True)
 
+    def get_public_client_list(self, clients):
+        owner_ids = list({c['owner'] for c in clients})
+        users = {uid: public_userinfo(user) for uid, user in self.session.get_users(owner_ids).items()}
+        org_ids = list({c['organization'] for c in clients if c.get('organization')})
+        orgs = {oid: public_orginfo(org) for oid, org in self.session.get_orgs(org_ids).items()}
+        return [self.get_public_info(c, users, orgs) for c in clients if c]
+
     def public_clients(self, orgauthorization):
         selectors = []
         values = []
@@ -182,11 +189,7 @@ class ClientAdmController(CrudControllerBase):
 
         clients = sorted(clients,
                          key=client_sortkey, reverse=True)
-        owner_ids = list({c['owner'] for c in clients})
-        users = {uid: public_userinfo(user) for uid, user in self.session.get_users(owner_ids).items()}
-        org_ids = list({c['organization'] for c in clients if c.get('organization')})
-        orgs = {oid: public_orginfo(org) for oid, org in self.session.get_orgs(org_ids).items()}
-        return [self.get_public_info(c, users, orgs) for c in clients if c]
+        return self.get_public_client_list(clients)
 
     def is_owner(self, user, client):
         if client['owner'] == user['userid']:
@@ -444,11 +447,7 @@ class ClientAdmController(CrudControllerBase):
             _, realm = feideid.split('@')
             for clientid in self.session.get_mandatory_clients(realm):
                 by_id[clientid] = self.session.get_client_by_id(clientid)
-        owner_ids = list({c['owner'] for c in by_id.values()})
-        users = {uid: public_userinfo(user) for uid, user in self.session.get_users(owner_ids).items()}
-        org_ids = list({c['organization'] for c in by_id.values() if c.get('organization')})
-        orgs = {oid: public_orginfo(org) for oid, org in self.session.get_orgs(org_ids).items()}
-        return [self.get_public_info(c, users, orgs) for c in by_id.values()]
+        return self.get_public_client_list(by_id.values())
 
     def get_policy(self, user):
         approved = authprovmgr.has_user_permission(user, REGISTER_CLIENT)

@@ -149,6 +149,10 @@ class Client(object):
     def get_client_by_id(self, clientid):
         return self._get('clients', clientid)
 
+    def get_clients_by_id(self, clientids):
+        statement = self._get_statement('clients')
+        return self._get_concurrent(statement, clientids)
+
     def get_generic(self, table, selectors, values, maxrows):
         if len(selectors) != len(values):
             raise KeyError('Selectors and values not same length')

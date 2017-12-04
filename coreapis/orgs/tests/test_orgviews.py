@@ -227,6 +227,7 @@ class OrgViewTests(unittest.TestCase):
     @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_delete_org_mandatory_clients(self, get_user):
         self.session.get_mandatory_clients.return_value = iter([1])
+        self.session.get_clients_by_id.return_value = {1: retrieved_client}
         self._test_delete_org(400)
 
     def test_get_org_logo_default(self):
@@ -396,7 +397,7 @@ class OrgViewTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.is_org_admin.return_value = orgadmin
         self.session.get_mandatory_clients.return_value = iter([testclient_id])
-        self.session.get_client_by_id.return_value = retrieved_client
+        self.session.get_clients_by_id.return_value = {testclient_id: retrieved_client}
         self.session.get_org.return_value = deepcopy(testorg)
         with mock.patch('coreapis.crud_base.public_userinfo') as pui:
             pui.return_value = {'foo': 'bar'}
