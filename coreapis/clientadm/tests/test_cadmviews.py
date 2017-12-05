@@ -92,6 +92,22 @@ class ClientAdmTests(unittest.TestCase):
     def test_get_client_unauthenticated(self):
         res = self._test_get_client_not_owner(None, [], 200)
         assert is_public_client(res.json)
+        assert res.json == {
+            'authproviders': [],
+            'descr': 'green',
+            'homepageurl': None,
+            'id': clientid,
+            'loginurl': None,
+            'name': 'per',
+            'organization': None,
+            'owner': {'id': 'p:foo', 'name': 'foo'},
+            'privacypolicyurl': None,
+            'redirect_uri': ['http://example.org', 'https://example.org', 'custom:whatever'],
+            'scopes': [],
+            'status': ['lab'],
+            'supporturl': None,
+            'systemdescr': None,
+        }
 
     def test_get_client_not_owner(self):
         headers = {'Authorization': 'Bearer user_token'}
