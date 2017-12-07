@@ -27,13 +27,8 @@ fi
 
 if [ -z "${NO_PYLINT}" ]
 then
-    docker-compose exec -u ${UID}:${GID} coreapis sh -c "pylint -f parseable coreapis >pylint.out || true"
+    docker-compose exec -T -u ${UID}:${GID} coreapis sh -c "pylint -f parseable coreapis >pylint.out || true"
 fi
 
-if [ $do_setup -eq 1 ]
-then
-    docker-compose run dataportenschemas
-fi
-
-docker-compose exec -u ${UID}:${GID} coreapis sh -c "py.test -m 'not eventlet' --cov --cov-report=html --cov-report=xml --junitxml=testresults.xml $@||true"
-docker-compose exec -u ${UID}:${GID} coreapis sh -c "py.test -m eventlet --cov --cov-append --cov-report=html --cov-report=xml --junitxml=testresults-eventlet.xml $@||true"
+docker-compose exec -T -u ${UID}:${GID} coreapis sh -c "py.test -m 'not eventlet' --cov --cov-report=html --cov-report=xml --junitxml=testresults.xml $@||true"
+docker-compose exec -T -u ${UID}:${GID} coreapis sh -c "py.test -m eventlet --cov --cov-append --cov-report=html --cov-report=xml --junitxml=testresults-eventlet.xml $@||true"
