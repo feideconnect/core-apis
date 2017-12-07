@@ -27,6 +27,10 @@ coreapis:
   links:
     - cassandra:cassandra
     - ldap:ldap
+  command:
+    - /bin/bash
+    - -c
+    - sleep 1000
   working_dir: /app
   environment:
     - DP_CASSANDRA_TEST_NODE=cassandra
