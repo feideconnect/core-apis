@@ -311,6 +311,25 @@ class ClientAdmTests(unittest.TestCase):
         assert out[0]['organization']['id'] == 'fc:org:example.com'
         assert out[0]['organization']['name'] == 'testorg'
 
+    def test_list_public_clients_status(self):
+        org_client = deepcopy(retrieved_gk_clients[3])
+        org_client['status'] = 'Mandatory'
+        self.session.get_clients.return_value = iter([org_client])
+        self.session.get_user_by_id.return_value = retrieved_user
+        self.session.get_orgs.return_value = {
+            'fc:org:example.com': {
+                'id': 'fc:org:example.com',
+                'name': translatable({'en': 'testorg'})
+            }
+        }
+        path = '/clientadm/public/?status=Mandatory'
+        res = self.testapp.get(path, status=200)
+        out = res.json
+        assert self.session.get_clients.call_args == ((['status contains ?'], ['Mandatory'], 100),
+                                                      {})
+        assert out[0]['name'] == 'per'
+        assert out[0]['scopes'] == ['gk_test1', 'gk_test1_foo']
+
     def _test_post_client_minimal(self, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.side_effect = KeyError

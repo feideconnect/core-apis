@@ -97,7 +97,8 @@ def list_clients(request):
 @translation
 def public_clients_v1(request):
     orgauthorization = request.params.get('orgauthorization', None)
-    return request.cadm_controller.public_clients(orgauthorization)
+    status = request.params.get('status', None)
+    return request.cadm_controller.public_clients(orgauthorization, status)
 
 
 @view_config(route_name='public_clients', renderer='json')

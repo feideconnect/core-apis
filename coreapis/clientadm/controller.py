@@ -179,12 +179,15 @@ class ClientAdmController(CrudControllerBase):
         orgs = {oid: public_orginfo(org) for oid, org in self.session.get_orgs(org_ids).items()}
         return [self.get_public_info(c, users, orgs) for c in clients if c]
 
-    def public_clients(self, orgauthorization):
+    def public_clients(self, orgauthorization, status):
         selectors = []
         values = []
         if orgauthorization:
             selectors = ['orgauthorization contains key ?']
             values = [orgauthorization]
+        if status:
+            selectors.append('status contains ?')
+            values.append(status)
         clients = self._list(selectors, values, None)
         self.session.add_client_counters(clients)
 
