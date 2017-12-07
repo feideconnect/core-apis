@@ -442,17 +442,6 @@ class ClientAdmController(CrudControllerBase):
                       audit=True, clientid=clientid, realm=realm, user=userinfo_for_log(user))
         self.session.delete_orgauthorization(clientid, realm)
 
-    def get_mandatory_clients(self, user):
-        selectors = ['status contains ?']
-        values = ['Mandatory']
-        by_id = {c['id']: c for c in self._list(selectors, values, None)}
-        for feideid in get_feideids(user):
-            print(feideid)
-            _, realm = feideid.split('@')
-            for clientid in self.session.get_mandatory_clients(realm):
-                by_id[clientid] = self.session.get_client_by_id(clientid)
-        return self.get_public_client_list(by_id.values())
-
     def get_policy(self, user):
         approved = authprovmgr.has_user_permission(user, REGISTER_CLIENT)
         return dict(register=approved)
