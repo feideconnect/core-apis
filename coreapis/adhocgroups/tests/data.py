@@ -84,4 +84,4 @@ group2_view = {
 }
 
 
-member_token = '9nFIGK7dEiuVfXdGhVcgvaQVOBZScQ_6y9Yd2BTdMizUtL8yB5b7Im5Zcr3W9hjd'
+member_token = '9nFIGK7dEiuVfXdGhVcgvaQVOBZScQ_6y9Yd2BTdMizUtL8yB5b7Im5Zcr3W9hjd' # user1
