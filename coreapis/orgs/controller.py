@@ -297,4 +297,12 @@ class OrgController(CrudControllerBase):
     def ldap_status(self, user, orgid, feideid):
         org = self.session.get_org(orgid)
         realm = org.get('realm', None)
+        if not feideid:
+            # We need a name that is supposed to be present - use one of the local admins
+            try:
+                identities = (role['identity'] for role in self.list_org_roles(orgid))
+                feideids = [identity[len('feide:'):] for identity in identities if identity.startswith('feide:')]
+                feideid = feideids.pop()
+            except (KeyError, IndexError):
+                self.log.debug('ldap_status - no local admin to look up', orgid=orgid)
         return ldap_status(realm, feideid, self.ldap_config, self.ldap_certs)

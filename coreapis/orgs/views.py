@@ -264,11 +264,6 @@ def del_org_role(request):
 def ldap_status(request):
     user = get_user(request)
     query_id = request.params.get('feideid', '')
-    if query_id:
-        require_platform_admin = True
-    else:
-        query_id = get_feideid(user)
-        require_platform_admin = False
 
-    orgid = check(request, needs_realm=True, needs_platform_admin=require_platform_admin)
+    orgid = check(request, needs_realm=True, needs_platform_admin=True)
     return request.org_controller.ldap_status(user, orgid, query_id)
