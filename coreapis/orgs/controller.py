@@ -294,15 +294,19 @@ class OrgController(CrudControllerBase):
             return False
         return True
 
+    # When no name has been given, one of the local admins
+    def get_feideid_for_status(self, orgid, realm):
+        for identity in (role['identity'] for role in self.list_org_roles(orgid)):
+            prefix, _, user_key  = identity.partition(':')
+            if prefix == 'feide':
+                _, _, irealm = user_key.partition('@')
+                if irealm == realm:
+                    return user_key
+        self.log.debug('get_feideid_for_status - no local admin to look up', realm=realm)
+
     def ldap_status(self, user, orgid, feideid):
         org = self.session.get_org(orgid)
         realm = org.get('realm', None)
         if not feideid:
-            # We need a name that is supposed to be present - use one of the local admins
-            try:
-                identities = (role['identity'] for role in self.list_org_roles(orgid))
-                feideids = [identity[len('feide:'):] for identity in identities if identity.startswith('feide:')]
-                feideid = feideids.pop()
-            except (KeyError, IndexError):
-                self.log.debug('ldap_status - no local admin to look up', orgid=orgid)
+            feideid = self.get_feideid_for_status(orgid, realm)
         return ldap_status(realm, feideid, self.ldap_config, self.ldap_certs)
