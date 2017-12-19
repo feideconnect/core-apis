@@ -38,7 +38,7 @@ GREP_ID_PREFIX = 'fc:grep'
 GOGROUP_ID_PREFIX = 'fc:gogroup'
 
 GROUPID_CANONICALIZATION_MIGRATION_TIME = {
-    'feide.osloskolen.no': 1515711600,  # Fri Jan 12 00:00:00 CET 2018
+    'feide.osloskolen.no': 1518044400,  # Thu Feb  8 00:00:00 CET 2018
     'tromso.kommune.no': 1513292400,  # Fri Dec 15 00:00:00 CET 2017
 }
 
