@@ -1,0 +1,113 @@
+###
+# app configuration
+# http://docs.pylonsproject.org/projects/pyramid/en/1.5-branch/narr/environment.html
+###
+[DEFAULT]
+statsd_server = {{getv "/fc/statsd/server"}}
+statsd_port = {{getv "/fc/statsd/port"}}
+statsd_prefix = {{getv "/fc/statsd/prefix"}}
+oauth_realm = {{getv "/fc/oauth/realm"}}
+cassandra_contact_points = {{getv "/fc/cassandra/contactpoints"}}
+cassandra_keyspace = {{getv "/fc/cassandra/keyspace"}}
+{{if exists "/fc/cassandra/username"}}
+cassandra_username = {{getv "/fc/cassandra/username"}}
+cassandra_password = {{getv "/fc/cassandra/password"}}
+cassandra_cacerts = /conf/cassandraca.pem
+{{end}}
+log_timings = {{getv "/fc/logtimings"}}
+
+[app:coreapis]
+use = egg:core-apis
+pyramid.reload_templates = false
+pyramid.debug_authorization = false
+pyramid.debug_notfound = false
+pyramid.debug_routematch = false
+pyramid.default_locale_name = en
+pyramid.includes =
+enabled_components = orgpersons,status
+main_component = orgpersons
+profile_token_secret = {{getv "/fc/profiletokensecret"}}
+peoplesearch.cache_keyspace = {{getv "/fc/ps/cachekeyspace"}}
+ldap_config_file = /conf/ldap-config.json
+ldap_ca_certs = /conf/ldap_certs.txt
+platformadmins_file = /conf/platformadmins.json
+userinfo_base_url = {{getv "/fc/userinfo/baseurl"}}
+status_token = {{getv "/fc/status/token"}}
+orgpersons_max_replies = {{getv "/fc/orgpersons/maxreplies"}}
+
+[pipeline:main]
+pipeline =
+         logmiddleware
+         ratelimitmiddleware
+         corsmiddleware
+         gatekeepedmiddleware
+         coreapis
+# By default, the toolbar only appears for clients from IP addresses
+# '127.0.0.1' and '::1'.
+# debugtoolbar.hosts = 127.0.0.1 ::1
+
+###
+# wsgi server configuration
+###
+
+[server:main]
+use = egg:pyramid#cherrypy
+host = 0.0.0.0
+port = 6543
+
+###
+# logging configuration
+# http://docs.pylonsproject.org/projects/pyramid/en/1.5-branch/narr/logging.html
+###
+
+[loggers]
+keys = root, coreapis, cassandra
+
+[handlers]
+keys = docker
+
+[formatters]
+keys = json
+
+[logger_root]
+level = DEBUG
+handlers = docker
+
+[logger_coreapis]
+level = DEBUG
+handlers =
+qualname = coreapis
+
+[logger_cassandra]
+level = INFO
+handlers =
+qualname = cassandra
+
+[handler_docker]
+class = StreamHandler
+args = (sys.stderr,)
+level = NOTSET
+formatter = json
+
+[formatter_json]
+class = coreapis.utils.DebugLogFormatter
+
+[filter:mockauthmiddleware]
+use = egg:core-apis#mockauthmiddleware
+
+[filter:gatekeepedmiddleware]
+use = egg:core-apis#gatekeepedmiddleware
+username = dataporten
+password = {{getv "/fc/orgpersons/password"}}
+
+[filter:logmiddleware]
+use = egg:core-apis#logmiddleware
+
+[filter:corsmiddleware]
+use = egg:core-apis#corsmiddleware
+
+[filter:ratelimitmiddleware]
+use = egg:core-apis#ratelimitmiddleware
+client_max_share = {{getv "/fc/ratelimit/maxshare"}}
+client_max_rate = {{getv "/fc/ratelimit/maxrate"}}
+client_max_burst_size= {{getv "/fc/ratelimit/maxburstsize"}}

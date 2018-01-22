@@ -72,7 +72,7 @@ def main(global_config, **settings):
     main_component = settings.get('main_component', None)
 
     components = ['status', 'peoplesearch', 'clientadm', 'apigkadm', 'gk', 'authorizations',
-                  'adhocgroups', 'groups', 'orgs', 'userinfo', 'statistics']
+                  'adhocgroups', 'groups', 'orgs', 'userinfo', 'statistics', 'orgpersons']
     log = LogWrapper('main')
     for component in components:
         if all_enabled or component in enabled_components:
