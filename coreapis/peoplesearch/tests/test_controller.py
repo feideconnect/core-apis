@@ -1,5 +1,5 @@
 from unittest import TestCase
-from unittest import mock
+import mock
 from coreapis.peoplesearch import controller
 from coreapis.utils import now, ValidationError
 import coreapis.ldap.controller

@@ -1,5 +1,5 @@
 import unittest
-from unittest import mock
+import mock
 import webtest
 from pyramid import testing
 from coreapis import main, middleware

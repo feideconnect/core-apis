@@ -1,5 +1,5 @@
 from unittest import TestCase
-from unittest import mock
+import mock
 from coreapis.userinfo import controller
 
 

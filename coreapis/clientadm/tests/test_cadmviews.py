@@ -4,7 +4,7 @@ import json
 import uuid
 from datetime import timedelta
 from copy import deepcopy
-from unittest import mock
+import mock
 from cassandra.util import SortedSet
 from aniso8601 import parse_datetime
 import webtest

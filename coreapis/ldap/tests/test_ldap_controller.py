@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from unittest import mock
+import mock
 import pytest
 
 from coreapis.ldap import controller
