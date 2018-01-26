@@ -1,5 +1,5 @@
 import unittest
-import mock
+from unittest import mock
 import uuid
 import json
 from copy import deepcopy

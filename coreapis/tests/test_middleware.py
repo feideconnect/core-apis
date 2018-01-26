@@ -1,7 +1,7 @@
 import unittest
 import uuid
 
-import mock
+from unittest import mock
 import webtest
 
 from coreapis import middleware

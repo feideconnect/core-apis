@@ -2,7 +2,7 @@ import datetime
 import os
 import time
 import unittest
-import mock
+from unittest import mock
 from pytest import mark, raises
 from pytz import UTC
 from coreapis.utils import translatable

@@ -2,7 +2,7 @@
 import unittest
 import uuid
 from copy import deepcopy
-import mock
+from unittest import mock
 import webtest
 from pyramid import testing
 from coreapis import main, middleware

@@ -7,7 +7,7 @@ ldap3 = eventlet.import_patched('ldap3')
 ldap3.core = eventlet.import_patched('ldap3.core')
 ldap3.core.exceptions = eventlet.import_patched('ldap3.core.exceptions')
 threading = eventlet.import_patched('threading')
-import mock
+from unittest import mock
 import pytest
 
 cpl = eventlet.import_patched('coreapis.ldap.connection_pool')

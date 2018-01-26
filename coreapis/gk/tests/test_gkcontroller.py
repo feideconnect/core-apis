@@ -1,5 +1,5 @@
 from unittest import TestCase
-import mock
+from unittest import mock
 import uuid
 
 from coreapis.gk import controller
