@@ -14,7 +14,6 @@ keys = [
     "/fc/logtimings",
     "/fc/orgpersons/password",
     "/fc/orgpersons/maxreplies",
-    "/fc/profiletokensecret",
     "/fc/ps/cachekeyspace",
     "/fc/userinfo/baseurl",
     "/fc/ratelimit/maxshare",
