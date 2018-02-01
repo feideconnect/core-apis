@@ -32,14 +32,24 @@ class OrgPersonController(object):
     # for the org being queried has the gk_orgpersons_search scope.
     # Admin users also get access.
     def has_permission(self, clientid, orgid, user):
+        try:
+            userid=user['userid']
+        except TypeError:
+            userid = None
+        self.log.debug("checking orgpersons access", clientid=clientid, userid=userid, orgid=orgid)
         if self.cadm_controller.is_admin(user, orgid):
+            self.log.debug("orgpersons access granted because user is admin", userid=userid, orgid=orgid)
             return True
         if user:
-            self.log.info("orgpersons not available to users", userid=user['userid'])
+            self.log.info("orgpersons access on behalf of non admin user denied", userid=userid, orgid=orgid)
             return False
         client = self.cadm_controller.get(clientid)
-        if 'gk_orgpersons_search' in self.cadm_controller.get_orgauthorization(client, orgid):
+        orgauthz = self.cadm_controller.get_orgauthorization(client, orgid)
+        self.log.debug("checking orgauthorization", clientid=clientid, orgauthorization=orgauthz)
+        if 'gk_orgpersons_search' in orgauthz:
+            self.log.debug("orgpersons access granted because scope is in orgauthorization")
             return True
+        self.log.debug("orgpersons access denied because scope not in orgauthorization")
         return False
 
     def _format_person(self, person):
