@@ -22,7 +22,7 @@ def configure(config):
     config.add_request_method(lambda r: r.registry.settings.ldap_controller, 'ldap_controller',
                               reify=True)
     config.add_route('search_users', '/orgs/{orgid}/users/', request_method='GET')
-    config.add_route('get_user', '/users/{feideid}', request_method='GET')
+    config.add_route('lookup_user', '/users/{feideid}', request_method='GET')
     config.scan(__name__)
 
 
@@ -46,15 +46,15 @@ def check(request, orgid):
         raise HTTPNotFound()
 
 @view_config(route_name='search_users', renderer='json')
-def get_orgpersons(request):
+def search_users(request):
     orgid = request.matchdict['orgid']
     check(request, orgid)
     query = request.params.get('q', None)
     max_replies = get_max_replies(request)
-    return request.op_controller.get_orgpersons(orgid, query, max_replies)
+    return request.op_controller.search_users(orgid, query, max_replies)
 
-@view_config(route_name='get_user', renderer='json')
-def get_orgperson(request):
+@view_config(route_name='lookup_user', renderer='json')
+def lookup_user(request):
     import sys
     feideid = request.matchdict['feideid']
     prefix, principalname = feideid.split(':', 1)
@@ -63,6 +63,6 @@ def get_orgperson(request):
     _, realm = principalname.split('@', 1)
     check(request, realm)
     try:
-        return request.op_controller.get_orgperson(principalname)
+        return request.op_controller.lookup_user(principalname)
     except KeyError:
         raise HTTPNotFound('User not found')

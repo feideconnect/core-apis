@@ -99,10 +99,10 @@ class OrgPersonController(object):
                     self.log.warn('Failed to read mandatory attribute for person in search')
             return new_result
 
-    def get_orgpersons(self, orgid, query, max_replies=10):
+    def search_users(self, orgid, query, max_replies=10):
         return self._search(orgid, query, max_replies)
 
-    def get_orgperson(self, principalname):
+    def lookup_user(self, principalname):
         person = self.ldap.lookup_feideid(principalname, LDAP_ATTRIBUTES)
         try:
             return self._format_person(person)
