@@ -3,7 +3,6 @@ from coreapis.clientadm.controller import ClientAdmController
 from coreapis.ldap.controller import validate_query
 from coreapis.peoplesearch.controller import flatten
 from coreapis.utils import LogWrapper, ValidationError
-from coreapis.utils import get_platform_admins
 
 LDAP_ATTRIBUTES = ['displayName', 'mail', 'eduPersonPrincipalName']
 def _get_photo_secid(secids):
@@ -21,8 +20,6 @@ class OrgPersonController(object):
         authz = settings.get('cassandra_authz')
         self.ldap = settings.get('ldap_controller')
         self.session = cassandra_client.Client(contact_points, keyspace, authz=authz)
-        platformadmins_file = settings.get('platformadmins_file')
-        self.platformadmins = get_platform_admins(platformadmins_file)
         self.log = LogWrapper('orgpersons.OrgPersonController')
         self.userinfo_base_url = settings.get('userinfo_base_url')
         self.tmr = settings.get('timer')
@@ -30,18 +27,9 @@ class OrgPersonController(object):
 
     # Services that do not represent users get access if client orgauthorization
     # for the org being queried has the gk_orgpersons_search scope.
-    # Admin users also get access.
     def has_permission(self, clientid, orgid, user):
-        try:
-            userid=user['userid']
-        except TypeError:
-            userid = None
-        self.log.debug("checking orgpersons access", clientid=clientid, userid=userid, orgid=orgid)
-        if self.cadm_controller.is_admin(user, orgid):
-            self.log.debug("orgpersons access granted because user is admin", userid=userid, orgid=orgid)
-            return True
         if user:
-            self.log.info("orgpersons access on behalf of non admin user denied", userid=userid, orgid=orgid)
+            self.log.info("orgpersons access on behalf of non admin user denied", userid=user.get('userid'), orgid=orgid)
             return False
         client = self.cadm_controller.get(clientid)
         orgauthz = self.cadm_controller.get_orgauthorization(client, orgid)
