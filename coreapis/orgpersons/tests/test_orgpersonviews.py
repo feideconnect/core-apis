@@ -82,6 +82,18 @@ class OrgViewTests(unittest.TestCase):
         self.ldap.lookup_feideid.side_effect = KeyError
         self._test_get_orgperson('feide:{}'.format(testprincipalname) , headers, 404)
 
+    def test_get_orgperson_for_user(self):
+        headers = {'Authorization': 'Bearer user_token', 'x-dataporten-clientid': clientid}
+        self._test_get_orgperson('feide:{}'.format(testprincipalname) , headers, 403)
+
+    def test_get_orgperson_no_orgauthz(self):
+        client = deepcopy(retrieved_client)
+        client['orgauthorization'] = {}
+        self.session.get_client_by_id.return_value = client
+        headers = {'Authorization': 'Bearer client_token', 'x-dataporten-clientid': clientid}
+        return self.testapp.get('/orgpersons/users/{}'.format('feide:{}'.format(testprincipalname)),
+                                status=403, headers=headers)
+
     def test_get_orgperson(self):
         headers = {'Authorization': 'Bearer client_token', 'x-dataporten-clientid': clientid}
         self.ldap.lookup_feideid.return_value = ldap_person
