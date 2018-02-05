@@ -8,6 +8,7 @@ from coreapis.utils import get_max_replies, get_user, ValidationError
 from .controller import OrgPersonController
 
 HDR_DP_CLIENTID = 'x-dataporten-clientid'
+HDR_DP_USERID_SEC = 'x-dataporten-userid-sec'
 
 def configure(config):
     settings = config.get_settings()
@@ -43,22 +44,33 @@ def validate_prefix(prefix):
     if prefix != 'feide':
         raise HttpBadRequest("Only feide identities supported")
 
-def check(request, orgid):
-    user = get_user(request)
-    clientid = get_clientid(request)
-    try:
-        if not request.op_controller.has_permission(clientid, orgid, user):
-            raise HTTPForbidden('Insufficient permissions')
-    except KeyError:
-        raise HTTPNotFound()
+def get_userrealm(request):
+    userid_sec = get_header(request, HDR_DP_USERID_SEC)
+    prefix, principalname = userid_sec.split(':', 1)
+    validate_prefix(prefix)
+    return principalname.split('@', 1)[1]
 
 @view_config(route_name='search_users', renderer='json')
 def search_users(request):
-    orgid = request.matchdict['orgid']
-    check(request, orgid)
+    clientid = get_clientid(request)
+    searchrealm = request.matchdict['orgid']
+    subscopes = request.op_controller.get_subscopes(clientid, searchrealm)
+    user = get_user(request)
+    if user:
+        userrealm = get_userrealm(request)
+        if userrealm == searchrealm and 'usersearchlocal' in subscopes:
+            pass
+        elif 'usersearchglobal' in subscopes:
+            pass
+        else:
+            raise HTTPForbidden('Insufficient permissions, subscopes={}'.format(subscopes))
+    elif 'systemsearch' in subscopes:
+        pass
+    else:
+        raise HTTPForbidden('Insufficient permissions, subscopes={}'.format(subscopes))
     query = request.params.get('q', None)
     max_replies = get_max_replies(request)
-    return request.op_controller.search_users(orgid, query, max_replies)
+    return request.op_controller.search_users(searchrealm, query, max_replies)
 
 @view_config(route_name='lookup_user', renderer='json')
 def lookup_user(request):

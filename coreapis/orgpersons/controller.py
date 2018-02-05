@@ -2,7 +2,7 @@ from coreapis import cassandra_client
 from coreapis.clientadm.controller import ClientAdmController
 from coreapis.ldap.controller import validate_query
 from coreapis.peoplesearch.controller import flatten
-from coreapis.utils import LogWrapper, ValidationError
+from coreapis.utils import LogWrapper
 
 LDAP_ATTRIBUTES = ['displayName', 'mail', 'eduPersonPrincipalName']
 def _get_photo_secid(secids):
@@ -29,22 +29,7 @@ class OrgPersonController(object):
         client = self.cadm_controller.get(clientid)
         orgauthz = self.cadm_controller.get_orgauthorization(client, searchrealm)
         self.log.debug("get_subscopes", clientid=clientid, orgauthz=orgauthz)
-        return [oa.split('_', 2)[2] for oa in orgauthz]
-
-    # Services that do not represent users get access if client orgauthorization
-    # for the org being queried has the gk_orgpersons_search scope.
-    def has_permission(self, clientid, orgid, user):
-        if user:
-            self.log.info("orgpersons access on behalf of non admin user denied", userid=user.get('userid'), orgid=orgid)
-            return False
-        client = self.cadm_controller.get(clientid)
-        orgauthz = self.cadm_controller.get_orgauthorization(client, orgid)
-        self.log.debug("checking orgauthorization", clientid=clientid, orgauthorization=orgauthz)
-        if 'gk_orgpersons_search' in orgauthz:
-            self.log.debug("orgpersons access granted because scope is in orgauthorization")
-            return True
-        self.log.debug("orgpersons access denied because scope not in orgauthorization")
-        return False
+        return [parts[2] for parts in [oa.split('_', 2) for oa in orgauthz] if len(parts) > 2]
 
     def _format_person(self, person):
         flatten(person, LDAP_ATTRIBUTES)
