@@ -25,7 +25,7 @@ retrieved_user = {
 }
 retrieved_client = {
     'id': uuid.UUID(clientid),
-    'orgauthorization': {'ipadi.no': '["gk_orgpersons","gk_orgpersons_search"]'},
+    'orgauthorization': {'ipadi.no': '["gk_orgpersons", "gk_orgpersons_systemlookup", "gk_orgpersons_systemsearch", "gk_orgpersons_usersearchglobal", "gk_orgpersons_usersearchlocal"]'},
 }
 
 class OrgViewTests(unittest.TestCase):
@@ -83,7 +83,8 @@ class OrgViewTests(unittest.TestCase):
         self._test_get_orgperson('feide:{}'.format(testprincipalname) , headers, 404)
 
     def test_get_orgperson_for_user(self):
-        headers = {'Authorization': 'Bearer user_token', 'x-dataporten-clientid': clientid}
+        headers = {'Authorization': 'Bearer user_token', 'x-dataporten-clientid': clientid,
+                   'x-datatporten-userid-sec': 'feide:' + testprincipalname}
         self._test_get_orgperson('feide:{}'.format(testprincipalname) , headers, 403)
 
     def test_get_orgperson_no_orgauthz(self):
