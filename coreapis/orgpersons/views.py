@@ -26,15 +26,22 @@ def configure(config):
     config.scan(__name__)
 
 
-def get_clientid(request):
+def get_header(request, headerid):
     try:
-        clientid = request.headers[HDR_DP_CLIENTID]
+        return request.headers[headerid]
     except KeyError:
-        raise HTTPBadRequest('No {} header given'.format(HDR_DP_CLIENTID))
+        raise HTTPBadRequest('No {} header given'.format(headerid))
+
+def get_clientid(request):
+    clientid = get_header(request, HDR_DP_CLIENTID)
     try:
         return uuid.UUID(clientid)
     except ValueError:
         raise HTTPBadRequest('malformed client id: {}'.format(clientid))
+
+def validate_prefix(prefix):
+    if prefix != 'feide':
+        raise HttpBadRequest("Only feide identities supported")
 
 def check(request, orgid):
     user = get_user(request)
@@ -55,13 +62,16 @@ def search_users(request):
 
 @view_config(route_name='lookup_user', renderer='json')
 def lookup_user(request):
-    import sys
+    if get_user(request):
+        raise HTTPForbidden('Lookup on behalf of user not supported')
     feideid = request.matchdict['feideid']
     prefix, principalname = feideid.split(':', 1)
-    if prefix != 'feide':
-        raise HttpInternalServerError("Only feide identities supported")
-    _, realm = principalname.split('@', 1)
-    check(request, realm)
+    validate_prefix(prefix)
+    clientid = get_clientid(request)
+    _, searchrealm = principalname.split('@', 1)
+    subscopes = request.op_controller.get_subscopes(clientid, searchrealm)
+    if not 'systemlookup' in subscopes:
+        raise HTTPForbidden('Insufficient permissions, subscopes={}'.format(subscopes))
     try:
         return request.op_controller.lookup_user(principalname)
     except KeyError:
