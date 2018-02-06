@@ -1,4 +1,5 @@
 from copy import deepcopy
+import json
 import unittest
 import uuid
 
@@ -25,8 +26,13 @@ retrieved_user = {
 }
 retrieved_client = {
     'id': uuid.UUID(clientid),
-    'orgauthorization': {'ipadi.no': '["gk_orgpersons", "gk_orgpersons_systemlookup", "gk_orgpersons_systemsearch", "gk_orgpersons_usersearchglobal", "gk_orgpersons_usersearchlocal"]'},
 }
+
+def make_test_orgauthz(subscopes):
+    return {'ipadi.no': json.dumps(["gk_orgpersons_" + ssc for ssc in subscopes])}
+
+subscopes_all = ['systemlookup', 'systemsearch', 'usersearchglobal', 'usersearchlocal']
+retrieved_client['orgauthorization'] = make_test_orgauthz(subscopes_all)
 
 class OrgViewTests(unittest.TestCase):
     @mock.patch('coreapis.orgpersons.views.LDAPController')
@@ -111,8 +117,11 @@ class OrgViewTests(unittest.TestCase):
         self.session.get_user_by_id.return_value = user
         self._test_get_orgperson('feide:{}'.format(testprincipalname) , headers, 200)
 
-    def _test_get_orgpersons(self, query, headers, status):
-        self.session.get_client_by_id.return_value = deepcopy(retrieved_client)
+    def _test_get_orgpersons(self, query, headers, subscopes, status):
+        orgauthz = {'ipadi.no': json.dumps(["gk_orgpersons_" + ssc for ssc in subscopes])}
+        client = deepcopy(retrieved_client)
+        client['orgauthorization'] = orgauthz
+        self.session.get_client_by_id.return_value = client
         return self.testapp.get('/orgpersons/orgs/{}/users/?q={}'.format(testrealm, query),
                                 status=status, headers=headers)
 
@@ -120,19 +129,43 @@ class OrgViewTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer client_token', 'x-dataporten-clientid': clientid}
         self.ldap.ldap_search.return_value = [{'attributes': incomplete_ldap_person}]
         self.session.get_user_by_id.return_value = retrieved_user
-        res = self._test_get_orgpersons(testuser, headers, 200)
+        res = self._test_get_orgpersons(testuser, headers, subscopes_all, 200)
         assert len(res.json) == 0
 
     def test_get_orgpersons(self):
         headers = {'Authorization': 'Bearer client_token', 'x-dataporten-clientid': clientid}
         self.ldap.ldap_search.return_value = [{'attributes': ldap_person}]
         self.session.get_user_by_id.return_value = retrieved_user
-        res = self._test_get_orgpersons(testuser, headers, 200)
+        res = self._test_get_orgpersons(testuser, headers, subscopes_all, 200)
         assert len(res.json) == 1
 
     def test_get_orgpersons_email(self):
         headers = {'Authorization': 'Bearer client_token', 'x-dataporten-clientid': clientid}
         self.ldap.ldap_search.return_value = [{'attributes': ldap_person}]
         self.session.get_user_by_id.return_value = retrieved_user
-        res = self._test_get_orgpersons(testprincipalname, headers, 200)
+        res = self._test_get_orgpersons(testprincipalname, headers, subscopes_all, 200)
         assert len(res.json) == 1
+
+    def test_get_orgpersons_for_user_no_privs(self):
+        headers = {'Authorization': 'Bearer user_token', 'x-dataporten-clientid': clientid,
+                   'x-dataporten-userid-sec': 'feide:' + testprincipalname}
+        self._test_get_orgpersons(testuser, headers, [], 403)
+
+    def test_get_orgpersons_for_user_usersearchlocal_own_realm(self):
+         headers = {'Authorization': 'Bearer user_token', 'x-dataporten-clientid': clientid,
+                   'x-dataporten-userid-sec': 'feide:' + testprincipalname}
+         self._test_get_orgpersons(testuser, headers, ['usersearchlocal'], 200)
+
+    def test_get_orgpersons_for_user_usersearchlocal_foreign_realm(self):
+        headers = {'Authorization': 'Bearer user_token', 'x-dataporten-clientid': clientid,
+                   'x-dataporten-userid-sec': 'feide:ab@cde.no'}
+        self._test_get_orgpersons(testuser, headers, ['usersearchlocal'], 403)
+
+    def test_get_orgpersons_for_user_usersearchglobal(self):
+        headers = {'Authorization': 'Bearer user_token', 'x-dataporten-clientid': clientid,
+                   'x-dataporten-userid-sec': 'feide:' + testprincipalname}
+        self._test_get_orgpersons(testuser, headers, ['usersearchglobal'], 200)
+
+    def test_get_orgpersons_for_system_no_privs(self):
+        headers = {'Authorization': 'Bearer client_token', 'x-dataporten-clientid': clientid}
+        self._test_get_orgpersons(testuser, headers, [], 403)
