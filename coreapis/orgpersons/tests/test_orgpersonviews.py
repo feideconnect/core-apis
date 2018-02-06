@@ -84,7 +84,7 @@ class OrgViewTests(unittest.TestCase):
 
     def test_get_orgperson_for_user(self):
         headers = {'Authorization': 'Bearer user_token', 'x-dataporten-clientid': clientid,
-                   'x-datatporten-userid-sec': 'feide:' + testprincipalname}
+                   'x-dataporten-userid-sec': 'feide:' + testprincipalname}
         self._test_get_orgperson('feide:{}'.format(testprincipalname) , headers, 403)
 
     def test_get_orgperson_no_orgauthz(self):
