@@ -126,3 +126,12 @@ class GkViewTests(unittest.TestCase):
         self.session.apigk_allowed_dn.return_value = False
         headers = {'Gate-Keeper-DN': '/C=NO/CN=foo.example.com'}
         self.testapp.get('/gk/info/nicegk', headers=headers, status=401)
+
+    def test_options_no_dn(self):
+        self.session.apigk_allowed_dn.return_value = False
+        self.testapp.get('/gk/info/nicegk', params={'method': 'OPTIONS'},
+                         headers={}, status=400)
+
+    def test_get_no_dn(self):
+        self.session.apigk_allowed_dn.return_value = False
+        self.testapp.get('/gk/info/nicegk', headers={}, status=400)

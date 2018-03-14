@@ -4,7 +4,7 @@ from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound
 
 from .controller import GkController
-from coreapis.utils import LogWrapper
+from coreapis.utils import ValidationError, LogWrapper
 
 LOG = LogWrapper('gk.views')
 
@@ -21,9 +21,15 @@ def configure(config):
     config.scan(__name__)
 
 
+def get_dn_header(request):
+    try:
+        return request.headers['Gate-Keeper-Dn']
+    except KeyError:
+        raise ValidationError('Gate-Keeper-DN header missing')
+
 @view_config(route_name='gk_info', renderer='json', request_param="method=OPTIONS")
 def options(request):
-    if not request.gk_controller.allowed_dn(request.headers['Gate-Keeper-Dn']):
+    if not request.gk_controller.allowed_dn(get_dn_header(request)):
         raise HTTPForbidden('client certificate not authorized')
     backend = request.matchdict['backend']
     prefix = request.registry.settings.gk_header_prefix
@@ -38,7 +44,7 @@ def options(request):
 
 @view_config(route_name='gk_info', renderer='json')
 def info(request):
-    if not request.gk_controller.allowed_dn(request.headers['Gate-Keeper-Dn']):
+    if not request.gk_controller.allowed_dn(get_dn_header(request)):
         raise HTTPForbidden('client certificate not authorized')
     backend = request.matchdict['backend']
     prefix = request.registry.settings.gk_header_prefix
