@@ -213,9 +213,8 @@ class ClientAdmController(CrudControllerBase):
         if self.is_platform_admin(user):
             return True
         org = client.get('organization', None)
-        if org and self.is_org_admin(user, org):
-            return True
-        elif not org and self.is_owner(user, client):
+        if ((org and self.is_org_admin(user, org)) or
+            (not org and self.is_owner(user, client))):
             return True
         else:
             return self.is_delegated_admin(client, token)

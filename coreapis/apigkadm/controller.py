@@ -102,9 +102,8 @@ class APIGKAdmController(CrudControllerBase):
         if self.is_platform_admin(user):
             return True
         org = apigk.get('organization', None)
-        if org and self.is_org_admin(user, org):
-            return True
-        elif not org and self.is_owner(apigk, user):
+        if ((org and self.is_org_admin(user, org)) or
+            (not org and self.is_owner(apigk, user))):
             return True
         else:
             return self.is_delegated_admin(apigk, token)
