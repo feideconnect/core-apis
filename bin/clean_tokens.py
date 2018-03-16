@@ -34,6 +34,30 @@ def verbose(args, msg):
         print(msg)
 
 
+def is_corrupt(token, args):
+    tscopes = token.get('scope', set())
+    apis = {s.split('_')[1] for s in tscopes if scopes.is_gkscopename(s)}
+    if not token.get('validuntil', None):
+        verbose(args, 'Token {} has no validuntil'.format(token['access_token']))
+        return True
+    elif token['apigkid'] != '' and token['subtokens'] is not None:
+        verbose(args, 'Token {} has both apigkid and subtokens set'.format(token['access_token']))
+        return True
+    elif any((s for s in token['scope'] if s.startswith('gk_'))) and token['subtokens'] is None:
+        verbose(args, 'Token {} has gk scopes but no subtokens set'.format(token['access_token']))
+        return True
+    elif len(scopes.filter_missing_mainscope(tscopes)) != len(tscopes):
+        verbose(args, 'Token {} has gk subscope but misses corresponding mainscope'.format(token['access_token']))
+        return True
+    elif any((api for api in apis if api not in token['subtokens'])):
+        verbose(args, 'Token {} misses subtokens for some apis'.format(token['access_token']))
+        return True
+    elif not token['scope']:
+        verbose(args, 'Token {} has no scopes'.format(token['access_token']))
+        return True
+    else:
+        return False
+
 def main():
     args = parse_args()
     config = parse_config(args.config)
@@ -42,27 +66,7 @@ def main():
     corrupt = []
     valid = 0
     for token in session.session.execute('SELECT * from oauth_tokens'):
-        tscopes = token.get('scope', set())
-        if scopes is None:
-            tscopes = set()
-        apis = {s.split('_')[1] for s in tscopes if scopes.is_gkscopename(s)}
-        if not token.get('validuntil', None):
-            verbose(args, 'Token {} has no validuntil'.format(token['access_token']))
-            corrupt.append(token['access_token'])
-        elif token['apigkid'] != '' and token['subtokens'] is not None:
-            verbose(args, 'Token {} has both apigkid and subtokens set'.format(token['access_token']))
-            corrupt.append(token['access_token'])
-        elif any((s for s in token['scope'] if s.startswith('gk_'))) and token['subtokens'] is None:
-            verbose(args, 'Token {} has gk scopes but no subtokens set'.format(token['access_token']))
-            corrupt.append(token['access_token'])
-        elif len(scopes.filter_missing_mainscope(tscopes)) != len(tscopes):
-            verbose(args, 'Token {} has gk subscope but misses corresponding mainscope'.format(token['access_token']))
-            corrupt.append(token['access_token'])
-        elif any((api for api in apis if api not in token['subtokens'])):
-            verbose(args, 'Token {} misses subtokens for some apis'.format(token['access_token']))
-            corrupt.append(token['access_token'])
-        elif not token['scope']:
-            verbose(args, 'Token {} has no scopes'.format(token['access_token']))
+        if is_corrupt(token, args):
             corrupt.append(token['access_token'])
         elif token['validuntil'] < now():
             verbose(args, 'Token {} expired at {}'.format(token['access_token'], token['validuntil']))
