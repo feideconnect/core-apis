@@ -128,10 +128,10 @@ class AdHocGroupBackend(BaseBackend):
                 result.append(group)
         for group in self.session.get_groups(['public = ?'], [True], self.maxrows):
             formatted = self.format_group(group, None)
-            if query_match(query, formatted):
-                if formatted['id'] not in seen_groupids:
-                    seen_groupids.add(formatted['id'])
-                    result.append(formatted)
+            if (query_match(query, formatted) and
+                    formatted['id'] not in seen_groupids):
+                seen_groupids.add(formatted['id'])
+                result.append(formatted)
         return result
 
     def grouptypes(self):

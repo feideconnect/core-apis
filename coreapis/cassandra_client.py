@@ -14,12 +14,10 @@ from coreapis.utils import LogWrapper, now, translatable, get_cassandra_cluster_
 
 def parse_apigk(obj):
     for key in ('scopedef', 'trust'):
-        if key in obj:
-            if obj[key]:
+        if key in obj and obj[key]:
                 obj[key] = json.loads(obj[key])
     for key in ('scopes', 'scopes_requested', 'status'):
-        if key in obj:
-            if obj[key]:
+        if key in obj and obj[key]:
                 obj[key] = list(obj[key])
     return obj
 

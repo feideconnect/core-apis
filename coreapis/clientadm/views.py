@@ -241,10 +241,12 @@ def check_orgauthz_params(request, owner_ok=True):
     realm = request.matchdict['realm']
     try:
         client = request.cadm_controller.get(clientid)
-        if not request.cadm_controller.has_realm_permission(realm, user):
-            if not owner_ok or not request.cadm_controller.has_permission(client, user, token):
-                raise HTTPForbidden('Insufficient permissions')
-        return client, realm
+        if (request.cadm_controller.has_realm_permission(realm, user) or
+            (owner_ok and
+             request.cadm_controller.has_permission(client, user, token))):
+            return client, realm
+        else:
+            raise HTTPForbidden('Insufficient permissions')
     except KeyError:
         raise HTTPNotFound
 

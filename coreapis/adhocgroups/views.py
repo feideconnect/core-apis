@@ -62,13 +62,8 @@ def get_group(request):
         group = request.ahgroupadm_controller.get(groupid)
     except KeyError:
         raise HTTPNotFound
-    allowed = False
-    if 'invitation_token' in request.params:
-        if request.params['invitation_token'] == group['invitation_token']:
-            allowed = True
-    if request.ahgroupadm_controller.has_permission(group, user, "view"):
-        allowed = True
-    if allowed:
+    if (request.params.get('invitation_token') == group['invitation_token'] or
+            request.ahgroupadm_controller.has_permission(group, user, "view")):
         return request.ahgroupadm_controller.format_group(group)
     else:
         raise HTTPForbidden('no permission')
