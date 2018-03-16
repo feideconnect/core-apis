@@ -29,6 +29,18 @@ def make_statsd_hostid():
         return socket.getfqdn().replace('.', '_')
 
 
+def set_status_data_docker(status_data):
+    docker_env = {x.lower(): y for x, y in os.environ.items() if x.startswith("DOCKER_")}
+    if docker_env:
+        LogWrapper.add_defaults(**docker_env)
+        status_data.update(docker_env)
+
+def set_status_data_build(status_data):
+    for var in 'GIT_COMMIT', 'JENKINS_BUILD_NUMBER':
+        if var in os.environ:
+            config.get_settings().status_data[var] = os.environ[var]
+
+
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
@@ -94,11 +106,7 @@ def main(global_config, **settings):
     json_renderer.add_adapter(uuid.UUID, lambda x, y: str(x))
     json_renderer.add_adapter(cassandra.util.SortedSet, lambda x, y: list(x))
     config.add_renderer('json', json_renderer)
-    docker_env = {x.lower(): y for x, y in os.environ.items() if x.startswith("DOCKER_")}
-    if docker_env:
-        LogWrapper.add_defaults(**docker_env)
-        config.get_settings().status_data.update(docker_env)
-    for var in 'GIT_COMMIT', 'JENKINS_BUILD_NUMBER':
-        if var in os.environ:
-            config.get_settings().status_data[var] = os.environ[var]
+    status_data = config.get_settings().status_data
+    set_status_data_docker(status_data)
+    set_status_data_build(status_data)
     return config.make_wsgi_app()
