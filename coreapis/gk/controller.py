@@ -22,6 +22,23 @@ def auth_header(trust):
     raise RuntimeError('unhandled trust type {}'.format(ttype))
 
 
+def set_headers_user(headers, user, subtoken):
+    if 'userid' in subtoken['scope']:
+        headers['userid'] = str(user['userid'])
+    allowed_prefixes = set()
+    if 'userid-nin' in subtoken['scope']:
+        allowed_prefixes.add('nin')
+    if 'userid-feide' in subtoken['scope']:
+        allowed_prefixes.add('feide')
+    if allowed_prefixes:
+        exposed_sec_ids = []
+        for sec_id in user['userid_sec']:
+            sec_id_type, _ = sec_id.split(':', 1)
+            if sec_id_type in allowed_prefixes:
+                exposed_sec_ids.append(sec_id)
+        headers['userid-sec'] = ",".join(exposed_sec_ids)
+
+
 class GkController(object):
     def __init__(self, contact_points, keyspace, authz):
         self.session = cassandra_client.Client(contact_points, keyspace, authz=authz)
@@ -69,21 +86,7 @@ class GkController(object):
             headers['token'] = str(subtoken['access_token'])
 
             if user:
-                if 'userid' in subtoken['scope']:
-                    headers['userid'] = str(user['userid'])
-                allowed_prefixes = set()
-                if 'userid-nin' in subtoken['scope']:
-                    allowed_prefixes.add('nin')
-                if 'userid-feide' in subtoken['scope']:
-                    allowed_prefixes.add('feide')
-                if allowed_prefixes:
-                    exposed_sec_ids = []
-                    for sec_id in user['userid_sec']:
-                        sec_id_type, _ = sec_id.split(':', 1)
-                        if sec_id_type in allowed_prefixes:
-                            exposed_sec_ids.append(sec_id)
-                    headers['userid-sec'] = ",".join(exposed_sec_ids)
-
+                set_headers_user(headers, user, subtoken)
         scope_prefix = main_scope + '_'
         scope_prefix_len = len(scope_prefix)
         exposed_scopes = [scope[scope_prefix_len:]
