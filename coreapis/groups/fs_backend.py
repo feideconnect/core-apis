@@ -57,6 +57,36 @@ class FsBackend(BaseBackend):
                 retval.append(output)
         return retval
 
+    def _should_show(self, group, show_all):
+        if 'membership' not in group:
+            return False
+        if not group.get('id', '').startswith('fc:'):
+            self.log.debug('Received invalid id from fs', id=group.get('id', '<field missing>'))
+            return False
+        if not show_all and not group['membership'].get('active'):
+            return False
+        else:
+            return True
+
+    def _adapt(self, group):
+        group['id'] = self._groupid(group['id'].split(':', 1)[1])
+        if 'parent' in group:
+            if not group['parent'].startswith('fc:'):
+                self.log.debug('Received unexpected parent in group from fs',
+                               id=group['id'], parent=group['parent'])
+            elif not group['parent'].startswith('fc:org'):
+                group['parent'] = self._groupid(group['parent'].split(':', 1)[1])
+        membership = group['membership']
+        if 'displayName' in group:
+            group['displayName'] = translatable(group['displayName'])
+        if 'displayName' in membership:
+            membership['displayName'] = translatable(membership['displayName'])
+        if 'notAfter' in membership:
+            membership['notAfter'] = parse_datetime(membership['notAfter'])
+        if 'notBefore' in membership:
+            membership['notBefore'] = parse_datetime(membership['notBefore'])
+        return group
+
     def _get_member_groups(self, show_all, feideid):
         realm = feideid.split('@', 1)[1]
         if not self.is_org_enabled(realm):
@@ -71,31 +101,11 @@ class FsBackend(BaseBackend):
         response.raise_for_status()
         result = []
         for group in response.json():
-            if 'membership' not in group:
-                continue
-            if not group.get('id', '').startswith('fc:'):
-                self.log.debug('Received invalid id from fs', id=group.get('id', '<field missing>'))
-                continue
-            group['id'] = self._groupid(group['id'].split(':', 1)[1])
-            if 'parent' in group:
-                if not group['parent'].startswith('fc:'):
-                    self.log.debug('Received unexpected parent in group from fs',
-                                   id=group['id'], parent=group['parent'])
-                elif not group['parent'].startswith('fc:org'):
-                    group['parent'] = self._groupid(group['parent'].split(':', 1)[1])
-            membership = group['membership']
-            if not show_all and not membership.get('active'):
-                continue
-            if 'displayName' in group:
-                group['displayName'] = translatable(group['displayName'])
-            if 'displayName' in membership:
-                membership['displayName'] = translatable(membership['displayName'])
-            if 'notAfter' in membership:
-                membership['notAfter'] = parse_datetime(membership['notAfter'])
-            if 'notBefore' in membership:
-                membership['notBefore'] = parse_datetime(membership['notBefore'])
-            result.append(group)
+            if self._should_show(group, show_all):
+                result.append(self._adapt(group))
         return result
+        # return [self._adapt(group) for group in response.json() if self._should_show(group)]
+    
 
     def get_member_groups(self, user, show_all):
         result = []
