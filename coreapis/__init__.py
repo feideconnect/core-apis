@@ -38,7 +38,7 @@ def set_status_data_docker(status_data):
 def set_status_data_build(status_data):
     for var in 'GIT_COMMIT', 'JENKINS_BUILD_NUMBER':
         if var in os.environ:
-            config.get_settings().status_data[var] = os.environ[var]
+            status_data[var] = os.environ[var]
 
 
 def main(global_config, **settings):
