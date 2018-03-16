@@ -21,6 +21,14 @@ def options(request):
     return resp
 
 
+def make_statsd_hostid():
+    if 'DOCKER_HOST' in os.environ and 'DOCKER_INSTANCE' in os.environ:
+        return '{}.{}'.format(os.environ['DOCKER_HOST'].replace('.', '_'),
+                                os.environ['DOCKER_INSTANCE'])
+    else:
+        return socket.getfqdn().replace('.', '_')
+
+
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
@@ -51,12 +59,7 @@ def main(global_config, **settings):
     config.add_settings(timer=timer)
     config.add_settings(log_timings=log_timings)
 
-    if 'DOCKER_HOST' in os.environ and 'DOCKER_INSTANCE' in os.environ:
-        statsd_hostid = '{}.{}'.format(os.environ['DOCKER_HOST'].replace('.', '_'),
-                                       os.environ['DOCKER_INSTANCE'])
-    else:
-        statsd_hostid = socket.getfqdn().replace('.', '_')
-    statsd_host_prefix = "{}.{}".format(statsd_prefix, statsd_hostid)
+    statsd_host_prefix = "{}.{}".format(statsd_prefix, make_statsd_hostid())
     config.add_settings(statsd_host_factory=lambda: statsd.StatsClient(statsd_server, statsd_port,
                                                                        prefix=statsd_host_prefix))
     config.add_settings(status_data=dict(), status_methods=dict())
