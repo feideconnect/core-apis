@@ -65,8 +65,7 @@ class FsBackend(BaseBackend):
             return False
         if not show_all and not group['membership'].get('active'):
             return False
-        else:
-            return True
+        return True
 
     def _adapt(self, group):
         group['id'] = self._groupid(group['id'].split(':', 1)[1])
@@ -99,13 +98,7 @@ class FsBackend(BaseBackend):
             self.log.debug('got response from fs', status_code=response.status_code,
                            content_type=response.headers['content-type'])
         response.raise_for_status()
-        result = []
-        for group in response.json():
-            if self._should_show(group, show_all):
-                result.append(self._adapt(group))
-        return result
-        # return [self._adapt(group) for group in response.json() if self._should_show(group)]
-    
+        return [self._adapt(group) for group in response.json() if self._should_show(group, show_all)]
 
     def get_member_groups(self, user, show_all):
         result = []
