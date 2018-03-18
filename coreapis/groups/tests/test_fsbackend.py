@@ -101,12 +101,10 @@ class TestFsBackend(unittest.TestCase):
 
     def test_get_member_groups(self):
         res = self._get_member_groups(USERS[0], False)
-        print(len(res), 'groups, show_all: False')
         assert len(res) == 3
 
     def test_get_member_groups_show_all(self):
         res = self._get_member_groups(USERS[0], True)
-        print(len(res), 'groups, show_all: True')
         assert len(res) == 4
 
     def test_get_member_groups_social(self):
