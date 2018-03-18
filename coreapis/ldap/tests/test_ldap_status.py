@@ -22,6 +22,16 @@ testidentity = 'feide:foo@realm1.example.com'
 testrole = {'orgid': testorg_id,
             'identity':  testidentity,
             'role': 'admin'}
+ldap_response = [{
+    'attributes': {
+        'eduPersonOrgDN': 'foo',
+        'eduPersonAffiliation': 'bar',
+        'displayName': 'fizz',
+        'eduPersonPrincipalName': 'buzz',
+        'eduPersonOrgDN': 'per',
+        'eduPersonOrgUnitDN': 'paal'
+    }
+}]
 
 
 PLATFORMADMIN = 'admin@example.com'
@@ -36,6 +46,11 @@ def make_user(feideid):
         },
         'selectedsource': 'feide',
     }
+
+
+class MockExcArgs(object):
+    def __init__(self):
+        self.args = ['bar']
 
 
 class OrgViewTests(unittest.TestCase):
@@ -99,3 +114,64 @@ class OrgViewTests(unittest.TestCase):
         feideid = testidentity.split(':')[1]
         self.testapp.get('/orgs/{}/ldap_status?feideid={}'.format(testorg_id, feideid),
                          status=200, headers=headers)
+
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_ldap_status_bind_user(self, get_user):
+        headers = {'Authorization': 'Bearer user_token'}
+        realm = 'realm2.example.org'
+        orgid = 'fc:org:' + realm
+        self.session.get_org.return_value = {'id': orgid, 'realm': realm}
+        self.testapp.get('/orgs/' + orgid + '/ldap_status', status=200, headers=headers)
+
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_ldap_status_conn_response_empty(self, get_user):
+        with mock.patch('ldap3.Connection'):
+            self._test_ldap_status([], 200)
+
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_ldap_status_comm_error(self, get_user):
+        with mock.patch('ldap3.Connection',
+                        side_effect=ldap3.core.exceptions.LDAPCommunicationError('foo')):
+            self._test_ldap_status([], 200)
+
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_ldap_status_comm_error_details(self, get_user):
+        details = [[1,2,MockExcArgs()]]
+        with mock.patch('ldap3.Connection',
+                        side_effect=ldap3.core.exceptions.LDAPCommunicationError('foo', details)):
+            self._test_ldap_status([], 200)
+
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_ldap_status_bind_error(self, get_user):
+        with mock.patch('ldap3.Connection',
+                        side_effect=ldap3.core.exceptions.LDAPBindError('foo')):
+            self._test_ldap_status([], 200)
+
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_ldap_status_bind_error_details(self, get_user):
+        details = [[1,2,MockExArgs()]]
+        with mock.patch('ldap3.Connection',
+                        side_effect=ldap3.core.exceptions.LDAPBindError('foo', details)):
+            self._test_ldap_status([], 200)
+
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_ldap_status_nonsense(self, get_user):
+        with mock.patch('ldap3.Connection') as mock_connection:
+            instance = mock_connection.return_value
+            instance.response = "eferferfer"
+            self._test_ldap_status([], 200)
+
+    @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
+    def test_ldap_status_sensible(self, get_user):
+        with mock.patch('ldap3.Connection') as mock_connection:
+            instance = mock_connection.return_value
+            instance.response = ldap_response
+            self._test_ldap_status([], 200)
+            with mock.patch('coreapis.ldap.status.check_object', return_value=[]):
+                self._test_ldap_status([], 200)
+            response2 = deepcopy(ldap_response)
+            del(response2[0]['attributes']['displayName'])
+            del(response2[0]['attributes']['eduPersonOrgDN'])
+            del(response2[0]['attributes']['eduPersonOrgUnitDN'])
+            instance.response = response2
+            self._test_ldap_status([], 200)
