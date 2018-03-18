@@ -37,3 +37,27 @@ class TestLookupFeideid(TestCase):
             self.ldap.lookup_feideid('baz*', ['cn'])
         with pytest.raises(ValidationError):
             self.ldap.lookup_feideid('test\\', ['cn'])
+
+    def test_parse_config_twice(self):
+        self.ldap.config_mtime = 0
+        self.ldap.parse_ldap_config()
+        self.test_feide_multiple_users()
+
+class MockStat(object):
+    def __init__(self):
+        self.st_mtime = 0
+
+class TestParseConfigNoElapsedTime(TestCase):
+    def setUp(self):
+        m = mock.mock_open(read_data='{}')
+        settings = {
+            'timer': mock.MagicMock(),
+            'ldap_config_file': 'testdata/test-ldap-config.json',
+            'statsd_factory': mock.MagicMock(),
+            'statsd_host_factory': mock.MagicMock(),
+        }
+        with mock.patch('os.stat', return_value=MockStat()):
+            self.ldap = controller.LDAPController(settings)
+
+    def test_parse_config_no_elapsed_time(self):
+        pass # We just care about setup

@@ -45,7 +45,6 @@ class LDAPController(object):
         if mtime == self.config_mtime:
             return False
 
-        self.log.debug("Reading ldap config")
         with open(self.ldap_config) as fh:
             config = json.load(fh)
         servers = {}
