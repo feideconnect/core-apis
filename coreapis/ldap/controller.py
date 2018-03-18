@@ -40,6 +40,31 @@ class LDAPController(object):
         self.last_health_check = 0
         self.last_health_check_exception = 0
 
+    @staticmethod
+    def get_server_key(server, orgconf):
+        if 'bind_user' in orgconf:
+            user = orgconf['bind_user']['dn']
+            password = orgconf['bind_user']['password']
+        else:
+            user = None
+            password = None
+        if ':' in server:
+            host, port = server.split(':', 1)
+            port = int(port)
+        else:
+            host, port = server, None
+        return (host, port, user, password)
+
+    def get_key_servers(self, server_key):
+        if server_key in self.servers:
+            return self.servers[server_key]
+        (host, port, user, password) = server_key
+        self.log.debug("Found new ldap server: {}:{} - {}".format(host, port, user))
+        return  ConnectionPool(host, port, user, password,
+                               self.max_idle, self.max_connections,
+                               self.timeouts, self.ca_certs,
+                               self.host_statsd)
+
     def parse_ldap_config(self):
         mtime = os.stat(self.ldap_config).st_mtime
         if mtime == self.config_mtime:
@@ -53,29 +78,9 @@ class LDAPController(object):
             orgconf = config[org]
             org_connection_pools = []
             for server in orgconf['servers']:
-                if 'bind_user' in orgconf:
-                    user = orgconf['bind_user']['dn']
-                    password = orgconf['bind_user']['password']
-                else:
-                    user = None
-                    password = None
-                if ':' in server:
-                    host, port = server.split(':', 1)
-                    port = int(port)
-                else:
-                    host, port = server, None
-                server_key = (host, port, user, password)
-                if server_key in servers:
-                    pass
-                elif server_key in self.servers:
-                    servers[server_key] = self.servers[server_key]
-                else:
-                    self.log.debug("Found new ldap server: {}:{} - {}".format(host, port, user))
-                    cp = ConnectionPool(host, port, user, password,
-                                        self.max_idle, self.max_connections,
-                                        self.timeouts, self.ca_certs,
-                                        self.host_statsd)
-                    servers[server_key] = cp
+                server_key = self.get_server_key(server, orgconf)
+                if server_key not in servers:
+                    servers[server_key] = self.get_key_servers(server_key)
                 org_connection_pools.append(servers[server_key])
             if org in self.orgpools:
                 orgpools[org] = self.orgpools[org]
