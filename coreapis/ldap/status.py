@@ -15,7 +15,7 @@ def check_object(con, dn, objtype, needed_attributes):
     errors = []
     con.search(dn, '(objectClass=*)', ldap3.BASE,
                attributes=list(needed_attributes), size_limit=1)
-    if len(con.response) == 0:
+    if not con.response:
         errors.append("Could not lookup {} {}".format(objtype, dn))
     else:
         orgattributes = con.response[0]['attributes']
@@ -32,18 +32,18 @@ def check_attributes(connection):
         if attribute not in attributes:
             errors.append('Attribute {} missing on person'.format(attribute))
     if 'eduPersonOrgDN' in attributes:
-        orgDN = coreapis.ldap.get_single(attributes['eduPersonOrgDN'])
-        errors.extend(check_object(connection, orgDN, 'organization',
+        org_dn = coreapis.ldap.get_single(attributes['eduPersonOrgDN'])
+        errors.extend(check_object(connection, org_dn, 'organization',
                                    coreapis.ldap.REQUIRED_ORG_ATTRIBUTES))
     if 'eduPersonOrgUnitDN' in attributes:
-        orgUnitDN = attributes['eduPersonOrgUnitDN'][0]
-        errors.extend(check_object(connection, orgUnitDN, 'organizational unit',
+        org_unit_dn = attributes['eduPersonOrgUnitDN'][0]
+        errors.extend(check_object(connection, org_unit_dn, 'organizational unit',
                                    coreapis.ldap.REQUIRED_ORG_UNIT_ATTRIBUTES))
     return errors
 
 
 def get_search_status(connection):
-    if len(connection.response) == 0:
+    if not connection.response:
         return {
             'result': 'empty response looking up feideid',
         }
@@ -53,10 +53,9 @@ def get_search_status(connection):
             'result': 'Data Error',
             'message': "\n".join(errors),
         }
-    else:
-        return {
-            'result': 'success',
-        }
+    return {
+        'result': 'success',
+    }
 
 
 def record_ldap_exception(ex, result, message):
@@ -72,7 +71,7 @@ def record_ldap_exception(ex, result, message):
 
 def record_exception(ex):
     message = 'Unknown error'
-    if len(ex.args) > 0:
+    if ex.args:
         message = ex.args[0]
     status = {
         'result': 'other error',

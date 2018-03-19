@@ -180,23 +180,23 @@ class LDAPBackend(BaseBackend):
             raise KeyError('orgDN not found in catalog')
         org = org[0]
         org_attributes = org['attributes']
-        orgType = list(self._get_org_type(realm).intersection(educational_org_types))
-        if 'higher_education' not in orgType:
-            orgType = ['{}_owner'.format(o) for o in orgType]
+        org_type = list(self._get_org_type(realm).intersection(educational_org_types))
+        if 'higher_education' not in org_type:
+            org_type = ['{}_owner'.format(o) for o in org_type]
         res = {
             'id': self._groupid(realm),
             'displayName': get_single(org_attributes['eduOrgLegalName']),
             'type': 'fc:org',
             'public': True,
-            'membership': org_membership(person, orgType),
-            'orgType': orgType,
+            'membership': org_membership(person, org_type),
+            'orgType': org_type,
         }
         for attribute in ORG_ATTRIBUTE_NAMES:
             if attribute in org_attributes:
                 res[attribute] = get_single(org_attributes[attribute])
         return res
 
-    def _get_orgunit(self, realm, dn, primaryDN):
+    def _get_orgunit(self, realm, dn, primary_dn):
         ou = self.ldap.search(realm, dn, '(objectClass=*)',
                               ldap3.BASE,
                               ldap3.ALL_ATTRIBUTES, 1)
@@ -221,9 +221,9 @@ class LDAPBackend(BaseBackend):
         if 'higher_education' not in org_type:
             data['type'] = 'fc:org'
             data['orgType'] = list(org_type)
-            data['membership']['primarySchool'] = (dn == primaryDN)
+            data['membership']['primarySchool'] = (dn == primary_dn)
         else:
-            data['membership']['primaryOrgUnit'] = (dn == primaryDN)
+            data['membership']['primaryOrgUnit'] = (dn == primary_dn)
         return data
 
     def _handle_grepcode(self, grep_id, is_member):
@@ -296,16 +296,16 @@ class LDAPBackend(BaseBackend):
         res = res[0]
         attributes = res['attributes']
         if 'eduPersonOrgDN' in attributes:
-            orgDN = get_single(attributes['eduPersonOrgDN'])
-            result.append(self._get_org(realm, orgDN, attributes))
+            org_dn = get_single(attributes['eduPersonOrgDN'])
+            result.append(self._get_org(realm, org_dn, attributes))
         if 'eduPersonOrgUnitDN' in attributes:
-            primaryOrgUnit = attributes.get('eduPersonPrimaryOrgUnitDN', [])
-            if primaryOrgUnit:
-                primaryOrgUnit = get_single(primaryOrgUnit)
+            primary_org_unit = attributes.get('eduPersonPrimaryOrgUnitDN', [])
+            if primary_org_unit:
+                primary_org_unit = get_single(primary_org_unit)
             else:
-                primaryOrgUnit = None
-            for orgUnitDN in attributes['eduPersonOrgUnitDN']:
-                result.append(self._get_orgunit(realm, orgUnitDN, primaryOrgUnit))
+                primary_org_unit = None
+            for org_unit_dn in attributes['eduPersonOrgUnitDN']:
+                result.append(self._get_orgunit(realm, org_unit_dn, primary_org_unit))
         if 'eduPersonEntitlement' in attributes:
             result.extend(self._handle_grepcodes(attributes['eduPersonEntitlement']))
             result.extend(self._handle_go_groups(realm, attributes['eduPersonEntitlement'],
