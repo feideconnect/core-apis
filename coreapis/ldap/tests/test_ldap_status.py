@@ -159,19 +159,27 @@ class OrgViewTests(unittest.TestCase):
         with mock.patch('ldap3.Connection') as mock_connection:
             instance = mock_connection.return_value
             instance.response = "eferferfer"
-            self._test_ldap_status([], 200)
+            res = self._test_ldap_status([], 200)
+            for v in res.json.values():
+                assert v['result'] == "other error"
 
     @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_ldap_status_sensible(self, get_user):
         with mock.patch('ldap3.Connection') as mock_connection:
             instance = mock_connection.return_value
             instance.response = ldap_response
-            self._test_ldap_status([], 200)
+            res = self._test_ldap_status([], 200)
+            for v in res.json.values():
+                assert v['result'] == "Data Error"
             with mock.patch('coreapis.ldap.status.check_object', return_value=[]):
-                self._test_ldap_status([], 200)
+                res = self._test_ldap_status([], 200)
+                for v in res.json.values():
+                    assert v['result'] == "success"
             response2 = deepcopy(ldap_response)
             del(response2[0]['attributes']['displayName'])
             del(response2[0]['attributes']['eduPersonOrgDN'])
             del(response2[0]['attributes']['eduPersonOrgUnitDN'])
             instance.response = response2
             self._test_ldap_status([], 200)
+            for v in res.json.values():
+                assert v['result'] == "success"
