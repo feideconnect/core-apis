@@ -1,7 +1,7 @@
 from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPNotFound
-from .controller import UserInfoController
 from coreapis.utils import get_user
+from .controller import UserInfoController
 
 
 def configure(config):

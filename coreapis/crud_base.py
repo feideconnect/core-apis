@@ -3,8 +3,8 @@ import uuid
 import warnings
 
 import requests
-import valideer as V
 from PIL import Image
+import valideer as V
 
 from coreapis.utils import (
     now, ValidationError, AlreadyExistsError, LogWrapper, get_feideids, public_userinfo,
@@ -49,7 +49,7 @@ class CrudControllerBase(object):
             adapted = validator.validate(item)
         except V.ValidationError as ex:
             raise ValidationError(str(ex))
-        for key in self.schema.keys():
+        for key in self.schema:
             if not key.startswith('+') and key not in adapted:
                 adapted[key] = None
         return adapted
@@ -78,7 +78,7 @@ class CrudControllerBase(object):
         try:
             item = self.get(itemid)
             return item['owner']
-        except:
+        except KeyError:
             return None
 
     def add(self, item, user, privileges):

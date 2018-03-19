@@ -9,6 +9,7 @@ def _get_photo_secid(secids):
     for secid in secids:
         if secid.startswith('p:'):
             return secid
+    return None
 
 
 class OrgPersonController(object):
@@ -87,4 +88,4 @@ class OrgPersonController(object):
             return self._format_person(person)
         except KeyError:
             raise RuntimeError("mandatory person attribute missing from ldap, person={}"
-                                  .format(person))
+                               .format(person))

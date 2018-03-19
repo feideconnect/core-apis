@@ -11,8 +11,8 @@ import pyramid.renderers
 import cassandra.util
 import statsd
 
-from .aaa import TokenAuthenticationPolicy, TokenAuthorizationPolicy
 import coreapis.utils
+from .aaa import TokenAuthenticationPolicy, TokenAuthorizationPolicy
 from .utils import Timer, format_datetime, ResourcePool, LogWrapper, get_cassandra_authz
 
 
@@ -24,9 +24,8 @@ def options(request):
 def make_statsd_hostid():
     if 'DOCKER_HOST' in os.environ and 'DOCKER_INSTANCE' in os.environ:
         return '{}.{}'.format(os.environ['DOCKER_HOST'].replace('.', '_'),
-                                os.environ['DOCKER_INSTANCE'])
-    else:
-        return socket.getfqdn().replace('.', '_')
+                              os.environ['DOCKER_INSTANCE'])
+    return socket.getfqdn().replace('.', '_')
 
 
 def set_status_data_docker(status_data):

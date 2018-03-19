@@ -12,8 +12,7 @@ def gk_mainscope(name):
     nameparts = name.split('_')
     if len(nameparts) == 2:
         return name
-    else:
-        return "_".join(nameparts[:2])
+    return "_".join(nameparts[:2])
 
 
 def has_gkscope_match(scope, gkscopes):

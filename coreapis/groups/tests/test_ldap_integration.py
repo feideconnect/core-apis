@@ -1,13 +1,10 @@
 import datetime
 import os
 import time
-import unittest
-import mock
-from pytest import mark, raises
+from pytest import mark
 from pytz import UTC
-from coreapis.utils import translatable
-from coreapis.groups.ldap_backend import org_membership_name, LDAPBackend
-from coreapis.groups.tests import test_gogroups
+import mock
+from coreapis.groups.ldap_backend import LDAPBackend
 from coreapis.tests.test_cassandra import setUpModule as setupCassandra
 
 settings = {}

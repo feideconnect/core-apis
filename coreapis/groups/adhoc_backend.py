@@ -11,10 +11,9 @@ adhoc_type = 'voot:ad-hoc'
 def basic(group, membership):
     if group['owner'] == membership['userid']:
         return 'owner'
-    elif membership['type'] == 'admin':
+    if membership['type'] == 'admin':
         return 'admin'
-    else:
-        return 'member'
+    return 'member'
 
 
 def format_membership(group, membership):

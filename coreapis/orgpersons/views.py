@@ -2,9 +2,9 @@ import threading
 import uuid
 from pyramid.view import view_config
 from pyramid.httpexceptions import (
-    HTTPBadRequest, HTTPNotFound, HTTPForbidden, HTTPInternalServerError)
+    HTTPBadRequest, HTTPNotFound, HTTPForbidden)
 from coreapis.ldap.controller import LDAPController
-from coreapis.utils import get_max_replies, get_user, ValidationError
+from coreapis.utils import get_max_replies, get_user
 from .controller import OrgPersonController
 
 HDR_DP_CLIENTID = 'x-dataporten-clientid'

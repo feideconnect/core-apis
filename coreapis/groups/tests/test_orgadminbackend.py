@@ -1,6 +1,6 @@
 import unittest
-import mock
 from pytest import raises
+import mock
 from coreapis.utils import translatable
 from coreapis.groups.orgadmin_backend import OrgAdminBackend
 
@@ -81,12 +81,12 @@ class TestOrgAdminBackend(unittest.TestCase):
 
     def test_get_member_groups_no_memberships(self):
         res = self._get_member_groups(ID_FEIDE_OTHER)
-        assert len(res) == 0
+        assert not res
 
     def test_get_member_groups_social(self):
         res = self._get_member_groups(ID_SOCIAL)
         assert len([mship for mship in res if mship['membership']['basic'] == 'admin']) == 1
-        assert len([mship for mship in res if mship['membership']['basic'] == 'member']) == 0
+        assert not [mship for mship in res if mship['membership']['basic'] == 'member']
 
     def _get_members(self, identity, groupid):
         self.session.get_roles.side_effect = mock_get_roles

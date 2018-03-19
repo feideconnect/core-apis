@@ -1,6 +1,6 @@
 import unittest
-import mock
 from pytest import raises
+import mock
 from coreapis.groups.platformadmin_backend import PlatformAdminBackend
 
 
@@ -31,7 +31,7 @@ class TestPlatformAdminBackend(unittest.TestCase):
 
     def test_get_member_groups_not_admin(self):
         res = self._get_member_groups(FEIDEID_OTHER)
-        assert len(res) == 0
+        assert not res
 
     def _get_members(self, feideid, groupid):
         return self.backend.get_members(make_user(feideid), groupid, False, True)

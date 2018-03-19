@@ -24,13 +24,13 @@ group2 = {
 class StaleBackend(BaseBackend):
     def get_groups(self, user, query):
         logging.debug('getting groups')
-        for i in range(200):
+        for _ in range(200):
             eventlet.sleep(0.2)
         return []
 
     def get_member_groups(self, user, show_all):
         logging.debug('getting groups')
-        for i in range(200):
+        for _ in range(200):
             eventlet.sleep(0.2)
         return []
 

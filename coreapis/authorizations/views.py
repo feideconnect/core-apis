@@ -4,8 +4,8 @@ from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden
 from pyramid.response import Response
 
-from .controller import AuthorizationController
 from coreapis.utils import get_user, get_userid, get_token, translation, ForbiddenError
+from .controller import AuthorizationController
 
 
 def configure(config):

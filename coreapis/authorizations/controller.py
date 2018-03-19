@@ -73,8 +73,7 @@ class AuthorizationController(object):
         if self.resources_owned(userid)["ready"]:
             self.reset_user(userid)
             return True
-        else:
-            return False
+        return False
 
     def get_mandatory_clients(self, user):
         selectors = ['status contains ?']

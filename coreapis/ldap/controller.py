@@ -130,7 +130,7 @@ class LDAPController(object):
         res = self.ldap_search(realm, search_filter,
                                ldap3.SUBTREE,
                                attributes=attributes, size_limit=1)
-        if len(res) == 0:
+        if not res:
             self.log.debug('Could not find user for %s' % feideid)
             raise KeyError('User not found')
         if len(res) > 1:

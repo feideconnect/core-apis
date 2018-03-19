@@ -1,7 +1,7 @@
 import time
 import unittest
-import mock
 from pytest import raises
+import mock
 from coreapis.utils import translatable
 from coreapis.groups.ldap_backend import org_membership_name, should_canonicalize_groupid, LDAPBackend
 from coreapis.groups.tests import test_gogroups
@@ -25,15 +25,15 @@ class TestOrgMembershipName(unittest.TestCase):
 
 class TestShouldCanonicalizeGroupid(unittest.TestCase):
     def test_normal_realm(self):
-        assert should_canonicalize_groupid('example.org') == True
+        assert should_canonicalize_groupid('example.org') is True
 
     @mock.patch.dict('coreapis.groups.ldap_backend.GROUPID_CANONICALIZATION_MIGRATION_TIME', {'example.org': time.time() + 1000})
     def test_canonicalize_future(self):
-        assert should_canonicalize_groupid('example.org') == False
+        assert should_canonicalize_groupid('example.org') is False
 
     @mock.patch.dict('coreapis.groups.ldap_backend.GROUPID_CANONICALIZATION_MIGRATION_TIME', {'example.org': time.time() - 1000})
     def test_canonicalize_past(self):
-        assert should_canonicalize_groupid('example.org') == True
+        assert should_canonicalize_groupid('example.org') is True
 
 
 class TestLDAPBackend(unittest.TestCase):

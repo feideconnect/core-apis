@@ -15,10 +15,10 @@ from coreapis.utils import LogWrapper, now, translatable, get_cassandra_cluster_
 def parse_apigk(obj):
     for key in ('scopedef', 'trust'):
         if key in obj and obj[key]:
-                obj[key] = json.loads(obj[key])
+            obj[key] = json.loads(obj[key])
     for key in ('scopes', 'scopes_requested', 'status'):
         if key in obj and obj[key]:
-                obj[key] = list(obj[key])
+            obj[key] = list(obj[key])
     return obj
 
 
@@ -155,7 +155,7 @@ class Client(object):
         if len(selectors) != len(values):
             raise KeyError('Selectors and values not same length')
         cols = ','.join(self.default_columns[table])
-        if len(selectors) == 0:
+        if not selectors:
             stmt = 'SELECT {} from {} LIMIT {}'.format(cols, table, maxrows)
         else:
             tmpl = 'SELECT {} from {} WHERE {} LIMIT {} ALLOW FILTERING'
@@ -403,7 +403,7 @@ class Client(object):
     def get_grep_code_by_code(self, code, greptype):
         prep = self._prepare('SELECT * from grep_codes WHERE code = ? and type = ? ALLOW FILTERING')
         data = list(self.session.execute(prep.bind([code, greptype])))
-        if len(data) == 0:
+        if not data:
             raise KeyError('No such grep code')
         return data[0]
 
@@ -457,14 +457,14 @@ class Client(object):
         prep = self._prepare('SELECT id FROM organizations WHERE realm = ?'
                              ' and services contains \'fsgroups\' ALLOW FILTERING')
         res = list(self.session.execute(prep.bind([realm])))
-        if len(res) == 0:
+        if not res:
             return False
         return True
 
     def is_org_admin(self, identity, orgid):
         prep = self._prepare('SELECT role from orgroles where identity = ? AND orgid = ?')
         res = list(self.session.execute(prep.bind([identity, orgid])))
-        if len(res) == 0:
+        if not res:
             return False
         return 'admin' in res[0]['role']
 

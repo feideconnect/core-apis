@@ -7,10 +7,10 @@ from PIL import Image
 
 from coreapis.utils import ValidationError, LogWrapper, now, \
     get_platform_admins, get_feideids
-from .tokens import crypt_token, decrypt_token
 import coreapis.cassandra_client
 from coreapis.ldap.controller import validate_query
 from coreapis.ldap import PEOPLE_SEARCH_ATTRIBUTES, get_single
+from .tokens import crypt_token, decrypt_token
 
 THUMB_SIZE = 128, 128
 SINGLE_VALUED_ATTRIBUTES = ['cn', 'displayName', 'eduPersonPrincipalName']
@@ -43,7 +43,7 @@ class CassandraCache(coreapis.cassandra_client.Client):
     def lookup(self, user):
         s_lookup = self._prepare('SELECT * from profile_image_cache where user=?')
         res = list(self.session.execute(s_lookup.bind([user])))
-        if len(res) == 0:
+        if not res:
             return None
         entry = res[0]
         return entry

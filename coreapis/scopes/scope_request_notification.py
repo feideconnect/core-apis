@@ -82,12 +82,10 @@ class ScopeRequestNotification(object):
             subscopes = [scope.split('_')[2]
                          for scope in self.scopes
                          if len(scope.split('_')) > 2]
-            if len(subscopes) > 0:
+            if subscopes:
                 return self.get_apigk_tmpl().format(name, base, ', '.join(subscopes))
-            else:
-                return self.get_simplescope_tmpl().format(name, base)
-        else:
-            return self.get_simplescope_tmpl().format(name, firstscope)
+            return self.get_simplescope_tmpl().format(name, base)
+        return self.get_simplescope_tmpl().format(name, firstscope)
 
     def get_client_info(self):
         client_tmpl = self.translate(translatable(CLIENT_TMPL))
@@ -95,7 +93,7 @@ class ScopeRequestNotification(object):
         name = owner.get('name', '')
         try:
             orgname = self.translate(self.client['organization']['name'])
-        except:
+        except (KeyError, TypeError):
             orgname = ''
         descr = self.translate(self.client.get('descr', ''))
         descr = descr.replace('\n', '\n| ')
@@ -115,8 +113,7 @@ class ScopeRequestNotification(object):
         if self.apigk:
             return "{}:\n{}\n{} {}".format(dashboardmsg, self.get_dashboard_url(),
                                            connectmsg, DOC_URL)
-        else:
-            return "{} {}".format(connectmsg, DOC_URL)
+        return "{} {}".format(connectmsg, DOC_URL)
 
     def get_body(self):
         tmpl = '''

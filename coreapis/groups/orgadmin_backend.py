@@ -1,8 +1,8 @@
 import functools
 
 from coreapis.utils import LogWrapper, failsafe, translatable
-from . import BaseBackend, Pool
 from coreapis import cassandra_client
+from . import BaseBackend, Pool
 
 ORGADMIN_TYPE = 'fc:orgadmin'
 SCOPES_NEEDED = {'scope_groups-orgadmin'}
@@ -30,8 +30,7 @@ class BadOrgidError(RuntimeError):
 def basic(role):
     if 'admin' in role:
         return 'admin'
-    else:
-        return 'member'
+    return 'member'
 
 
 def format_membership(role):
@@ -57,8 +56,7 @@ def get_orgtag(orgid):
 def get_canonical_id(identity):
     if identity.startswith('feide:'):
         return identity.lower()
-    else:
-        return identity
+    return identity
 
 
 def get_canonical_ids(user):
@@ -120,7 +118,7 @@ class OrgAdminBackend(BaseBackend):
         result = []
         roles = list(self.session.get_roles(['identity = ?'], [get_canonical_id(identity)],
                                             self.maxrows))
-        if len(roles) == 0:
+        if not roles:
             return []
         orgnames = {role['orgid']: {} for role in roles}
         orgtypes = {role['orgid']: [] for role in roles}

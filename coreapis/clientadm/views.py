@@ -5,11 +5,11 @@ from pyramid.httpexceptions import (
     HTTPNotFound, HTTPConflict, HTTPForbidden, HTTPBadRequest)
 from pyramid.response import Response
 
-from .controller import ClientAdmController
 from coreapis.utils import (
     AlreadyExistsError, ForbiddenError, ValidationError, get_payload, get_token, get_user,
     translation, get_logo_bytes)
 from coreapis.authproviders import REGISTER_CLIENT, authprovmgr
+from .controller import ClientAdmController
 
 
 def get_clientid(request):
@@ -242,8 +242,8 @@ def check_orgauthz_params(request, owner_ok=True):
     try:
         client = request.cadm_controller.get(clientid)
         if (request.cadm_controller.has_realm_permission(realm, user) or
-            (owner_ok and
-             request.cadm_controller.has_permission(client, user, token))):
+                (owner_ok and
+                 request.cadm_controller.has_permission(client, user, token))):
             return client, realm
         else:
             raise HTTPForbidden('Insufficient permissions')

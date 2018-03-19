@@ -165,6 +165,7 @@ class AdHocGroupAdmController(CrudControllerBase):
             return self.is_owner_or_member(group, userid)
         if permission == "edit_members":
             return self.is_owner_or_admin(group, userid)
+        return False
 
     def get_members(self, groupid):
         res = []

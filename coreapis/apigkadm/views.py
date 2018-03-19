@@ -1,11 +1,11 @@
 from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPNotFound, HTTPConflict, HTTPForbidden
 from pyramid.response import Response
-from .controller import APIGKAdmController
 from coreapis.utils import (
     AlreadyExistsError, get_userid, get_payload, get_user, get_token,
     get_logo_bytes, get_max_replies, translation)
 from coreapis.authproviders import REGISTER_APIGK, authprovmgr
+from .controller import APIGKAdmController
 
 
 def configure(config):

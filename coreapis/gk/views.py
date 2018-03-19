@@ -1,10 +1,8 @@
-import logging
-
 from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPForbidden, HTTPNotFound
 
-from .controller import GkController
 from coreapis.utils import ValidationError, LogWrapper
+from .controller import GkController
 
 LOG = LogWrapper('gk.views')
 

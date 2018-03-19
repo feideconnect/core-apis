@@ -36,7 +36,7 @@ def valid_identity(identity):
         return False
     if provider_prefix == 'feide':
         return valid_feideid(user_key)
-    return (provider_prefix in VALID_PREFIXES and user_key != '')
+    return provider_prefix in VALID_PREFIXES and user_key != ''
 
 
 def valid_rolenames(rolenames):
@@ -290,12 +290,13 @@ class OrgController(CrudControllerBase):
     # When no name has been given, one of the local admins
     def get_feideid_for_status(self, orgid, realm):
         for identity in (role['identity'] for role in self.list_org_roles(orgid)):
-            prefix, _, user_key  = identity.partition(':')
+            prefix, _, user_key = identity.partition(':')
             if prefix == 'feide':
                 _, _, irealm = user_key.partition('@')
                 if irealm == realm:
                     return user_key
         self.log.debug('get_feideid_for_status - no local admin to look up', realm=realm)
+        return None
 
     def ldap_status(self, user, orgid, feideid):
         org = self.session.get_org(orgid)

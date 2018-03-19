@@ -244,8 +244,7 @@ class RateLimitMiddleware(object):
             headers = []
             start_response('429 Too many requests', headers)
             return ""
-        else:
-            return self._app(environ, start_response)
+        return self._app(environ, start_response)
 
 
 class CassandraMiddleware(AuthMiddleware):
@@ -361,7 +360,7 @@ class GatekeepedMiddleware(object):
     def get_authorization(self, environ):
         authorization = environ.get('HTTP_AUTHORIZATION')
         if authorization:
-            authtype, sep, value = authorization.partition(' ')
+            authtype, _, value = authorization.partition(' ')
             if authtype == 'Basic':
                 return value
             else:

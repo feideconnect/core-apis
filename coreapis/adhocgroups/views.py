@@ -4,8 +4,8 @@ from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPBadRequest, HTTPNotFound, HTTPForbidden, HTTPConflict
 from pyramid.response import Response
 
-from .controller import AdHocGroupAdmController
 from coreapis.utils import get_user, get_userid, get_payload, get_logo_bytes, ResourceError
+from .controller import AdHocGroupAdmController
 
 
 def configure(config):

@@ -4,9 +4,9 @@ import json
 from urllib.parse import urlsplit
 import uuid
 
+import datetime
 from aniso8601 import parse_date
 import cassandra.util
-import datetime
 import valideer as V
 
 from coreapis import cassandra_client
@@ -16,7 +16,7 @@ from coreapis.scopes.manager import ScopesManager
 from coreapis.authproviders import authprovmgr, REGISTER_CLIENT
 from coreapis.utils import (
     LogWrapper, timestamp_adapter, ValidationError, ForbiddenError,
-    valid_url, valid_name, valid_description, get_feideids, userinfo_for_log,
+    valid_url, valid_name, valid_description, userinfo_for_log,
     get_platform_admins, PRIV_PLATFORM_ADMIN, public_userinfo, public_orginfo)
 
 
@@ -29,12 +29,11 @@ MAX_DAYS = 14
 def is_valid_uri(uri):
     parsed = urlsplit(uri)
     scheme = parsed.scheme
-    if len(scheme) == 0 or scheme in INVALID_URISCHEMES:
+    if not scheme or scheme in INVALID_URISCHEMES:
         return False
-    elif scheme in ['http', 'https']:
-        return len(parsed.netloc) > 0
-    else:
-        return True
+    if scheme in ['http', 'https']:
+        return bool(parsed.netloc)
+    return True
 
 
 def filter_client_status(attrs_new, attrs_old, privileges):
@@ -214,10 +213,9 @@ class ClientAdmController(CrudControllerBase):
             return True
         org = client.get('organization', None)
         if ((org and self.is_org_admin(user, org)) or
-            (not org and self.is_owner(user, client))):
+                (not org and self.is_owner(user, client))):
             return True
-        else:
-            return self.is_delegated_admin(client, token)
+        return self.is_delegated_admin(client, token)
 
     def get(self, clientid):
         self.log.debug('Get client', clientid=clientid)
@@ -289,8 +287,8 @@ class ClientAdmController(CrudControllerBase):
                 pass  # scopedef does not have orgadmin targets
             subscopes = scopedef.get('subscopes', None)
             if subscopes:
-                for subname, scopedef in subscopes.items():
-                    res.update(self.get_scope_targets('{}_{}'.format(name, subname), scopedef))
+                for subname, subscopedef in subscopes.items():
+                    res.update(self.get_scope_targets('{}_{}'.format(name, subname), subscopedef))
         return res
 
     # Return dict { <scope>: set(realms)} including all scopes, subscopes and their realms

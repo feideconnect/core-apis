@@ -1,7 +1,7 @@
 import unittest
 from copy import deepcopy
-import mock
 from pytest import raises
+import mock
 from coreapis.utils import translatable
 from coreapis.groups.fs_backend import FsBackend
 
@@ -109,12 +109,12 @@ class TestFsBackend(unittest.TestCase):
 
     def test_get_member_groups_social(self):
         res = self._get_member_groups(USERS[2], False)
-        assert len(res) == 0
+        assert not res
 
     def test_get_member_groups_org_not_enabled(self):
         self.session.org_use_fs_groups.return_value = False
         res = self._get_member_groups(USERS[0], False)
-        assert len(res) == 0
+        assert not res
 
     def _get_members(self, user, groupid):
         with mock.patch('coreapis.groups.fs_backend.requests.get', return_value=MockResponse(MEMBERS)):
@@ -144,7 +144,7 @@ class TestFsBackend(unittest.TestCase):
         resp_data = [{'userid': USERS[0]['userid_sec'][0]}]
         with mock.patch('coreapis.groups.fs_backend.requests.get', return_value=MockResponse(resp_data)):
             res = self.backend.get_members(USERS[0], 'fc:kull:foo:bar', False, True)
-            assert len(res) == 0
+            assert not res
 
     def test_grouptypes(self):
         res = self.backend.grouptypes()

@@ -13,9 +13,8 @@ class FeideProvider(object):
     def has_user_permission(self, user_key, operation):
         if operation not in self.ops_supported:
             return False
-        else:
-            _, _, realm = user_key.partition('@')
-            return realm not in self.special_realms
+        _, _, realm = user_key.partition('@')
+        return realm not in self.special_realms
 
     def check_client_update(self, session, client):
         pass
@@ -52,8 +51,7 @@ class AuthProvidersManager(object):
         provider = self.providers.get(provider_name)
         if provider:
             return provider().has_user_permission(user_key, operation)
-        else:
-            return False
+        return False
 
     # True if user - not acting in the capacity of an org admin - has
     # permission to perform operation

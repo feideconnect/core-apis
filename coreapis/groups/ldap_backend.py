@@ -74,8 +74,8 @@ affiliation_names = {
             'nb': 'Tilknyttet',
             'nn': 'Tilknytt',
         }),
-#        'library-walk-in': translatable({
-#        }),
+        # 'library-walk-in': translatable({
+        # }),
         'member': translatable({
             'nb': 'Annet',
             'nn': 'Anna',
@@ -177,7 +177,7 @@ class LDAPBackend(BaseBackend):
         org = self.ldap.search(realm, dn, '(objectClass=*)',
                                ldap3.BASE,
                                ldap3.ALL_ATTRIBUTES, 1)
-        if len(org) == 0:
+        if not org:
             raise KeyError('orgDN not found in catalog')
         org = org[0]
         org_attributes = org['attributes']
@@ -201,7 +201,7 @@ class LDAPBackend(BaseBackend):
         ou = self.ldap.search(realm, dn, '(objectClass=*)',
                               ldap3.BASE,
                               ldap3.ALL_ATTRIBUTES, 1)
-        if len(ou) == 0:
+        if not ou:
             raise KeyError('orgUnitDN not found in catalog')
         ou = ou[0]
         ou_attributes = ou['attributes']
@@ -209,8 +209,7 @@ class LDAPBackend(BaseBackend):
         data = {
             'id': self._groupid('{}:unit:{}'.format(
                 realm,
-                get_single(ou_attributes['norEduOrgUnitUniqueIdentifier']))
-            ),
+                get_single(ou_attributes['norEduOrgUnitUniqueIdentifier']))),
             'parent': self._groupid(realm),
             'displayName': get_single(ou_attributes['ou']),
             'type': 'fc:orgunit',
@@ -292,7 +291,7 @@ class LDAPBackend(BaseBackend):
         res = self.ldap.search(realm, base_dn, '(eduPersonPrincipalName={})'.format(feideid),
                                ldap3.SUBTREE,
                                GROUP_PERSON_ATTRIBUTES, 1)
-        if len(res) == 0:
+        if not res:
             raise KeyError('could not find user in catalog')
         res = res[0]
         attributes = res['attributes']

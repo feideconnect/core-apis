@@ -40,6 +40,7 @@ def init_request_id():
 def request_id():
     if hasattr(__local, 'log_request_id'):
         return __local.log_request_id
+    return None
 
 
 def set_request_id(new):
@@ -53,8 +54,7 @@ def now():
 def timestamp_adapter(d):
     if isinstance(d, datetime.datetime):
         return d
-    else:
-        return parse_datetime(d)
+    return parse_datetime(d)
 
 
 def format_datetime(dt):
@@ -100,8 +100,7 @@ class LogMessage(object):
         rest = self.rest()
         if rest:
             return '"message": "{}", {}'.format(self.message, rest)
-        else:
-            return '"message": "{}"'.format(self.message)
+        return '"message": "{}"'.format(self.message)
 
 
 class LogWrapper(object):
@@ -266,8 +265,7 @@ def www_authenticate(realm, error=None, description=None, authtype="Bearer"):
     if error is not None:
         template = '{} realm="{}", error="{}", error_description="{}"'
         return template.format(authtype, realm, error, description)
-    else:
-        return '{} realm="{}"'.format(authtype, realm)
+    return '{} realm="{}"'.format(authtype, realm)
 
 
 class ValidationError(RuntimeError):
@@ -301,7 +299,7 @@ def get_token(request):
 def get_userid(request):
     try:
         return request.environ['FC_USER']['userid']
-    except:
+    except (KeyError, TypeError):
         return None
 
 
@@ -477,15 +475,14 @@ class translatable(dict):
 def pick_lang(chooser, data):
     if isinstance(data, translatable):
         return data.pick_lang(chooser)
-    elif isinstance(data, dict):
+    if isinstance(data, dict):
         res = {}
         for key, value in data.items():
             res[key] = pick_lang(chooser, value)
         return res
-    elif isinstance(data, list):
+    if isinstance(data, list):
         return [pick_lang(chooser, v) for v in data]
-    else:
-        return data
+    return data
 
 
 def accept_language_matcher(request, data):
@@ -594,16 +591,16 @@ def valid_url(value):
 
 
 def is_valid_char(c, valid_categories):
-        category = unicodedata.category(c)
-        if category not in valid_categories:
-            return False
-        if category == 'Zs' and c != " ":
-            return False
-        if category == 'Cc' and c != "\n":
-            return False
-        if c == '<' or c == '>':
-            return False
-        return True
+    category = unicodedata.category(c)
+    if category not in valid_categories:
+        return False
+    if category == 'Zs' and c != " ":
+        return False
+    if category == 'Cc' and c != "\n":
+        return False
+    if c == '<' or c == '>':
+        return False
+    return True
 
 
 def valid_string(value, allow_newline, minlength, maxlength):
@@ -644,7 +641,7 @@ def get_cassandra_authz(config):
     authz = {key: config[key] for key in authkeys if key in config}
     if len(authz) == len(authkeys):
         return authz
-    elif len(authz) > 0:
+    elif authz:
         missing_authz = set(authkeys) - set(authz.keys())
         raise ValidationError('Missing ' + ', '.join(missing_authz))
     else:

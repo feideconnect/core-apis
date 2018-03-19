@@ -95,6 +95,7 @@ class APIGKAdmController(CrudControllerBase):
     def is_owner(self, apigk, user):
         if apigk['owner'] == user['userid']:
             return True
+        return None
 
     def has_permission(self, apigk, user, token):
         if user is None:
@@ -103,10 +104,9 @@ class APIGKAdmController(CrudControllerBase):
             return True
         org = apigk.get('organization', None)
         if ((org and self.is_org_admin(user, org)) or
-            (not org and self.is_owner(apigk, user))):
+                (not org and self.is_owner(apigk, user))):
             return True
-        else:
-            return self.is_delegated_admin(apigk, token)
+        return self.is_delegated_admin(apigk, token)
 
     def get(self, gkid):
         self.log.debug('Get apigk', gkid=gkid)

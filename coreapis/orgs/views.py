@@ -4,9 +4,9 @@ from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPNotFound, HTTPForbidden, HTTPConflict
 from pyramid.response import Response
 
-from .controller import OrgController
 from coreapis.utils import (now, get_user, ValidationError, AlreadyExistsError, translation,
-                            get_payload, get_feideid, get_logo_bytes)
+                            get_payload, get_logo_bytes)
+from .controller import OrgController
 
 
 def configure(config):

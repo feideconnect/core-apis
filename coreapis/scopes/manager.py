@@ -1,7 +1,7 @@
 from coreapis.utils import (
     EmailNotifier, json_load, preferred_email, LogWrapper, ValidationError, PRIV_PLATFORM_ADMIN)
-from .scope_request_notification import ScopeRequestNotification
 from coreapis.scopes import filter_missing_mainscope, gk_mainscope, is_gkscopename
+from .scope_request_notification import ScopeRequestNotification
 
 EMAIL_NOTIFICATIONS_CONFIG_KEY = 'notifications.email.'
 
@@ -61,8 +61,7 @@ class ScopesManager(object):
     def _get_moderator(self, scope):
         if is_gkscopename(scope):
             return self._get_gk_moderator(scope)
-        else:
-            return self.system_moderator
+        return self.system_moderator
 
     # Group scopes by apigk, with a separate bucket for built-in scopes
     # Example:
@@ -122,7 +121,7 @@ class ScopesManager(object):
         modscopes = set(target['scopes_requested']).difference(set(target['scopes']))
         for base, scopes in self._get_scopes_by_base(modscopes).items():
             mod = self._get_moderator(base)
-            if mod and len(mod) > 0:
+            if mod:
                 self._notify_moderator(mod, target, scopes)
             else:
                 self.log.debug('No moderator address', base=base, mod=mod)

@@ -2,9 +2,9 @@ import threading
 from pyramid.view import view_config
 from pyramid.httpexceptions import HTTPNotFound, HTTPNotModified, HTTPForbidden
 from pyramid.response import Response
-from .controller import validate_query, PeopleSearchController
 from coreapis.utils import get_user, get_max_replies
 from coreapis.ldap.controller import LDAPController
+from .controller import validate_query, PeopleSearchController
 
 
 def configure(config):
@@ -55,11 +55,7 @@ def admin_search(request):
     org = request.matchdict['org']
     search = request.matchdict['name']
     max_replies = get_max_replies(request)
-    sameorg = request.params.get('sameorg', 'false')
-    if sameorg == 'true':
-        sameorg = True
-    else:
-        sameorg = False
+    sameorg = (request.params.get('sameorg', 'false') == 'true')
     validate_query(search)
     if not org or not search:
         raise HTTPNotFound('missing org or search term')
