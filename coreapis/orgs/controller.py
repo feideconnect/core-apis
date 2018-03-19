@@ -33,14 +33,10 @@ def valid_feideid(feideid):
 def valid_identity(identity):
     provider_prefix, separator, user_key = identity.partition(':')
     if separator != ':':
-        ret = False
-    elif provider_prefix == 'feide':
-        ret = valid_feideid(user_key)
-    elif provider_prefix in VALID_PREFIXES and user_key != '':
-        ret = True
-    else:
-        ret = False
-    return ret
+        return False
+    if provider_prefix == 'feide':
+        return valid_feideid(user_key)
+    return (provider_prefix in VALID_PREFIXES and user_key != '')
 
 
 def valid_rolenames(rolenames):
