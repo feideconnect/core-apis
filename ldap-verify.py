@@ -51,33 +51,35 @@ def verify_item_datatype(org, data, key, datatype):
         fail("{} key '{}' has wrong datatype {} should be {}".format(org, key,
                                                                      type(data[key]), datatype))
 
+def sanity_check_org(org, data):
+    verify_item_datatype(org, data, 'base_dn', str)
+    verify_item_datatype(org, data, 'servers', list)
+    if len(data['servers']) < 1:
+        fail("{} has no servers".format(org))
+    verify_item_datatype(org, data, 'peoplesearch', dict)
+    peoplesearch = data['peoplesearch']
+    for key in ('employees', 'others'):
+        verify_item_datatype("{} peoplesearch".format(org), peoplesearch, key, str)
+        if peoplesearch[key] not in ("none", "sameOrg", "all"):
+            fail("{} has unhandled value {} for peoplesearch for {}".format(org, peoplesearch[key], key))
+    if "bind_user" in data:
+        verify_item_datatype(org, data, 'bind_user', dict)
+        bind_user = data['bind_user']
+        verify_item_datatype("{} bind_user".format(org), bind_user, "dn", str)
+        verify_item_datatype("{} bind_user".format(org), bind_user, "password", str)
+        for key in bind_user:
+            if key not in ("dn", "password"):
+                fail("{} bind_user has unexpected key {}".format(org, key))
+    if "exclude" in data:
+        verify_item_datatype(org, data, "exclude", str)
+    for key in data:
+        if key not in ('base_dn', 'display', 'servers', 'bind_user', 'exclude', 'peoplesearch'):
+            fail("{} has unexpected key {}".format(org, key))
+
 
 def sanity_check_config(config):
     for org, data in config.items():
-        verify_item_datatype(org, data, 'base_dn', str)
-        verify_item_datatype(org, data, 'servers', list)
-        if len(data['servers']) < 1:
-            fail("{} has no servers".format(org))
-        verify_item_datatype(org, data, 'peoplesearch', dict)
-        peoplesearch = data['peoplesearch']
-        for key in ('employees', 'others'):
-            verify_item_datatype("{} peoplesearch".format(org), peoplesearch, key, str)
-            if peoplesearch[key] not in ("none", "sameOrg", "all"):
-                fail("{} has unhandled value {} for peoplesearch for {}".format(org, peoplesearch[key], key))
-        if "bind_user" in data:
-            verify_item_datatype(org, data, 'bind_user', dict)
-            bind_user = data['bind_user']
-            verify_item_datatype("{} bind_user".format(org), bind_user, "dn", str)
-            verify_item_datatype("{} bind_user".format(org), bind_user, "password", str)
-            for key in bind_user:
-                if key not in ("dn", "password"):
-                    fail("{} bind_user has unexpected key {}".format(org, key))
-        if "exclude" in data:
-            verify_item_datatype(org, data, "exclude", str)
-        for key in data:
-            if key not in ('base_dn', 'display', 'servers', 'bind_user', 'exclude', 'peoplesearch'):
-                fail("{} has unexpected key {}".format(org, key))
-
+        sanity_check_org(org, data)
 
 def main():
     args = parse_args()
