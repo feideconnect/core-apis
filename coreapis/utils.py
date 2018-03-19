@@ -593,6 +593,19 @@ def valid_url(value):
     return url
 
 
+def is_valid_char(c, valid_categories):
+        category = unicodedata.category(c)
+        if category not in valid_categories:
+            return False
+        if category == 'Zs' and c != " ":
+            return False
+        if category == 'Cc' and c != "\n":
+            return False
+        if c == '<' or c == '>':
+            return False
+        return True
+
+
 def valid_string(value, allow_newline, minlength, maxlength):
     if not isinstance(value, str):
         raise ValueError()
@@ -607,18 +620,7 @@ def valid_string(value, allow_newline, minlength, maxlength):
     }
     if allow_newline:
         valid_categories.add('Cc')
-    value = ''
-    for c in normalized:
-        category = unicodedata.category(c)
-        if category not in valid_categories:
-            c = ''
-        if category == 'Zs' and c != " ":
-            c = ''
-        if category == 'Cc' and c != "\n":
-            c = ''
-        if c == '<' or c == '>':
-            c = ''
-        value += c
+    value = ''.join([c for c in normalized if is_valid_char(c, valid_categories)])
     value = re.sub(r'  +', ' ', value)
     if allow_newline:
         value = re.sub(r' ?\n ?', '\n', value)
