@@ -58,15 +58,10 @@ def search_users(request):
     user = get_user(request)
     if user:
         userrealm = get_userrealm(request)
-        if userrealm == searchrealm and 'usersearchlocal' in subscopes:
-            pass
-        elif 'usersearchglobal' in subscopes:
-            pass
-        else:
+        if not ((userrealm == searchrealm and 'usersearchlocal' in subscopes) or
+                'usersearchglobal' in subscopes):
             raise HTTPForbidden('Insufficient permissions, subscopes={}'.format(subscopes))
-    elif 'systemsearch' in subscopes:
-        pass
-    else:
+    elif 'systemsearch' not in subscopes:
         raise HTTPForbidden('Insufficient permissions, subscopes={}'.format(subscopes))
     query = request.params.get('q', None)
     max_replies = get_max_replies(request)
