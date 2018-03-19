@@ -55,7 +55,6 @@ def verify_item_datatype(org, data, key, datatype):
 def sanity_check_config(config):
     for org, data in config.items():
         verify_item_datatype(org, data, 'base_dn', str)
-        verify_item_datatype(org, data, 'display', str)
         verify_item_datatype(org, data, 'servers', list)
         if len(data['servers']) < 1:
             fail("{} has no servers".format(org))
