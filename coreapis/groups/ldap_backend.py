@@ -4,18 +4,19 @@ import time
 
 import eventlet
 import eventlet.greenthread
-ldap3 = eventlet.import_patched('ldap3')
-ldap3.core = eventlet.import_patched('ldap3.core')
-ldap3.core.exceptions = eventlet.import_patched('ldap3.core.exceptions')
 
 from coreapis.utils import LogWrapper, get_feideids, translatable, failsafe
 from coreapis.cache import Cache
-from . import BaseBackend, IDHandler, Pool
-ldapcontroller = eventlet.import_patched('coreapis.ldap.controller')
 from coreapis import cassandra_client, feide
 from coreapis.groups.gogroups import (
     affiliation_names as go_affiliation_names, GOGroup, groupid_entitlement)
 from coreapis.ldap import ORG_ATTRIBUTE_NAMES, GROUP_PERSON_ATTRIBUTES, get_single
+from . import BaseBackend, IDHandler, Pool
+ldap3 = eventlet.import_patched('ldap3')
+ldap3.core = eventlet.import_patched('ldap3.core')
+ldap3.core.exceptions = eventlet.import_patched('ldap3.core.exceptions')
+
+ldapcontroller = eventlet.import_patched('coreapis.ldap.controller')
 
 PERSON_ATTRIBUTE_MAPPING = {
     'eduPersonAffiliation': 'affiliation',

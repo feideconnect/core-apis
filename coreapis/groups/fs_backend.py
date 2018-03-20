@@ -1,12 +1,11 @@
 import functools
-
 import eventlet
-requests = eventlet.import_patched('requests')
-
 from coreapis.utils import LogWrapper, get_feideids, failsafe, translatable, parse_datetime
 from coreapis.cache import Cache
 from coreapis import cassandra_client
 from . import BaseBackend, Pool
+
+requests = eventlet.import_patched('requests')
 
 
 class FsBackend(BaseBackend):
