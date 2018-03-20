@@ -129,7 +129,7 @@ class ConnectionPool(object):
             self.log.warn("Failed to get connection. Pool full?")
             self.status()
             return HealthCheckResult.ok
-        except Exception as ex:
+        except Exception as ex: # pylint: disable=broad-except
             if self.alive:
                 self.log.warn("Failed health check", exception=str(ex),
                               exception_class=ex.__class__.__name__)
@@ -181,7 +181,7 @@ class RetryPool(object):
                                       size_limit=size_limit)
                     self.statsd.incr('ldap.org.{org}.successes'.format(org=self.statsd_org))
                     return connection.response
-            except Exception as ex:
+            except Exception as ex: # pylint: disable=broad-except
                 # We catch `Exception` instead of `ldap3.core.exceptions.LDAPExceptionError` here because the latter
                 # is hard to get hold of due to eventlet patching. We can only get the patched version, while the
                 # ldap3-library raises the unpatched version.

@@ -23,7 +23,7 @@ def configure(config):
 
 
 @view_config(route_name="list_authz", permission="scope_authzinfo", renderer="json")
-def list(request):
+def list_authz(request):
     userid = get_userid(request)
     return request.authz_controller.list(userid)
 

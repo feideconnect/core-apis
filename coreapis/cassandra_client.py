@@ -3,10 +3,10 @@ import contextlib
 import datetime
 import json
 
-from cassandra.cluster import Cluster
+from cassandra.cluster import Cluster # pylint: disable=no-name-in-module
 import cassandra
 import cassandra.concurrent
-from cassandra.query import dict_factory
+from cassandra.query import dict_factory # pylint: disable=no-name-in-module
 import pytz
 
 from coreapis.utils import LogWrapper, now, translatable, get_cassandra_cluster_args
@@ -117,11 +117,11 @@ class Client(object):
         else:
             qids = ids
         results = cassandra.concurrent.execute_concurrent_with_args(self.session, statement, qids)
-        for id, (success, result) in zip(ids, results):
+        for id_, (success, result) in zip(ids, results):
             if not success:
                 raise result
             if result:
-                output[id] = result[0]
+                output[id_] = result[0]
         return output
 
     @staticmethod

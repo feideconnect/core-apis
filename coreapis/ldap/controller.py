@@ -156,7 +156,7 @@ class LDAPController(object):
                     self.host_statsd.gauge(self._org_statsd_key(org, 'alive_servers'),
                                            len(orgpool.alive_servers()))
                 self.last_health_check = time.time()
-            except Exception as ex:
+            except Exception as ex: # pylint: disable=broad-except
                 self.log.warn('Exception in health check thread', exception=str(ex))
                 self.last_health_check_exception = time.time()
                 time.sleep(1)

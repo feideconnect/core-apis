@@ -89,11 +89,11 @@ educational_org_types = {
 }
 
 
-def grep_translatable(input):
+def grep_translatable(inp):
     res = {}
-    if len(input) == 1 and 'default' in input:
-        return input['default']
-    for lang, val in input.items():
+    if len(inp) == 1 and 'default' in inp:
+        return inp['default']
+    for lang, val in inp.items():
         if lang in lang_map:
             res[lang_map[lang]] = val
     return translatable(res)

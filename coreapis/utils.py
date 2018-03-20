@@ -64,7 +64,7 @@ def format_datetime(dt):
 
 
 class CustomEncoder(json.JSONEncoder):
-    def default(self, obj):
+    def default(self, obj): # pylint: disable=method-hidden
         if isinstance(obj, datetime.datetime):
             return format_datetime(obj)
         if isinstance(obj, uuid.UUID):
@@ -172,7 +172,7 @@ class Timer(object):
         def __enter__(self):
             self.t0 = time.time()
 
-        def __exit__(self, type, value, traceback):
+        def __exit__(self, exc_type, exc_value, exc_traceback):
             duration = (time.time() - self.t0) * 1000
             self.parent.register(self.name, duration)
 
@@ -446,7 +446,7 @@ class ResourcePool(object):
             self.item = self.pool.get()
             return self.item
 
-        def __exit__(self, type, value, traceback):
+        def __exit__(self, exc_type, exc_value, exc_traceback):
             self.pool.put(self.item)
 
     def item(self):
@@ -508,7 +508,7 @@ def failsafe(func):
     def wrapped(func, *args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except Exception as ex:
+        except Exception as ex: # pylint: disable=broad-except
             LogWrapper('coreapis.utils.failsafe').warn('suppressed error', exception=ex,
                                                        exception_class=ex.__class__.__name__)
             return None
