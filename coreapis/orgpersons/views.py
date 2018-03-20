@@ -42,7 +42,7 @@ def get_clientid(request):
 
 def validate_prefix(prefix):
     if prefix != 'feide':
-        raise HttpBadRequest("Only feide identities supported")
+        raise HTTPBadRequest("Only feide identities supported")
 
 def get_userrealm(request):
     userid_sec = get_header(request, HDR_DP_USERID_SEC)

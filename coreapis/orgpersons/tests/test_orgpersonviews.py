@@ -69,7 +69,7 @@ class OrgViewTests(unittest.TestCase):
 
     def test_get_orgperson_social(self):
         headers = {'Authorization': 'Bearer client_token', 'x-dataporten-clientid': clientid}
-        self._test_get_orgperson('linkbook:12345', headers, 500)
+        self._test_get_orgperson('linkbook:12345', headers, 400)
 
     def test_get_orgperson_incomplete_ldap_person(self):
         headers = {'Authorization': 'Bearer client_token', 'x-dataporten-clientid': clientid}
