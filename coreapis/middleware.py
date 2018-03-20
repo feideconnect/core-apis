@@ -312,7 +312,8 @@ class GatekeepedMiddleware(object):
                  use_eventlet, authz, username, password):
         self._app = app
         self.realm = realm
-        self.credentials = str(base64.b64encode('{}:{}'.format(username, password).encode('UTF-8')), 'UTF-8')
+        self.credentials = str(base64.b64encode('{}:{}'.format(username, password).encode('UTF-8')),
+                               'UTF-8')
         self.log = LogWrapper('dataporten.auth')
         self.session = cassandra_client.Client(contact_points, keyspace, use_eventlet, authz=authz)
         self.session.timer = timer

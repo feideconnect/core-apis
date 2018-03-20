@@ -246,7 +246,9 @@ class Client(object):
             self.session.execute(sec_prep.bind([sec, userid]))
 
         userid_sec_seen = {sec: tstamp for sec in userid_sec}
-        prep = self._prepare('INSERT INTO users (userid, created, email, name, profilephoto, profilephotohash, selectedsource, updated, userid_sec, userid_sec_seen) VALUES (?,?,?,?,?,?,?,?,?,?)')
+        prep = self._prepare(
+            'INSERT INTO users (userid, created, email, name, profilephoto, profilephotohash, ' +
+            'selectedsource, updated, userid_sec, userid_sec_seen) VALUES (?,?,?,?,?,?,?,?,?,?)')
         self.session.execute(prep.bind([
             userid,
             tstamp,
@@ -261,7 +263,9 @@ class Client(object):
         ]))
 
     def reset_user(self, userid):
-        prep = self._prepare('INSERT INTO users (userid, usageterms,email, name, profilephoto, profilephotohash, selectedsource, aboveagelimit) VALUES (?,?,?,?,?,?,?,?)')
+        prep = self._prepare(
+            'INSERT INTO users (userid, usageterms,email, name, profilephoto, profilephotohash, ' +
+            'selectedsource, aboveagelimit) VALUES (?,?,?,?,?,?,?,?)')
         self.session.execute(prep.bind([
             userid, False, {}, {}, {}, {}, None, None
         ]))
@@ -310,7 +314,9 @@ class Client(object):
         prep_del_auth = self._prepare(stmt)
         prep_del_auth.consistency_level = cassandra.ConsistencyLevel.ALL
         self.session.execute(prep_del_auth.bind([userid, clientid]))
-        prep_find_tokens = self._prepare('SELECT access_token FROM oauth_tokens WHERE userid = ? AND clientid = ? ALLOW FILTERING')
+        prep_find_tokens = self._prepare(
+            'SELECT access_token FROM oauth_tokens WHERE userid = ? AND clientid = ? ' +
+            'ALLOW FILTERING')
         for token in self.session.execute(prep_find_tokens.bind([userid, clientid])):
             tokenid = token['access_token']
             self.log.debug('deleting token', token=tokenid)
@@ -328,7 +334,8 @@ class Client(object):
         return self.session.execute(prep.bind([scope]))
 
     def update_oauth_authorization_scopes(self, auth):
-        prep = self._prepare('INSERT INTO oauth_authorizations (userid, clientid, scopes) VALUES (?, ?, ?)')
+        prep = self._prepare(
+            'INSERT INTO oauth_authorizations (userid, clientid, scopes) VALUES (?, ?, ?)')
         self.session.execute(prep.bind([auth['userid'], auth['clientid'], auth['scopes']]))
 
     def get_group(self, groupid):
@@ -339,7 +346,9 @@ class Client(object):
         self.session.execute(prep.bind([groupid]))
 
     def insert_group(self, group):
-        prep = self._prepare('INSERT INTO groups (id, created, descr, name, owner, updated, public, invitation_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+        prep = self._prepare(
+            'INSERT INTO groups (id, created, descr, name, owner, updated, public, ' +
+            'invitation_token) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
         self.session.execute(prep.bind([
             group['id'],
             group['created'],
@@ -362,7 +371,9 @@ class Client(object):
         return self.session.execute(prep.bind([groupid]))
 
     def add_group_member(self, groupid, userid, mtype, status, added_by):
-        prep = self._prepare('INSERT INTO group_members (groupid, userid, type, status, added_by) values (?,?,?,?,?)')
+        prep = self._prepare(
+            'INSERT INTO group_members (groupid, userid, type, status, added_by) ' +
+            'values (?,?,?,?,?)')
         self.session.execute(prep.bind([groupid, userid, mtype, status, added_by]))
 
     def set_group_member_status(self, groupid, userid, status):
@@ -393,7 +404,8 @@ class Client(object):
         return self.get_generic('group_members', selectors, values, maxrows)
 
     def insert_grep_code(self, grep):
-        prep = self._prepare('INSERT INTO grep_codes (id, code, title, type, last_changed) values (?,?,?,?,?)')
+        prep = self._prepare(
+            'INSERT INTO grep_codes (id, code, title, type, last_changed) values (?,?,?,?,?)')
         self.session.execute(prep.bind([grep['id'], grep['code'], grep['title'],
                                         grep['type'], grep['last_changed']]))
 

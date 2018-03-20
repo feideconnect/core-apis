@@ -26,7 +26,8 @@ def setUpModule():
 #    if 'TEST_LDAP_CREDS' not in os.environ:
 #        raise unittest.SkipTest('No ldap credentials available')
     settings['timer'] = mock.MagicMock()
-    settings['cassandra_contact_points'] = [os.environ.get('DP_CASSANDRA_TEST_NODE', 'cassandra-test-coreapis')]
+    settings['cassandra_contact_points'] = [os.environ.get('DP_CASSANDRA_TEST_NODE',
+                                                           'cassandra-test-coreapis')]
     settings['cassandra_keyspace'] = os.environ.get('DP_CASSANDRA_TEST_KEYSPACE', 'test_coreapis')
     settings['cassandra_authz'] = None
     settings['statsd_factory'] = mock.Mock()
@@ -97,7 +98,8 @@ class TestLDAPIntegration(object):
             }
         ]
 
-    @mock.patch.dict('coreapis.groups.ldap_backend.GROUPID_CANONICALIZATION_MIGRATION_TIME', {'example.org': time.time() + 1000})
+    @mock.patch.dict('coreapis.groups.ldap_backend.GROUPID_CANONICALIZATION_MIGRATION_TIME',
+                     {'example.org': time.time() + 1000})
     def test_get_member_groups_noncanonical(self):
         assert self.backend._get_member_groups(True, 'asbjorn_elevg@example.org') == [
             {
@@ -156,21 +158,29 @@ class TestLDAPIntegration(object):
         ]
 
     def test_get_go_members(self):
-        assert self.backend.get_go_members('asbjorn_elevg@example.org', 'fc:gogroup:example.org:a:NO856326499:10a-lab1:2016-01-01:2019-06-20', True, True) == [
-            {
-                'name': 'Asbjørn ElevG Hansen',
-                'userid_sec': ['feide:asbjorn_elevg@example.org'],
-                'membership': {
-                    'affiliation': 'student',
-                    'basic': 'member',
-                    'displayName': {'nb': 'Elev'}
+        assert self.backend.get_go_members(
+            'asbjorn_elevg@example.org',
+            'fc:gogroup:example.org:a:NO856326499:10a-lab1:2016-01-01:2019-06-20', True, True) == [
+                {
+                    'name': 'Asbjørn ElevG Hansen',
+                    'userid_sec': ['feide:asbjorn_elevg@example.org'],
+                    'membership': {
+                        'affiliation': 'student',
+                        'basic': 'member',
+                        'displayName': {'nb': 'Elev'}
+                    }
                 }
-            }
-        ]
+            ]
 
     def test_get_go_members_uncanonical_groupid(self):
-        assert self.backend.get_go_members('asbjorn_elevg@example.org', 'fc:gogroup:example.org:a:NO856326499:10a:2016-01-01:2019-06-20', True, True) == []
+        assert self.backend.get_go_members(
+            'asbjorn_elevg@example.org',
+            'fc:gogroup:example.org:a:NO856326499:10a:2016-01-01:2019-06-20', True, True) == []
 
-    @mock.patch.dict('coreapis.groups.ldap_backend.GROUPID_CANONICALIZATION_MIGRATION_TIME', {'example.org': time.time() + 1000})
+    @mock.patch.dict(
+        'coreapis.groups.ldap_backend.GROUPID_CANONICALIZATION_MIGRATION_TIME',
+        {'example.org': time.time() + 1000})
     def test_get_go_members_noncanonical(self):
-        assert self.backend.get_go_members('asbjorn_elevg@example.org', 'fc:gogroup:example.org:a:NO856326499:10A:2016-01-01:2019-06-20', True, True) == []
+        assert self.backend.get_go_members(
+            'asbjorn_elevg@example.org',
+            'fc:gogroup:example.org:a:NO856326499:10A:2016-01-01:2019-06-20', True, True) == []

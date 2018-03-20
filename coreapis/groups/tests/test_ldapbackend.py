@@ -3,7 +3,8 @@ import unittest
 from pytest import raises
 import mock
 from coreapis.utils import translatable
-from coreapis.groups.ldap_backend import org_membership_name, should_canonicalize_groupid, LDAPBackend
+from coreapis.groups.ldap_backend import (
+    org_membership_name, should_canonicalize_groupid, LDAPBackend)
 from coreapis.groups.tests import test_gogroups
 
 
@@ -27,11 +28,13 @@ class TestShouldCanonicalizeGroupid(unittest.TestCase):
     def test_normal_realm(self):
         assert should_canonicalize_groupid('example.org') is True
 
-    @mock.patch.dict('coreapis.groups.ldap_backend.GROUPID_CANONICALIZATION_MIGRATION_TIME', {'example.org': time.time() + 1000})
+    @mock.patch.dict('coreapis.groups.ldap_backend.GROUPID_CANONICALIZATION_MIGRATION_TIME',
+                     {'example.org': time.time() + 1000})
     def test_canonicalize_future(self):
         assert should_canonicalize_groupid('example.org') is False
 
-    @mock.patch.dict('coreapis.groups.ldap_backend.GROUPID_CANONICALIZATION_MIGRATION_TIME', {'example.org': time.time() - 1000})
+    @mock.patch.dict('coreapis.groups.ldap_backend.GROUPID_CANONICALIZATION_MIGRATION_TIME',
+                     {'example.org': time.time() - 1000})
     def test_canonicalize_past(self):
         assert should_canonicalize_groupid('example.org') is True
 
@@ -77,7 +80,8 @@ class TestLDAPBackend(unittest.TestCase):
             test_gogroups.GROUP1,
             test_gogroups.GROUPID1,
         ]
-        group = self.backend._find_group_for_groupid(test_gogroups.GROUPID1, entitlements, 'example.org')
+        group = self.backend._find_group_for_groupid(test_gogroups.GROUPID1, entitlements,
+                                                     'example.org')
         assert group
         assert group.groupid_entitlement() == test_gogroups.GROUPID1
 
@@ -126,7 +130,8 @@ class TestLDAPBackend(unittest.TestCase):
             }
         ]
 
-    @mock.patch.dict('coreapis.groups.ldap_backend.GROUPID_CANONICALIZATION_MIGRATION_TIME', {'example.org': time.time() + 1000})
+    @mock.patch.dict('coreapis.groups.ldap_backend.GROUPID_CANONICALIZATION_MIGRATION_TIME',
+                     {'example.org': time.time() + 1000})
     def test_get_go_members_noncanonical(self):
         self.ldap.get_base_dn.return_value = 'dc=example,dc=org'
         self.ldap.search.return_value = [

@@ -182,9 +182,9 @@ class RetryPool(object):
                     self.statsd.incr('ldap.org.{org}.successes'.format(org=self.statsd_org))
                     return connection.response
             except Exception as ex: # pylint: disable=broad-except
-                # We catch `Exception` instead of `ldap3.core.exceptions.LDAPExceptionError` here because the latter
-                # is hard to get hold of due to eventlet patching. We can only get the patched version, while the
-                # ldap3-library raises the unpatched version.
+                # We catch `Exception` instead of `ldap3.core.exceptions.LDAPExceptionError` here
+                # because the latter is hard to get hold of due to eventlet patching. We can only
+                # get the patched version, while the ldap3-library raises the unpatched version.
                 self.log.exception('LDAP search failed in RetryPool')
                 self.statsd.incr('ldap.org.{org}.failures'.format(org=self.statsd_org))
                 exception = ex

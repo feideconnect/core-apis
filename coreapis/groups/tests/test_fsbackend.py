@@ -95,7 +95,8 @@ class TestFsBackend(unittest.TestCase):
         self.backend = FsBackend('fs', 100, settings)
 
     def _get_member_groups(self, user, show_all):
-        with mock.patch('coreapis.groups.fs_backend.requests.get', return_value=MockResponse(MEMBER_GROUPS)):
+        with mock.patch('coreapis.groups.fs_backend.requests.get',
+                        return_value=MockResponse(MEMBER_GROUPS)):
             self.session.get_org.side_effect = mock_get_org
             return self.backend.get_member_groups(user, show_all)
 
@@ -117,7 +118,8 @@ class TestFsBackend(unittest.TestCase):
         assert not res
 
     def _get_members(self, user, groupid):
-        with mock.patch('coreapis.groups.fs_backend.requests.get', return_value=MockResponse(MEMBERS)):
+        with mock.patch('coreapis.groups.fs_backend.requests.get',
+                        return_value=MockResponse(MEMBERS)):
             return self.backend.get_members(user, groupid, False, True)
 
     def test_get_members(self):
@@ -142,7 +144,8 @@ class TestFsBackend(unittest.TestCase):
 
     def test_get_members_no_info(self):
         resp_data = [{'userid': USERS[0]['userid_sec'][0]}]
-        with mock.patch('coreapis.groups.fs_backend.requests.get', return_value=MockResponse(resp_data)):
+        with mock.patch('coreapis.groups.fs_backend.requests.get',
+                        return_value=MockResponse(resp_data)):
             res = self.backend.get_members(USERS[0], 'fc:kull:foo:bar', False, True)
             assert not res
 

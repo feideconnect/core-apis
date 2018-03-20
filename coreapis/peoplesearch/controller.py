@@ -49,7 +49,9 @@ class CassandraCache(coreapis.cassandra_client.Client):
         return entry
 
     def insert(self, user, last_updated, last_modified, etag, image):
-        s_insert = self._prepare('UPDATE profile_image_cache set last_modified=?, etag=?, last_updated=?, image=? WHERE user=?')
+        s_insert = self._prepare(
+            'UPDATE profile_image_cache set last_modified=?, etag=?, last_updated=?, image=? ' +
+            'WHERE user=?')
         self.session.execute(s_insert.bind([last_modified, etag, last_updated, image, user]))
 
 

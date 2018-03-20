@@ -369,8 +369,10 @@ class LDAPBackend(BaseBackend):
                 attributes = hit['attributes']
                 entry = {'name': get_single(attributes['displayName'])}
                 if include_member_ids:
-                    entry['userid_sec'] = ['feide:{}'.format(get_single(attributes['eduPersonPrincipalName']))]
-                group = self._find_group_for_groupid(entitlement_value, attributes['eduPersonEntitlement'], realm)
+                    entry['userid_sec'] = [
+                        'feide:{}'.format(get_single(attributes['eduPersonPrincipalName']))]
+                group = self._find_group_for_groupid(
+                    entitlement_value, attributes['eduPersonEntitlement'], realm)
                 entry['membership'] = group.membership()
                 res.append(entry)
             except KeyError:

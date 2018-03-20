@@ -173,7 +173,8 @@ class ClientAdmController(CrudControllerBase):
 
     def get_public_client_list(self, clients):
         owner_ids = list({c['owner'] for c in clients})
-        users = {uid: public_userinfo(user) for uid, user in self.session.get_users(owner_ids).items()}
+        users = {uid: public_userinfo(user)
+                 for uid, user in self.session.get_users(owner_ids).items()}
         org_ids = list({c['organization'] for c in clients if c.get('organization')})
         orgs = {oid: public_orginfo(org) for oid, org in self.session.get_orgs(org_ids).items()}
         return [self.get_public_info(c, users, orgs) for c in clients if c]

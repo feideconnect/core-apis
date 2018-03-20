@@ -97,7 +97,8 @@ class FsBackend(BaseBackend):
             self.log.debug('got response from fs', status_code=response.status_code,
                            content_type=response.headers['content-type'])
         response.raise_for_status()
-        return [self._adapt(group) for group in response.json() if self._should_show(group, show_all)]
+        return [
+            self._adapt(group) for group in response.json() if self._should_show(group, show_all)]
 
     def get_member_groups(self, user, show_all):
         result = []

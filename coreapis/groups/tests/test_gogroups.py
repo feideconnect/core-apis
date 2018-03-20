@@ -6,7 +6,8 @@ from coreapis.utils import translatable, now
 from coreapis.groups.gogroups import GOGroup
 
 GROUP1 = "urn:mace:feide.no:go:group:b::NO975278964:6A:2014-08-01:2015-06-15:student:Klasse%206A"
-GROUP2 = "urn:mace:feide.no:go:group:u:REA3012:NO974558386:3kja:2014-08-01:2015-06-15:faculty:Kjemi%202A"
+GROUP2 = ("urn:mace:feide.no:go:group:u:" +
+          "REA3012:NO974558386:3kja:2014-08-01:2015-06-15:faculty:Kjemi%202A")
 GROUPID1 = 'urn:mace:feide.no:go:groupid:b:NO975278964:6a:2014-08-01:2015-06-15'
 GROUPID1_NONCANONICAL = 'urn:mace:feide.no:go:groupid:b:NO975278964:6A:2014-08-01:2015-06-15'
 
@@ -33,9 +34,11 @@ class TestGOGroups(unittest.TestCase):
         assert group.role == 'faculty'
         assert group.name == 'Kjemi 2A'
         with raises(KeyError):
-            GOGroup("urn:mace:uninett.no:go:group:u:REA3012:NO974558386:3kja:2014-08-01:2015-06-15:faculty:Kjemi%202A")
+            GOGroup("urn:mace:uninett.no:go:group:u:" +
+                    "REA3012:NO974558386:3kja:2014-08-01:2015-06-15:faculty:Kjemi%202A")
         with raises(KeyError):
-            GOGroup("urn:mace:feide.no:go:group:u:NO974558386:3kja:2014-08-01:2015-06-15:faculty:Kjemi%202A")
+            GOGroup("urn:mace:feide.no:go:group:u:" +
+                    "NO974558386:3kja:2014-08-01:2015-06-15:faculty:Kjemi%202A")
 
     def test_parse_gogroup_noncanonical(self):
         group = GOGroup(GROUP1, canonicalize=False)
@@ -95,11 +98,13 @@ class TestGOGroups(unittest.TestCase):
 
     def test_groupid(self):
         group = GOGroup(GROUP1)
-        assert group.group_id('fc:org', 'uninett.no') == 'fc:org:uninett.no:b:NO975278964:6a:2014-08-01:2015-06-15'
+        assert (group.group_id('fc:org', 'uninett.no')
+                == 'fc:org:uninett.no:b:NO975278964:6a:2014-08-01:2015-06-15')
 
     def test_groupid_noncanonical(self):
         group = GOGroup(GROUP1, canonicalize=False)
-        assert group.group_id('fc:org', 'uninett.no') == 'fc:org:uninett.no:b:NO975278964:6A:2014-08-01:2015-06-15'
+        assert (group.group_id('fc:org', 'uninett.no')
+                == 'fc:org:uninett.no:b:NO975278964:6A:2014-08-01:2015-06-15')
 
     def test_valid(self):
         group = GOGroup(GROUP1)

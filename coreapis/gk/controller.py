@@ -9,7 +9,8 @@ from coreapis.cache import Cache
 def basic_auth(trust):
     username = trust['username']
     password = trust['password']
-    base64string = base64.b64encode('{}:{}'.format(username, password).encode('UTF-8')).decode('UTF-8')
+    base64string = base64.b64encode(
+        '{}:{}'.format(username, password).encode('UTF-8')).decode('UTF-8')
     return "Authorization", "Basic {}".format(base64string)
 
 
