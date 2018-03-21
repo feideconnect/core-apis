@@ -110,31 +110,41 @@ class TestTranslatable(TestCase):
         request = Request({})
         request.headers['Accept-Language'] = 'en-US,en;q=0.8,nb;q=0.6'
         print(request.accept_language)
-        chooser = lambda data: utils.accept_language_matcher(request, data)
+
+        def chooser(data):
+            return utils.accept_language_matcher(request, data)
         assert self.data.pick_lang(chooser) == 'unittesting is fun'
 
     def test_fallback_priority(self):
         request = Request({})
         request.headers['Accept-Language'] = 'se;q=0.8,de;q=0.6'
-        chooser = lambda data: utils.accept_language_matcher(request, data)
+
+        def chooser(data):
+            return utils.accept_language_matcher(request, data)
         assert self.data.pick_lang(chooser) == 'unittesting er gøy'
 
     def test_no_language_header(self):
         request = Request({})
-        chooser = lambda data: utils.accept_language_matcher(request, data)
+
+        def chooser(data):
+            return utils.accept_language_matcher(request, data)
         assert self.data.pick_lang(chooser) == 'unittesting er gøy'
 
     def test_fall_through(self):
         data = utils.translatable({'de': 'Achtung bitte!'})
         request = Request({})
-        chooser = lambda data: utils.accept_language_matcher(request, data)
+
+        def chooser(data):
+            return utils.accept_language_matcher(request, data)
         assert data.pick_lang(chooser) == 'Achtung bitte!'
 
     def test_pick_lang(self):
         request = Request({})
         request.headers['Accept-Language'] = 'en-US,en;q=0.8,nb;q=0.6'
         data = [{'foo': self.data, 'baz': 'ugle'}, [{'bar': self.data}]]
-        chooser = lambda data: utils.accept_language_matcher(request, data)
+
+        def chooser(data):
+            return utils.accept_language_matcher(request, data)
         assert utils.pick_lang(chooser, data) == [{'foo': 'unittesting is fun', 'baz': 'ugle'}, [{'bar': 'unittesting is fun'}]]
 
 

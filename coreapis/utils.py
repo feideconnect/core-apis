@@ -498,7 +498,9 @@ def translation(func):
         data = func(request)
         if request.params.get('translate', 'true') == 'false':
             return data
-        chooser = lambda data: accept_language_matcher(request, data)
+
+        def chooser(data):
+            return accept_language_matcher(request, data)
         return pick_lang(chooser, data)
     return wrapper
 
