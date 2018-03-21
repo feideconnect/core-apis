@@ -38,7 +38,7 @@ class ScopesManager(object):
     def _handle_gksubscope_request(self, target, scope, subname, subscopes, privileges):
         try:
             scopedef = subscopes[subname]
-        except:
+        except KeyError:
             raise ValidationError('invalid scope: {}'.format(scope))
         self._add_scope_if_approved(target, scopedef, scope, privileges)
 
