@@ -13,7 +13,7 @@ from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.scopes import is_gkscopename, has_gkscope_match
 from coreapis.scopes.manager import ScopesManager
-from coreapis.authproviders import authprovmgr, REGISTER_CLIENT
+from coreapis.authproviders import AUTHPROVMGR, REGISTER_CLIENT
 from coreapis.utils import (
     LogWrapper, timestamp_adapter, ValidationError, ForbiddenError,
     valid_url, valid_name, valid_description, userinfo_for_log,
@@ -234,7 +234,7 @@ class ClientAdmController(CrudControllerBase):
     # By default CQL does not distinguish between INSERT and UPDATE
     def _insert(self, client, privileges):
         self.scopemgr.handle_update(client, privileges)
-        authprovmgr.check_client_update(self.session, client)
+        AUTHPROVMGR.check_client_update(self.session, client)
         self.insert_client(client)
         self.scopemgr.notify_moderators(client)
         return client
@@ -441,7 +441,7 @@ class ClientAdmController(CrudControllerBase):
         self.session.delete_orgauthorization(clientid, realm)
 
     def get_policy(self, user):
-        approved = authprovmgr.has_user_permission(user, REGISTER_CLIENT)
+        approved = AUTHPROVMGR.has_user_permission(user, REGISTER_CLIENT)
         return dict(register=approved)
 
     def get_logins_stats(self, clientid, end_date, num_days, authsource):

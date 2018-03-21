@@ -5,7 +5,7 @@ from coreapis.cache import Cache
 from coreapis import cassandra_client
 from . import BaseBackend, Pool
 
-requests = eventlet.import_patched('requests')
+requests = eventlet.import_patched('requests') # pylint: disable=invalid-name
 
 
 class FsBackend(BaseBackend):

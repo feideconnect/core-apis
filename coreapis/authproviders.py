@@ -69,4 +69,4 @@ class AuthProvidersManager(object):
                 provider().check_client_update(session, client)
 
 
-authprovmgr = AuthProvidersManager()
+AUTHPROVMGR = AuthProvidersManager()

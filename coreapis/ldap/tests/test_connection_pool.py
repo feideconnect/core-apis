@@ -161,45 +161,45 @@ class TestConnectionPool(TestCase):
 
     @mock.patch('ldap3.Connection')
     def test_try_connection(self, connection):
-        assert self.pool._try_connection() == cpl.HealthCheckResult.ok
+        assert self.pool._try_connection() == cpl.HealthCheckResult.OK
         connection.return_value.search.side_effect = RuntimeError
         connection.return_value.closed = True
         connection.return_value.bound = True
-        assert self.pool._try_connection() == cpl.HealthCheckResult.fail
+        assert self.pool._try_connection() == cpl.HealthCheckResult.FAIL
         self.pool._get = mock.Mock(side_effect=cpl.TooManyConnectionsException)
-        assert self.pool._try_connection() == cpl.HealthCheckResult.ok
+        assert self.pool._try_connection() == cpl.HealthCheckResult.OK
 
     def test_check_connection(self):
         cp = self.pool
-        cp._try_connection = mock.MagicMock(return_value=cpl.HealthCheckResult.ok)
+        cp._try_connection = mock.MagicMock(return_value=cpl.HealthCheckResult.OK)
         assert cp.alive
-        assert cp.last_result == cpl.HealthCheckResult.ok
+        assert cp.last_result == cpl.HealthCheckResult.OK
         assert cp.result_count == 2
         cp.check_connection()
-        assert cp.last_result == cpl.HealthCheckResult.ok
+        assert cp.last_result == cpl.HealthCheckResult.OK
         assert cp.result_count == 3
 
-        cp._try_connection.return_value = cpl.HealthCheckResult.fail
+        cp._try_connection.return_value = cpl.HealthCheckResult.FAIL
         cp.check_connection()
-        assert cp.last_result == cpl.HealthCheckResult.fail
+        assert cp.last_result == cpl.HealthCheckResult.FAIL
         assert cp.result_count == 1
         assert cp.alive
         cp.check_connection()
-        assert cp.last_result == cpl.HealthCheckResult.fail
+        assert cp.last_result == cpl.HealthCheckResult.FAIL
         assert cp.result_count == 2
         assert cp.alive
         cp.check_connection()
-        assert cp.last_result == cpl.HealthCheckResult.fail
+        assert cp.last_result == cpl.HealthCheckResult.FAIL
         assert cp.result_count == 3
         assert not cp.alive
 
-        cp._try_connection.return_value = cpl.HealthCheckResult.ok
+        cp._try_connection.return_value = cpl.HealthCheckResult.OK
         cp.check_connection()
-        assert cp.last_result == cpl.HealthCheckResult.ok
+        assert cp.last_result == cpl.HealthCheckResult.OK
         assert cp.result_count == 1
         assert not cp.alive
         cp.check_connection()
-        assert cp.last_result == cpl.HealthCheckResult.ok
+        assert cp.last_result == cpl.HealthCheckResult.OK
         assert cp.result_count == 2
         assert cp.alive
 

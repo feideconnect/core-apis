@@ -1,7 +1,7 @@
 import unittest
 import webtest
 from coreapis import main, middleware
-from . import groupid1, groupid2
+from . import GROUPID1 as groupid1, GROUPID2 as groupid2
 
 
 class GroupsViewTests(unittest.TestCase):

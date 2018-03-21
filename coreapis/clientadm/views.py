@@ -8,7 +8,7 @@ from pyramid.response import Response
 from coreapis.utils import (
     AlreadyExistsError, ForbiddenError, ValidationError, get_payload, get_token, get_user,
     translation, get_logo_bytes)
-from coreapis.authproviders import REGISTER_CLIENT, authprovmgr
+from coreapis.authproviders import REGISTER_CLIENT, AUTHPROVMGR
 from .controller import ClientAdmController
 
 
@@ -133,7 +133,7 @@ def add_client(request):
     if 'organization' in attrs:
         if not controller.is_admin(user, attrs['organization']):
             raise HTTPForbidden('Not administrator for organization')
-    elif not authprovmgr.has_user_permission(user, REGISTER_CLIENT):
+    elif not AUTHPROVMGR.has_user_permission(user, REGISTER_CLIENT):
         raise HTTPForbidden('Insufficient permissions')
     try:
         client = controller.add(attrs, user, privileges)

@@ -5,17 +5,17 @@ import eventlet
 
 from coreapis.groups import BaseBackend
 
-user1 = uuid.UUID("00000000-0000-0000-0000-000000000001")
-user2 = uuid.UUID("00000000-0000-0000-0000-000000000002")
-groupid1 = 'fc:test:1'
-groupid2 = 'fc:test:2'
+USER1 = uuid.UUID("00000000-0000-0000-0000-000000000001")
+USER2 = uuid.UUID("00000000-0000-0000-0000-000000000002")
+GROUPID1 = 'fc:test:1'
+GROUPID2 = 'fc:test:2'
 
-group1 = {
-    'id': groupid1,
+GROUP1 = {
+    'id': GROUPID1,
     'displayName': 'Test group 1',
 }
-group2 = {
-    'id': groupid2,
+GROUP2 = {
+    'id': GROUPID2,
     'displayName': 'Test group 2',
     'public': True,
 }
@@ -53,19 +53,19 @@ class CrashBackend(BaseBackend):
 
 class MockBackend(BaseBackend):
     def get_membership(self, user, groupid):
-        if user['userid'] == user1 and groupid == groupid1:
+        if user['userid'] == USER1 and groupid == GROUPID1:
             return {
                 'basic': 'member',
             }
         raise KeyError('not member')
 
     def get_group(self, user, groupid):
-        if user['userid'] == user1 and groupid == groupid1:
-            return group1
+        if user['userid'] == USER1 and groupid == GROUPID1:
+            return GROUP1
         raise KeyError('No such group')
 
     def get_members(self, user, groupid, show_all, include_member_ids):
-        if user['userid'] == user1 and groupid == groupid1:
+        if user['userid'] == USER1 and groupid == GROUPID1:
             result = [
                 {
                     "name": "test user 1",
@@ -86,14 +86,14 @@ class MockBackend(BaseBackend):
         raise KeyError("not member")
 
     def get_member_groups(self, user, show_all):
-        if user['userid'] == user1:
-            return [group1]
-        if user['userid'] == user2 and show_all:
-            return [group1]
+        if user['userid'] == USER1:
+            return [GROUP1]
+        if user['userid'] == USER2 and show_all:
+            return [GROUP1]
         return []
 
     def get_groups(self, user, query):
-        return (g for g in (group1, group2) if query is None or query in g['displayName'])
+        return (g for g in (GROUP1, GROUP2) if query is None or query in g['displayName'])
 
     def grouptypes(self):
         return [

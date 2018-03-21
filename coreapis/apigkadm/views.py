@@ -4,7 +4,7 @@ from pyramid.response import Response
 from coreapis.utils import (
     AlreadyExistsError, get_userid, get_payload, get_user, get_token,
     get_logo_bytes, get_max_replies, translation)
-from coreapis.authproviders import REGISTER_APIGK, authprovmgr
+from coreapis.authproviders import REGISTER_APIGK, AUTHPROVMGR
 from .controller import APIGKAdmController
 
 
@@ -117,7 +117,7 @@ def add_apigk(request):
     if 'organization' in attrs:
         if not controller.is_admin(user, attrs['organization']):
             raise HTTPForbidden('Not administrator for organization')
-    elif not authprovmgr.has_user_permission(user, REGISTER_APIGK):
+    elif not AUTHPROVMGR.has_user_permission(user, REGISTER_APIGK):
         raise HTTPForbidden('Insufficient permissions')
     try:
         apigk = controller.add(attrs, user, privileges)

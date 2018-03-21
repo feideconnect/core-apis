@@ -10,7 +10,7 @@ from coreapis.adhocgroups.tests.data import \
     public_userinfo
 
 
-group1_view = {
+GROUP1_VIEW = {
     "id": 'adhoc:' + str(groupid1),
     "displayName": "pre update",
     "description": "some data",
@@ -20,7 +20,7 @@ group1_view = {
     }
 }
 
-group2_view = {
+GROUP2_VIEW = {
     "id": 'adhoc:' + str(groupid2),
     "displayName": "pre update",
     "description": "some data",
@@ -31,12 +31,12 @@ group2_view = {
     }
 }
 
-groups = {
+GROUPS = {
     groupid1: group1,
     groupid2: group2
 }
 
-membership1 = {
+MEMBERSHIP1 = {
     'groupid': groupid1,
     'userid': user1,
     'status': 'normal',
@@ -98,16 +98,16 @@ class TestAdHocBackend(TestAdHocBackendBase):
                 'userid': user3
             },
         ])
-        self.session.get_group.side_effect = groups.get
+        self.session.get_group.side_effect = GROUPS.get
         res = self.backend.get_member_groups(dict(userid=user3), False)
-        assert res == [group1_view, group2_view]
+        assert res == [GROUP1_VIEW, GROUP2_VIEW]
 
 
 class TestAdHocBackendGet(TestAdHocBackendBase):
     def test_normal(self):
         self.session.get_group.return_value = group1
-        self.session.get_membership_data.return_value = membership1
-        assert self.backend._get(user1, 'fc:adhoc:{}'.format(groupid1)) == (group1, membership1)
+        self.session.get_membership_data.return_value = MEMBERSHIP1
+        assert self.backend._get(user1, 'fc:adhoc:{}'.format(groupid1)) == (group1, MEMBERSHIP1)
 
     def test_not_member(self):
         group = deepcopy(group1)
@@ -133,7 +133,7 @@ class TestAdHocBackendGet(TestAdHocBackendBase):
 class TestAdHocBackendGetMembership(TestAdHocBackendBase):
     def test_normal(self):
         with mock.patch('coreapis.groups.adhoc_backend.AdHocGroupBackend._get') as _get:
-            _get.return_value = group1, membership1
+            _get.return_value = group1, MEMBERSHIP1
             assert self.backend.get_membership({'userid': user1},
                                                'fc:adhoc:{}'.format(groupid1)) == {'basic': 'owner'}
 
@@ -149,7 +149,7 @@ class TestAdHocBackendGetGroup(TestAdHocBackendBase):
         with mock.patch('coreapis.groups.adhoc_backend.AdHocGroupBackend._get') as _get:
             _get.return_value = group1, None
             res = self.backend.get_group({'userid': user1}, 'fc:adhoc:{}'.format(groupid1))
-            expected = deepcopy(group1_view)
+            expected = deepcopy(GROUP1_VIEW)
             del expected['membership']
             assert res == expected
 
@@ -160,7 +160,7 @@ class TestAdHocBackendGetMembers(TestAdHocBackendBase):
         self.session.get_group_members.return_value = iter(members)
         self.session.get_user_by_id.return_value = public_userinfo
         with mock.patch('coreapis.groups.adhoc_backend.AdHocGroupBackend._get') as _get:
-            _get.return_value = group1, membership1
+            _get.return_value = group1, MEMBERSHIP1
             res = self.backend.get_members({'userid': user1},
                                            'fc:adhoc:{}'.format(groupid1), False, False)
             assert res == [{'membership': {'basic': 'owner'}, 'name': 'foo'}]
@@ -170,7 +170,7 @@ class TestAdHocBackendGetMembers(TestAdHocBackendBase):
         self.session.get_group_members.return_value = iter(members)
         self.session.get_user_by_id.side_effect = KeyError
         with mock.patch('coreapis.groups.adhoc_backend.AdHocGroupBackend._get') as _get:
-            _get.return_value = group1, membership1
+            _get.return_value = group1, MEMBERSHIP1
             res = self.backend.get_members({'userid': user1},
                                            'fc:adhoc:{}'.format(groupid1), False, False)
             assert res == []
@@ -180,7 +180,7 @@ class TestAdHocBackendGetMembers(TestAdHocBackendBase):
         self.session.get_group_members.return_value = iter(members)
         self.session.get_user_by_id.return_value = public_userinfo
         with mock.patch('coreapis.groups.adhoc_backend.AdHocGroupBackend._get') as _get:
-            _get.return_value = group1, membership1
+            _get.return_value = group1, MEMBERSHIP1
             res = self.backend.get_members({'userid': user1},
                                            'fc:adhoc:{}'.format(groupid1), False, False)
             assert res == []

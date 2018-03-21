@@ -27,7 +27,7 @@ import pytz
 from aniso8601 import parse_datetime
 from pyramid.httpexceptions import HTTPBadRequest, HTTPNotModified
 
-__local = threading.local()
+__local = threading.local() # pylint: disable=invalid-name
 
 
 PRIV_PLATFORM_ADMIN = "priv_platform_admin"

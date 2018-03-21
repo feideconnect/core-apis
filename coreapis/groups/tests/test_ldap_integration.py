@@ -7,11 +7,11 @@ import mock
 from coreapis.groups.ldap_backend import LDAPBackend
 from coreapis.tests.test_cassandra import setUpModule as setupCassandra
 
-settings = {}
+SETTINGS = {}
 
 
 def setUpModule():
-    global settings
+    global SETTINGS
     cclient = setupCassandra()
     cclient.insert_org({
         'id': 'foo:org:example.org',
@@ -25,21 +25,21 @@ def setUpModule():
     })
 #    if 'TEST_LDAP_CREDS' not in os.environ:
 #        raise unittest.SkipTest('No ldap credentials available')
-    settings['timer'] = mock.MagicMock()
-    settings['cassandra_contact_points'] = [os.environ.get('DP_CASSANDRA_TEST_NODE',
+    SETTINGS['timer'] = mock.MagicMock()
+    SETTINGS['cassandra_contact_points'] = [os.environ.get('DP_CASSANDRA_TEST_NODE',
                                                            'cassandra-test-coreapis')]
-    settings['cassandra_keyspace'] = os.environ.get('DP_CASSANDRA_TEST_KEYSPACE', 'test_coreapis')
-    settings['cassandra_authz'] = None
-    settings['statsd_factory'] = mock.Mock()
-    settings['statsd_host_factory'] = mock.Mock()
-    settings['ldap_config_file'] = os.path.join(os.path.dirname(__file__), 'ldap-config.json')
-    settings['ldap_ca_certs'] = '/etc/ldap_certs.crt'
+    SETTINGS['cassandra_keyspace'] = os.environ.get('DP_CASSANDRA_TEST_KEYSPACE', 'test_coreapis')
+    SETTINGS['cassandra_authz'] = None
+    SETTINGS['statsd_factory'] = mock.Mock()
+    SETTINGS['statsd_host_factory'] = mock.Mock()
+    SETTINGS['ldap_config_file'] = os.path.join(os.path.dirname(__file__), 'ldap-config.json')
+    SETTINGS['ldap_ca_certs'] = '/etc/ldap_certs.crt'
 
 
 @mark.eventlet
 class TestLDAPIntegration(object):
     def setup(self):
-        self.backend = LDAPBackend('foo', 1000, settings)
+        self.backend = LDAPBackend('foo', 1000, SETTINGS)
 
     def test_get_member_groups(self):
         assert self.backend._get_member_groups(True, 'asbjorn_elevg@example.org') == [

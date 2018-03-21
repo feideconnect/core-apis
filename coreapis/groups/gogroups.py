@@ -3,7 +3,7 @@ import datetime
 import pytz
 from coreapis.utils import translatable, now, LogWrapper
 
-go_types = {
+GO_TYPES = {
     'u': translatable({
         'nb': 'undervisningsgruppe',
     }),
@@ -15,7 +15,7 @@ go_types = {
         'en': 'other groups',
     }),
 }
-affiliation_names = {
+AFFILIATION_NAMES = {
     'faculty': translatable({
         'nb': 'Lærer',
         'nn': 'Lærar',
@@ -114,10 +114,10 @@ class GOGroup(object):
             'parent': '{}:{}:unit:{}'.format(parent_prefix, realm, self.organization),
             'membership': self.membership(),
         }
-        if self.group_type in go_types:
-            result['go_type_displayName'] = go_types[self.group_type]
+        if self.group_type in GO_TYPES:
+            result['go_type_displayName'] = GO_TYPES[self.group_type]
         else:
-            self.log.warn('Found invalid go group type', go_type=self.group_type)
+            self.log.warn('Found invalid go group type', GO_TYPE=self.group_type)
         return result
 
     def groupid_entitlement(self):
@@ -128,8 +128,8 @@ class GOGroup(object):
             'basic': 'admin' if self.role == 'faculty' else 'member',
             'affiliation': self.role,
         }
-        if self.role in affiliation_names:
-            membership['displayName'] = affiliation_names[self.role]
+        if self.role in AFFILIATION_NAMES:
+            membership['displayName'] = AFFILIATION_NAMES[self.role]
         else:
             membership['displayName'] = self.role
         return membership

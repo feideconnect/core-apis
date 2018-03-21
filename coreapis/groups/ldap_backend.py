@@ -9,14 +9,15 @@ from coreapis.utils import LogWrapper, get_feideids, translatable, failsafe
 from coreapis.cache import Cache
 from coreapis import cassandra_client, feide
 from coreapis.groups.gogroups import (
-    affiliation_names as go_affiliation_names, GOGroup, groupid_entitlement)
+    AFFILIATION_NAMES as go_affiliation_names, GOGroup, groupid_entitlement)
 from coreapis.ldap import ORG_ATTRIBUTE_NAMES, GROUP_PERSON_ATTRIBUTES, get_single
 from . import BaseBackend, IDHandler, Pool
-ldap3 = eventlet.import_patched('ldap3')
+ldap3 = eventlet.import_patched('ldap3') # pylint: disable=invalid-name
 ldap3.core = eventlet.import_patched('ldap3.core')
 ldap3.core.exceptions = eventlet.import_patched('ldap3.core.exceptions')
 
-ldapcontroller = eventlet.import_patched('coreapis.ldap.controller')
+ldapcontroller = eventlet.import_patched( # pylint: disable=invalid-name
+    'coreapis.ldap.controller')
 
 PERSON_ATTRIBUTE_MAPPING = {
     'eduPersonAffiliation': 'affiliation',
@@ -43,14 +44,14 @@ GROUPID_CANONICALIZATION_MIGRATION_TIME = {
     'tromso.kommune.no': 1513292400,  # Fri Dec 15 00:00:00 CET 2017
 }
 
-lang_map = {
+LANG_MAP = {
     'nno': 'nn',
     'nob': 'nb',
     'eng': 'en',
     'sme': 'se',
 }
 
-affiliation_names = {
+AFFILIATION_NAMES = {
     'go': go_affiliation_names,
     'he': {
         'faculty': translatable({
@@ -82,7 +83,7 @@ affiliation_names = {
         })
     }
 }
-educational_org_types = {
+EDUCATIONAL_ORG_TYPES = {
     'higher_education',
     'primary_and_lower_secondary',
     'upper_secondary'
@@ -94,8 +95,8 @@ def grep_translatable(inp):
     if len(inp) == 1 and 'default' in inp:
         return inp['default']
     for lang, val in inp.items():
-        if lang in lang_map:
-            res[lang_map[lang]] = val
+        if lang in LANG_MAP:
+            res[LANG_MAP[lang]] = val
     return translatable(res)
 
 
@@ -113,9 +114,9 @@ def groupid_escape(x):
 
 def org_membership_name(affiliation, org_type):
     if 'higher_education' in org_type:
-        names = affiliation_names['he']
+        names = AFFILIATION_NAMES['he']
     else:
-        names = affiliation_names['go']
+        names = AFFILIATION_NAMES['go']
     for candidate in AFFILIATION_PRIORITY:
         if candidate in affiliation and candidate in names:
             return names[candidate]
@@ -181,7 +182,7 @@ class LDAPBackend(BaseBackend):
             raise KeyError('orgDN not found in catalog')
         org = org[0]
         org_attributes = org['attributes']
-        org_type = list(self._get_org_type(realm).intersection(educational_org_types))
+        org_type = list(self._get_org_type(realm).intersection(EDUCATIONAL_ORG_TYPES))
         if 'higher_education' not in org_type:
             org_type = ['{}_owner'.format(o) for o in org_type]
         res = {
@@ -205,7 +206,7 @@ class LDAPBackend(BaseBackend):
             raise KeyError('orgUnitDN not found in catalog')
         ou = ou[0]
         ou_attributes = ou['attributes']
-        org_type = self._get_org_type(realm).intersection(educational_org_types)
+        org_type = self._get_org_type(realm).intersection(EDUCATIONAL_ORG_TYPES)
         data = {
             'id': self._groupid('{}:unit:{}'.format(
                 realm,

@@ -36,7 +36,7 @@ class ConnectionPool(object):
         self.down_count = 3  # Based on haproxy "fall" option default
         self.up_count = 2  # Based on haproxy "rise" option default
         self.alive = True
-        self.last_result = HealthCheckResult.ok
+        self.last_result = HealthCheckResult.OK
         self.result_count = self.up_count
         self.log = LogWrapper('ldap.ConnectionPool', target=self.target)
         self.statsd = statsd
@@ -124,16 +124,16 @@ class ConnectionPool(object):
             with self.connection() as connection:
                 connection.search("", "(objectClass=*)", ldap3.BASE,
                                   attributes=['vendorversion'], size_limit=1)
-                return HealthCheckResult.ok
+                return HealthCheckResult.OK
         except TooManyConnectionsException:
             self.log.warn("Failed to get connection. Pool full?")
             self.status()
-            return HealthCheckResult.ok
+            return HealthCheckResult.OK
         except Exception as ex: # pylint: disable=broad-except
             if self.alive:
                 self.log.warn("Failed health check", exception=str(ex),
                               exception_class=ex.__class__.__name__)
-            return HealthCheckResult.fail
+            return HealthCheckResult.FAIL
 
     def check_connection(self):
         result = self._try_connection()
@@ -142,17 +142,17 @@ class ConnectionPool(object):
             self.result_count = 1
         else:
             self.result_count += 1
-        if result == HealthCheckResult.fail and self.result_count == self.down_count:
+        if result == HealthCheckResult.FAIL and self.result_count == self.down_count:
             self.log.info("Server marked as down")
             self.alive = False
-        elif result == HealthCheckResult.ok and self.result_count == self.up_count:
+        elif result == HealthCheckResult.OK and self.result_count == self.up_count:
             self.log.info("Server back up")
             self.alive = True
 
 
 class HealthCheckResult(enum.Enum):
-    ok = 1
-    fail = 2
+    OK = 1 # pylint: disable=invalid-name
+    FAIL = 2
 
 
 class RetryPool(object):

@@ -5,7 +5,7 @@ from coreapis import cassandra_client
 from coreapis.utils import LogWrapper, public_userinfo, failsafe, translatable
 from . import BaseBackend, Pool
 
-adhoc_type = 'voot:ad-hoc'
+ADHOC_TYPE = 'voot:ad-hoc'
 
 
 def basic(group, membership):
@@ -55,7 +55,7 @@ class AdHocGroupBackend(BaseBackend):
         data = {
             'id': self._groupid(str(group['id'])),
             'displayName': group['name'],
-            'type': adhoc_type,
+            'type': ADHOC_TYPE,
         }
         if group.get('public', False):
             data['public'] = True
@@ -136,7 +136,7 @@ class AdHocGroupBackend(BaseBackend):
     def grouptypes(self):
         return [
             {
-                'id': adhoc_type,
+                'id': ADHOC_TYPE,
                 "displayName": translatable({
                     "en": "Ad-Hoc Group",
                     "nb": "Ad-Hoc gruppe",
