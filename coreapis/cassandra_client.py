@@ -92,7 +92,7 @@ class Client(object):
         self.prepared[query] = prep
         return prep
 
-    def _get_statement(self, table, columns=None, idcolumns=['id']):
+    def _get_statement(self, table, columns=None, idcolumns=('id',)):
         if columns is None:
             columns = self.default_columns[table]
         where = ' AND '.join(('{} = ?'.format(col) for col in idcolumns))
