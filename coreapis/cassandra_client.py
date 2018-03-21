@@ -329,11 +329,11 @@ class Client(object):
         for userid in {row['userid'] for row in res}:
             self.delete_authorization(userid, clientid)
 
-    def get_oauth_authorizations_by_scope(self, scope):
+    def get_oauth_authz_by_scope(self, scope):
         prep = self._prepare('SELECT * FROM oauth_authorizations WHERE scopes CONTAINS ?')
         return self.session.execute(prep.bind([scope]))
 
-    def update_oauth_authorization_scopes(self, auth):
+    def update_oauth_auth_scopes(self, auth):
         prep = self._prepare(
             'INSERT INTO oauth_authorizations (userid, clientid, scopes) VALUES (?, ?, ?)')
         self.session.execute(prep.bind([auth['userid'], auth['clientid'], auth['scopes']]))

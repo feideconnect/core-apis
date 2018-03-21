@@ -355,7 +355,7 @@ class CassandraClientTests(unittest.TestCase):
     def insert_authz(self, nrecs):
         authz = [make_authorization() for i in range(nrecs)]
         for auth in authz:
-            self.cclient.update_oauth_authorization_scopes(auth)
+            self.cclient.update_oauth_auth_scopes(auth)
         return authz
 
     def insert_groups(self, nrecs):
@@ -438,7 +438,7 @@ class CassandraClientTests(unittest.TestCase):
         savedauth['clientid'] = clientid
         savedauth['scopes'] = scopes
         for auth in authz:
-            self.cclient.update_oauth_authorization_scopes(auth)
+            self.cclient.update_oauth_auth_scopes(auth)
         res = self.cclient.get_authorizations(userid)
         assert authz_match(res[0], savedauth)
         tokens = [make_token() for i in range(self.nrecs)]
@@ -660,12 +660,12 @@ class CassandraClientTests(unittest.TestCase):
         res = self.cclient.get_authorizations(userid)
         assert list(res) == []
 
-    def test_get_oauth_authorizations_by_scope(self):
+    def test_get_oauth_authz_by_scope(self):
         userid = uuid.uuid4()
         clientid = uuid.uuid4()
         testscopes = make_testscopes()
         self.authorize(userid, clientid, testscopes)
-        res = self.cclient.get_oauth_authorizations_by_scope(testscopes[0])
+        res = self.cclient.get_oauth_authz_by_scope(testscopes[0])
         assert all([res[0]['userid'] == userid,
                     res[0]['clientid'] == clientid,
                     res[0]['scopes'] == testscopes])

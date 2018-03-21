@@ -57,5 +57,6 @@ class TokenAuthorizationPolicy(object):
     def permits(self, context, principals, permission):
         return permission in principals
 
-    def principals_allowed_by_permission(self, context, permission):
+    def principals_allowed_by_permission( # pylint: disable=invalid-name
+            self, context, permission):
         raise NotImplementedError()

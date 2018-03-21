@@ -25,7 +25,7 @@ class LDAPController(object):
             'connect': int(settings.get('ldap_connect_timeout', '1')),
             'connection_wait': int(settings.get('ldap_max_connection_pool_wait', '1')),
         }
-        self.t = timer
+        self.timer = timer
         self.log = LogWrapper('peoplesearch.LDAPController')
         statsd = settings.get('statsd_factory')()
         self.host_statsd = settings.get('statsd_host_factory')()
@@ -111,7 +111,7 @@ class LDAPController(object):
         return 'ldap.org.{org}.{key}'.format(org=org.replace('.', '_'), key=key)
 
     def search(self, org, base_dn, search_filter, scope, attributes, size_limit=None):
-        with self.t.time(self._org_statsd_key(org, 'search_ms')):
+        with self.timer.time(self._org_statsd_key(org, 'search_ms')):
             self.host_statsd.incr(self._org_statsd_key(org, 'searches'))
             return self.orgpools[org].search(base_dn, search_filter, scope, attributes=attributes,
                                              size_limit=size_limit)

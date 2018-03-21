@@ -134,7 +134,7 @@ class APIGKAdmController(CrudControllerBase):
         for scope in gk_scopes:
             authorizations.update({
                 (a['userid'], a['clientid']): a
-                for a in self.session.get_oauth_authorizations_by_scope(scope)
+                for a in self.session.get_oauth_authz_by_scope(scope)
             })
         for auth in authorizations.values():
             scopes = auth['scopes']
@@ -142,7 +142,7 @@ class APIGKAdmController(CrudControllerBase):
             self.log.debug('removing scopes from oauth_authorization', userid=auth['userid'],
                            clientid=auth['clientid'],
                            scopes_removed=list(set(scopes).difference(auth['scopes'])))
-            self.session.update_oauth_authorization_scopes(auth)
+            self.session.update_oauth_auth_scopes(auth)
         # Delete scopes from all tokens
         tokens = {}
         for scope in gk_scopes:

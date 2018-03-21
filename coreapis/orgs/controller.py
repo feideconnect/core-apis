@@ -82,7 +82,7 @@ class OrgController(CrudControllerBase):
         maxrows = settings.get('orgadmin_maxrows')
         ldap_config = settings.get('ldap_config_file', 'ldap-config.json')
         super(OrgController, self).__init__(maxrows)
-        self.t = timer
+        self.timer = timer
         self.log = LogWrapper('org.OrgController')
         self.session = cassandra_client.Client(contact_points, keyspace, authz=authz)
         self.log.debug('org controller init', keyspace=keyspace)

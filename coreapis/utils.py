@@ -108,7 +108,7 @@ class LogWrapper(object):
 
     def __init__(self, name, **base):
         self._base = base
-        self.l = logging.getLogger(name)
+        self.logger = logging.getLogger(name)
 
     @property
     def base(self):
@@ -121,16 +121,16 @@ class LogWrapper(object):
         cls.clsbase.update(kwargs)
 
     def debug(self, msg, **kwargs):
-        self.l.debug(LogMessage(msg, self.base, **kwargs))
+        self.logger.debug(LogMessage(msg, self.base, **kwargs))
 
     def warn(self, msg, **kwargs):
-        self.l.warning(LogMessage(msg, self.base, **kwargs))
+        self.logger.warning(LogMessage(msg, self.base, **kwargs))
 
     def error(self, msg, **kwargs):
-        self.l.error(LogMessage(msg, self.base, **kwargs))
+        self.logger.error(LogMessage(msg, self.base, **kwargs))
 
     def info(self, msg, **kwargs):
-        self.l.info(LogMessage(msg, self.base, **kwargs))
+        self.logger.info(LogMessage(msg, self.base, **kwargs))
 
     def exception(self, msg, **kwargs):
         exception = traceback.format_exc()
@@ -416,13 +416,13 @@ class ResourcePool(object):
         self.create = create
         self.min_size = min_size
         self.max_size = max_size
-        self.q = Queue(max_size)
+        self.queue = Queue(max_size)
         self.count = 0
         self.lock = Lock()
 
     def get(self):
         try:
-            i = self.q.get(False)
+            i = self.queue.get(False)
             return i
         except Empty:
             pass
@@ -433,10 +433,10 @@ class ResourcePool(object):
                 create = True
         if create:
             return self.create()
-        return self.q.get(True)
+        return self.queue.get(True)
 
     def put(self, item):
-        self.q.put(item)
+        self.queue.put(item)
 
     class Context(object):
         def __init__(self, pool):

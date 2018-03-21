@@ -192,13 +192,13 @@ class AdHocGroupAdmController(CrudControllerBase):
             memberid = self.session.get_userid_by_userid_sec(memberid_sec)
         except KeyError:
             memberid = uuid.uuid4()
-            p = 'p:{}'.format(uuid.uuid4())
+            photo = 'p:{}'.format(uuid.uuid4())
             feideid = memberid_sec.split(':', 1)[1]
             realm = feideid.split('@', 1)[1]
             person = self.ps_controller.get_user(feideid)
             source = 'ps:{}'.format(realm)
             name = {source: person['name']}
-            memberid_sec = set([memberid_sec, p])
+            memberid_sec = set([memberid_sec, photo])
             self.session.insert_user(memberid, None, name, None, None, source, memberid_sec)
         added_by = None
         if callerid != memberid:

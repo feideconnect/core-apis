@@ -11,7 +11,7 @@ class StatisticsController(object):
         keyspace = settings.get('cassandra_keyspace')
         timer = settings.get('timer')
 
-        self.t = timer
+        self.timer = timer
         self.log = LogWrapper('peoplesearch.PeopleSearchController')
         self.db = coreapis.cassandra_client.Client(contact_points, keyspace, authz=authz)
         self.search_max_replies = 50

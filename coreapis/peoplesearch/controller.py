@@ -66,7 +66,7 @@ class PeopleSearchController(object):
         timer = settings.get('timer')
 
         self.key = key
-        self.t = timer
+        self.timer = timer
         self.ldap = ldap_controller
         self.image_cache = dict()
         self.log = LogWrapper('peoplesearch.PeopleSearchController')
@@ -153,7 +153,7 @@ class PeopleSearchController(object):
             search_filter = '(&{}(eduPersonAffiliation=employee))'.format(search_filter)
         res = self.ldap.ldap_search(org, search_filter, 'SUBTREE',
                                     attributes=PEOPLE_SEARCH_ATTRIBUTES, size_limit=max_replies)
-        with self.t.time('ps.process_results'):
+        with self.timer.time('ps.process_results'):
             result = [dict(r['attributes']) for r in res]
             new_result = []
             for person in result:
@@ -193,7 +193,7 @@ class PeopleSearchController(object):
             raise ValidationError("Unhandled user id type '{}'".format(idtype))
         if data is None:
             data, etag, last_modified = self._default_image()
-        with self.t.time('ps.profileimage.scale'):
+        with self.timer.time('ps.profileimage.scale'):
             fake_file = io.BytesIO(data)
             image = Image.open(fake_file)
             image.thumbnail(THUMB_SIZE)
