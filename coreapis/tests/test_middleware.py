@@ -1,5 +1,4 @@
 import unittest
-import uuid
 
 import mock
 import webtest

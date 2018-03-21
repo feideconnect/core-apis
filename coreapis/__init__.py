@@ -34,6 +34,7 @@ def set_status_data_docker(status_data):
         LogWrapper.add_defaults(**docker_env)
         status_data.update(docker_env)
 
+
 def set_status_data_build(status_data):
     for var in 'GIT_COMMIT', 'JENKINS_BUILD_NUMBER':
         if var in os.environ:

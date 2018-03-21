@@ -27,7 +27,7 @@ import pytz
 from aniso8601 import parse_datetime
 from pyramid.httpexceptions import HTTPBadRequest, HTTPNotModified
 
-__local = threading.local() # pylint: disable=invalid-name
+__local = threading.local()  # pylint: disable=invalid-name
 
 
 PRIV_PLATFORM_ADMIN = "priv_platform_admin"
@@ -64,7 +64,7 @@ def format_datetime(dt):
 
 
 class CustomEncoder(json.JSONEncoder):
-    def default(self, obj): # pylint: disable=method-hidden
+    def default(self, obj):  # pylint: disable=method-hidden
         if isinstance(obj, datetime.datetime):
             return format_datetime(obj)
         if isinstance(obj, uuid.UUID):
@@ -508,7 +508,7 @@ def failsafe(func):
     def wrapped(func, *args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except Exception as ex: # pylint: disable=broad-except
+        except Exception as ex:  # pylint: disable=broad-except
             LogWrapper('coreapis.utils.failsafe').warn('suppressed error', exception=ex,
                                                        exception_class=ex.__class__.__name__)
             return None
@@ -622,8 +622,8 @@ def valid_string(value, allow_newline, minlength, maxlength):
     if allow_newline:
         value = re.sub(r' ?\n ?', '\n', value)
         value = re.sub(r'\n\n\n+', '\n\n', value)
-    l = len(value)
-    if l < minlength or l > maxlength:
+    vl = len(value)
+    if vl < minlength or vl > maxlength:
         raise ValueError()
     return value
 

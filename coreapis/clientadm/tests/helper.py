@@ -139,15 +139,19 @@ retrieved_gk_clients[3].update({
 
 retrieved_gk_client = retrieved_gk_clients[0]
 
-apigks = {testgk.split('_')[1]: {'owner': uuid.UUID(userid_other),
-                                 'scopedef': {'subscopes': {'foo': {'policy': subscope_policy}}}},
-          othergk.split('_')[1]: {'owner': uuid.UUID(userid_third),
-                                  'scopedef': {}},
-          owngk.split('_')[1]: {'owner': uuid.UUID(userid_own),
-                                'scopedef': {}},
-          contactgk.split('_')[1]: {'owner': uuid.UUID(userid_other),
-                                 'admin_contact': testcontact,
-                                 'scopedef': {'subscopes': {'foo': {'policy': subscope_policy}}}},
+apigks = {testgk.split('_')[1]: {
+    'owner': uuid.UUID(userid_other),
+    'scopedef': {'subscopes': {'foo': {'policy': subscope_policy}}}},
+          othergk.split('_')[1]: {
+              'owner': uuid.UUID(userid_third),
+              'scopedef': {}},
+          owngk.split('_')[1]: {
+              'owner': uuid.UUID(userid_own),
+              'scopedef': {}},
+          contactgk.split('_')[1]: {
+              'owner': uuid.UUID(userid_other),
+              'admin_contact': testcontact,
+              'scopedef': {'subscopes': {'foo': {'policy': subscope_policy}}}},
           nullscopedefgk.split('_')[1]: {'owner': uuid.UUID(userid_other), 'scopedef': None}}
 
 

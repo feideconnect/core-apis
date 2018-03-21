@@ -68,6 +68,7 @@ MEMBER_GROUPS = [
      'parent': 'foo'}
 ]
 
+
 def mock_get_org(orgid):
     return [org for org in ORGS if org['id'] == orgid][0]
 

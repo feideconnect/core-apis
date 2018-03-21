@@ -101,8 +101,8 @@ class TestController(TestCase):
         self.session.insert_client = mock.MagicMock()
         attrs = {'name': "fo"}
         with py.test.raises(ValidationError):
-            res = self.controller.update(id, attrs, retrieved_user, [])
-        
+            self.controller.update(id, attrs, retrieved_user, [])
+
     def test_get_gkscope_clients(self):
         self.session.get_clients_by_scope.return_value = iter([])
         self.session.get_clients_by_scope_requested.return_value = iter([retrieved_gk_client])

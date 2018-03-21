@@ -3,7 +3,6 @@ import mock
 import uuid
 from copy import deepcopy
 from coreapis import apigkadm
-from coreapis.apigkadm import controller
 from coreapis.utils import ValidationError
 import py.test
 from coreapis.apigkadm.tests.data import post_body_minimal, post_body_maximal, pre_update

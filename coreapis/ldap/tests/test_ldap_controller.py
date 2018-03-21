@@ -9,7 +9,7 @@ from coreapis.utils import ValidationError
 
 class TestLookupFeideid(TestCase):
     def setUp(self):
-        m = mock.mock_open(read_data='{}')
+        mock.mock_open(read_data='{}')
         settings = {
             'timer': mock.MagicMock(),
             'ldap_config_file': 'testdata/test-ldap-config.json',
@@ -43,13 +43,15 @@ class TestLookupFeideid(TestCase):
         self.ldap.parse_ldap_config()
         self.test_feide_multiple_users()
 
+
 class MockStat(object):
     def __init__(self):
         self.st_mtime = 0
 
+
 class TestParseConfigNoElapsedTime(TestCase):
     def setUp(self):
-        m = mock.mock_open(read_data='{}')
+        mock.mock_open(read_data='{}')
         settings = {
             'timer': mock.MagicMock(),
             'ldap_config_file': 'testdata/test-ldap-config.json',
@@ -60,4 +62,4 @@ class TestParseConfigNoElapsedTime(TestCase):
             self.ldap = controller.LDAPController(settings)
 
     def test_parse_config_no_elapsed_time(self):
-        pass # We just care about setup
+        pass  # We just care about setup

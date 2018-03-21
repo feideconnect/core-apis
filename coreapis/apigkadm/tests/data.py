@@ -93,6 +93,7 @@ def mock_get_apigks(selectors, values, maxrows):
     return [apigk for apigk in mock_apigks
             if not selectors or values[0] == apigk[key]]
 
+
 def mock_get_apigks_by_admin(_, admins, __):
     return (apigk for apigk in mock_apigks
             if admins and admins[0] in apigk['admins'])

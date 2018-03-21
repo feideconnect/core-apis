@@ -25,6 +25,7 @@ def get_dn_header(request):
     except KeyError:
         raise ValidationError('Gate-Keeper-DN header missing')
 
+
 @view_config(route_name='gk_info', renderer='json', request_param="method=OPTIONS")
 def options(request):
     if not request.gk_controller.allowed_dn(get_dn_header(request)):

@@ -5,6 +5,8 @@ from coreapis.peoplesearch.controller import flatten
 from coreapis.utils import LogWrapper
 
 LDAP_ATTRIBUTES = ['displayName', 'mail', 'eduPersonPrincipalName']
+
+
 def _get_photo_secid(secids):
     for secid in secids:
         if secid.startswith('p:'):

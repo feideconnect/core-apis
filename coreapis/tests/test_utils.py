@@ -51,6 +51,7 @@ class TestPreferredEmail(TestCase):
         }
         assert utils.preferred_email(user) is None
 
+
 class TestGetFeideids(TestCase):
     def test_ok(self):
         user = {

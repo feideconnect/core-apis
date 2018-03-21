@@ -98,13 +98,13 @@ class TestGOGroups(unittest.TestCase):
 
     def test_groupid(self):
         group = GOGroup(GROUP1)
-        assert (group.group_id('fc:org', 'uninett.no')
-                == 'fc:org:uninett.no:b:NO975278964:6a:2014-08-01:2015-06-15')
+        assert (group.group_id('fc:org', 'uninett.no') ==
+                'fc:org:uninett.no:b:NO975278964:6a:2014-08-01:2015-06-15')
 
     def test_groupid_noncanonical(self):
         group = GOGroup(GROUP1, canonicalize=False)
-        assert (group.group_id('fc:org', 'uninett.no')
-                == 'fc:org:uninett.no:b:NO975278964:6A:2014-08-01:2015-06-15')
+        assert (group.group_id('fc:org', 'uninett.no') ==
+                'fc:org:uninett.no:b:NO975278964:6A:2014-08-01:2015-06-15')
 
     def test_valid(self):
         group = GOGroup(GROUP1)

@@ -3,10 +3,10 @@ import contextlib
 import datetime
 import json
 
-from cassandra.cluster import Cluster # pylint: disable=no-name-in-module
+from cassandra.cluster import Cluster  # pylint: disable=no-name-in-module
 import cassandra
 import cassandra.concurrent
-from cassandra.query import dict_factory # pylint: disable=no-name-in-module
+from cassandra.query import dict_factory  # pylint: disable=no-name-in-module
 import pytz
 
 from coreapis.utils import LogWrapper, now, translatable, get_cassandra_cluster_args

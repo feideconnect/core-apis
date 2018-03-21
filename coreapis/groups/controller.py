@@ -54,7 +54,7 @@ class GroupsController(object):
                     self.log.warn("Timeout in group backend", backend=backend,
                                   method=call)
 
-                except: # pylint: disable=bare-except
+                except:  # pylint: disable=bare-except
                     self.log.exception('unhandled exception in group backend')
 
     def _call_backends(self, func, perm_checker, *args, **kwargs):

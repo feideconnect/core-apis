@@ -60,10 +60,10 @@ class LDAPController(object):
             return self.servers[server_key]
         (host, port, user, password) = server_key
         self.log.debug("Found new ldap server: {}:{} - {}".format(host, port, user))
-        return  ConnectionPool(host, port, user, password,
-                               self.max_idle, self.max_connections,
-                               self.timeouts, self.ca_certs,
-                               self.host_statsd)
+        return ConnectionPool(host, port, user, password,
+                              self.max_idle, self.max_connections,
+                              self.timeouts, self.ca_certs,
+                              self.host_statsd)
 
     def parse_ldap_config(self):
         mtime = os.stat(self.ldap_config).st_mtime
@@ -156,7 +156,7 @@ class LDAPController(object):
                     self.host_statsd.gauge(self._org_statsd_key(org, 'alive_servers'),
                                            len(orgpool.alive_servers()))
                 self.last_health_check = time.time()
-            except Exception as ex: # pylint: disable=broad-except
+            except Exception as ex:  # pylint: disable=broad-except
                 self.log.warn('Exception in health check thread', exception=str(ex))
                 self.last_health_check_exception = time.time()
                 time.sleep(1)

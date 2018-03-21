@@ -12,11 +12,11 @@ from coreapis.groups.gogroups import (
     AFFILIATION_NAMES as go_affiliation_names, GOGroup, groupid_entitlement)
 from coreapis.ldap import ORG_ATTRIBUTE_NAMES, GROUP_PERSON_ATTRIBUTES, get_single
 from . import BaseBackend, IDHandler, Pool
-ldap3 = eventlet.import_patched('ldap3') # pylint: disable=invalid-name
+ldap3 = eventlet.import_patched('ldap3')  # pylint: disable=invalid-name
 ldap3.core = eventlet.import_patched('ldap3.core')
 ldap3.core.exceptions = eventlet.import_patched('ldap3.core.exceptions')
 
-ldapcontroller = eventlet.import_patched( # pylint: disable=invalid-name
+ldapcontroller = eventlet.import_patched(  # pylint: disable=invalid-name
     'coreapis.ldap.controller')
 
 PERSON_ATTRIBUTE_MAPPING = {

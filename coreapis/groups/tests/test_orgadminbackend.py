@@ -39,6 +39,7 @@ def make_org(orgtag, name):
         res['type'] = set('foo')
     return res
 
+
 ROLES = [
     make_role(ID_FEIDE_OWN, make_orgid(ORGTAG1), set(['admin'])),
     make_role(ID_FEIDE_OWN, make_orgid(ORGTAG2), set(['mercantile'])),

@@ -10,6 +10,7 @@ from .controller import OrgPersonController
 HDR_DP_CLIENTID = 'x-dataporten-clientid'
 HDR_DP_USERID_SEC = 'x-dataporten-userid-sec'
 
+
 def configure(config):
     settings = config.get_settings()
     ldap_controller = LDAPController(settings)
@@ -33,6 +34,7 @@ def get_header(request, headerid):
     except KeyError:
         raise HTTPBadRequest('No {} header given'.format(headerid))
 
+
 def get_clientid(request):
     clientid = get_header(request, HDR_DP_CLIENTID)
     try:
@@ -40,15 +42,18 @@ def get_clientid(request):
     except ValueError:
         raise HTTPBadRequest('malformed client id: {}'.format(clientid))
 
+
 def validate_prefix(prefix):
     if prefix != 'feide':
         raise HTTPBadRequest("Only feide identities supported")
+
 
 def get_userrealm(request):
     userid_sec = get_header(request, HDR_DP_USERID_SEC)
     prefix, principalname = userid_sec.split(':', 1)
     validate_prefix(prefix)
     return principalname.split('@', 1)[1]
+
 
 @view_config(route_name='search_users', renderer='json')
 def search_users(request):
@@ -67,6 +72,7 @@ def search_users(request):
     max_replies = get_max_replies(request)
     return request.op_controller.search_users(searchrealm, query, max_replies)
 
+
 @view_config(route_name='lookup_user', renderer='json')
 def lookup_user(request):
     if get_user(request):
@@ -77,7 +83,7 @@ def lookup_user(request):
     clientid = get_clientid(request)
     _, searchrealm = principalname.split('@', 1)
     subscopes = request.op_controller.get_subscopes(clientid, searchrealm)
-    if not 'systemlookup' in subscopes:
+    if 'systemlookup' not in subscopes:
         raise HTTPForbidden('Insufficient permissions, subscopes={}'.format(subscopes))
     try:
         return request.op_controller.lookup_user(principalname)

@@ -102,9 +102,10 @@ def server_status(server, base_dn, search_filter, user, password, tls):
         status = record_ldap_exception(ex, 'Communications Error', ldap_exception_argument(ex))
     except ldap3.core.exceptions.LDAPBindError as ex:
         status = record_ldap_exception(ex, 'bind_error', ex.args[0])
-    except Exception as ex: # pylint: disable=broad-except
+    except Exception as ex:  # pylint: disable=broad-except
         status = record_exception(ex)
     return status
+
 
 def ldap_status(realm, feideid, ldap_config, ldap_certs):
 

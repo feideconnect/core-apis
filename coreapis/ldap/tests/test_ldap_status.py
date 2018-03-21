@@ -24,7 +24,6 @@ testrole = {'orgid': testorg_id,
             'role': 'admin'}
 ldap_response = [{
     'attributes': {
-        'eduPersonOrgDN': 'foo',
         'eduPersonAffiliation': 'bar',
         'displayName': 'fizz',
         'eduPersonPrincipalName': 'buzz',
@@ -136,7 +135,7 @@ class OrgViewTests(unittest.TestCase):
 
     @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_ldap_status_comm_error_details(self, get_user):
-        details = [[1,2,MockExcArgs()]]
+        details = [[1, 2, MockExcArgs()]]
         with mock.patch('ldap3.Connection',
                         side_effect=ldap3.core.exceptions.LDAPCommunicationError('foo', details)):
             self._test_ldap_status([], 200)
@@ -149,7 +148,7 @@ class OrgViewTests(unittest.TestCase):
 
     @mock.patch('coreapis.orgs.views.get_user', return_value=make_user(PLATFORMADMIN))
     def test_ldap_status_bind_error_details(self, get_user):
-        details = [[1,2,MockExcArgs()]]
+        details = [[1, 2, MockExcArgs()]]
         with mock.patch('ldap3.Connection',
                         side_effect=ldap3.core.exceptions.LDAPBindError('foo', details)):
             self._test_ldap_status([], 200)

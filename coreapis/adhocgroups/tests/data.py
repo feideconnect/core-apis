@@ -11,7 +11,7 @@ post_body_maximal = {
     'name': 'per',
     'owner': '4f4e4b2b-bf7b-49f8-b703-cc6f4fc93493',
     'id': 'max-gk',
-    'created': '2015-01-12T14:05:16+01:00', 'descr': 'green',
+    'created': '2015-01-12T14:05:16+01:00',
     'updated': '2015-01-12T14:05:16+01:00',
     'descr': 'new descr',
     'public': True,
@@ -84,4 +84,4 @@ group2_view = {
 }
 
 
-member_token = '9nFIGK7dEiuVfXdGhVcgvaQVOBZScQ_6y9Yd2BTdMizUtL8yB5b7Im5Zcr3W9hjd' # user1
+member_token = '9nFIGK7dEiuVfXdGhVcgvaQVOBZScQ_6y9Yd2BTdMizUtL8yB5b7Im5Zcr3W9hjd'  # user1
