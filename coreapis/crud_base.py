@@ -24,11 +24,19 @@ def cache(data, key, fetch):
 
 class CrudControllerBase(object):
     schema = {}
+    platformadmins = []
+    platformadmin_attrs = []
+    platformadmin_attrs_update = []
+    protected_attrs = []
+    protected_attrs_update = []
+    public_attrs = []
 
     def __init__(self, maxrows, objtype="target"):
         self.maxrows = maxrows
         self.log = LogWrapper('crud_base')
         self.objtype = objtype
+        self.groupengine_base_url = None
+        self.session = None
 
     def allowed_attrs(self, attrs, operation, privileges):
         protected_attrs = list(self.protected_attrs)
@@ -53,6 +61,9 @@ class CrudControllerBase(object):
             if not key.startswith('+') and key not in adapted:
                 adapted[key] = None
         return adapted
+
+    def get(self, objid):
+        raise NotImplementedError
 
     def exists(self, itemid):
         try:
@@ -80,6 +91,9 @@ class CrudControllerBase(object):
             return item['owner']
         except KeyError:
             return None
+
+    def _insert(self, objid, privileges):
+        raise NotImplementedError
 
     def add(self, item, user, privileges):
         userid = user['userid']
@@ -124,6 +138,9 @@ class CrudControllerBase(object):
         item = self.validate_update(itemid, attrs)
         self._insert(item, privileges)
         return item
+
+    def _save_logo(self, objid, data, updated):
+        raise NotImplementedError
 
     def update_logo(self, itemid, data):
         fake_file = io.BytesIO(data)
