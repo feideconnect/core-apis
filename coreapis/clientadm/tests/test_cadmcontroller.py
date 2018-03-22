@@ -158,3 +158,19 @@ class TestController(TestCase):
         with open('testdata/spark.png', "rb") as fh:
             with py.test.raises(ValidationError):
                 self.controller.update_logo("fooo", fh.read())
+
+    def _test_add_body(self, body):
+        self.session.get_client_by_id.side_effect = KeyError
+        self.session.insert_client = mock.MagicMock()
+        return self.controller.add(body, retrieved_user, [])
+
+    def test_mutable_defaults(self):
+        post_body = deepcopy(post_body_minimal)
+        c1 = self._test_add_body(post_body)
+        oldscopes = c1['scopes']
+        oldadmins = c1['admins']
+        c1['scopes'] = ['per']
+        c1['admins'] = ['per']
+        c2 = self._test_add_body(post_body)
+        assert oldscopes == c2['scopes']
+        assert oldadmins == c2['admins']
