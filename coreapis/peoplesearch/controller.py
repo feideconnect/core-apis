@@ -123,18 +123,18 @@ class PeopleSearchController(object):
                 return True
         return False
 
-    def admin_search(self, org, query, user, sameorg, max_replies=None):
+    def admin_search(self, org, query, sameorg, max_replies=None):
         access = set()
         for key, val in self.org_authorization_policy(org).items():
             if val == 'all' or val == 'sameOrg' and sameorg:
                 access.add(key)
-        return self._search(org, query, user, max_replies, access)
+        return self._search(org, query, max_replies, access)
 
     def search(self, org, query, user, max_replies=None):
         access = self.authorized_search_access(user, org)
-        return self._search(org, query, user, max_replies, access)
+        return self._search(org, query, max_replies, access)
 
-    def _search(self, org, query, user, max_replies, access):
+    def _search(self, org, query, max_replies, access):
         if not ('employees' in access or 'others' in access):
             return []
         if max_replies is None or max_replies > self.search_max_replies:

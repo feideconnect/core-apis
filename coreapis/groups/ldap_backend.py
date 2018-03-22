@@ -100,7 +100,7 @@ def grep_translatable(inp):
     return translatable(res)
 
 
-def quote(x, safe=''):
+def quote(x):
     return x.replace('/', '_')
 
 
@@ -231,7 +231,7 @@ class LDAPBackend(BaseBackend):
         with self.timer.time('getting grep code'):
             grep_data = self.session.get_grep_code(grep_id)
         result = {
-            'id': '{}:{}'.format(GREP_ID_PREFIX, quote(grep_id, safe='')),
+            'id': '{}:{}'.format(GREP_ID_PREFIX, quote(grep_id)),
             'displayName': grep_translatable(grep_data['title']),
             'type': 'fc:grep',
             'public': True,

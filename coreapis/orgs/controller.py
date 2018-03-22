@@ -298,7 +298,7 @@ class OrgController(CrudControllerBase):
         self.log.debug('get_feideid_for_status - no local admin to look up', realm=realm)
         return None
 
-    def ldap_status(self, user, orgid, feideid):
+    def ldap_status(self, orgid, feideid):
         org = self.session.get_org(orgid)
         realm = org.get('realm', None)
         if not feideid:

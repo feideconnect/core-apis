@@ -26,7 +26,7 @@ class StatisticsController(object):
                 return True
         return False
 
-    def get_statistics(self, date, metric, user):
+    def get_statistics(self, date, metric):
         return {
             r['metric']: r['value'] for r in self.db.get_statistics(date, metric)
         }

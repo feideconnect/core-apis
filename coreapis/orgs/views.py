@@ -262,8 +262,7 @@ def del_org_role(request):
 @view_config(route_name='org_ldap_status', permission='scope_orgadmin',
              request_method='GET', renderer="json")
 def ldap_status(request):
-    user = get_user(request)
     query_id = request.params.get('feideid', '')
 
     orgid = check(request, needs_realm=True, needs_platform_admin=True)
-    return request.org_controller.ldap_status(user, orgid, query_id)
+    return request.org_controller.ldap_status(orgid, query_id)

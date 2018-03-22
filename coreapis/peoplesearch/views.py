@@ -61,7 +61,7 @@ def admin_search(request):
         raise HTTPNotFound('missing org or search term')
     if not request.ps_controller.valid_org(org):
         raise HTTPNotFound('Unknown org')
-    return request.ps_controller.admin_search(org, search, user, sameorg, max_replies)
+    return request.ps_controller.admin_search(org, search, sameorg, max_replies)
 
 
 @view_config(route_name='person_search', renderer='json', permission='scope_peoplesearch')

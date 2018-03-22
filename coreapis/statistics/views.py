@@ -1,6 +1,5 @@
 from pyramid.view import view_config
 
-from coreapis.aaa import get_user
 from .controller import StatisticsController
 
 
@@ -16,5 +15,4 @@ def configure(config):
 @view_config(route_name='statistics', renderer='json', permission="scope_orgadmin")
 def get_statistics(request):
     return request.stats_controller.get_statistics(request.matchdict['date'],
-                                                   request.matchdict['metric'],
-                                                   get_user(request))
+                                                   request.matchdict['metric'])
