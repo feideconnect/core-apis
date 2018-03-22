@@ -75,9 +75,9 @@ class ClientAdmController(CrudControllerBase):
         # Other attributes
         'client_secret': V.Nullable('string', ''),
         'descr': V.Nullable(V.AdaptBy(valid_description, traps=ValueError), ''),
-        'scopes': V.Nullable(['string'], lambda: list()),
-        'authproviders': V.Nullable(['string'], lambda: list()),
-        'status': V.Nullable(['string'], lambda: list()),
+        'scopes': V.Nullable(['string'], ()),
+        'authproviders': V.Nullable(['string'], ()),
+        'status': V.Nullable(['string'], ()),
         'type': V.Nullable('string', ''),
         'systemdescr': V.Nullable(V.AdaptBy(valid_description, traps=ValueError), ''),
         'privacypolicyurl': V.Nullable(valid_url),
@@ -85,7 +85,7 @@ class ClientAdmController(CrudControllerBase):
         'loginurl': V.Nullable(valid_url),
         'supporturl': V.Nullable(valid_url),
         'authoptions': V.Nullable({}),
-        'admins': V.Nullable(['string'], lambda: list()),
+        'admins': V.Nullable(['string'], ()),
         'admin_contact': V.Nullable('string', None),
     }
     public_attrs = ['id', 'name', 'descr', 'redirect_uri', 'owner', 'organization', 'authproviders',
