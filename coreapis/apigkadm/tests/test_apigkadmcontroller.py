@@ -2,7 +2,6 @@ import unittest
 import mock
 import uuid
 from copy import deepcopy
-from coreapis import apigkadm
 from coreapis.apigkadm import controller
 from coreapis.utils import ValidationError
 import py.test
@@ -12,12 +11,12 @@ from coreapis.clientadm.tests.helper import retrieved_user
 
 class TestValidURL(unittest.TestCase):
     def test_validation(self):
-        assert apigkadm.controller.valid_gk_url('https://example.org/abc') is True
-        assert apigkadm.controller.valid_gk_url('https://example.org/abc/bar') is True
-        assert apigkadm.controller.valid_gk_url('https://example.org/') is False
-        assert apigkadm.controller.valid_gk_url('https://example.org') is True
-        assert apigkadm.controller.valid_gk_url('https://example.org:8000') is True
-        assert apigkadm.controller.valid_gk_url('http://example.org:8000') is False
+        assert controller.valid_gk_url('https://example.org/abc') is True
+        assert controller.valid_gk_url('https://example.org/abc/bar') is True
+        assert controller.valid_gk_url('https://example.org/') is False
+        assert controller.valid_gk_url('https://example.org') is True
+        assert controller.valid_gk_url('https://example.org:8000') is True
+        assert controller.valid_gk_url('http://example.org:8000') is False
 
 
 class TestAPIGKAdmController(unittest.TestCase):
@@ -28,7 +27,7 @@ class TestAPIGKAdmController(unittest.TestCase):
             'cassandra_keyspace': 'keyspace',
             'clientadm_maxrows': 100
         }
-        self.controller = apigkadm.controller.APIGKAdmController(settings)
+        self.controller = controller.APIGKAdmController(settings)
 
     def test_validation(self):
         self.controller.validate(post_body_maximal)
