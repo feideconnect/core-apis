@@ -11,7 +11,7 @@ SETTINGS = {}
 
 
 def setUpModule():
-    global SETTINGS
+    global SETTINGS  # pylint: disable=global-statement
     cclient = setupCassandra()
     cclient.insert_org({
         'id': 'foo:org:example.org',
@@ -36,10 +36,11 @@ def setUpModule():
     SETTINGS['ldap_ca_certs'] = '/etc/ldap_certs.crt'
 
 
+# pylint: disable=protected-access
 @mark.eventlet
 class TestLDAPIntegration(object):
     def setup(self):
-        self.backend = LDAPBackend('foo', 1000, SETTINGS)
+        self.backend = LDAPBackend('foo', 1000, SETTINGS)  # pylint: disable=attribute-defined-outside-init
 
     def test_get_member_groups(self):
         assert self.backend._get_member_groups(True, 'asbjorn_elevg@example.org') == [

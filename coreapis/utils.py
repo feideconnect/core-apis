@@ -168,6 +168,7 @@ class Timer(object):
             self.parent = parent
             self.name = name
             self.log_results = log_results
+            self.t0 = None
 
         def __enter__(self):
             self.t0 = time.time()
@@ -441,6 +442,7 @@ class ResourcePool(object):
     class Context(object):
         def __init__(self, pool):
             self.pool = pool
+            self.item = None
 
         def __enter__(self):
             self.item = self.pool.get()

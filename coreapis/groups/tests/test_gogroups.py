@@ -12,6 +12,7 @@ GROUPID1 = 'urn:mace:feide.no:go:groupid:b:NO975278964:6a:2014-08-01:2015-06-15'
 GROUPID1_NONCANONICAL = 'urn:mace:feide.no:go:groupid:b:NO975278964:6A:2014-08-01:2015-06-15'
 
 
+# pylint: disable=protected-access
 class TestGOGroups(unittest.TestCase):
     def test_parse_gogroup(self):
         group = GOGroup(GROUP1)

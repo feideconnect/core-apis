@@ -103,6 +103,7 @@ class TestAdHocBackend(TestAdHocBackendBase):
         assert res == [GROUP1_VIEW, GROUP2_VIEW]
 
 
+# pylint: disable=protected-access
 class TestAdHocBackendGet(TestAdHocBackendBase):
     def test_normal(self):
         self.session.get_group.return_value = group1
@@ -128,6 +129,7 @@ class TestAdHocBackendGet(TestAdHocBackendBase):
         self.session.get_group.return_value = group
         self.session.get_membership_data.side_effect = KeyError
         assert self.backend._get(user2, 'fc:adhoc:{}'.format(groupid1)) == (group, None)
+# pylint: enable=protected-access
 
 
 class TestAdHocBackendGetMembership(TestAdHocBackendBase):

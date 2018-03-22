@@ -39,6 +39,7 @@ class TestShouldCanonicalizeGroupid(unittest.TestCase):
         assert should_canonicalize_groupid('example.org') is True
 
 
+# pylint: disable=protected-access
 class TestLDAPBackend(unittest.TestCase):
     @mock.patch('coreapis.groups.ldap_backend.ldapcontroller')
     @mock.patch('coreapis.groups.ldap_backend.cassandra_client.Client')

@@ -49,12 +49,8 @@ confidence=
 # either give multiple identifier separated by comma (,) or put this option
 # multiple time. See also the "--disable" option for examples.
 disable=arguments-differ,
-	attribute-defined-outside-init,
-	c-extension-no-member,
-	global-statement,
 	missing-docstring,
 	no-self-use,
-	protected-access,
 	too-few-public-methods,
 	too-many-arguments,
 	too-many-instance-attributes,
