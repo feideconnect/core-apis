@@ -51,7 +51,7 @@ def main(global_config, **settings):
     config.set_authorization_policy(authz_policy)
     if global_config.get('use_eventlets', '') == 'true':
         pool = EventletPool
-        coreapis.utils.__local = eventlet.green.threading.local()
+        coreapis.utils.__local = eventlet.green.threading.local()  # pylint: disable=no-member
     else:
         pool = ResourcePool
     log_timings = global_config.get('log_timings', 'false').lower() == 'true'
