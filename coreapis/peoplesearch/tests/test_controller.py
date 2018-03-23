@@ -215,7 +215,8 @@ class TestFetchProfileImage(TestCase):
         with open('testdata/blank.jpg', 'rb') as fh:
             imgdata = fh.read()
         modified = now()
-        self.controller._profile_image_feide = mock.MagicMock(return_value=(imgdata, 'etag', modified))
+        self.controller._profile_image_feide = mock.MagicMock(
+            return_value=(imgdata, 'etag', modified))
         image, etag, last_modified = self.controller._fetch_profile_image('feide:noone@example.com')
         assert image != imgdata
         assert isinstance(image, bytes)

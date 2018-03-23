@@ -98,7 +98,8 @@ class AdHocGroupAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_group.return_value = group1
         self.session().get_user_by_id.return_value = public_userinfo
-        res = self.testapp.get('/adhocgroups/{}/details'.format(uuid.uuid4()), status=200, headers=headers)
+        res = self.testapp.get('/adhocgroups/{}/details'.format(uuid.uuid4()),
+                               status=200, headers=headers)
         assert res.json == json_normalize(group1_details)
 
     def test_missing_group(self):
@@ -128,14 +129,16 @@ class AdHocGroupAdmTests(unittest.TestCase):
     def test_post_group_minimal(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_group = mock.MagicMock(side_effect=KeyError)
-        res = self.testapp.post_json('/adhocgroups/', post_body_minimal, status=201, headers=headers)
+        res = self.testapp.post_json('/adhocgroups/', post_body_minimal,
+                                     status=201, headers=headers)
         out = res.json
         assert out['owner'] == '00000000-0000-0000-0000-000000000001'
 
     def test_post_group_maximal(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_group.side_effect = KeyError()
-        res = self.testapp.post_json('/adhocgroups/', post_body_maximal, status=201, headers=headers)
+        res = self.testapp.post_json('/adhocgroups/', post_body_maximal,
+                                     status=201, headers=headers)
         out = res.json
         assert out['owner'] == '00000000-0000-0000-0000-000000000001'
 
@@ -216,7 +219,8 @@ class AdHocGroupAdmTests(unittest.TestCase):
     def test_update_no_change(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_group.return_value = deepcopy(group1)
-        res = self.testapp.patch_json('/adhocgroups/{}'.format(groupid1), {}, status=200, headers=headers)
+        res = self.testapp.patch_json('/adhocgroups/{}'.format(groupid1), {},
+                                      status=200, headers=headers)
         updated = res.json
         expected = json_normalize(group1)
         assert updated['updated'] > expected['updated']
@@ -228,7 +232,8 @@ class AdHocGroupAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_group.return_value = deepcopy(group1)
         self.testapp.patch('/adhocgroups/{}'.format(groupid1), '{', status=400, headers=headers)
-        self.testapp.patch_json('/adhocgroups/{}'.format(groupid1), {'endpoints': 'file:///etc/shadow'},
+        self.testapp.patch_json('/adhocgroups/{}'.format(groupid1),
+                                {'endpoints': 'file:///etc/shadow'},
                                 status=400, headers=headers)
 
     def _test_update_not_owner(self, httpstat):
@@ -251,7 +256,8 @@ class AdHocGroupAdmTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_group.return_value = deepcopy(group1)
         self.session().get_group_members.return_value = iter([])
-        res = self.testapp.get('/adhocgroups/{}/members'.format(groupid1), status=200, headers=headers)
+        res = self.testapp.get('/adhocgroups/{}/members'.format(groupid1),
+                               status=200, headers=headers)
         assert res.json == []
 
     def test_get_group_members(self):
@@ -357,7 +363,8 @@ class AdHocGroupAdmTests(unittest.TestCase):
         ]
         self.testapp.patch_json('/adhocgroups/{}/members'.format(groupid1), data, status=200,
                                 headers=headers)
-        self.session().add_group_member.assert_called_with(groupid1, user1, 'member', 'unconfirmed', None)
+        self.session().add_group_member.assert_called_with(
+            groupid1, user1, 'member', 'unconfirmed', None)
 
     def test_add_group_members_bad_group(self):
         headers = {'Authorization': 'Bearer user_token'}

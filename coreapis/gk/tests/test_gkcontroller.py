@@ -45,7 +45,8 @@ class TestController(TestCase):
         backend = self.basic_backend.copy()
         backend['requireuser'] = True
         self.session.get_apigk.return_value = backend
-        headers = self.controller.info('testbackend', self.client, None, ['gk_testbackend'], {}, None)
+        headers = self.controller.info(
+            'testbackend', self.client, None, ['gk_testbackend'], {}, None)
         assert headers is None
 
     def test_expose_nothing(self):
@@ -54,7 +55,8 @@ class TestController(TestCase):
             'access_token': 'my secret',
             'scope': ['userid'],
         }
-        headers = self.controller.info('testbackend', self.client, self.user, ['gk_testbackend'], {}, None)
+        headers = self.controller.info(
+            'testbackend', self.client, self.user, ['gk_testbackend'], {}, None)
         assert len(headers) == 6
         self.basic_asserts(headers)
 

@@ -223,7 +223,8 @@ class TestRetryPool(TestCase):
     @mock.patch('random.sample')
     def test_search(self, sample):
         sample.side_effect = lambda x, y: sorted(x, key=str)
-        self.cp1.connection().__enter__.return_value.search.side_effect = ldap3.core.exceptions.LDAPExceptionError
+        self.cp1.connection().__enter__.return_value.search.side_effect = (
+            ldap3.core.exceptions.LDAPExceptionError)
         self.cp2.connection().__enter__.return_value.response = "token"
         self.cp3.connection().__enter__.return_value.response = "token2"
         assert self.sp.search("dc=example,dc=org", "uid=1000", "BASE", ["uid"], 1) == "token"

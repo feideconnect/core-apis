@@ -56,7 +56,8 @@ class ConnectionPool(object):
                                         return_empty_attributes=False,
                                         check_names=True)
                 self.statsd.gauge(self._statsd_key('connections'),
-                                  self.max_total - self.create_semaphore._value)  # pylint: disable=protected-access
+                                  self.max_total -
+                                  self.create_semaphore._value)  # pylint: disable=protected-access
                 return conn
             except:
                 self.create_semaphore.release()
@@ -67,7 +68,8 @@ class ConnectionPool(object):
         self.create_semaphore.release()
         self.log.debug("Connection destroyed")
         self.statsd.gauge(self._statsd_key('connections'),
-                          self.max_total - self.create_semaphore._value)  # pylint: disable=protected-access
+                          self.max_total -
+                          self.create_semaphore._value)  # pylint: disable=protected-access
 
     def _get(self):
         try:
@@ -95,9 +97,10 @@ class ConnectionPool(object):
             self._destroy()
 
     def status(self):
-        self.log.info("Connection pool status",
-                      idle_connections=self.idle.qsize(),
-                      remaining_connections=self.create_semaphore._value)  # pylint: disable=protected-access
+        self.log.info(
+            "Connection pool status",
+            idle_connections=self.idle.qsize(),
+            remaining_connections=self.create_semaphore._value)  # pylint: disable=protected-access
 
     @contextlib.contextmanager
     def connection(self):

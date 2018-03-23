@@ -5,7 +5,8 @@ from copy import deepcopy
 import webtest
 from pyramid import testing
 from coreapis import main, middleware
-from coreapis.authorizations.tests.data import (authz1, ret_authz1, client1, group1, user1, clients, users)
+from coreapis.authorizations.tests.data import (
+    authz1, ret_authz1, client1, group1, user1, clients, users)
 
 
 class AuthzviewTests(unittest.TestCase):

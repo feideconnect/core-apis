@@ -62,14 +62,18 @@ class OrgViewTests(unittest.TestCase):
     @mock.patch('coreapis.middleware.cassandra_client.Client')
     def setUp(self, Client, gpa):
         gpa.return_value = [PLATFORMADMIN]
-        app = main({
-            'statsd_server': 'localhost',
-            'statsd_port': '8125',
-            'statsd_prefix': 'dataporten.tests',
-            'oauth_realm': 'test realm',
-            'cassandra_contact_points': '',
-            'cassandra_keyspace': 'notused',
-        }, enabled_components='orgs', clientadm_maxrows=100, ldap_config_file='testdata/test-ldap-config.json')
+        app = main(
+            {
+                'statsd_server': 'localhost',
+                'statsd_port': '8125',
+                'statsd_prefix': 'dataporten.tests',
+                'oauth_realm': 'test realm',
+                'cassandra_contact_points': '',
+                'cassandra_keyspace': 'notused',
+            },
+            enabled_components='orgs',
+            clientadm_maxrows=100,
+            ldap_config_file='testdata/test-ldap-config.json')
         mw = middleware.MockAuthMiddleware(app, 'test realm')
         self.session = Client()
         self.testapp = webtest.TestApp(mw)

@@ -40,7 +40,8 @@ def setUpModule():
 @mark.eventlet
 class TestLDAPIntegration(object):
     def setup(self):
-        self.backend = LDAPBackend('foo', 1000, SETTINGS)  # pylint: disable=attribute-defined-outside-init
+        self.backend = LDAPBackend(  # pylint: disable=attribute-defined-outside-init
+            'foo', 1000, SETTINGS)
 
     def test_get_member_groups(self):
         assert self.backend._get_member_groups(True, 'asbjorn_elevg@example.org') == [

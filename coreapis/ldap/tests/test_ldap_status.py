@@ -57,14 +57,18 @@ class OrgViewTests(unittest.TestCase):
     @mock.patch('coreapis.middleware.cassandra_client.Client')
     def setUp(self, Client, gpa):
         gpa.return_value = [PLATFORMADMIN]
-        app = main({
-            'statsd_server': 'localhost',
-            'statsd_port': '8125',
-            'statsd_prefix': 'dataporten.tests',
-            'oauth_realm': 'test realm',
-            'cassandra_contact_points': '',
-            'cassandra_keyspace': 'notused',
-        }, enabled_components='orgs', clientadm_maxrows=100, ldap_config_file='testdata/test-ldap-config.json')
+        app = main(
+            {
+                'statsd_server': 'localhost',
+                'statsd_port': '8125',
+                'statsd_prefix': 'dataporten.tests',
+                'oauth_realm': 'test realm',
+                'cassandra_contact_points': '',
+                'cassandra_keyspace': 'notused',
+            },
+            enabled_components='orgs',
+            clientadm_maxrows=100,
+            ldap_config_file='testdata/test-ldap-config.json')
         mw = middleware.MockAuthMiddleware(app, 'test realm')
         self.session = Client()
         self.testapp = webtest.TestApp(mw)
@@ -76,7 +80,8 @@ class OrgViewTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_roles.return_value = roles
         self.session.get_org.return_value = testorg
-        return self.testapp.get('/orgs/{}/ldap_status'.format(testorg_id), status=httpstat, headers=headers)
+        return self.testapp.get('/orgs/{}/ldap_status'.format(testorg_id),
+                                status=httpstat, headers=headers)
 
     def test_ldap_status_not_admin(self):
         self._test_ldap_status([testrole], 403)

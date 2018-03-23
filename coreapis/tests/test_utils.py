@@ -145,7 +145,9 @@ class TestTranslatable(TestCase):
 
         def chooser(data):
             return utils.accept_language_matcher(request, data)
-        assert utils.pick_lang(chooser, data) == [{'foo': 'unittesting is fun', 'baz': 'ugle'}, [{'bar': 'unittesting is fun'}]]
+        assert utils.pick_lang(chooser, data) == [
+            {'foo': 'unittesting is fun', 'baz': 'ugle'},
+            [{'bar': 'unittesting is fun'}]]
 
 
 class TestValidUrl(TestCase):
@@ -214,7 +216,9 @@ class TestValidDescription(TestCase):
 
 class TestLogToken(TestCase):
     def test_string(self):
-        assert utils.log_token('7d4a4d65-8670-4b75-994b-894872fe1d46') == '739384b61d0cd34c2da0687e7aab162e'
+        assert utils.log_token(
+            '7d4a4d65-8670-4b75-994b-894872fe1d46') == '739384b61d0cd34c2da0687e7aab162e'
 
     def test_uuid(self):
-        assert utils.log_token(uuid.UUID('7d4a4d65-8670-4b75-994b-894872fe1d46')) == '739384b61d0cd34c2da0687e7aab162e'
+        assert utils.log_token(
+            uuid.UUID('7d4a4d65-8670-4b75-994b-894872fe1d46')) == '739384b61d0cd34c2da0687e7aab162e'
