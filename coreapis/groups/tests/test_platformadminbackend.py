@@ -1,6 +1,6 @@
 import unittest
 from pytest import raises
-import mock
+from unittest import mock
 from coreapis.groups.platformadmin_backend import PlatformAdminBackend
 
 

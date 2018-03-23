@@ -6,7 +6,7 @@ import uuid
 import webtest
 from pyramid import testing
 
-import mock
+from unittest import mock
 from coreapis import main, middleware
 
 testrealm = 'ipadi.no'

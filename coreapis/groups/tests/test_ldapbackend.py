@@ -1,7 +1,7 @@
 import time
 import unittest
 from pytest import raises
-import mock
+from unittest import mock
 from coreapis.utils import translatable
 from coreapis.groups.ldap_backend import (
     org_membership_name, should_canonicalize_groupid, LDAPBackend)

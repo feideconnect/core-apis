@@ -1,7 +1,6 @@
 from collections import defaultdict
-from unittest import TestCase
+from unittest import TestCase, mock
 import time
-import mock
 import pytest
 
 import eventlet

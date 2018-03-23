@@ -1,6 +1,5 @@
-from unittest import TestCase
+from unittest import TestCase, mock
 from copy import deepcopy
-import mock
 import uuid
 from aniso8601 import parse_datetime
 

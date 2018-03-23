@@ -3,7 +3,7 @@ import os
 import time
 from pytest import mark
 from pytz import UTC
-import mock
+from unittest import mock
 from coreapis.groups.ldap_backend import LDAPBackend
 from coreapis.tests.test_cassandra import setUpModule as setupCassandra
 

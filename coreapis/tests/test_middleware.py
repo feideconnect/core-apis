@@ -1,6 +1,6 @@
 import unittest
 
-import mock
+from unittest import mock
 import webtest
 
 from coreapis import middleware

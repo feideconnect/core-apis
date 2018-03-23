@@ -1,6 +1,6 @@
 import unittest
 import ldap3
-import mock
+from unittest import mock
 import uuid
 from copy import deepcopy
 import webtest
