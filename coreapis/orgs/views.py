@@ -12,7 +12,7 @@ from .controller import OrgController
 def configure(config):
     org_controller = OrgController(config.get_settings())
     config.add_settings(org_controller=org_controller)
-    config.add_request_method(lambda r: r.registry.settings.org_controller, 'org_controller',
+    config.add_request_method(lambda r: r.registry.settings['org_controller'], 'org_controller',
                               reify=True)
     config.add_route('org_v1', '/v1/{id}')
     config.add_route('org', '/{id}')

@@ -106,7 +106,7 @@ def main(global_config, **settings):
     json_renderer.add_adapter(uuid.UUID, lambda x, y: str(x))
     json_renderer.add_adapter(cassandra.util.SortedSet, lambda x, y: list(x))
     config.add_renderer('json', json_renderer)
-    status_data = config.get_settings().status_data
+    status_data = config.get_settings()['status_data']
     set_status_data_docker(status_data)
     set_status_data_build(status_data)
     return config.make_wsgi_app()

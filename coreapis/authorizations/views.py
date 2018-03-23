@@ -11,7 +11,7 @@ from .controller import AuthorizationController
 def configure(config):
     authz_controller = AuthorizationController(config.get_settings())
     config.add_settings(authz_controller=authz_controller)
-    config.add_request_method(lambda r: r.registry.settings.authz_controller, 'authz_controller',
+    config.add_request_method(lambda r: r.registry.settings['authz_controller'], 'authz_controller',
                               reify=True)
     config.add_route('list_authz', '/', request_method='GET')
     config.add_route('delete_authz', '/{id}', request_method='DELETE')

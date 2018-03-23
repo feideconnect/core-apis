@@ -11,7 +11,7 @@ from .controller import AdHocGroupAdmController
 def configure(config):
     ahgroupadm_controller = AdHocGroupAdmController(config.get_settings())
     config.add_settings(ahgroupadm_controller=ahgroupadm_controller)
-    config.add_request_method(lambda r: r.registry.settings.ahgroupadm_controller,
+    config.add_request_method(lambda r: r.registry.settings['ahgroupadm_controller'],
                               'ahgroupadm_controller', reify=True)
     config.add_route('group_memberships', '/memberships')
     config.add_route('get_group', '/{id}', request_method='GET')

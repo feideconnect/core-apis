@@ -11,13 +11,13 @@ def forbidden(context, request):
     auth = None
     if 'FC_CLIENT' in request.environ:
         if context.detail.endswith('failed permission check'):
-            auth = www_authenticate(request.registry.settings.realm,
+            auth = www_authenticate(request.registry.settings['realm'],
                                     'invalid_scope',
                                     'Supplied token does not give access to perform the request')
         request.response.status_code = 403
         message = str(context)
     else:
-        auth = www_authenticate(request.registry.settings.realm)
+        auth = www_authenticate(request.registry.settings['realm'])
         request.response.status_code = 401
         message = 'Not authorized'
     if auth:

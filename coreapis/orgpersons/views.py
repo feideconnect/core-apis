@@ -19,9 +19,9 @@ def configure(config):
     threading.Thread(target=lambda: ldap_controller.health_check_thread(mainthread)).start()
     op_controller = OrgPersonController(settings)
     config.add_settings(op_controller=op_controller)
-    config.add_request_method(lambda r: r.registry.settings.op_controller, 'op_controller',
+    config.add_request_method(lambda r: r.registry.settings['op_controller'], 'op_controller',
                               reify=True)
-    config.add_request_method(lambda r: r.registry.settings.ldap_controller, 'ldap_controller',
+    config.add_request_method(lambda r: r.registry.settings['ldap_controller'], 'ldap_controller',
                               reify=True)
     config.add_route('search_users', '/orgs/{orgid}/users/', request_method='GET')
     config.add_route('lookup_user', '/users/{feideid}', request_method='GET')

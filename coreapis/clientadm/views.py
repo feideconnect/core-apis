@@ -23,7 +23,7 @@ def get_clientid(request):
 def configure(config):
     cadm_controller = ClientAdmController(config.get_settings())
     config.add_settings(cadm_controller=cadm_controller)
-    config.add_request_method(lambda r: r.registry.settings.cadm_controller, 'cadm_controller',
+    config.add_request_method(lambda r: r.registry.settings['cadm_controller'], 'cadm_controller',
                               reify=True)
     config.add_route('get_client', '/clients/{id}', request_method='GET')
     config.add_route('list_clients', '/clients/', request_method='GET')

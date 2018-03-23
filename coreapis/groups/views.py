@@ -7,7 +7,7 @@ from .controller import GroupsController
 def configure(config):
     groups_controller = GroupsController(config.get_settings())
     config.add_settings(groups_controller=groups_controller)
-    config.add_request_method(lambda r: r.registry.settings.groups_controller,
+    config.add_request_method(lambda r: r.registry.settings['groups_controller'],
                               'groups_controller', reify=True)
     config.add_route('my_groups_v1', '/v1/me/groups')
     config.add_route('my_groups', '/me/groups')

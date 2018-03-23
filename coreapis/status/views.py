@@ -9,10 +9,11 @@ def configure(config):
 
 @view_config(route_name='status', renderer='json')
 def status(request):
-    if not request.headers.get('X-dp-status-token', None) == request.registry.settings.status_token:
+    if not request.headers.get(
+            'X-dp-status-token', None) == request.registry.settings['status_token']:
         raise HTTPForbidden('No access')
     return {
-        'info': request.registry.settings.status_data,
+        'info': request.registry.settings['status_data'],
         'components': {key: value()
-                       for key, value in request.registry.settings.status_methods.items()},
+                       for key, value in request.registry.settings['status_methods'].items()},
     }

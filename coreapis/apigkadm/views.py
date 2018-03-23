@@ -11,7 +11,7 @@ from .controller import APIGKAdmController
 def configure(config):
     gkadm_controller = APIGKAdmController(config.get_settings())
     config.add_settings(gkadm_controller=gkadm_controller)
-    config.add_request_method(lambda r: r.registry.settings.gkadm_controller, 'gkadm_controller',
+    config.add_request_method(lambda r: r.registry.settings['gkadm_controller'], 'gkadm_controller',
                               reify=True)
     config.add_route('get_apigk', '/apigks/{id}', request_method='GET')
     config.add_route('list_apigks', '/apigks/', request_method='GET')

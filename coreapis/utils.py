@@ -244,7 +244,7 @@ class RequestTimingTween(object):
     def __init__(self, handler, registry):
         self.handler = handler
         self.registry = registry
-        self.timer = registry.settings.timer
+        self.timer = registry.settings['timer']
         self.log = LogWrapper('coreapis.timers')
 
     def __call__(self, request):

@@ -13,7 +13,7 @@ def configure(config):
     authz = config.get_settings().get('cassandra_authz')
     gk_controller = GkController(contact_points, keyspace, authz)
     config.add_settings(gk_controller=gk_controller)
-    config.add_request_method(lambda r: r.registry.settings.gk_controller, 'gk_controller',
+    config.add_request_method(lambda r: r.registry.settings['gk_controller'], 'gk_controller',
                               reify=True)
     config.add_route('gk_info', '/info/{backend}')
     config.scan(__name__)
@@ -31,7 +31,7 @@ def options(request):
     if not request.gk_controller.allowed_dn(get_dn_header(request)):
         raise HTTPForbidden('client certificate not authorized')
     backend = request.matchdict['backend']
-    prefix = request.registry.settings.gk_header_prefix
+    prefix = request.registry.settings['gk_header_prefix']
     try:
         headers = request.gk_controller.options(backend)
         for header, value in headers.items():
@@ -46,7 +46,7 @@ def info(request):
     if not request.gk_controller.allowed_dn(get_dn_header(request)):
         raise HTTPForbidden('client certificate not authorized')
     backend = request.matchdict['backend']
-    prefix = request.registry.settings.gk_header_prefix
+    prefix = request.registry.settings['gk_header_prefix']
     client = request.environ.get('FC_CLIENT', None)
     user = request.environ.get('FC_USER', None)
     scopes = request.environ.get('FC_SCOPES', [])

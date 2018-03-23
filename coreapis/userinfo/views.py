@@ -7,7 +7,7 @@ from .controller import UserInfoController
 def configure(config):
     userinfo_controller = UserInfoController(config.get_settings())
     config.add_settings(userinfo_controller=userinfo_controller)
-    config.add_request_method(lambda r: r.registry.settings.userinfo_controller,
+    config.add_request_method(lambda r: r.registry.settings['userinfo_controller'],
                               'userinfo_controller', reify=True)
     config.add_route('get_userinfo_v1', '/v1/userinfo')
     config.add_route('get_userinfo_profilephoto_v1', '/v1/user/media/{userid_sec}')
