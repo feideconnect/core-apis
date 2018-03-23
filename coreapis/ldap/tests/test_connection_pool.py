@@ -216,9 +216,9 @@ class TestRetryPool(TestCase):
 
     def test_do_health_checks(self):
         self.sp.do_health_checks()
-        self.cp1._check_connection.assert_any_calls()
-        self.cp2._check_connection.assert_any_calls()
-        self.cp3._check_connection.assert_any_calls()
+        self.cp1.check_connection.assert_any_call()
+        self.cp2.check_connection.assert_any_call()
+        self.cp3.check_connection.assert_any_call()
 
     @mock.patch('random.sample')
     def test_search(self, sample):
