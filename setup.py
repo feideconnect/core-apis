@@ -20,7 +20,7 @@ requires = [
     'eventlet == 0.19.0',
     'futures < 3.0',
     'gunicorn',
-    'pillow',
+    'pillow ~= 5.0',
     'pylint',
     'pyramid ~= 1.7.0',
     'pytest-cov',
