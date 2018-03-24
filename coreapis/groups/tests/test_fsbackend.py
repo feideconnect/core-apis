@@ -1,7 +1,7 @@
 import unittest
+from unittest import mock
 from copy import deepcopy
 from pytest import raises
-from unittest import mock
 from coreapis.utils import translatable
 from coreapis.groups.fs_backend import FsBackend
 

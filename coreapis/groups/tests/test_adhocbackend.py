@@ -1,7 +1,7 @@
 import unittest
+from unittest import mock
 from copy import deepcopy
 import py.test
-from unittest import mock
 from coreapis.groups.adhoc_backend import query_match, format_membership, AdHocGroupBackend
 from coreapis.adhocgroups.tests.data import \
     user1, user2, user3, \
