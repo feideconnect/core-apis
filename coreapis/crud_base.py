@@ -148,7 +148,8 @@ class CrudControllerBase(object):
             image = Image.open(fake_file)
         except OSError:
             raise ValidationError('image format not supported')
-        except Image.DecompressionBombWarning:
+        except (Image.DecompressionBombWarning,
+                Image.DecompressionBombError):
             raise ValidationError('Bad image')
         image.thumbnail(LOGO_SIZE)
         fake_output = io.BytesIO()
