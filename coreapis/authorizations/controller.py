@@ -83,5 +83,8 @@ class AuthorizationController(object):
         for feideid in get_feideids(user):
             _, realm = feideid.split('@')
             for clientid in self.session.get_mandatory_clients(realm):
-                by_id[clientid] = self.session.get_client_by_id(clientid)
+                try:
+                    by_id[clientid] = self.session.get_client_by_id(clientid)
+                except KeyError:
+                    self.log.warn('Mandatory client does not exist', clientid=clientid)
         return [self.cadm_controller.get_public_info(c) for c in by_id.values()]

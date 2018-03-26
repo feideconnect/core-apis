@@ -132,3 +132,12 @@ class AuthzviewTests(unittest.TestCase):
              'status': ['lab'],
              'supporturl': None,
              'systemdescr': None}]
+
+    def test_get_mandatory_clients_client_missing(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_clients.return_value = []
+        self.session.get_mandatory_clients.return_value = [client1]
+        self.session.get_client_by_id.side_effect = KeyError()
+        self.session.get_user_by_id.return_value = users[user1]
+        resp = self.testapp.get('/authorizations/mandatory_clients/', status=200, headers=headers)
+        assert resp.json == []
