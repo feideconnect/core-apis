@@ -18,7 +18,10 @@ def configure(config):
              renderer="json")
 def get_userinfo_v1(request):
     user = get_user(request)
-    return request.userinfo_controller.get_userinfo(user, request.has_permission)
+    try:
+        return request.userinfo_controller.get_userinfo(user, request.has_permission)
+    except KeyError:
+        raise HTTPNotFound
 
 
 @view_config(route_name='get_userinfo_profilephoto_v1', request_method="GET",
