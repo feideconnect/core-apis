@@ -169,6 +169,12 @@ class OrgViewTests(unittest.TestCase):
                    'x-dataporten-userid-sec': 'feide:' + testprincipalname}
         self._test_get_orgpersons(testuser, headers, ['usersearchglobal'], 200)
 
+    def test_get_orgpersons_for_user_bad_authscheme(self):
+        headers = {'Authorization': 'Basic {}'.format('Zm9vOmJhcg=='),  # foo:bar
+                   'x-dataporten-clientid': clientid,
+                   'x-dataporten-userid-sec': 'feide:' + testprincipalname}
+        self._test_get_orgpersons(testuser, headers, ['usersearchglobal'], 401)
+
     def test_get_orgpersons_for_system_no_privs(self):
         headers = {'Authorization': 'Bearer client_token', 'x-dataporten-clientid': clientid}
         self._test_get_orgpersons(testuser, headers, [], 403)

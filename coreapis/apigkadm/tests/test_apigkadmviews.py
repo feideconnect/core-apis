@@ -354,6 +354,12 @@ class APIGKAdmTests(unittest.TestCase):
         self.session().insert_apigk = mock.MagicMock()
         self.testapp.post_json('/apigkadm/apigks/', body, status=400, headers=headers)
 
+    def test_post_apigk_bad_authscheme(self):
+        headers = {'Authorization': 'Basic {}'.format('Zm9vOmJhcg==')}  # foo:bar
+        body = deepcopy(post_body_minimal)
+        self.session().insert_apigk = mock.MagicMock()
+        self.testapp.post_json('/apigkadm/apigks/', body, status=401, headers=headers)
+
     def _test_delete_apigk(self, owner, admins, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         gkid = 'testapi'

@@ -617,6 +617,12 @@ class ClientAdmTests(unittest.TestCase):
         self.session.insert_client = mock.MagicMock()
         self.testapp.post_json('/clientadm/clients/', body, status=400, headers=headers)
 
+    def test_post_client_bad_authscheme(self):
+        headers = {'Authorization': 'Basic {}'.format('Zm9vOmJhcg==')}  # foo:bar
+        body = deepcopy(post_body_minimal)
+        self.session.insert_client = mock.MagicMock()
+        self.testapp.post_json('/clientadm/clients/', body, status=401, headers=headers)
+
     def test_delete_client(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_client_by_id.return_value = deepcopy(retrieved_client)

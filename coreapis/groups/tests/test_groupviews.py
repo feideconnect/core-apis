@@ -137,6 +137,11 @@ class GroupsViewErrorHandlingTests(unittest.TestCase):
         assert groups[1]['id'] == groupid2
         assert 'displayName' in groups[1]
 
+    def test_get_groups_bad_authscheme(self):
+        headers = {'Authorization': 'Basic {}'.format('Zm9vOmJhcg==')}  # foo:bar
+        self.testapp.get('/groups/groups',
+                         status=401, headers=headers)
+
     def test_get_group_bad_prefix(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.testapp.get('/groups/groups/nosuch:group',

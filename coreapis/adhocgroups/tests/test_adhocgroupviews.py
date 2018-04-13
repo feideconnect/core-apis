@@ -196,6 +196,11 @@ class AdHocGroupAdmTests(unittest.TestCase):
         self.session().insert_group = mock.MagicMock()
         self.testapp.post_json('/adhocgroups/', body, status=400, headers=headers)
 
+    def test_post_group_bad_authscheme(self):
+        headers = {'Authorization': 'Basic {}'.format('Zm9vOmJhcg==')}  # foo:bar
+        body = deepcopy(post_body_minimal)
+        self.testapp.post_json('/adhocgroups/', body, status=401, headers=headers)
+
     def _test_delete_group(self, group, httpstat):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().get_group.return_value = group
