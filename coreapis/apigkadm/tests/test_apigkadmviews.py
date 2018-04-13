@@ -1,8 +1,8 @@
 # pylint: disable=invalid-name
 import unittest
+from unittest import mock
 import uuid
 from copy import deepcopy
-from unittest import mock
 import webtest
 from pyramid import testing
 from coreapis import main, middleware
@@ -470,7 +470,7 @@ class APIGKAdmTests(unittest.TestCase):
 
     @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_feide_user(PLATFORMADMIN))
     def test_update_as_platform_admin(self, _):
-            self._test_update_not_owner([], 200)
+        self._test_update_not_owner([], 200)
 
     def test_apigk_exists(self):
         headers = {'Authorization': 'Bearer user_token'}

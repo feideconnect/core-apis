@@ -1,12 +1,12 @@
 from copy import deepcopy
 import json
 import unittest
+from unittest import mock
 import uuid
 
 import webtest
 from pyramid import testing
 
-from unittest import mock
 from coreapis import main, middleware
 
 testrealm = 'ipadi.no'
