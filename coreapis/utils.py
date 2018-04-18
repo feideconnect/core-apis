@@ -309,9 +309,12 @@ def get_user(request):
 
 
 def get_feideids(user):
-    return set((id.split(':', 1)[1]
-                for id in user['userid_sec']
-                if id.startswith('feide:') and '@' in id))
+    try:
+        return set((id.split(':', 1)[1]
+                    for id in user['userid_sec']
+                    if id.startswith('feide:') and '@' in id))
+    except (TypeError, KeyError):
+        return set()
 
 
 def get_feideid(user):
