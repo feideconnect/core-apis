@@ -20,7 +20,7 @@ def get_userinfo_v1(request):
     user = get_user(request)
     try:
         return request.userinfo_controller.get_userinfo(user, request.has_permission)
-    except KeyError:
+    except (KeyError, RuntimeError):
         raise HTTPNotFound
 
 
