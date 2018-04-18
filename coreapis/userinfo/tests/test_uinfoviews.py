@@ -36,6 +36,10 @@ class UinfoViewTests(unittest.TestCase):
         self.ldap.lookup_feideid.side_effect = KeyError
         self.testapp.get('/userinfo/v1/userinfo', status=404, headers=headers)
 
+    def test_get_userinfo_no_secid(self):
+        headers = {'Authorization': 'Bearer user_token_no_secid'}
+        self.testapp.get('/userinfo/v1/userinfo', status=404, headers=headers)
+
     def test_get_profilephoto(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_user_profilephoto.return_value = (
