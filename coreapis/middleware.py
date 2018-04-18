@@ -216,10 +216,8 @@ class MockAuthMiddleware(AuthMiddleware):
         super(MockAuthMiddleware, self).__init__(app, realm)
 
     def lookup_token(self, token):
-        print(token)
         if token in self.tokens:
             data = self.tokens[token]
-            print(data.get('user'))
             return {
                 'FC_USER': data.get('user', None),
                 'FC_CLIENT': data['client'],
