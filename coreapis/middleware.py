@@ -2,6 +2,7 @@ import base64
 import json
 import urllib.parse
 import uuid
+from copy import deepcopy
 
 from aniso8601 import parse_datetime
 from eventlet.pools import Pool as EventletPool
@@ -208,9 +209,17 @@ class MockAuthMiddleware(AuthMiddleware):
         },
     }
 
+    def __init__(self, app, realm):
+        token = deepcopy(self.tokens['user_token'])
+        token['user']['userid_sec'] = None
+        self.tokens['user_token_no_secid'] = token
+        super(MockAuthMiddleware, self).__init__(app, realm)
+
     def lookup_token(self, token):
+        print(token)
         if token in self.tokens:
             data = self.tokens[token]
+            print(data.get('user'))
             return {
                 'FC_USER': data.get('user', None),
                 'FC_CLIENT': data['client'],
