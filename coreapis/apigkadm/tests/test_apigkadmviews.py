@@ -559,6 +559,15 @@ class APIGKAdmTests(unittest.TestCase):
             out = res.body
             assert b'mylittlelogo' in out
 
+    def test_get_apigk_logo_default(self):
+        self.session().get_apigk_logo.return_value = (None, now())
+        for ver in ['', '/v1']:
+            path = '/apigkadm{}/apigks/{}/logo'.format(ver, uuid.uuid4())
+            res = self.testapp.get(path, status=200)
+            out = res.body
+            assert out[1:4] == b'PNG'
+            assert res.content_type == 'image/png'
+
     def test_post_apigk_logo_body(self):
         headers = {'Authorization': 'Bearer user_token', 'Content-Type': 'image/png'}
         self.session().get_apigk.return_value = deepcopy(pre_update)

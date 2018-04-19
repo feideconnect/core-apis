@@ -60,3 +60,12 @@ class UinfoViewTests(unittest.TestCase):
         userid_sec = 'q:foo'
         self.testapp.get('/userinfo/v1/user/media/{}'.format(userid_sec),
                          status=404, headers=headers)
+
+    def test_get_profilephoto_default_wanted(self):
+        headers = {'Authorization': 'Bearer user_token'}
+        self.session.get_user_profilephoto.return_value = (
+            None, datetime.datetime.now())
+        userid_sec = 'p:foo'
+        self.testapp.get('/userinfo/v1/user/media/{}'.format(userid_sec),
+                         status=200, headers=headers)
+
