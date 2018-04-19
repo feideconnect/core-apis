@@ -97,9 +97,14 @@ e.g
 
 userid_sec must be of the form `p:<uuid>`. Authentication is not required.
 
+### Optional paramters
+
+- `usedefault`: Return a default image if no photo has been
+  uploaded. Defaults to `true`.
+
 ### Return values
 
-- `200 OK`: On success. The image is returned as the response body. If no photo
-  has been uploaded a default image  is provided.
-- `404 Not Found`: The requested userid_sec was not found.
+- `200 OK`: On success. The image is returned as the response body.
+- `404 Not Found`: The requested userid_sec was not found, or no photo
+  has been uploaded and `usedefault` is `false`.
 - `304 Not Modified`: If request has the `If-Modified-Since` header set to a timestamp equal or higher than the updated column for this group.
