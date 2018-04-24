@@ -18,6 +18,8 @@ def configure(config):
              renderer="json")
 def get_userinfo_v1(request):
     user = get_user(request)
+    if not user:
+        raise HTTPUnauthorized('No logged in user to return info about')
     try:
         return request.userinfo_controller.get_userinfo(user, request.has_permission)
     except (KeyError, RuntimeError):
