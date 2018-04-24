@@ -1,5 +1,5 @@
 from pyramid.view import view_config
-from pyramid.httpexceptions import HTTPNotFound
+from pyramid.httpexceptions import HTTPNotFound, HTTPUnauthorized
 from coreapis.utils import get_user
 from .controller import UserInfoController
 
