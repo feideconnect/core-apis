@@ -40,6 +40,13 @@ class UinfoViewTests(unittest.TestCase):
         headers = {'Authorization': 'Bearer user_token_no_secid'}
         self.testapp.get('/userinfo/v1/userinfo', status=404, headers=headers)
 
+    def test_get_userinfo_unauthenticated(self):
+        self.testapp.get('/userinfo/v1/userinfo', status=401, headers=None)
+
+    def test_get_userinfo_missing_user(self):
+        headers = {'Authorization': 'Bearer client_token'}
+        self.testapp.get('/userinfo/v1/userinfo', status=401, headers=headers)
+
     def test_get_profilephoto(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session.get_user_profilephoto.return_value = (
