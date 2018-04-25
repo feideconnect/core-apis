@@ -39,10 +39,9 @@ class OrgPersonController(object):
         new_person = {
             'name': person['displayName'],
             'email': person['mail'],
-            'eduPersonPrincipalName': person['eduPersonPrincipalName']
         }
         feideid = 'feide:' + person['eduPersonPrincipalName']
-
+        new_person['userid_sec'] = [feideid]
         userid = None
         try:
             userid = self.session.get_userid_by_userid_sec(feideid)
@@ -56,7 +55,9 @@ class OrgPersonController(object):
                 url = '{}/v1/user/media/{}'.format(self.userinfo_base_url, photo_secid)
                 new_person['picture'] = url
                 subject['userid_sec'].remove(photo_secid)
-            new_person['dataporten-userid_sec'] = subject['userid_sec']
+            secids = set(new_person['userid_sec'])
+            secids.update(subject['userid_sec'])
+            new_person['userid_sec'] = list(secids)
         return new_person
 
     def _search(self, org, query, max_replies):

@@ -113,7 +113,7 @@ class OrgViewTests(unittest.TestCase):
         person = res.json
         assert 'name' in person
         assert 'email' in person
-        assert 'eduPersonPrincipalName' in person
+        assert 'userid_sec' in person
 
     def test_get_orgperson_no_photo(self):
         headers = {'Authorization': 'Bearer client_token', 'x-dataporten-clientid': clientid}
@@ -154,7 +154,7 @@ class OrgViewTests(unittest.TestCase):
         person = res.json[0]
         assert 'name' in person
         assert 'email' in person
-        assert 'eduPersonPrincipalName' in person
+        assert 'userid_sec' in person
 
     def test_get_orgpersons_for_user_no_privs(self):
         headers = {'Authorization': 'Bearer user_token', 'x-dataporten-clientid': clientid,
