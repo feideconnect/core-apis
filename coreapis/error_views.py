@@ -1,5 +1,5 @@
 from pyramid.view import view_config, forbidden_view_config, notfound_view_config
-from pyramid.httpexceptions import HTTPConflict
+from pyramid.httpexceptions import HTTPUnauthorized, HTTPConflict
 
 from .utils import www_authenticate, ValidationError, LogWrapper
 
@@ -47,6 +47,15 @@ def validation_error(context, request):
     request.response.status_code = 400
     LOG.exception('validation error')
     return {'message': context.message}
+
+
+@view_config(context=HTTPUnauthorized, renderer='json')
+def unauthorized_handler(context, request):
+    auth = www_authenticate(request.registry.settings['realm'])
+    message = context.message or 'Not authorized'
+    request.response.status_code = context.status_code
+    request.response.headers['WWW-Authenticate'] = auth
+    return {'message': message}
 
 
 @view_config(context=HTTPConflict, renderer='json')
