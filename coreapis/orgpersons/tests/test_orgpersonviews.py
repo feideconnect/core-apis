@@ -109,7 +109,11 @@ class OrgViewTests(unittest.TestCase):
         self.ldap.lookup_feideid.return_value = ldap_person
         self.session.get_userid_by_userid_sec.return_value = testuserid
         self.session.get_user_by_id.return_value = retrieved_user
-        self._test_get_orgperson('feide:{}'.format(testprincipalname), headers, 200)
+        res = self._test_get_orgperson('feide:{}'.format(testprincipalname), headers, 200)
+        person = res.json
+        assert 'name' in person
+        assert 'email' in person
+        assert 'eduPersonPrincipalName' in person
 
     def test_get_orgperson_no_photo(self):
         headers = {'Authorization': 'Bearer client_token', 'x-dataporten-clientid': clientid}
@@ -147,7 +151,10 @@ class OrgViewTests(unittest.TestCase):
         self.ldap.ldap_search.return_value = [{'attributes': ldap_person}]
         self.session.get_user_by_id.return_value = retrieved_user
         res = self._test_get_orgpersons(testprincipalname, headers, subscopes_all, 200)
-        assert len(res.json) == 1
+        person = res.json[0]
+        assert 'name' in person
+        assert 'email' in person
+        assert 'eduPersonPrincipalName' in person
 
     def test_get_orgpersons_for_user_no_privs(self):
         headers = {'Authorization': 'Bearer user_token', 'x-dataporten-clientid': clientid,
