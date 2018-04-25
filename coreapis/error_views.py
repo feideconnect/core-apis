@@ -19,7 +19,7 @@ def forbidden(context, request):
     else:
         auth = www_authenticate(request.registry.settings['realm'])
         request.response.status_code = 401
-        message = 'Not authorized'
+        message = context.message or 'Not authorized'
     if auth:
         request.response.headers['WWW-Authenticate'] = auth
     return {'message': message}
