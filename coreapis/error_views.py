@@ -1,5 +1,5 @@
 from pyramid.view import view_config, forbidden_view_config, notfound_view_config
-from pyramid.httpexceptions import HTTPError, HTTPUnauthorized, HTTPConflict
+from pyramid.httpexceptions import HTTPError, HTTPUnauthorized
 
 from .utils import www_authenticate, ValidationError, LogWrapper
 
@@ -56,13 +56,6 @@ def unauthorized_handler(context, request):
     request.response.status_code = context.status_code
     request.response.headers['WWW-Authenticate'] = auth
     return {'message': message}
-
-
-@view_config(context=HTTPConflict, renderer='json')
-def conflict_handler(context, request):
-    request.response.status_code = 409
-    LOG.exception('validation error')
-    return {'message': context.message}
 
 
 @view_config(context=HTTPError, renderer='json')
