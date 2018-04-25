@@ -214,6 +214,11 @@ class APIGKAdmTests(unittest.TestCase):
             assert 'docurl' in res.json[0]
             assert 'endpoints' not in res.json[0]
 
+    def test_list_public_apigks_bad_max_requests(self):
+        path = '/apigkadm/v1/public?max_replies=tjueni'
+        res = self.testapp.get(path, status=400)
+        assert 'message' in res.json  # Checking if error is reported as json, not text
+
     def test_post_apigk_minimal(self):
         headers = {'Authorization': 'Bearer user_token'}
         self.session().insert_apigk = mock.MagicMock()
