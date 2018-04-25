@@ -39,6 +39,7 @@ class OrgPersonController(object):
         new_person = {
             'name': person['displayName'],
             'email': person['mail'],
+            'eduPersonPrincipalName': person['eduPersonPrincipalName']
         }
         feideid = 'feide:' + person['eduPersonPrincipalName']
 
