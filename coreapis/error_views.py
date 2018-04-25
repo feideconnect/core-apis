@@ -1,5 +1,5 @@
 from pyramid.view import view_config, forbidden_view_config, notfound_view_config
-from pyramid.httpexceptions import HTTPUnauthorized, HTTPConflict
+from pyramid.httpexceptions import HTTPError, HTTPUnauthorized, HTTPConflict
 
 from .utils import www_authenticate, ValidationError, LogWrapper
 
@@ -63,3 +63,11 @@ def conflict_handler(context, request):
     request.response.status_code = 409
     LOG.exception('validation error')
     return {'message': context.message}
+
+
+@view_config(context=HTTPError, renderer='json')
+def http_exception_handler(context, request):
+    request.response.status_code = context.status_code
+    message = context.message or str(context)
+    LOG.exception(message)
+    return {'message': message}
