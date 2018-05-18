@@ -6,6 +6,7 @@ import uuid
 
 import webtest
 from pyramid import testing
+from ldap3.core.exceptions import LDAPSessionTerminatedByServerError
 
 from coreapis import main, middleware
 
@@ -91,6 +92,11 @@ class OrgViewTests(unittest.TestCase):
         self.ldap.lookup_feideid.side_effect = KeyError
         self._test_get_orgperson('feide:{}'.format(testprincipalname), headers, 404)
 
+    def test_get_orgperson_ldap_failure(self):
+        headers = {'Authorization': 'Bearer client_token', 'x-dataporten-clientid': clientid}
+        self.ldap.lookup_feideid.side_effect = LDAPSessionTerminatedByServerError
+        self._test_get_orgperson('feide:{}'.format(testprincipalname), headers, 500)
+
     def test_get_orgperson_for_user(self):
         headers = {'Authorization': 'Bearer user_token', 'x-dataporten-clientid': clientid,
                    'x-dataporten-userid-sec': 'feide:' + testprincipalname}
@@ -155,6 +161,11 @@ class OrgViewTests(unittest.TestCase):
         assert 'name' in person
         assert 'email' in person
         assert 'userid_sec' in person
+
+    def test_get_orgpersons_ldap_failure(self):
+        headers = {'Authorization': 'Bearer client_token', 'x-dataporten-clientid': clientid}
+        self.ldap.ldap_search.side_effect = LDAPSessionTerminatedByServerError
+        self._test_get_orgpersons(testuser, headers, subscopes_all, 500)
 
     def test_get_orgpersons_for_user_no_privs(self):
         headers = {'Authorization': 'Bearer user_token', 'x-dataporten-clientid': clientid,
