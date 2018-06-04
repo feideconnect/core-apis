@@ -17,7 +17,8 @@ from coreapis.authproviders import AUTHPROVMGR, REGISTER_CLIENT
 from coreapis.utils import (
     LogWrapper, timestamp_adapter, ValidationError, ForbiddenError,
     valid_url, valid_name, valid_description, userinfo_for_log,
-    get_platform_admins, PRIV_PLATFORM_ADMIN, public_userinfo, public_orginfo)
+    get_platform_admins, get_approved_creators, PRIV_PLATFORM_ADMIN, public_userinfo,
+    public_orginfo)
 
 
 USER_SETTABLE_STATUS_FLAGS = {'Public'}
@@ -106,6 +107,8 @@ class ClientAdmController(CrudControllerBase):
         self.session = cassandra_client.Client(contact_points, keyspace, authz=authz)
         platformadmins_file = settings.get('platformadmins_file')
         self.platformadmins = get_platform_admins(platformadmins_file)
+        approved_creators_file = settings.get('approved_creators_file')
+        self.approved_creators = set(get_approved_creators(approved_creators_file))
         self.scopemgr = ScopesManager(settings, self.session, self.get_public_info, False)
         self.log = LogWrapper('clientadm.ClientAdmController')
         self.groupengine_base_url = settings.get('groupengine_base_url')
@@ -217,6 +220,12 @@ class ClientAdmController(CrudControllerBase):
                 (not org and self.is_owner(user, client))):
             return True
         return self.is_delegated_admin(client, token)
+
+    def has_add_permission(self, user, token):
+        groupids = set(self.get_my_groupids(token))
+        allowed_for_id_provider = AUTHPROVMGR.has_user_permission(user, REGISTER_CLIENT)
+        approved_creator = bool(set(self.approved_creators).intersection(groupids))
+        return allowed_for_id_provider or approved_creator
 
     def get(self, clientid):
         self.log.debug('Get client', clientid=clientid)
@@ -440,8 +449,8 @@ class ClientAdmController(CrudControllerBase):
                       audit=True, clientid=clientid, realm=realm, user=userinfo_for_log(user))
         self.session.delete_orgauthorization(clientid, realm)
 
-    def get_policy(self, user):
-        approved = AUTHPROVMGR.has_user_permission(user, REGISTER_CLIENT)
+    def get_policy(self, user, token):
+        approved = self.has_add_permission(user, token)
         return dict(register=approved)
 
     def get_logins_stats(self, clientid, end_date, num_days, authsource):

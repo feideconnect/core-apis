@@ -45,7 +45,8 @@ class APIGKAdmTests(unittest.TestCase):
             },
             enabled_components='apigkadm',
             apigkadm_maxrows=100,
-            clientadm_scopedefs_file='testdata/scopedefs_testing.json')
+            clientadm_scopedefs_file='testdata/scopedefs_testing.json',
+            approved_creators_file='testdata/approved_creators_testing.json',)
         mw = middleware.MockAuthMiddleware(app, 'test realm')
         self.session = Client
         self.testapp = webtest.TestApp(mw)
@@ -244,6 +245,12 @@ class APIGKAdmTests(unittest.TestCase):
     @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_user('linkbook', '12345'))
     def test_post_apigk_not_feide(self, _):
         self._test_post_apigk_minimal(403)
+
+    @mock.patch('coreapis.apigkadm.views.get_user', return_value=make_user('linkbook', '12345'))
+    def test_post_apigk_approved_creator_not_feide(self, _):
+        with mock.patch('coreapis.apigkadm.controller.APIGKAdmController.get_my_groupids',
+                        return_value=['fc:adhoc:foo']):
+            self._test_post_apigk_minimal(201)
 
     def test_post_apigk_path(self):
         headers = {'Authorization': 'Bearer user_token'}

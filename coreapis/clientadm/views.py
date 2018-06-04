@@ -8,7 +8,6 @@ from pyramid.response import Response
 from coreapis.utils import (
     AlreadyExistsError, ForbiddenError, ValidationError, get_payload, get_token, get_user,
     translation, get_logo_bytes)
-from coreapis.authproviders import REGISTER_CLIENT, AUTHPROVMGR
 from .controller import ClientAdmController
 
 
@@ -127,13 +126,14 @@ def get_client(request):
 def add_client(request):
     payload = get_payload(request)
     user = get_user(request)
+    token = get_token(request)
     controller = request.cadm_controller
     privileges = controller.get_privileges(user)
     attrs = controller.allowed_attrs(payload, 'add', privileges)
     if 'organization' in attrs:
         if not controller.is_admin(user, attrs['organization']):
             raise HTTPForbidden('Not administrator for organization')
-    elif not AUTHPROVMGR.has_user_permission(user, REGISTER_CLIENT):
+    elif not controller.has_add_permission(user, token):
         raise HTTPForbidden('Insufficient permissions')
     try:
         client = controller.add(attrs, user, privileges)
@@ -295,7 +295,8 @@ def get_realmclients(request):
              permission='scope_clientadmin', renderer="json")
 def policy(request):
     user = get_user(request)
-    return request.cadm_controller.get_policy(user)
+    token = get_token(request)
+    return request.cadm_controller.get_policy(user, token)
 
 
 @view_config(route_name='logins_stats', request_method="GET",

@@ -9,9 +9,10 @@ from coreapis import cassandra_client
 from coreapis.crud_base import CrudControllerBase
 from coreapis.clientadm.controller import ClientAdmController
 from coreapis.scopes.manager import ScopesManager
+from coreapis.authproviders import AUTHPROVMGR, REGISTER_APIGK
 from coreapis.utils import (
     LogWrapper, timestamp_adapter, log_token, valid_url, valid_name,
-    valid_description, userinfo_for_log, get_platform_admins)
+    valid_description, userinfo_for_log, get_platform_admins, get_approved_creators)
 
 
 def valid_gk_url(url):
@@ -72,6 +73,8 @@ class APIGKAdmController(CrudControllerBase):
         self.session = cassandra_client.Client(contact_points, keyspace, authz=authz)
         platformadmins_file = settings.get('platformadmins_file')
         self.platformadmins = get_platform_admins(platformadmins_file)
+        approved_creators_file = settings.get('approved_creators_file')
+        self.approved_creators = set(get_approved_creators(approved_creators_file))
         self.log = LogWrapper('apigkadm.APIGKAdmController')
         self.scopemgr = ScopesManager(settings, self.session, self.get_public_info, True)
         self.groupengine_base_url = settings.get('groupengine_base_url')
@@ -107,6 +110,12 @@ class APIGKAdmController(CrudControllerBase):
                 (not org and self.is_owner(apigk, user))):
             return True
         return self.is_delegated_admin(apigk, token)
+
+    def has_add_permission(self, user, token):
+        groupids = set(self.get_my_groupids(token))
+        allowed_for_id_provider = AUTHPROVMGR.has_user_permission(user, REGISTER_APIGK)
+        approved_creator = bool(set(self.approved_creators).intersection(groupids))
+        return allowed_for_id_provider or approved_creator
 
     def get(self, gkid):
         self.log.debug('Get apigk', gkid=gkid)

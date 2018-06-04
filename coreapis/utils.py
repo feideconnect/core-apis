@@ -415,6 +415,11 @@ def get_platform_admins(filename):
     return contents.get('platformadmins', [])
 
 
+def get_approved_creators(filename):
+    contents = json_load(filename, fallback={"approved_creators": []})
+    return contents.get('approved_creators', [])
+
+
 class ResourcePool(object):
     def __init__(self, min_size=0, max_size=4, order_as_stack=False, create=None):
         self.create = create

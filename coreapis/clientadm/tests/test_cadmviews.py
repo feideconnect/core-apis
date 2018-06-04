@@ -54,6 +54,7 @@ class ClientAdmTests(unittest.TestCase):
             },
             enabled_components='clientadm',
             clientadm_scopedefs_file='testdata/scopedefs_testing.json',
+            approved_creators_file='testdata/approved_creators_testing.json',
             clientadm_system_moderator='noreply@uninett.no',
             clientadm_maxrows=100)
         mw = middleware.MockAuthMiddleware(app, 'test realm')
@@ -363,6 +364,13 @@ class ClientAdmTests(unittest.TestCase):
                 return_value=make_feide_user(FEIDETESTER))
     def test_post_client_feide_tester(self, _):
         self._test_post_client_minimal(403)
+
+    @mock.patch('coreapis.clientadm.views.get_user',
+                return_value=make_user('linkbook', '12345'))
+    def test_post_client_approved_creator_not_feide(self, _):
+        with mock.patch('coreapis.clientadm.controller.ClientAdmController.get_my_groupids',
+                        return_value=['fc:adhoc:foo']):
+            self._test_post_client_minimal(201)
 
     @mock.patch('coreapis.clientadm.views.get_user',
                 return_value=make_user('nin', '10108012345'))
