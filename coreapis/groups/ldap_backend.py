@@ -310,7 +310,8 @@ class LDAPBackend(BaseBackend):
                     ou = self._get_orgunit(realm, org_unit_dn, primary_org_unit)
                     result.append(ou)
                 except Exception:  # pylint: disable=broad-except
-                    self.log.exception('Could not format OU data, org_unit_dn={}'.format(org_unit_dn))
+                    self.log.exception(
+                        'Could not format OU data, org_unit_dn={}'.format(org_unit_dn))
         if 'eduPersonEntitlement' in attributes:
             result.extend(self._handle_grepcodes(attributes['eduPersonEntitlement']))
             result.extend(self._handle_go_groups(realm, attributes['eduPersonEntitlement'],
