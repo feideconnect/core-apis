@@ -167,7 +167,7 @@ class RetryPool(object):
         self.log = LogWrapper('ldap.RetryPool', org=self.org)
 
     def search(self, base_dn, search_filter, scope, attributes, size_limit=None):
-        exception = RuntimeError('No servers alive')
+        exception = RuntimeError('No servers alive for organization {}'.format(self.org))
         candidate_servers = self.alive_servers()
         if not candidate_servers:
             candidate_servers = self.servers
