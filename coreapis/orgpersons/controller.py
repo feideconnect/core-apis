@@ -4,6 +4,9 @@ from coreapis.ldap.controller import validate_query
 from coreapis.peoplesearch.controller import flatten
 from coreapis.utils import LogWrapper
 
+from ldap3.utils.log import set_library_log_detail_level, BASIC
+set_library_log_detail_level(BASIC)
+
 LDAP_ATTRIBUTES = ['displayName', 'mail', 'eduPersonPrincipalName']
 
 
