@@ -34,7 +34,7 @@ class LDAPController(object):
         self.servers = {}
         self.orgpools = {}
         self.parse_ldap_config()
-        self.health_check_interval = 10
+        self.health_check_interval = int(settings.get('ldap_health_check_interval', '10'))
         self.statsd = statsd
         settings.get('status_methods', {})['ldap'] = self.status
         self.last_health_check = 0
