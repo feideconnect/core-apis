@@ -12,7 +12,7 @@ class StatisticsController(object):
         timer = settings.get('timer')
 
         self.timer = timer
-        self.log = LogWrapper('peoplesearch.PeopleSearchController')
+        self.log = LogWrapper('statistics.StatisticsController')
         self.db = coreapis.cassandra_client.Client(contact_points, keyspace, authz=authz)
         self.search_max_replies = 50
         platformadmins_file = settings.get('platformadmins_file')

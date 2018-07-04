@@ -26,7 +26,7 @@ class LDAPController(object):
             'connection_wait': int(settings.get('ldap_max_connection_pool_wait', '1')),
         }
         self.timer = timer
-        self.log = LogWrapper('peoplesearch.LDAPController')
+        self.log = LogWrapper('ldap.LDAPController')
         statsd = settings.get('statsd_factory')()
         self.host_statsd = settings.get('statsd_host_factory')()
         self.config = None

@@ -161,7 +161,7 @@ class Timer(object):
         self.pool = pool(create=lambda: statsd.StatsClient(server, port, prefix=prefix))
         self.log_results = log_results
         if self.log_results:
-            self.log = LogWrapper('coreapis.timers')
+            self.log = LogWrapper('coreapis.Timer')
 
     class Context(object):
         def __init__(self, parent, name, log_results):
@@ -192,7 +192,7 @@ class RateLimiter(object):
     # Requests are let through if client is not among last 1/maxshare
     # clients served, or if there is still room in the client's token bucket.
     def __init__(self, maxshare, capacity, rate):
-        self.log = LogWrapper('dataporten.ratelimit')
+        self.log = LogWrapper('coreapis.RateLimiter')
         self.nwatched = int(1./maxshare + 0.5)
         self.recents = deque([None] * self.nwatched)
         self.counts = defaultdict(lambda: 0)
@@ -245,7 +245,7 @@ class RequestTimingTween(object):
         self.handler = handler
         self.registry = registry
         self.timer = registry.settings['timer']
-        self.log = LogWrapper('coreapis.timers')
+        self.log = LogWrapper('coreapis.RequestTimingTween')
 
     def __call__(self, request):
         t0 = time.time()
@@ -556,7 +556,7 @@ class EmailNotifier(object):
         self.sender = settings.get('sender', None)
         self.mta = settings.get('mta', None)
         self.enabled = False
-        self.log = LogWrapper('coreapis.emailnotifier')
+        self.log = LogWrapper('coreapis.EmailNotifier')
         if settings.get('enabled', '') == 'true':
             if self.sender and self.mta:
                 self.enabled = True
