@@ -181,7 +181,7 @@ class ClientAdmTests(unittest.TestCase):
 
     def test_list_clients_user_is_delegate(self):
         res = self._test_list_clients_delegated([testadmins[0], 'fc:adhoc:foo'])
-        assert len(res.json) == 1
+        assert len(res.json) == 2
 
     def test_list_clients_by_scope(self):
         headers = {'Authorization': 'Bearer user_token'}

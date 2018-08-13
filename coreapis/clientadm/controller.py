@@ -158,7 +158,7 @@ class ClientAdmController(CrudControllerBase):
             clients = self.list_by_admin(groupid, scope)
             for client in clients:
                 clientid = client['id']
-                if client['owner'] != userid and clientid not in delegated_ids:
+                if clientid not in delegated_ids:
                     delegated.append(client)
                     delegated_ids.add(clientid)
         return delegated

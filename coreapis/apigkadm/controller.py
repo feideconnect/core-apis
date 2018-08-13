@@ -188,7 +188,7 @@ class APIGKAdmController(CrudControllerBase):
             apigks = self.list_by_admin(groupid)
             for gk in apigks:
                 gkid = gk['id']
-                if gk['owner'] != userid and gkid not in delegated_ids:
+                if gkid not in delegated_ids:
                     delegated.append(gk)
                     delegated_ids.add(gkid)
         return delegated
