@@ -9,6 +9,8 @@ ldap-config.json
 scopedefs.json
 *.egg-info
 testresults.xml
+testresults-eventlet.xml
 htmlcov
+coverage.xml
 pylint.out
 .cache
