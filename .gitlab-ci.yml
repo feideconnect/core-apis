@@ -1,0 +1,86 @@
+variables:
+  IMAGE_NAME_BASE: 'registry.uninett.no/public/dataporten-core-apis-base'
+  IMAGE_NAME_APIGKADM: 'registry.uninett.no/public/dataporten-core-apis-apigkadm'
+  IMAGE_NAME_CLIENTADM: 'registry.uninett.no/public/dataporten-core-apis-clientadm'
+  IMAGE_NAME_COREAPIS: 'registry.uninett.no/public/dataporten-core-apis-core-apis'
+  IMAGE_NAME_GROUPENGINE: 'registry.uninett.no/public/dataporten-core-apis-groupengine'
+  IMAGE_NAME_ORGPERSONS: 'registry.uninett.no/public/dataporten-core-apis-orgpersons'
+
+image: registry.uninett.no/public/docker-builder:1.13.1-uninett9
+
+stages:
+ - test
+ - sonarcloud
+ - build
+ - staging
+ - production
+
+pytest:
+  stage: test
+  script:
+    - apk add --no-cache bash python3
+    - pip3 install docker-compose
+    - ./run-tests.sh
+  only:
+    - branches
+  artifacts:
+    paths:
+      - pylint.out
+      - testresults.xml
+      - testresults-eventlet.xml
+      - coverage.xml
+      - htmlcov/
+  
+sonarqube-report:
+  stage: sonarcloud
+  image: registry.uninett.no/public/sonar-scanner:latest
+  variables:
+    SONAR_PROJECT_VERSION: $CI_COMMIT_SHA
+    SONAR_BRANCH: $CI_COMMIT_REF_NAME
+    SONAR_BRANCH_TARGET: master
+  script:
+    - ./sonarcloud-run.sh
+
+build:
+  stage: build
+  script:
+    - docker build --pull --no-cache -t "$IMAGE_NAME_BASE:$CI_COMMIT_SHA" --build-arg JENKINS_BUILD_NUMBER="$CI_PIPELINE_ID" .
+    - docker tag "$IMAGE_NAME_BASE:$CI_COMMIT_SHA" "$IMAGE_NAME_BASE:latest"
+    - docker push "$IMAGE_NAME_BASE:$CI_COMMIT_SHA"
+    - docker build -t "$IMAGE_NAME_APIGKADM:$CI_COMMIT_SHA" apps/apigkadm
+    - docker push "$IMAGE_NAME_APIGKADM:$CI_COMMIT_SHA"
+    - docker build -t "$IMAGE_NAME_CLIENTADM:$CI_COMMIT_SHA" apps/clientadm
+    - docker push "$IMAGE_NAME_CLIENTADM:$CI_COMMIT_SHA"
+    - docker build -t "$IMAGE_NAME_COREAPIS:$CI_COMMIT_SHA" apps/core-apis
+    - docker push "$IMAGE_NAME_COREAPIS:$CI_COMMIT_SHA"
+    - docker build -t "$IMAGE_NAME_GROUPENGINE:$CI_COMMIT_SHA" apps/groupengine
+    - docker push "$IMAGE_NAME_GROUPENGINE:$CI_COMMIT_SHA"
+    - docker build -t "$IMAGE_NAME_ORGPERSONS:$CI_COMMIT_SHA" apps/orgpersons
+    - docker push "$IMAGE_NAME_ORGPERSONS:$CI_COMMIT_SHA"
+  only:
+    - branches
+
+tag-production:
+  stage: production
+  script:
+    - docker pull "$IMAGE_NAME_BASE:$CI_COMMIT_SHA"
+    - docker tag "$IMAGE_NAME_BASE:$CI_COMMIT_SHA" "$IMAGE_NAME_BASE:latest"
+    - docker push "$IMAGE_NAME_BASE:latest"
+    - docker pull "$IMAGE_NAME_APIGKADM:$CI_COMMIT_SHA"
+    - docker tag "$IMAGE_NAME_APIGKADM:$CI_COMMIT_SHA" "$IMAGE_NAME_APIGKADM:latest"
+    - docker push "$IMAGE_NAME_APIGKADM:latest"
+    - docker pull "$IMAGE_NAME_CLIENTADM:$CI_COMMIT_SHA"
+    - docker tag "$IMAGE_NAME_CLIENTADM:$CI_COMMIT_SHA" "$IMAGE_NAME_CLIENTADM:latest"
+    - docker push "$IMAGE_NAME_CLIENTADM:latest"
+    - docker pull "$IMAGE_NAME_COREAPIS:$CI_COMMIT_SHA"
+    - docker tag "$IMAGE_NAME_COREAPIS:$CI_COMMIT_SHA" "$IMAGE_NAME_COREAPIS:latest"
+    - docker push "$IMAGE_NAME_COREAPIS:latest"
+    - docker pull "$IMAGE_NAME_GROUPENGINE:$CI_COMMIT_SHA"
+    - docker tag "$IMAGE_NAME_GROUPENGINE:$CI_COMMIT_SHA" "$IMAGE_NAME_GROUPENGINE:latest"
+    - docker push "$IMAGE_NAME_GROUPENGINE:latest"
+    - docker pull "$IMAGE_NAME_ORGPERSONS:$CI_COMMIT_SHA"
+    - docker tag "$IMAGE_NAME_ORGPERSONS:$CI_COMMIT_SHA" "$IMAGE_NAME_ORGPERSONS:latest"
+    - docker push "$IMAGE_NAME_ORGPERSONS:latest"
+  only:
+    - master
+  when: manual
