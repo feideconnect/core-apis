@@ -19,4 +19,5 @@ keys = [
     "/fc/fs/baseurl",
     "/fc/fs/username",
     "/fc/fs/password",
+    "/fc/fs/probe/feideid",
 ]

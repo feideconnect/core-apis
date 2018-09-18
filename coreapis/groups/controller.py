@@ -98,3 +98,7 @@ class GroupsController(object):
             for gtype in backend.grouptypes():
                 types[gtype['id']] = gtype
         return list(types.values())
+
+    def backend_probe(self, backend_id):
+        backend = self.backends[backend_id]
+        return backend.probe()

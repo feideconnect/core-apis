@@ -23,6 +23,7 @@ def configure(config):
     config.add_route('groups', '/groups')
     config.add_route('grouptypes_v1', '/v1/grouptypes')
     config.add_route('grouptypes', '/grouptypes')
+    config.add_route('backend_probe', '/backends/{backend}/probe')
     config.scan(__name__)
 
 
@@ -136,3 +137,13 @@ def grouptypes_v1(request):
 @view_config(route_name='grouptypes', renderer='json', permission='scope_groups')
 def grouptypes(request):
     return grouptypes_v1(request)
+
+
+
+@view_config(route_name='backend_probe', renderer='json', permission='scope_groups')
+def backend_probe(request):
+    backend = request.matchdict['backend']
+    try:
+        return request.groups_controller.backend_probe(backend)
+    except (AttributeError, KeyError):
+        raise HTTPNotFound

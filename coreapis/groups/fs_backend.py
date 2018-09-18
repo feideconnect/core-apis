@@ -16,6 +16,7 @@ class FsBackend(BaseBackend):
         self.base_url = settings.get('fs_base_url')
         self.fs_user = settings.get('fs_username')
         self.fs_pass = settings.get('fs_password')
+        self.fs_probe_feideid = settings.get('fs_probe_feideid')
         contact_points = settings.get('cassandra_contact_points')
         keyspace = settings.get('cassandra_keyspace')
         authz = settings.get('cassandra_authz')
@@ -140,3 +141,12 @@ class FsBackend(BaseBackend):
                 }),
             },
         ]
+
+    # Probe succeeds if no. of groups returned is > 0
+    def probe(self):
+        if not self.fs_probe_feideid:
+            self.log.warn("No feideid given for fs backend probe")
+            return False
+        res = len(self._get_member_groups(True, self.fs_probe_feideid))
+        self.log.debug("probe", res=res)
+        return res > 0
