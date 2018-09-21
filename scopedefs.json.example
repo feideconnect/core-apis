@@ -56,8 +56,8 @@
 		}
 	},
 	"userid-nin": {
-		"title": "Personnummer",
-		"descr": "Brukerens personnummer",
+		"title": "Fødselsnummer",
+		"descr": "Brukerens fødselsnummer",
 		"public": false,
 		"policy": {
 			"auto": false
